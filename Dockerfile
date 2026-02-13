@@ -8,6 +8,7 @@ FROM node:22-bookworm-slim
       python3-pip \
       build-essential \
       curl \
+      git \
       && rm -rf /var/lib/apt/lists/*
 
   # Install OpenClaw CLI
