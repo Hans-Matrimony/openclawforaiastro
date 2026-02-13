@@ -5,10 +5,7 @@
   "agents": {
     "defaults": {
       "workspace": "/root/.openclaw/workspace",
-      "model": {
-        "provider": "zhipu",
-        "name": "glm-4"
-      }
+      "model": "glm-4"
     }
   }
 }
