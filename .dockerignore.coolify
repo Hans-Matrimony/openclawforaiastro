@@ -1,0 +1,82 @@
+# Git
+.git
+.gitignore
+.github
+
+# Dependencies (will be installed in container)
+node_modules
+.pnpm-store
+
+# Build artifacts (will be built in container)
+dist
+*.log
+
+# Documentation
+README.md
+README-header.png
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+SECURITY.md
+AGENTS.md
+docs
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Test files
+test
+*.test.ts
+*.spec.ts
+coverage
+.nyc_output
+
+# CI/CD
+.github
+.gitattributes
+
+# Misc
+.env.example
+*.sh
+.editorconfig
+
+# Extensions that aren't needed for gateway
+extensions/bluebubbles
+extensions/copilot-proxy
+extensions/diagnostics-otel
+extensions/discord
+extensions/feishu
+extensions/google-antigravity-auth
+extensions/google-gemini-cli-auth
+extensions/imessage
+extensions/line
+extensions/llm-task
+extensions/lobster
+extensions/matrix
+extensions/mattermost
+extensions/memory-core
+extensions/memory-lancedb
+extensions/minimax-portal-auth
+extensions/msteams
+extensions/nextcloud-talk
+extensions/nostr
+extensions/open-prose
+extensions/qwen-portal-auth
+extensions/signal
+extensions/slack
+extensions/twitch
+extensions/voice-call
+extensions/zalo
+extensions/zalouser
+
+# Keep only enabled extensions
+!extensions/whatsapp
+!extensions/telegram
+!extensions/webchat
+
+# Apps
+apps
