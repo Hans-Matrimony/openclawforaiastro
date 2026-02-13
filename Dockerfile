@@ -28,6 +28,10 @@ FROM node:22-bookworm-slim
   ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
   ENV NODE_ENV=production
 
+  # GLM/Zhipu API Key (set in Coolify environment variables)
+  ARG ZHIPU_API_KEY
+  ENV ZHIPU_API_KEY=${ZHIPU_API_KEY}
+
   # Expose port
   EXPOSE 8000
 
