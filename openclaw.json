@@ -1,28 +1,14 @@
 {
   "gateway": {
-    "mode": "local",
-    "auth": {
-      "type": "none"
-    }
+    "mode": "local"
   },
   "agents": {
     "defaults": {
-      "workspace": "/app/.openclaw/workspace",
+      "workspace": "/root/.openclaw/workspace",
       "model": {
         "provider": "zhipu",
         "name": "glm-4"
       }
-    },
-    "list": [
-      {
-        "id": "main",
-        "name": "Hans AI",
-        "workspace": "/app/.openclaw/workspace",
-        "model": {
-          "provider": "zhipu",
-          "name": "glm-4"
-        }
-      }
-    ]
+    }
   }
 }
