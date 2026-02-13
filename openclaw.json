@@ -1,5 +1,8 @@
 {
     "version": "1.0.0",
+    "gateway": {
+      "mode": "local"
+    },
     "agents": {
       "defaults": {
         "workspace": "/app/.openclaw/workspace",
