@@ -1,11 +1,46 @@
 {
+  "version": "1.0.0",
   "gateway": {
-    "mode": "local"
+    "mode": "local",
+    "host": "0.0.0.0",
+    "port": 8000,
+    "auth": {
+      "mode": "none"
+    }
   },
   "agents": {
     "defaults": {
-      "workspace": "/root/.openclaw/workspace",
-      "model": "glm-4"
-    }
-  }
+      "workspace": "/app/.openclaw/workspace",
+      "model": "glm-4",
+      "thinking": "medium"
+    },
+    "list": [
+      {
+        "id": "main",
+        "name": "Hans AI Main",
+        "workspace": "/app/.openclaw/workspace",
+        "model": "glm-4",
+        "identity": {
+          "name": "Hans",
+          "emoji": "🤖",
+          "theme": "Helpful AI assistant"
+        }
+      },
+      {
+        "id": "whatsapp",
+        "name": "WhatsApp Support",
+        "workspace": "/app/.openclaw/whatsapp-workspace",
+        "model": "glm-4",
+        "identity": {
+          "name": "Hans Support",
+          "emoji": "💬",
+          "theme": "Customer support via WhatsApp"
+        }
+      }
+    ]
+  },
+  "bindings": [
+    { "agentId": "main", "channel": "web" },
+    { "agentId": "whatsapp", "channel": "whatsapp" }
+  ]
 }

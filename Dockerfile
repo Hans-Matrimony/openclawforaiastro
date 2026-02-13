@@ -1,36 +1,50 @@
 FROM node:22-bookworm-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    sqlite3 \
-    ffmpeg \
-    python3 \
-    python3-pip \
-    build-essential \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# Cache bust to force rebuild with updated config
+ARG CACHEBUST=1
 
-# Install OpenClaw
-RUN npm install -g openclaw@latest
+  # Install system dependencies
+  RUN apt-get update && apt-get install -y \
+      sqlite3 \
+      ffmpeg \
+      python3 \
+      python3-pip \
+      build-essential \
+      curl \
+      git \
+      && rm -rf /var/lib/apt/lists/*
 
-# Create correct config location
-RUN mkdir -p /root/.openclaw/workspace
+  # Install OpenClaw CLI
+  RUN npm install -g openclaw@latest
 
-# Copy config to expected location
-COPY openclaw.json /root/.openclaw/openclaw.json
+  # Create workspace directory
+  RUN mkdir -p /app/.openclaw
 
-# Force local mode
-ENV OPENCLAW_STATE_DIR=/root/.openclaw
-ENV OPENCLAW_CONFIG_PATH=/root/.openclaw/openclaw.json
-ENV OPENCLAW_GATEWAY_MODE=local
-ENV OPENCLAW_GATEWAY_HOST=0.0.0.0
-ENV OPENCLAW_GATEWAY_PORT=8000
-ENV NODE_ENV=production
+  WORKDIR /app
 
-EXPOSE 8000
+  # Copy configuration files
+  COPY openclaw.json /app/.openclaw/
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-  CMD curl -f http://localhost:8000 || exit 1
+  # Create id_keys directory
+  RUN mkdir -p /app/.openclaw/id_keys
 
-CMD ["openclaw", "gateway"]
+  ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
+  ENV NODE_ENV=production
+
+  # GLM/Zhipu API Key (set in Coolify environment variables)
+  ARG ZHIPU_API_KEY
+  ENV ZHIPU_API_KEY=${ZHIPU_API_KEY}
+
+  # Gateway authentication (optional)
+  ARG OPENCLAW_GATEWAY_TOKEN
+  ENV OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+
+  # Expose port
+  EXPOSE 8000
+
+  # Health check
+  HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+      CMD curl -f http://localhost:8000/health || exit 1
+
+  # Start OpenClaw Gateway
+  CMD ["openclaw", "gateway", "--port", "8000", "--allow-unconfigured"]
