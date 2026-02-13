@@ -11,7 +11,7 @@ FROM node:22-bookworm-slim
       && rm -rf /var/lib/apt/lists/*
 
   # Install OpenClaw CLI
-  RUN npm install -g @openclaw/cli
+  RUN npm install -g openclaw@latest
 
   # Create workspace directory
   RUN mkdir -p /app/.openclaw
