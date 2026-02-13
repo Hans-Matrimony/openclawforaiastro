@@ -36,4 +36,4 @@ FROM node:22-bookworm-slim
       CMD curl -f http://localhost:8000/health || exit 1
 
   # Start OpenClaw Gateway
-  CMD ["openclaw", "gateway", "--host", "0.0.0.0", "--port", "8000"]
+  CMD ["openclaw", "gateway", "--port", "8000"]
