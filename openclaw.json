@@ -1,7 +1,10 @@
 {
     "version": "1.0.0",
     "gateway": {
-      "mode": "local"
+      "mode": "local",
+      "auth": {
+        "mode": "none"
+      }
     },
     "agents": {
       "defaults": {
