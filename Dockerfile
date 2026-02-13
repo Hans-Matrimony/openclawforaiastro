@@ -47,4 +47,4 @@ ARG CACHEBUST=1
       CMD curl -f http://localhost:8000/health || exit 1
 
   # Start OpenClaw Gateway
-  CMD ["openclaw"]
+  CMD ["openclaw", "gateway"]
