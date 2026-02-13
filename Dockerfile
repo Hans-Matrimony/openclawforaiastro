@@ -32,6 +32,10 @@ FROM node:22-bookworm-slim
   ARG ZHIPU_API_KEY
   ENV ZHIPU_API_KEY=${ZHIPU_API_KEY}
 
+  # Gateway authentication (optional)
+  ARG OPENCLAW_GATEWAY_TOKEN
+  ENV OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+
   # Expose port
   EXPOSE 8000
 
