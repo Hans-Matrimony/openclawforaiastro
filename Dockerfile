@@ -1,29 +1,50 @@
 FROM node:22-bookworm-slim
 
-RUN apt-get update && apt-get install -y \
-    sqlite3 \
-    ffmpeg \
-    python3 \
-    python3-pip \
-    build-essential \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# Cache bust to force rebuild with updated config
+ARG CACHEBUST=1
 
-RUN npm install -g openclaw@latest
+  # Install system dependencies
+  RUN apt-get update && apt-get install -y \
+      sqlite3 \
+      ffmpeg \
+      python3 \
+      python3-pip \
+      build-essential \
+      curl \
+      git \
+      && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+  # Install OpenClaw CLI
+  RUN npm install -g openclaw@latest
 
-RUN mkdir -p /app/.openclaw
+  # Create workspace directory
+  RUN mkdir -p /app/.openclaw
 
-COPY openclaw.json /app/.openclaw/openclaw.json
+  WORKDIR /app
 
-ENV OPENCLAW_CONFIG_PATH=/app/.openclaw/openclaw.json
-ENV NODE_ENV=production
+  # Copy configuration files
+  COPY openclaw.json /app/.openclaw/
 
-EXPOSE 8000
+  # Create id_keys directory
+  RUN mkdir -p /app/.openclaw/id_keys
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+  ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
+  ENV NODE_ENV=production
 
-CMD ["openclaw", "gateway", "--port", "8000"]
+  # GLM/Zhipu API Key (set in Coolify environment variables)
+  ARG ZHIPU_API_KEY
+  ENV ZHIPU_API_KEY=${ZHIPU_API_KEY}
+
+  # Gateway authentication (optional)
+  ARG OPENCLAW_GATEWAY_TOKEN
+  ENV OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+
+  # Expose port
+  EXPOSE 8000
+
+  # Health check
+  HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+      CMD curl -f http://localhost:8000/health || exit 1
+
+  # Start OpenClaw Gateway
+  CMD ["openclaw", "gateway", "--port", "8000", "--allow-unconfigured"]
