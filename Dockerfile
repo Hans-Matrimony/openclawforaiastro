@@ -1,7 +1,7 @@
 FROM node:22-bookworm-slim
 
 # Cache bust to force rebuild with updated config
-ARG CACHEBUST=3
+ARG CACHEBUST=4
 
   # Install system dependencies
   RUN apt-get update && apt-get install -y \
