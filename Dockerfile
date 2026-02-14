@@ -47,4 +47,4 @@ ARG CACHEBUST=3
       CMD curl -f http://localhost:8000/health || exit 1
 
   # Start OpenClaw Gateway
-  CMD ["openclaw", "gateway", "--port", "8000", "--allow-unconfigured"]
+  CMD ["openclaw", "gateway", "--port", "8000", "--allow-unconfigured", "--bind", "0.0.0.0"]
