@@ -42,11 +42,6 @@ ARG CACHEBUST=2
   # Expose port
   EXPOSE 8000
 
-  # Coolify/Traefik labels
-  LABEL traefik.enable=true
-  LABEL traefik.http.routers.openclawforaiastro.entrypoints=http
-  LABEL traefik.http.services.openclawforaiastro.loadbalancer.server.port=8000
-
   # Health check
   HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
       CMD curl -f http://localhost:8000/health || exit 1
