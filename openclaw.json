@@ -2,6 +2,8 @@
   "version": "1.0.0",
   "gateway": {
     "mode": "local",
+    "controlUi": { "allowInsecureAuth": true },
+    "bind": "tailnet",
     "port": 8000,
     "auth": {
       "mode": "none"
