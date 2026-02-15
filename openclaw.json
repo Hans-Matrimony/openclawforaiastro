@@ -4,6 +4,7 @@
     "mode": "local",
     "port": 8000,
     "trustedProxies": ["*"],
+    "publicUrl": "https://qwg4so08ccosw44o04ksw0g0.api.hansastro.com",
     "auth": {
       "mode": "none"
     }
