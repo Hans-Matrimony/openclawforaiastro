@@ -22,7 +22,7 @@ ARG CACHEBUST=5
 
   WORKDIR /app
 
-  # Copy configuration files
+  # Copy configuration files (updated 2026-02-16)
   COPY openclaw.json /app/.openclaw/
 
   # Create id_keys directory
