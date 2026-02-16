@@ -9,7 +9,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "__OPENCLAW_REDACTED__"
+      "token": "OPENCLAW_GATEWAY_TOKEN"
     }
   },
   "agents": {
