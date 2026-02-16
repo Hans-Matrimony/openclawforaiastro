@@ -35,8 +35,8 @@ ARG CACHEBUST=5
   ENV NODE_ENV=production
 
   # GLM/Zhipu API Key (set in Coolify environment variables)
-  ARG ZHIPU_API_KEY
-  ENV ZHIPU_API_KEY=${ZHIPU_API_KEY}
+  ARG ZAI_API_KEY
+  ENV ZAI_API_KEY=${ZAI_API_KEY}
 
   # Gateway authentication (optional)
   ARG OPENCLAW_GATEWAY_TOKEN
