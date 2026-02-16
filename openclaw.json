@@ -1,19 +1,23 @@
 {
-  "version": "1.0.0",
   "gateway": {
     "mode": "local",
     "port": 8000,
-    "trustedProxies": ["*"],
-    "publicUrl": "https://qwg4so08ccosw44o04ksw0g0.api.hansastro.com",
+    "controlUi": {
+      "enabled": true,
+      "allowInsecureAuth": true,
+      "allowedOrigins": []
+    },
     "auth": {
-      "mode": "none"
+      "mode": "token",
+      "token": "__OPENCLAW_REDACTED__"
     }
   },
   "agents": {
     "defaults": {
       "workspace": "/app/.openclaw/workspace",
-      "model": "zai/glm-4.7",
-      "thinking": "medium"
+      "model": {
+        "primary": "zai/glm-4.7"
+      }
     },
     "list": [
       {
