@@ -3,33 +3,22 @@
     "mode": "local",
     "bind": "0.0.0.0",
     "port": 8000,
-    "token": "${OPENCLAW_GATEWAY_TOKEN}",
-    "allowUnconfigured": true
+    "auth": {
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    }
   },
   "agents": {
     "defaults": {
-      "model": "zai/glm-4.7",
-      "provider": "zai",
-      "thinking": "low",
-      "temperature": 0.7,
-      "maxTokens": 4096
-    }
-  },
-  "tools": {
-    "memory": {
-      "enabled": true,
-      "backend": "mem0",
-      "mem0": {
-        "url": "${MEM0_URL}"
+      "model": {
+        "primary": "zai/glm-4.7",
+        "fallback": "openai/gpt-4o"
       }
     }
   },
   "channels": {
     "telegram": {
-      "enabled": false
-    },
-    "discord": {
-      "enabled": false
+      "enabled": true,
+      "token": "${TELEGRAM_BOT_TOKEN}"
     }
   },
   "logging": {
