@@ -32,7 +32,6 @@ RUN ls -la /app/.openclaw/ && cat /app/.openclaw/openclaw.json
 RUN mkdir -p /app/.openclaw/id_keys
 
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
-ENV NODE_ENV=production
 
 # GLM/Zhipu API Key (set in Coolify environment variables)
 ARG ZAI_API_KEY
