@@ -25,6 +25,9 @@ ARG CACHEBUST=5
   # Copy configuration files (updated 2026-02-16)
   COPY openclaw.json /app/.openclaw/
 
+  # Ensure config is properly loaded
+  RUN ls -la /app/.openclaw/ && cat /app/.openclaw/openclaw.json
+
   # Create id_keys directory
   RUN mkdir -p /app/.openclaw/id_keys
 
