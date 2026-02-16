@@ -5,19 +5,16 @@
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,
-      "allowedOrigins": []
+      "allowedOrigins": ["*"]
     },
     "auth": {
-      "mode": "token",
-      "token": "OPENCLAW_GATEWAY_TOKEN"
+      "mode": "none"
     }
   },
   "agents": {
     "defaults": {
       "workspace": "/app/.openclaw/workspace",
-      "model": {
-        "primary": "zai/glm-4.7"
-      }
+      "model": "zai/glm-4.7"
     },
     "list": [
       {
