@@ -3,7 +3,12 @@
     "mode": "local",
     "port": 8000,
     "bind": "lan",
+    "controlUi": {
+      "enabled": true,
+      "allowInsecureAuth": true
+    },
     "auth": {
+      "mode": "token",
       "token": "${OPENCLAW_GATEWAY_TOKEN}"
     }
   },
