@@ -34,8 +34,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "zai/glm-4.7",
-        "embedding": "openai/text-embedding-3-small"
+        "primary": "zai/glm-4.7"
       }
     }
   },
