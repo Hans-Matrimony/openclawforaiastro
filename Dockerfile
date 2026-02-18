@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install OpenClaw CLI
-RUN npm install -g openclaw@latest
+# Install uv for Python tool management (needed for mcporter/uvx)
+RUN pip3 install uv --break-system-packages
 
 # Create directories
 RUN mkdir -p /app/.openclaw/agents/main/sessions
@@ -23,6 +24,9 @@ RUN mkdir -p /app/.openclaw/credentials
 RUN mkdir -p /app/.openclaw/id_keys
 RUN mkdir -p /app/.openclaw/workspace
 RUN mkdir -p /app/.openclaw/workspace/memories
+RUN mkdir -p /app/.openclaw/config
+RUN mkdir -p /app/.openclaw/skills
+RUN mkdir -p /app/.openclaw/.pi
 RUN mkdir -p /app/workspace
 
 # Fix permissions
@@ -30,8 +34,13 @@ RUN chmod -R 700 /app/.openclaw
 
 WORKDIR /app
 
-# Copy and fix config
+# Copy configuration and resources
 COPY openclaw.json /app/.openclaw/
+COPY config/ /app/.openclaw/config/
+COPY .pi/ /app/.openclaw/.pi/
+COPY skills/ /app/.openclaw/skills/
+
+# permission fix
 RUN chmod 600 /app/.openclaw/openclaw.json
 
 # Set environment
@@ -44,6 +53,9 @@ ENV OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
 
 ARG ZAI_API_KEY
 ENV ZAI_API_KEY=${ZAI_API_KEY}
+
+ARG OPENAI_API_KEY
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 
 ARG MEM0_URL
 ENV MEM0_URL=${MEM0_URL}
