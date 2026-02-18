@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "qdrant": {
+      "command": "uvx mcp-server-qdrant --transport sse",
+      "env": {
+        "QDRANT_URL": "https://qdrant-x404kkcoksw0gowgg8ooccok.api.hansastro.com",
+        "QDRANT_API_KEY": "meDCptC8YwxwnxKFHcZQlMs16NCP9xJh"
+      }
+    }
+  },
+  "imports": []
+}
