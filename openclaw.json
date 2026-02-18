@@ -8,17 +8,34 @@
       "allowInsecureAuth": true
     },
     "trustedProxies": [
-      "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16"
     ],
     "auth": {
       "mode": "token",
       "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    },
+    "http": {
+      "endpoints": {
+        "chatCompletions": {
+          "enabled": true
+        },
+        "responses": {
+          "enabled": true
+        }
+      }
     }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
   },
   "agents": {
     "defaults": {
       "model": {
-        "primary": "zai/glm-4.7"
+        "primary": "zai/glm-4.7",
+        "embedding": "openai/text-embedding-3-small"
       }
     }
   },
