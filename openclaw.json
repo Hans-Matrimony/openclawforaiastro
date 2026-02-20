@@ -92,21 +92,13 @@
     {
       "agentId": "astrologer",
       "match": {
-        "channel": "whatsapp",
-        "peer": {
-          "kind": "direct",
-          "id": "+918394833858"
-        }
+        "channel": "whatsapp"
       }
     },
     {
       "agentId": "astrologer",
       "match": {
-        "channel": "telegram",
-        "peer": {
-          "kind": "direct",
-          "id": "1572963595"
-        }
+        "channel": "telegram"
       }
     }
   ],
@@ -196,14 +188,6 @@
       "whatsapp": {
         "enabled": true
       }
-    }
-  },
-  "routing": {
-    "telegram": {
-      "defaultAgent": "astrologer"
-    },
-    "whatsapp": {
-      "defaultAgent": "astrologer"
     }
   }
 }
