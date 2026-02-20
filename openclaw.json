@@ -1,21 +1,125 @@
 {
+  "meta": {
+    "lastTouchedVersion": "2026.2.17",
+    "lastTouchedAt": "2026-02-20T05:35:44.021Z"
+  },
+  "logging": {
+    "level": "info"
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "zai/glm-4.7"
+      },
+      "contextPruning": {
+        "tools": {
+          "allow": []
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "name": "Hans AI Main",
+        "workspace": "/app/.openclaw/workspace",
+        "identity": {
+          "name": "Hans",
+          "theme": "Helpful AI assistant",
+          "emoji": "🤖"
+        },
+        "tools": {
+          "profile": "full"
+        }
+      },
+      {
+        "id": "astrologer",
+        "name": "WhatsApp Support",
+        "workspace": "/app/.openclaw/workspace-astrologer",
+        "skills": [
+          "mcporter",
+          "weather",
+          "mem0"
+        ],
+        "identity": {
+          "name": "Hans Support",
+          "theme": "Customer support via WhatsApp",
+          "emoji": "💬"
+        },
+        "tools": {
+          "profile": "messaging"
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "web"
+      }
+    },
+    {
+      "agentId": "astrologer",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "+918394833858"
+        }
+      }
+    }
+  ],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "channels": {
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "+918394833858",
+        "+918394833898"
+      ],
+      "groupPolicy": "allowlist",
+      "debounceMs": 0,
+      "mediaMaxMb": 50
+    },
+    "telegram": {
+      "enabled": true,
+      "configWrites": true,
+      "dmPolicy": "open",
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "allowFrom": [
+        "*"
+      ],
+      "groupPolicy": "allowlist",
+      "dms": {},
+      "streamMode": "partial",
+      "actions": {
+        "reactions": true,
+        "sendMessage": true,
+        "deleteMessage": true,
+        "sticker": true
+      }
+    }
+  },
   "gateway": {
-    "mode": "local",
     "port": 8000,
+    "mode": "local",
     "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
     "trustedProxies": [
       "10.0.0.0/8",
       "172.16.0.0/12",
       "192.168.0.0/16"
     ],
-    "auth": {
-      "mode": "token",
-      "token": "${OPENCLAW_GATEWAY_TOKEN}"
-    },
     "http": {
       "endpoints": {
         "chatCompletions": {
@@ -27,24 +131,14 @@
       }
     }
   },
-  "commands": {
-    "native": "auto",
-    "nativeSkills": "auto"
-  },
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "zai/glm-4.7"
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": true
       }
     }
-  },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "botToken": "${TELEGRAM_BOT_TOKEN}"
-    }
-  },
-  "logging": {
-    "level": "info"
   }
 }

@@ -11,10 +11,15 @@ import urllib.request
 import os
 
 MEM0_SERVER = os.getenv("MEM0_URL", "https://rg4g0gkk0wwkk4cc00g4sg0c.api.hansastro.com")
+MEM0_API_KEY = os.getenv("MEM0_API_KEY")
 
 def call_api(endpoint, payload=None, method="POST"):
     url = f"{MEM0_SERVER}{endpoint}"
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json"
+    }
+    if MEM0_API_KEY:
+        headers["Authorization"] = f"Token {MEM0_API_KEY}"
     
     try:
         data = json.dumps(payload).encode("utf-8") if payload else None
