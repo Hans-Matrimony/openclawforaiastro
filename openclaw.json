@@ -1,30 +1,106 @@
 {
+  "meta": {
+    "lastTouchedVersion": "2026.2.17",
+    "lastTouchedAt": "2026-02-20T05:35:44.021Z"
+  },
   "logging": {
-    "level": "info",
-    "redactSensitive": "tools"
+    "level": "info"
   },
   "agents": {
     "defaults": {
       "model": {
         "primary": "zai/glm-4.7"
       },
-      "maxConcurrent": 4,
-      "subagents": {
-        "maxConcurrent": 8
+      "contextPruning": {
+        "tools": {
+          "allow": []
+        }
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "name": "Hans AI Main",
+        "workspace": "/app/.openclaw/workspace",
+        "identity": {
+          "name": "Hans",
+          "theme": "Helpful AI assistant",
+          "emoji": "🤖"
+        },
+        "tools": {
+          "profile": "full"
+        }
+      },
+      {
+        "id": "astrologer",
+        "name": "WhatsApp Support",
+        "workspace": "/app/.openclaw/workspace-astrologer",
+        "skills": [
+          "mcporter",
+          "weather",
+          "mem0"
+        ],
+        "identity": {
+          "name": "Hans Support",
+          "theme": "Customer support via WhatsApp",
+          "emoji": "💬"
+        },
+        "tools": {
+          "profile": "messaging"
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "web"
+      }
+    },
+    {
+      "agentId": "astrologer",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "+918394833858"
+        }
       }
     }
-  },
+  ],
   "commands": {
     "native": "auto",
     "nativeSkills": "auto"
   },
   "channels": {
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "+918394833858",
+        "+918394833898"
+      ],
+      "groupPolicy": "allowlist",
+      "debounceMs": 0,
+      "mediaMaxMb": 50
+    },
     "telegram": {
       "enabled": true,
-      "dmPolicy": "pairing",
-      "botToken": "dummy_token_for_local_test",
+      "configWrites": true,
+      "dmPolicy": "open",
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "allowFrom": [
+        "*"
+      ],
       "groupPolicy": "allowlist",
-      "streamMode": "partial"
+      "dms": {},
+      "streamMode": "partial",
+      "actions": {
+        "reactions": true,
+        "sendMessage": true,
+        "deleteMessage": true,
+        "sticker": true
+      }
     }
   },
   "gateway": {
@@ -37,7 +113,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "fbaea93d26408ec315095f9e564df9715b4e99b4ec3535875df57df771407c06"
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
     "trustedProxies": [
       "10.0.0.0/8",
@@ -55,18 +131,14 @@
       }
     }
   },
-  "messages": {
-    "ackReactionScope": "group-mentions"
-  },
   "plugins": {
     "entries": {
       "telegram": {
         "enabled": true
+      },
+      "whatsapp": {
+        "enabled": true
       }
     }
-  },
-  "meta": {
-    "lastTouchedVersion": "2026.2.3",
-    "lastTouchedAt": "2026-02-19T22:56:18.938Z"
   }
 }
