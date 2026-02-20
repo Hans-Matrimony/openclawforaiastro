@@ -1,8 +1,4 @@
 {
-  "meta": {
-    "lastTouchedVersion": "2026.2.19-2",
-    "lastTouchedAt": "2026-02-20T06:26:21.246Z"
-  },
   "logging": {
     "level": "info"
   },
@@ -109,7 +105,7 @@
         "channel": "telegram",
         "peer": {
           "kind": "direct",
-          "id": "*"
+          "id": "1572963595"
         }
       }
     }
@@ -167,7 +163,7 @@
   "gateway": {
     "port": 8000,
     "mode": "local",
-    "bind": "loopback",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
