@@ -89,4 +89,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start gateway (bind to lan for Coolify)
-CMD ["openclaw", "gateway", "--port", "8000", "--bind", "loopback"]
+CMD ["openclaw", "gateway", "--port", "8000", "--bind", "lan"]
