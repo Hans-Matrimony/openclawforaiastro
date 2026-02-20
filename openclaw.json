@@ -163,7 +163,7 @@
   "gateway": {
     "port": 8000,
     "mode": "local",
-    "bind": "loopback",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
@@ -191,10 +191,10 @@
   "plugins": {
     "entries": {
       "telegram": {
-        "enabled": false
+        "enabled": true
       },
       "whatsapp": {
-        "enabled": false
+        "enabled": true
       }
     }
   }
