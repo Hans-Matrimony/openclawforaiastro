@@ -35,6 +35,12 @@ Combine:
 If the user shares NEW information (birth details, life events, preferences), **immediately store it in Mem0**:
 `python skills/mem0/mem0_client.py add "<fact to remember>" --user-id "<user_id>"`
 
+### Step 5: Track Interaction for Proactive Follow-ups
+After EVERY user interaction, update `heartbeat-state.json` to track their last activity:
+- Set `users.<user_id>.lastInteraction` to current ISO timestamp
+- Set `users.<user_id>.lastTopic` to the topic discussed (e.g., "marriage", "career", "health", "general")
+- This enables the heartbeat system to send personalized follow-ups to inactive users
+
 ## Response Structure
 
 For every prediction, follow this pattern:
