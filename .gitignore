@@ -70,3 +70,4 @@ start_gateway.ps1
 
 # local tooling
 .serena/
+start_gateway.ps1
