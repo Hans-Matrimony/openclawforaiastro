@@ -25,6 +25,7 @@ RUN mkdir -p /app/.openclaw/credentials
 RUN mkdir -p /app/.openclaw/id_keys
 RUN mkdir -p /app/.openclaw/workspace
 RUN mkdir -p /app/.openclaw/workspace/memories
+RUN mkdir -p /app/.openclaw/workspace-astrologer
 RUN mkdir -p /app/.openclaw/config
 RUN mkdir -p /app/.openclaw/skills
 RUN mkdir -p /app/.openclaw/.pi
@@ -40,6 +41,7 @@ COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
+COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 
 # permission fix
 RUN chmod 600 /app/.openclaw/openclaw.json
@@ -64,8 +66,14 @@ ENV MEM0_URL=${MEM0_URL}
 ARG QDRANT_URL
 ENV QDRANT_URL=${QDRANT_URL}
 
+ARG QDRANT_API_KEY
+ENV QDRANT_API_KEY=${QDRANT_API_KEY}
+
 ARG QDRANT_MCP_URL
 ENV QDRANT_MCP_URL=${QDRANT_MCP_URL}
+
+ARG MEM0_API_KEY
+ENV MEM0_API_KEY=${MEM0_API_KEY}
 
 ARG TELEGRAM_BOT_TOKEN
 ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
