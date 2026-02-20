@@ -25,7 +25,10 @@ RUN mkdir -p /app/.openclaw/credentials
 RUN mkdir -p /app/.openclaw/id_keys
 RUN mkdir -p /app/.openclaw/workspace
 RUN mkdir -p /app/.openclaw/workspace/memories
+
+RUN mkdir -p /app/.openclaw/agents/astrologer/sessions
 RUN mkdir -p /app/.openclaw/workspace-astrologer
+RUN mkdir -p /app/.openclaw/workspace-astrologer/memories
 RUN mkdir -p /app/.openclaw/config
 RUN mkdir -p /app/.openclaw/skills
 RUN mkdir -p /app/.openclaw/.pi
