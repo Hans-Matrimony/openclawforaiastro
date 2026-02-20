@@ -197,5 +197,13 @@
         "enabled": true
       }
     }
+  },
+  "routing": {
+    "telegram": {
+      "defaultAgent": "astrologer"
+    },
+    "whatsapp": {
+      "defaultAgent": "astrologer"
+    }
   }
 }
