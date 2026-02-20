@@ -1,21 +1,49 @@
 {
+  "logging": {
+    "level": "info",
+    "redactSensitive": "tools"
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "zai/glm-4.7"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "botToken": "dummy_token_for_local_test",
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    }
+  },
   "gateway": {
-    "mode": "local",
     "port": 8000,
+    "mode": "local",
     "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "fbaea93d26408ec315095f9e564df9715b4e99b4ec3535875df57df771407c06"
     },
     "trustedProxies": [
       "10.0.0.0/8",
       "172.16.0.0/12",
       "192.168.0.0/16"
     ],
-    "auth": {
-      "mode": "token",
-      "token": "${OPENCLAW_GATEWAY_TOKEN}"
-    },
     "http": {
       "endpoints": {
         "chatCompletions": {
@@ -27,24 +55,18 @@
       }
     }
   },
-  "commands": {
-    "native": "auto",
-    "nativeSkills": "auto"
+  "messages": {
+    "ackReactionScope": "group-mentions"
   },
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "zai/glm-4.7"
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
       }
     }
   },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "botToken": "${TELEGRAM_BOT_TOKEN}"
-    }
-  },
-  "logging": {
-    "level": "info"
+  "meta": {
+    "lastTouchedVersion": "2026.2.3",
+    "lastTouchedAt": "2026-02-19T22:56:18.938Z"
   }
 }
