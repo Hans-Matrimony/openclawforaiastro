@@ -85,7 +85,11 @@
           "emoji": "💬"
         },
         "tools": {
-          "profile": "messaging"
+          "profile": "messaging",
+          "alsoAllow": [
+            "exec",
+            "read"
+          ]
         }
       }
     ]
