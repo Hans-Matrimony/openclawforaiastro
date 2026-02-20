@@ -191,10 +191,10 @@
   "plugins": {
     "entries": {
       "telegram": {
-        "enabled": true
+        "enabled": false
       },
       "whatsapp": {
-        "enabled": true
+        "enabled": false
       }
     }
   }
