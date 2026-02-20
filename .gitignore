@@ -65,8 +65,8 @@ apps/ios/*.mobileprovision
 # Local untracked files
 .local/
 .vscode/
-
 .tgz
+start_gateway.ps1
 
 # local tooling
 .serena/
