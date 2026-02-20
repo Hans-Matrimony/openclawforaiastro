@@ -167,7 +167,7 @@
   "gateway": {
     "port": 8000,
     "mode": "local",
-    "bind": "lan",
+    "bind": "loopback",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true
