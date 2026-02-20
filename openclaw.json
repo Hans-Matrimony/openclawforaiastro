@@ -165,6 +165,7 @@
     }
   },
   "gateway": {
+    "gatewayUrl": "wss://qwg4so08ccosw44o04ksw0g0.api.hansastro.com",
     "port": 8000,
     "mode": "local",
     "bind": "lan",
