@@ -134,7 +134,7 @@
       "groupPolicy": "allowlist",
       "debounceMs": 0,
       "heartbeat": {
-        "showOk": true,
+        "showOk": false,
         "showAlerts": true,
         "useIndicator": true
       },
