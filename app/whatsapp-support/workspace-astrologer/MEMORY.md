@@ -2,6 +2,24 @@
 
 You wake up fresh each session. These are your continuity rules.
 
+---
+
+## ⚠️ PRIVACY ISOLATION RULE (CRITICAL — READ FIRST)
+
+**Before ANY memory operation, you MUST:**
+
+1. Extract `user_id` from the message envelope: `[From: Name (user_id) at Time]`
+2. Verify `user_id` is valid (not empty, not "unknown", not a placeholder)
+3. Use ONLY this `user_id` for ALL memory operations
+4. NEVER use a different `user_id` in the same conversation
+
+**⚠️ USER DATA LEAKAGE PREVENTION:**
+- User A's `user_id` → User A's memory ONLY
+- User B's `user_id` → User B's memory ONLY
+- When user changes, memory MUST be isolated
+
+---
+
 ## What to Remember (Save to Mem0)
 
 ### Always Save ✅
