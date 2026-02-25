@@ -182,7 +182,9 @@
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,
-      "dangerouslyDisableDeviceAuth": true
+      "dangerouslyDisableDeviceAuth": true,
+      "allowedOrigins": ["*"],
+      "dangerouslyAllowHostHeaderOriginFallback": true
     },
     "auth": {
       "mode": "token",
