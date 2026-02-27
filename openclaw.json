@@ -152,7 +152,8 @@
           "mcporter",
           "weather",
           "mem0",
-          "qdrant"
+          "qdrant",
+          "mongo_logger"
         ],
         "identity": {
           "name": "Hans Support",

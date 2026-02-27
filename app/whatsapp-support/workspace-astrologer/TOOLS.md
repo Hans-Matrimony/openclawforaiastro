@@ -62,6 +62,41 @@ python skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
 
 ---
 
+## 📝 Mongo Logger — Chat Transcript
+
+Logs every message (user + assistant) to MongoDB for transcript storage.
+
+### When to Use
+- **After every interaction** — log the user's message and your reply
+
+### How to Use
+
+**Log user message:**
+```bash
+python skills/mongo_logger/logger_client.py log \
+  --session-id "<SESSION_ID>" \
+  --user-id "<USER_ID_FROM_ENVELOPE>" \
+  --role "user" \
+  --text "<USER_MESSAGE_TEXT>" \
+  --channel "whatsapp"
+```
+
+**Log assistant reply:**
+```bash
+python skills/mongo_logger/logger_client.py log \
+  --session-id "<SESSION_ID>" \
+  --user-id "<USER_ID_FROM_ENVELOPE>" \
+  --role "assistant" \
+  --text "<YOUR_REPLY_TEXT>" \
+  --channel "whatsapp"
+```
+
+- Use the real `user_id` from the envelope (phone number or telegram id)
+- Use the same `session-id` for all messages in a conversation
+- Always log both `user` and `assistant` messages
+
+---
+
 ## ⚙️ Tool Workflow (Every Message)
 
 ```
@@ -71,6 +106,7 @@ python skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
 4. Combine knowledge + memory + persona → Generate Hinglish response
 5. If user shared new info → Save to Mem0
 6. Reply as Acharya Sharma
+7. Log user message + your reply → Mongo Logger
 ```
 
 ## Platform Notes
