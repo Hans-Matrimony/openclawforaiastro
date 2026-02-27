@@ -1,6 +1,51 @@
 # Tools: Acharya Sharma's Instruments
 
-You have two critical tools. **Use them on every interaction.**
+You have THREE critical tools. **Use them on every interaction.**
+
+---
+
+## 📝 Mongo Logger — Chat Transcript (🔴 MOST CRITICAL)
+
+**This tool logs EVERY message to MongoDB. You MUST use it for EVERY user, EVERY message.**
+
+### When to Use
+- **EVERY single interaction** — no exceptions
+- Log user message BEFORE you respond
+- Log your reply AFTER you respond
+
+### How to Use
+
+**Step 1: Log the user's message**
+```bash
+python skills/mongo_logger/logger_client.py log \
+  --session-id "<SESSION_OR_CHAT_ID>" \
+  --user-id "<USER_ID_FROM_ENVELOPE>" \
+  --role "user" \
+  --text "<USER_MESSAGE>" \
+  --channel "<telegram_or_whatsapp>"
+```
+
+**Step 2: After replying, log your response**
+```bash
+python skills/mongo_logger/logger_client.py log \
+  --session-id "<SESSION_OR_CHAT_ID>" \
+  --user-id "<USER_ID_FROM_ENVELOPE>" \
+  --role "assistant" \
+  --text "<YOUR_REPLY>" \
+  --channel "<telegram_or_whatsapp>"
+```
+
+### Channel Detection
+- Look at the message envelope for `channel: "telegram"` or `channel: "whatsapp"`
+- Use that EXACT value in `--channel`
+
+### ⚠️ Common Mistakes (DO NOT DO THIS)
+- ❌ Forgetting to log for new users
+- ❌ Using `--channel "whatsapp"` for Telegram users
+- ❌ Skipping this step because "the message is simple"
+- ❌ Using wrong user_id
+
+---
 
 ## 🔮 Qdrant — Astrology Knowledge Base
 
@@ -62,51 +107,17 @@ python skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
 
 ---
 
-## 📝 Mongo Logger — Chat Transcript
-
-Logs every message (user + assistant) to MongoDB for transcript storage.
-
-### When to Use
-- **After every interaction** — log the user's message and your reply
-
-### How to Use
-
-**Log user message:**
-```bash
-python skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
-  --user-id "<USER_ID_FROM_ENVELOPE>" \
-  --role "user" \
-  --text "<USER_MESSAGE_TEXT>" \
-  --channel "whatsapp"
-```
-
-**Log assistant reply:**
-```bash
-python skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
-  --user-id "<USER_ID_FROM_ENVELOPE>" \
-  --role "assistant" \
-  --text "<YOUR_REPLY_TEXT>" \
-  --channel "whatsapp"
-```
-
-- Use the real `user_id` from the envelope (phone number or telegram id)
-- Use the same `session-id` for all messages in a conversation
-- Always log both `user` and `assistant` messages
-
----
-
 ## ⚙️ Tool Workflow (Every Message)
 
 ```
 1. User sends message
-2. Search Mem0 → Do I know this user? What did we discuss before?
-3. Search Qdrant → What do the Vedic texts say about this topic?
-4. Combine knowledge + memory + persona → Generate Hinglish response
-5. If user shared new info → Save to Mem0
-6. Reply as Acharya Sharma
-7. Log user message + your reply → Mongo Logger
+2. 🔴 LOG USER MESSAGE to MongoDB (mongo_logger) ← DO THIS FIRST
+3. Search Mem0 → Do I know this user? What did we discuss before?
+4. Search Qdrant → What do the Vedic texts say about this topic?
+5. Combine knowledge + memory + persona → Generate Hinglish response
+6. If user shared new info → Save to Mem0
+7. Reply as Acharya Sharma
+8. 🔴 LOG YOUR REPLY to MongoDB (mongo_logger) ← DO THIS LAST
 ```
 
 ## Platform Notes
