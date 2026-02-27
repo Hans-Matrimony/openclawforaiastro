@@ -2,6 +2,9 @@
   "logging": {
     "level": "info"
   },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
   "models": {
     "mode": "merge",
     "providers": {
@@ -255,7 +258,9 @@
       "enabled": true,
       "allowInsecureAuth": true,
       "dangerouslyDisableDeviceAuth": true,
-      "allowedOrigins": ["*"],
+      "allowedOrigins": [
+        "*"
+      ],
       "dangerouslyAllowHostHeaderOriginFallback": true
     },
     "auth": {
