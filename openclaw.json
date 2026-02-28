@@ -214,7 +214,7 @@
     "native": "auto",
     "nativeSkills": "auto",
     "restart": true,
-    "ownerDisplay": "hidden"
+    "ownerDisplay": "raw"
   },
   "memory": {
     "backend": "builtin"
