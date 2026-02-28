@@ -2,6 +2,23 @@
 
 **This is the CRITICAL workflow that prevents user data leakage.**
 
+## ⚡ SPEED + MANDATORY LOGGING
+
+```
+Message arrives
+    │
+    ├─ Is it a greeting?
+    │     └─ YES → Respond immediately → Log user + assistant to MongoDB (parallel) → DONE.
+    │
+    └─ Is it an astrology question?
+          └─ YES →
+              ├─ [PARALLEL] Search Mem0 (if needed) + Log user message to MongoDB
+              ├─ Search Qdrant (if needed)
+              ├─ Respond to user
+              └─ Log assistant reply to MongoDB
+              → DONE.
+```
+
 ## The Golden Rule
 
 **Each message = One specific user_id. Never mix users.**
@@ -20,278 +37,181 @@
 **Extract the user_id:**
 - WhatsApp: `+919876543210`
 - Telegram: `telegram_1234567`
-- Web: `web_session_abc123`
 
-**VERIFY the user_id:**
-- Is it empty? → INVALID
-- Is it "unknown", "default", "user123"? → INVALID
-- Is it a real identifier from envelope? → VALID
-
-**If INVALID:**
+**If INVALID or missing:**
 ```
 Respond: "Main aapki pehchan nahi kar pa raha hoon. Kripya thodi der baad phir koshish karein."
-Then STOP. Do nothing else.
+Then STOP.
 ```
 
 ---
 
-### STEP 2: Create or Retrieve Session for THIS User ID
+### STEP 2: Quick Classification
 
-**Now that you have a valid user_id:**
+**Is this a simple greeting?** ("hi", "hello", "namaste", "good morning", "kaise ho")
 
-1. **This user_id represents ONE specific person**
-2. **Check memory for this user_id ONLY**
-3. **Do NOT check memory for any other user_id**
+- **YES →**
+  1. **Respond immediately** (2-3 sentences in Hinglish/English)
+  2. **Log user message + assistant reply to MongoDB** (make both calls together, parallel)
+  3. **DONE**
 
-**Search for existing session:**
+- **NO → Continue to STEP 3**
+
+---
+
+### STEP 3: Search Memory + Log User Message (PARALLEL)
+
+**Make these calls TOGETHER (parallel):**
+
 ```bash
+# Call 1: Search Mem0 (if you need user data)
 python skills/mem0/mem0_client.py search "birth details name" --user-id "<EXTRACTED_USER_ID>"
-```
 
-**If results found:** This is an existing user. Load their details.
-**If no results:** This is a NEW user. Create new session.
-
----
-
-### STEP 3: Prepare Response for THIS User Only
-
-**Using ONLY data from THIS user_id's memory:**
-
-- Use THEIR name
-- Use THEIR birth details
-- Use THEIR past conversations
-- Use THEIR preferences
-
-**NEVER use data from a different user_id.**
-
----
-
-### STEP 4: Respond to THIS User Only
-
-**Send response to the current user only.**
-
-Do NOT mention other users. Do NOT reference other conversations. Do NOT share data from other user_ids.
-
----
-
-### STEP 5: Update THIS User's Session (if needed)
-
-**If the user shared new information:**
-
-**If the user shared new information:**
-
-```bash
-python skills/mem0/mem0_client.py add "New information here" --user-id "<EXACT_SAME_USER_ID>"
-```
-
-**Use the SAME user_id from STEP 1. Do NOT change it.**
-
----
-
-### STEP 6: LOG TO MONGODB (🔴 MANDATORY - EVERY MESSAGE)
-
-**THIS STEP IS NON-NEGOTIABLE. LOG EVERY SINGLE MESSAGE FOR EVERY USER.**
-
-You MUST log BOTH the user's message AND your reply to MongoDB. No exceptions.
-
-**Determine the channel from the envelope:**
-- If envelope shows \`channel: "telegram"\` → use \`--channel "telegram"\`
-- If envelope shows \`channel: "whatsapp"\` → use \`--channel "whatsapp"\`
-
-**Log the user's message (BEFORE responding):**
-```bash
+# Call 2: Log user message to MongoDB
 python skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_OR_CHAT_ID>" \
-  --user-id "<EXTRACTED_USER_ID>" \
+  --session-id "<SESSION_ID>" \
+  --user-id "<USER_ID>" \
   --role "user" \
-  --text "<USER_MESSAGE_TEXT>" \
+  --text "<USER_MESSAGE>" \
   --channel "<telegram_or_whatsapp>"
 ```
 
-**After generating your reply, log it too:**
+**Make BOTH calls at the same time. Don't wait for one before starting the other.**
+
+---
+
+### STEP 4: Consult Knowledge Base (Only if Needed)
+
+**ONLY search Qdrant for complex astrology concepts.**
+
+```bash
+python skills/qdrant/qdrant_client.py search "<astrological concept>"
+```
+
+**SKIP this step if:**
+- Simple question about user's chart
+- You already know the answer from training
+
+---
+
+### STEP 5: Respond to User
+
+**Respond in Hinglish or English based on user's language.**
+
+**Keep it short: 2-3 sentences MAX.**
+
+**NO internal summaries, NO status updates, NO tool mentions.**
+
+---
+
+### STEP 6: Save New Info (Only if User Shared Something New)
+
+If user shared NEW birth details or life events:
+
+```bash
+python skills/mem0/mem0_client.py add "New information here" --user-id "<EXTRACTED_USER_ID>"
+```
+
+---
+
+### STEP 7: 🔴 MANDATORY - Log Assistant Reply to MongoDB
+
+**ALWAYS log your reply:**
+
 ```bash
 python skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_OR_CHAT_ID>" \
-  --user-id "<EXTRACTED_USER_ID>" \
+  --session-id "<SESSION_ID>" \
+  --user-id "<USER_ID>" \
   --role "assistant" \
-  --text "<YOUR_REPLY_TEXT>" \
+  --text "<YOUR_REPLY>" \
   --channel "<telegram_or_whatsapp>"
 ```
 
-**⚠️ CRITICAL:**
-- Use the EXACT user_id from STEP 1
-- Use the CORRECT channel (telegram/whatsapp) from the envelope
-- Log EVERY message for EVERY user — no skipping
-- This step MUST happen even if you skip STEP 5
-
 ---
 
-## Examples
+## 🔴 MongoDB Logging - MANDATORY (But Parallel)
 
-### Example 1: New User Says "Hi" (WhatsApp)
+**EVERY message MUST be logged. NO EXCEPTIONS.**
 
-**Message:** \`[From: Amit (+919876543210) at 2026-02-27 10:00:00] Hi\`
+### What to Log:
+1. User's message (role="user")
+2. Assistant's reply (role="assistant")
 
-**STEP 1:** Extract user_id = \`+919876543210\` ✅ Valid
+### How to Log Fast:
+- **For greetings:** Respond first, then make BOTH log calls together (parallel)
+- **For questions:** Log user message in PARALLEL with Mem0 search, then log assistant reply after responding
 
-**STEP 2:** Search memory for \`+919876543210\`
+### Logging Commands:
+
 ```bash
-mem0 search "birth details" --user-id "+919876543210"
-```
-Result: No memories found → NEW USER
-
-**STEP 3:** Prepare response for new user
-- No previous data
-- Ask for birth details
-
-**STEP 4:** Respond
-\`\`\`
-Namaste. Main Acharya Sharma hoon. Aapki janam kundli dekhne ke liye mujhe
-apna janam din, samay, aur sthhan bataiye.
-\`\`\`
-
-**STEP 5:** (Nothing to save yet)
-
-**STEP 6:** Log to MongoDB
-```bash
+# Log user message
 python skills/mongo_logger/logger_client.py log \
-  --session-id "+919876543210" \
-  --user-id "+919876543210" \
+  --session-id "<SESSION_ID>" \
+  --user-id "<USER_ID>" \
   --role "user" \
-  --text "Hi" \
-  --channel "whatsapp"
-```
-```bash
-python skills/mongo_logger/logger_client.py log \
-  --session-id "+919876543210" \
-  --user-id "+919876543210" \
-  --role "assistant" \
-  --text "Namaste. Main Acharya Sharma hoon..." \
-  --channel "whatsapp"
-```
-
----
-
-### Example 2: Returning User Says "Hi" (Telegram)
-
-**Message:** \`[From: Priya (telegram_1234567) at 2026-02-27 10:05:00] Hi\`
-
-**STEP 1:** Extract user_id = \`telegram_1234567\` ✅ Valid
-
-**STEP 2:** Search memory for \`telegram_1234567\`
-```bash
-mem0 search "birth details name" --user-id "telegram_1234567"
-```
-Result: Found memories
-- Name: Priya
-- DOB: 5 March 1995
-- Time: 8:30 AM
-- Place: Delhi
-
-**STEP 3:** Prepare response using Priya's data
-- Use her name: Priya
-- Use her birth details
-- Remember her past questions
-
-**STEP 4:** Respond
-\`\`\`
-Namaste Priya ji. Kaise hain aap? Kya aaj koi sawaal hai?
-\`\`\`
-
-**STEP 5:** (Nothing new to save)
-
-**STEP 6:** Log to MongoDB
-```bash
-python skills/mongo_logger/logger_client.py log \
-  --session-id "telegram_1234567" \
-  --user-id "telegram_1234567" \
-  --role "user" \
-  --text "Hi" \
+  --text "<MESSAGE>" \
   --channel "telegram"
-```
-```bash
+
+# Log assistant reply
 python skills/mongo_logger/logger_client.py log \
-  --session-id "telegram_1234567" \
-  --user-id "telegram_1234567" \
+  --session-id "<SESSION_ID>" \
+  --user-id "<USER_ID>" \
   --role "assistant" \
-  --text "Namaste Priya ji. Kaise hain aap?..." \
+  --text "<REPLY>" \
   --channel "telegram"
 ```
 
 ---
 
-### Example 3: Different User Says "Hi" (Isolation Test)
+## Example Flows
 
-**Previous user was Priya (telegram_1234567)**
+### Example 1: Simple Greeting
 
-**New message:** \`[From: Rajesh (telegram_7654321) at 2026-02-27 10:10:00] Hi\`
-
-**STEP 1:** Extract user_id = \`telegram_7654321\` ✅ Valid
-
-**STEP 2:** Search memory for \`telegram_7654321\`
-```bash
-mem0 search "birth details" --user-id "telegram_7654321"
 ```
-Result: No memories found → NEW USER
-
-**STEP 3:** Prepare response for NEW user
-- Do NOT use Priya's data
-- Do NOT say "we spoke before"
-- Treat as completely new person
-
-**STEP 4:** Respond
-\`\`\`
-Namaste. Main Acharya Sharma hoon. Aapki janam kundli dekhne ke liye mujhe
-apna janam din, samay, aur sthhan bataiye.
-\`\`\`
-
-**STEP 5:** (Nothing to save yet)
-
-**STEP 6:** Log to MongoDB (CRITICAL - this user was not being logged before!)
-```bash
-python skills/mongo_logger/logger_client.py log \
-  --session-id "telegram_7654321" \
-  --user-id "telegram_7654321" \
-  --role "user" \
-  --text "Hi" \
-  --channel "telegram"
-```
-```bash
-python skills/mongo_logger/logger_client.py log \
-  --session-id "telegram_7654321" \
-  --user-id "telegram_7654321" \
-  --role "assistant" \
-  --text "Namaste. Main Acharya Sharma hoon..." \
-  --channel "telegram"
+User: "Hi"
+    │
+    ├─ STEP 1: Extract user_id ✅
+    ├─ STEP 2: It's a greeting →
+    │     ├─ Respond: "Namaste! Kaise madad kar sakta hoon?"
+    │     └─ [PARALLEL] Log user "Hi" + Log assistant reply to MongoDB
+    └─ DONE
 ```
 
-**WRONG RESPONSE (data leakage):**
-\`\`\`
-Namaste Priya ji.  ← WRONG! Rajesh is not Priya!
-\`\`\`
+### Example 2: Astrology Question
+
+```
+User: "Meri kundli batao"
+    │
+    ├─ STEP 1: Extract user_id ✅
+    ├─ STEP 2: Not a greeting → Continue
+    ├─ STEP 3: [PARALLEL]
+    │     ├─ Search Mem0 for user's birth details
+    │     └─ Log user message to MongoDB
+    ├─ STEP 4: Skip Qdrant (simple chart request)
+    ├─ STEP 5: Respond with chart details
+    ├─ STEP 6: (No new info to save)
+    ├─ STEP 7: Log assistant reply to MongoDB
+    └─ DONE
+```
 
 ---
 
 ## Critical Rules
 
-1. **user_id from envelope = user to respond to**
-2. **Each user_id = separate session**
-3. **When user_id changes, forget previous user completely**
-4. **Never carry over context between different user_ids**
-5. **Never show User A's data to User B**
-6. **🔴 ALWAYS log to MongoDB for EVERY user - no exceptions**
+1. **MongoDB logging is MANDATORY** — log EVERY message
+2. **Make logging calls in PARALLEL** — don't wait for one to finish before starting another
+3. **Simple greetings → Skip Mem0/Qdrant** — Just respond + log
+4. **user_id from envelope = user to respond to**
+5. **Never mix users** — Each user_id is isolated
+6. **Never show User A's data to User B**
 
 ---
 
-## Quick Checklist Before EVERY Response
+## Quick Checklist
 
 - [ ] Extracted user_id from envelope
-- [ ] Verified user_id is valid
-- [ ] Searched memory for THIS user_id only
-- [ ] Prepared response using THIS user's data only
-- [ ] Not mixing data from different user_ids
-- [ ] Not mentioning previous users to current user
-- [ ] 🔴 Logged user message to MongoDB (STEP 6)
-- [ ] 🔴 Will log assistant reply to MongoDB after responding
-
-**If any checklist item fails, STOP and fix it first.**
+- [ ] Is it a greeting? → Respond immediately, then log (parallel)
+- [ ] If astrology question → Search Mem0 + Log user message (parallel)
+- [ ] Responded in 2-3 sentences
+- [ ] No internal summaries or status updates in response
+- [ ] 🔴 Logged assistant reply to MongoDB
