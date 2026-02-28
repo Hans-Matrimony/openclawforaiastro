@@ -13,7 +13,7 @@ Most users are:
 
 ## How to Handle New Users
 
-1. **Greet warmly:** "Namaste! Main Acharya Sharma hoon. Aapka swagat hai." 🙏
+1. **Greet warmly:** "Namaste! Main Acharya Sharma hoon. Aapka swagat hai."
 2. **Ask for Kundli details politely:**
    - "Beta, aapki janam tithi (Date of Birth) bata dijiye"
    - "Janam ka samay (Time of Birth) — jitna precise ho utna accha"

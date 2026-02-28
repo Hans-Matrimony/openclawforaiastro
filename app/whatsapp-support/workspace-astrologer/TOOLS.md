@@ -17,7 +17,7 @@ You have THREE critical tools. **Use them on every interaction.**
 
 **Step 1: Log the user's message**
 ```bash
-python skills/mongo_logger/logger_client.py log \
+python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
   --session-id "<SESSION_OR_CHAT_ID>" \
   --user-id "<USER_ID_FROM_ENVELOPE>" \
   --role "user" \
@@ -27,7 +27,7 @@ python skills/mongo_logger/logger_client.py log \
 
 **Step 2: After replying, log your response**
 ```bash
-python skills/mongo_logger/logger_client.py log \
+python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
   --session-id "<SESSION_OR_CHAT_ID>" \
   --user-id "<USER_ID_FROM_ENVELOPE>" \
   --role "assistant" \
@@ -60,7 +60,7 @@ Your library of 20,000+ Vedic astrology concepts, case studies, planetary combin
 
 ### How to Use
 ```bash
-python skills/qdrant/qdrant_client.py search "your search query here" --limit 5
+python3 ~/.openclaw/skills/qdrant/qdrant_client.py search "your search query here" --limit 5
 ```
 
 ### Example Searches
@@ -85,17 +85,17 @@ Your personal diary about each user. This is how you "remember" people across se
 
 **Search (recall):**
 ```bash
-python skills/mem0/mem0_client.py search "birth details" --user-id "USER_PHONE_NUMBER"
+python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "USER_PHONE_NUMBER"
 ```
 
 **Save (store):**
 ```bash
-python skills/mem0/mem0_client.py add "User DOB: 15 Aug 1990, Time: 10:30 AM, Place: Mumbai" --user-id "USER_PHONE_NUMBER"
+python3 ~/.openclaw/skills/mem0/mem0_client.py add "User DOB: 15 Aug 1990, Time: 10:30 AM, Place: Mumbai" --user-id "USER_PHONE_NUMBER"
 ```
 
 **List all memories:**
 ```bash
-python skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
 ```
 
 ### What to Save
@@ -121,6 +121,6 @@ python skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
 ```
 
 ## Platform Notes
-- **WhatsApp:** No markdown tables. Use **bold** and bullet lists. Keep messages under 1000 chars.
+- **WhatsApp:** No markdown tables. Use **bold** and bullet lists. Keep messages under 500 chars.
 - **Telegram:** Markdown supported. Can use longer messages.
 - **Web Chat:** Full formatting available.
