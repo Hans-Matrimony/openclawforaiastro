@@ -15,7 +15,8 @@ Find entries where:
 
 ## Step 2: Filter by Quiet Hours
 
-Only proceed if the current time is between **8 AM and 10 PM IST**.
+Only proceed with nudges if the current time is between **8 AM and 10 PM IST**.
+**Note: Even in quiet hours, you MUST still complete Step 4 (Update State).**
 
 ## Step 3: Compose Personalized Nudges
 
@@ -33,11 +34,24 @@ For each eligible user:
 
 4. **Send the message** to the phone number via the messaging tool.
 
-## Step 4: Update State
+## Step 4: Update State (ALWAYS DO THIS - CRITICAL)
 
-Update `heartbeat-state.json` in the workspace:
-- Set `lastNudge` to current ISO timestamp for each nudged user.
-- Set `lastHeartbeat` to current ISO timestamp.
+**You MUST update `heartbeat-state.json` EVERY TIME, even if no nudges were sent (quiet hours, no eligible users, etc.).**
+
+Use the `write` tool to update `/app/.openclaw/workspace-astrologer/heartbeat-state.json`:
+```json
+{
+    "users": {
+        "+91XXXXXXXXXX": "2026-02-28T05:00:00.000Z"
+    },
+    "lastHeartbeat": "2026-02-28T05:00:00.000Z"
+}
+```
+
+Rules for updating:
+- Set `lastNudge` (ISO timestamp) for each user who received a nudge
+- ALWAYS set `lastHeartbeat` to current ISO timestamp - this confirms the heartbeat ran
+- If no users were nudged, just update `lastHeartbeat` and keep `users` as-is
 
 ## Rules
 
@@ -45,6 +59,7 @@ Update `heartbeat-state.json` in the workspace:
 - **Respect Quiet Hours**: No nudges between 10 PM and 8 AM IST.
 - **Keep it Natural**: The user should feel remembered, not poked by a bot.
 - **Suppression**: If no users qualify for a nudge, reply ONLY with `HEARTBEAT_OK`.
+- **Always Update State**: Even in quiet hours, complete Step 4 before replying HEARTBEAT_OK.
 
 ---
-Note: `heartbeat-state.json` is used ONLY to track `lastNudge` frequency. The source of truth for user activity is `sessions.json`.
+Note: `heartbeat-state.json` is used to track both `lastNudge` frequency and `lastHeartbeat` confirmation. The source of truth for user activity is `sessions.json`.
