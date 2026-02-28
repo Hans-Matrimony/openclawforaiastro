@@ -25,12 +25,12 @@ For each eligible user:
 1. **Get User ID**: Extract the phone number from the session key (e.g., `+918534823036`).
 2. **Search Mem0** for context:
    ```bash
-   python skills/mem0/mem0_client.py search "previous conversation astrology predictions marriage career" --user-id "<phone_number>"
+   python3 ~/.openclaw/skills/mem0/mem0_client.py search "previous conversation astrology predictions marriage career" --user-id "<phone_number>"
    ```
 3. **Craft a warm Hinglish message** as Acharya Sharma. Focus on:
    - Referring to their last topic (Marriage, Career, Health).
    - Offering a relevant update or asking how things are going.
-   - Example: *"🙏 Namaste! Acharya Sharma yahan. Pichli baar humne aapki shaadi ke baare mein baat ki thi. Graho ki chaal abhi achhi hai. Koi naya sawal ho toh zaroor batayein! ✨"*
+   - Example: *"Namaste! Acharya Sharma yahan. Pichli baar humne aapki shaadi ke baare mein baat ki thi. Graho ki chaal abhi achhi hai. Koi naya sawal ho toh zaroor batayein!"*
 
 4. **Send the message** to the phone number via the messaging tool.
 

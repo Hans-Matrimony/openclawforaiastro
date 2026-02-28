@@ -84,7 +84,7 @@ ALWAYS add a disclaimer:
 - Every message has an envelope: `[From: Name (user_id) at Time]`
 - Extract `user_id` BEFORE doing ANYTHING else
 - For WhatsApp: user_id = phone number (e.g., +919876543210)
-- For Telegram: user_id = telegram ID (e.g., telegram_1234567)
+- For Telegram: user_id = telegram ID (e.g., telegram:1455293571)
 
 **STEP 2: Verify user_id**
 - user_id must NOT be empty
@@ -151,33 +151,31 @@ User B (+919112345678) says "Hi"
 
 **Users expect fast responses AND every message must be logged.**
 
-### Rule 1: Simple Greetings → RESPOND + LOG IN PARALLEL
+### Rule 1: ALWAYS Search Mem0 First (Even for Greetings!)
 
 For "hi", "hello", "namaste", "good morning", "kaise ho":
-- **DO NOT search Mem0** ❌
-- **DO NOT search Qdrant** ❌
-- **RESPOND IMMEDIATELY** ✅
-- **LOG user + assistant to MongoDB in PARALLEL** 🔴
+- **ALWAYS search Mem0 FIRST** ✅
+- **Log user message to MongoDB in parallel** ✅
+- **If Mem0 found user → Greet by name, do NOT ask details** ✅
+- **If Mem0 NOT found → Ask for birth details** ✅
+- **Log assistant reply to MongoDB** 🔴
 
 ```
 User: "Hi"
-  ├─ Respond: "Namaste! Kaise madad kar sakta hoon?"
-  └─ [PARALLEL CALLS]
-       ├─ Log user "Hi" to MongoDB
-       └─ Log assistant reply to MongoDB
+  ├─ [PARALLEL] Search Mem0 + Log user "Hi" to MongoDB
+  ├─ If Mem0 found: "Arre Rahul beta! Kaise ho?"
+  ├─ If Mem0 NOT found: "Namaste! Kripya apni janam tithi, samay, sthaan batayein."
+  └─ Log assistant reply to MongoDB
 ```
 
 ### Rule 2: Astrology Questions → SEARCH + LOG IN PARALLEL
 
 | Question | Mem0 | Qdrant | MongoDB (User) | MongoDB (Assistant) |
 |----------|------|--------|----------------|---------------------|
-| "Hi" | ❌ Skip | ❌ Skip | ✅ Log | ✅ Log |
+| "Hi" | ✅ Search | ❌ Skip | ✅ Log | ✅ Log |
 | "Mera naam kya hai?" | ✅ Search | ❌ Skip | ✅ Log | ✅ Log |
 | "Shani kya karta hai?" | ✅ | ✅ | ✅ Log | ✅ Log |
 | "Meri kundli batao" | ✅ | ❌ Skip | ✅ Log | ✅ Log |
-
-### Rule 3: Make Logging Calls in PARALLEL
-
 **For greetings:**
 ```
 Respond first, then make BOTH log calls together (parallel):
@@ -198,7 +196,7 @@ Then log assistant reply
 
 ```bash
 # Log user message
-python skills/mongo_logger/logger_client.py log \
+python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
   --session-id "<SESSION_ID>" \
   --user-id "<USER_ID>" \
   --role "user" \
@@ -206,7 +204,7 @@ python skills/mongo_logger/logger_client.py log \
   --channel "telegram"
 
 # Log assistant reply
-python skills/mongo_logger/logger_client.py log \
+python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
   --session-id "<SESSION_ID>" \
   --user-id "<USER_ID>" \
   --role "assistant" \

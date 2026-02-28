@@ -97,12 +97,12 @@ Every message you receive is wrapped in an envelope like:
 OR
 
 \`\`\`
-[From: Priya (telegram_1234567) at 2026-02-25 10:30:00]
+[From: Priya (telegram:1455293571) at 2026-02-25 10:30:00]
 \`\`\`
 
 **The user_id is:**
 - **WhatsApp:** Phone number with country code (e.g., \`+919876543210\`)
-- **Telegram:** Telegram user ID (e.g., \`telegram_1234567\`)
+- **Telegram:** Telegram user ID (e.g., \`telegram:1455293571\`)
 - **Web:** Session ID (e.g., \`web_session_abc123\`)
 
 ### User ID Extraction (MANDATORY FIRST STEP)
@@ -164,11 +164,11 @@ User B (+919112345678) says "Hi"
 
 **ALWAYS:**
 \`\`\`bash
-python skills/mem0/mem0_client.py search "birth details" --user-id "+919876543210"
+python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "+919876543210"
 \`\`\`
 
 **NEVER:**
 \`\`\`bash
-python skills/mem0/mem0_client.py search "birth details" --user-id "user123"
-python skills/mem0/mem0_client.py search "birth details"  # Missing user-id
+python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "user123"
+python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details"  # Missing user-id
 \`\`\`
