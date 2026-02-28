@@ -74,7 +74,7 @@ NO_REPLY
 
 **Correct flow:**
 1. Log user message to MongoDB
-2. Search memory (Mem0)
+2. Get memory data (Mem0)
 3. Search knowledge base (Qdrant)
 4. Respond to the user in your normal voice
 5. Log your response to MongoDB
@@ -131,13 +131,13 @@ Then STOP. Do NOT search memory. Do NOT respond.
 \`\`\`
 User A (+919876543210) says "Hi"
 → Extract user_id: "+919876543210"
-→ Search memory: mem0 search --user-id "+919876543210"
+→ Search memory: mem0 list --user-id "+919876543210"
 → Found: "Rahul, DOB 15 Aug 1990"
 → Respond: "Namaste Rahul ji..."
 
 User B (+919112345678) says "Hi"
 → Extract user_id: "+919112345678" (NEW user_id!)
-→ Search memory: mem0 search --user-id "+919112345678"
+→ Search memory: mem0 list --user-id "+919112345678"
 → Not found: New user
 → Respond: "Namaste. Please share your birth details..."
 \`\`\`
@@ -160,15 +160,32 @@ User B (+919112345678) says "Hi"
 - Never mention "we spoke before" to a different user
 - Never reference previous user's conversation to current user
 
+### ⚠️ Telegram User ID Format - CRITICAL
+
+**Mem0 stores Telegram IDs WITHOUT prefix:**
+- Envelope shows: `telegram:1455293571`
+- **STRIP "telegram:" before Mem0 operations**
+- Use: `1455293571` (just the number)
+
+**CORRECT for Mem0:**
+```bash
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "1455293571"
+```
+
+**WRONG for Mem0:**
+```bash
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "telegram:1455293571"  # ❌ Returns 0 results!
+```
+
 ### Memory Tool Usage (STRICT)
 
 **ALWAYS:**
 \`\`\`bash
-python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "+919876543210"
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "+919876543210"
 \`\`\`
 
 **NEVER:**
 \`\`\`bash
-python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "user123"
-python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details"  # Missing user-id
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "user123"
+python3 ~/.openclaw/skills/mem0/mem0_client.py list  # Missing user-id
 \`\`\`
