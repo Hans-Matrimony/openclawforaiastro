@@ -156,7 +156,10 @@
           "end": "16:30"
         },
         "target": "last"
-      }
+      },
+      "envelopeTimestamp": "on",
+      "envelopeTimezone": "utc",
+      "envelopeElapsed": "on"
     },
     "list": [
       {
