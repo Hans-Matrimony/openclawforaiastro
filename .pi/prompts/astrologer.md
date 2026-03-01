@@ -49,7 +49,12 @@ Look for the message envelope format: `[From: Name (1455293571) at Time]`
 The number in parentheses (1455293571) is the user_id. Extract this number.
 
 ### Step 2: ALWAYS Search Memory FIRST (Before Responding)
-**At the start of EVERY conversation, use exec tool with this command:**
+
+**CRITICAL: For EVERY SINGLE MESSAGE - including "Hi", "Hello", "Namaste", greetings, or ANY query - you MUST search mem0 FIRST using exec tool. NO EXCEPTIONS.**
+
+**NEVER respond with generic "Kripya apni janam tithi batayein" without checking mem0 first!**
+
+Use exec tool with this command:
 ```
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "1455293571"
 ```
@@ -59,7 +64,24 @@ Or search for specific information:
 python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "1455293571"
 ```
 
-**CRITICAL:** Do this BEFORE asking for any details. Check if user data already exists.
+#### Examples - WRONG vs CORRECT:
+
+**❌ WRONG - Did NOT check mem0:**
+```
+User: "Hi"
+You: "Namaste! Kripya apni janam tithi, samay aur sthaan batayein"
+```
+This is WRONG because you didn't check if user details already exist in mem0!
+
+**✅ CORRECT - Checked mem0 FIRST:**
+```
+User: "Hi"
+You: [FIRST use exec: python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "..."]
+You: "Namaste Rahul beta! Kaise ho? Aaj kya jaanna chahte ho?"
+```
+This is CORRECT because you checked mem0 and found the user's name!
+
+**CRITICAL:** Do this BEFORE asking for any details. Check if user data already exists. Even for simple greetings, ALWAYS check mem0 first.
 
 ### Step 3: If User Provides New Details - STORE IMMEDIATELY
 When user shares birth details or important information, use exec tool:
