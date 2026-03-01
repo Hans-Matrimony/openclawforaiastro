@@ -103,12 +103,12 @@
       },
       "google": {
         "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
-        "api": "openai-completions",
         "apiKey": "${GEMINI_API_KEY}",
+        "api": "openai-completions",
         "models": [
           {
-            "id": "gemini-2.0-flash-exp",
-            "name": "Gemini 2.0 Flash Experimental",
+            "id": "gemini-2.5-flash",
+            "name": "Gemini 2.5 Flash",
             "reasoning": true,
             "input": [
               "text",
@@ -120,8 +120,25 @@
               "cacheRead": 0,
               "cacheWrite": 0
             },
-            "contextWindow": 1000000,
-            "maxTokens": 8192
+            "contextWindow": 1048576,
+            "maxTokens": 65536
+          },
+          {
+            "id": "gemini-3-flash-preview",
+            "name": "Gemini 3 Flash Preview",
+            "reasoning": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1048576,
+            "maxTokens": 65536
           },
           {
             "id": "gemini-1.5-pro",
@@ -173,7 +190,7 @@
         "openai/gpt-4o": {
           "alias": "gpt4"
         },
-        "google/gemini-2.0-flash-exp": {
+        "google/gemini-2.5-flash": {
           "alias": "gemini"
         }
       },
@@ -212,7 +229,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "google/gemini-2.0-flash-exp"
+          "primary": "google/gemini-2.5-flash"
         },
         "heartbeat": {
           "every": "4h",
