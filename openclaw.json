@@ -207,8 +207,6 @@
           "alsoAllow": [
             "exec",
             "read",
-            "memory_search",
-            "memory_get",
             "sessions_spawn",
             "subagents",
             "write",
