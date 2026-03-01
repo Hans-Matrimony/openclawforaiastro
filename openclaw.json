@@ -150,9 +150,12 @@
         "id": "astrologer",
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
+        "model": {
+          "primary": "zai/glm-4.7-flashx"
+        },
         "heartbeat": {
           "every": "4h",
-          "target": "last",
+          "target": "whatsapp",
           "activeHours": {
             "start": "02:30",
             "end": "16:30"
