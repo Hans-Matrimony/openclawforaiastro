@@ -7,6 +7,7 @@ Features:
 - Timeout and retry logic
 - Better error handling
 - Verbose mode for debugging
+- Phone number normalization
 """
 import sys
 import argparse
@@ -86,6 +87,19 @@ def call_api_urllib(endpoint, payload=None, method="POST", verbose=False):
             else:
                 return {"error": str(e), "message": f"Failed to connect to Mem0 server after {MAX_RETRIES} attempts"}
 
+def normalize_user_id(user_id):
+    """Normalize phone numbers to consistent format (with + prefix for numeric IDs)."""
+    if not user_id:
+        return user_id
+    # If it's a phone number (starts with digits), ensure + prefix
+    # Telegram user IDs and other non-phone IDs are left as-is
+    user_id = str(user_id).strip()
+    # Remove existing + first, then add it back for phone numbers
+    user_id = user_id.lstrip('+')
+    if user_id.isdigit() and len(user_id) > 8:  # Phone numbers are typically 10+ digits
+        return f"+{user_id}"
+    return user_id
+
 def call_api(endpoint, payload=None, method="POST", verbose=False):
     """Call API with automatic library selection."""
     if HAS_REQUESTS:
@@ -119,10 +133,13 @@ def main():
     args = parser.parse_args()
     verbose = getattr(args, 'verbose', False)
 
+    # Normalize user_id for phone numbers
+    normalized_user_id = normalize_user_id(args.user_id)
+
     if args.command == "search":
         result = call_api("/memory/search", {
             "query": args.query,
-            "user_id": args.user_id,
+            "user_id": normalized_user_id,
             "limit": args.limit
         }, verbose=verbose)
         print(json.dumps(result, indent=2))
@@ -130,19 +147,19 @@ def main():
     elif args.command == "add":
         try:
             metadata = json.loads(args.metadata)
-        except json.JSONDecodeError:
+        except json.JSONDecodeException:
             metadata = {}
 
         result = call_api("/memory/add", {
             "content": args.content,
-            "user_id": args.user_id,
+            "user_id": normalized_user_id,
             "metadata": metadata
         }, verbose=verbose)
         print(json.dumps(result, indent=2))
 
     elif args.command == "list":
         result = call_api(
-            f"/memory/{args.user_id}?limit={args.limit}",
+            f"/memory/{normalized_user_id}?limit={args.limit}",
             method="GET",
             verbose=verbose
         )
