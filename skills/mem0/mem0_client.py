@@ -88,16 +88,38 @@ def call_api_urllib(endpoint, payload=None, method="POST", verbose=False):
                 return {"error": str(e), "message": f"Failed to connect to Mem0 server after {MAX_RETRIES} attempts"}
 
 def normalize_user_id(user_id):
-    """Normalize phone numbers to consistent format (with + prefix for numeric IDs)."""
+    """Normalize user IDs for Mem0 queries.
+    
+    Rules:
+    - Phone numbers (WhatsApp): Keep + prefix (e.g., +919876543210)
+    - Telegram IDs: Keep as-is WITHOUT + prefix (e.g., 1455293571)
+    - Other IDs (web sessions, etc.): Keep as-is
+    
+    Telegram IDs are numeric but NOT phone numbers, so don't add + prefix.
+    """
     if not user_id:
         return user_id
-    # If it's a phone number (starts with digits), ensure + prefix
-    # Telegram user IDs and other non-phone IDs are left as-is
+    
     user_id = str(user_id).strip()
-    # Remove existing + first, then add it back for phone numbers
-    user_id = user_id.lstrip('+')
-    if user_id.isdigit() and len(user_id) > 8:  # Phone numbers are typically 10+ digits
-        return f"+{user_id}"
+    
+    # If already has + prefix, it's a phone number - keep it
+    if user_id.startswith('+'):
+        return user_id
+    
+    # If it's all digits, check if it's a phone number or Telegram ID
+    if user_id.isdigit():
+        # Phone numbers with country code are usually 12+ digits
+        # Example: 919876543210 (India) = 12 digits
+        # Telegram IDs are usually 9-10 digits
+        # WhatsApp numbers come WITH + prefix already, so this is for edge cases
+        if len(user_id) >= 12:
+            # Looks like phone number without +, add it
+            return f"+{user_id}"
+        else:
+            # Likely a Telegram ID or other numeric ID - keep as-is
+            return user_id
+    
+    # Non-numeric IDs (web sessions, etc.) - keep as-is
     return user_id
 
 def call_api(endpoint, payload=None, method="POST", verbose=False):
