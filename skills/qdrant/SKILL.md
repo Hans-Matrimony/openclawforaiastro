@@ -19,5 +19,5 @@ Search for relevant astrology concepts, planetary combinations, or remedies base
 
 ```bash
 # Python client wrapper
-python skills/qdrant/qdrant_client.py search "effect of Saturn in 7th house" --limit 5
+python3 ~/.openclaw/skills/qdrant/qdrant_client.py search "effect of Saturn in 7th house" --limit 5
 ```

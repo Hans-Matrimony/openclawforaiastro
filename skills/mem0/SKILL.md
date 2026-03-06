@@ -19,21 +19,21 @@ Search for relevant memories based on a query and user ID.
 
 ```bash
 # Python client wrapper
-python skills/mem0/mem0_client.py search "query string" --user-id "user123"
+python3 ~/.openclaw/skills/mem0/mem0_client.py search "query string" --user-id "user123"
 ```
 
 ### Add Memory
 Store a new memory for a user.
 
 ```bash
-python skills/mem0/mem0_client.py add "User prefers North Indian charts" --user-id "user123"
+python3 ~/.openclaw/skills/mem0/mem0_client.py add "User prefers North Indian charts" --user-id "user123"
 ```
 
 ### List Memories
 Get all memories for a user.
 
 ```bash
-python skills/mem0/mem0_client.py list --user-id "user123" --limit 20
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "user123" --limit 20
 ```
 
 ## Usage Guidelines
