@@ -111,7 +111,8 @@
             "name": "Gemini 2.5 Flash Lite",
             "reasoning": false,
             "input": [
-              "text", "image"
+              "text",
+              "image"
             ],
             "cost": {
               "input": 0,
@@ -145,7 +146,8 @@
       "contextPruning": {
         "tools": {
           "allow": [
-            "memory_search", "memory_get"
+            "memory_search",
+            "memory_get"
           ]
         }
       },
@@ -195,7 +197,8 @@
           "weather",
           "mem0",
           "qdrant",
-          "mongo_logger"
+          "mongo_logger",
+          "web_search"
         ],
         "identity": {
           "name": "Astro Hans",
