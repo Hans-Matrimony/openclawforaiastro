@@ -234,6 +234,12 @@ python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
   --channel "<telegram_or_whatsapp>"
 ```
 
+**⚠️ CRITICAL SESSION ID RULES FOR LOGGING:**
+- For **DMs** (Direct Messages/Private Chats): The `session-id` **MUST** be identical to the `user-id` from the envelope (e.g., `whatsapp:+91...` or `telegram:123...`).
+- **NEVER** use the `id:xxxx` (Message ID) from the envelope as the `session-id`.
+- Same `user-id` = Same `session-id`. This ensures all messages for one person are grouped together.
+- For **Groups**: Use the group identifier provided in the envelope as the `session-id`.
+
 **Make logging calls in PARALLEL with other operations when possible.**
 
 ## Response Style

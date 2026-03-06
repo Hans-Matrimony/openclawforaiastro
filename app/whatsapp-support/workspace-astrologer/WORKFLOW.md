@@ -77,9 +77,10 @@ Then STOP.
 # IMPORTANT: For Telegram, use JUST the number (no "telegram:" prefix)
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "1455293571"
 
-# Call 2: Log user message to MongoDB (use full user_id from envelope)
+# Call 2: Log user message to MongoDB
+# For DMs, session-id MUST BE identical to user-id from envelope (prefixed)
 python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
+  --session-id "telegram:1455293571" \
   --user-id "telegram:1455293571" \
   --role "user" \
   --text "<USER_MESSAGE>" \
@@ -160,11 +161,10 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py add "Name: X, DOB: Y, Time: Z, Pl
 
 ### STEP 7: 🔴 MANDATORY - Log Assistant Reply to MongoDB
 
-**ALWAYS log your reply:**
-
-```bash
+**# ALWAYS log your reply
+# For DMs, session-id MUST BE identical to user-id from envelope (prefixed)
 python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
+  --session-id "telegram:1455293571" \
   --user-id "telegram:1455293571" \
   --role "assistant" \
   --text "<YOUR_REPLY>" \
@@ -186,7 +186,7 @@ python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
 ```bash
 # Log user message
 python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
+  --session-id "telegram:1455293571" \
   --user-id "telegram:1455293571" \
   --role "user" \
   --text "<MESSAGE>" \
@@ -194,7 +194,7 @@ python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
 
 # Log assistant reply
 python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
+  --session-id "telegram:1455293571" \
   --user-id "telegram:1455293571" \
   --role "assistant" \
   --text "<REPLY>" \
@@ -232,17 +232,17 @@ User: "Hi"
 User: "Hi"
     │
     ├─ STEP 1: Extract user_id ✅
-    │     Envelope: "+918394833898"
-    │     Use in Mem0: "+918394833898" (no prefix to strip)
+    │     Envelope: "WhatsApp whatsapp:+918394833898 id:ABC123XYZ"
+    │     Use in Mem0: "+918394833898" (strip "whatsapp:" prefix if needed by skill)
     │
     ├─ STEP 2: [PARALLEL]
     │     ├─ Get Mem0 list → Found 5 memories: "Name is Shivam", "DOB 20 Aug 2001", etc.
-    │     └─ Log user "Hi" to MongoDB
+    │     └─ Log user "Hi" to MongoDB with session-id="whatsapp:+918394833898" (NEVER use id:ABC123XYZ)
     │
     ├─ STEP 3: It's a greeting + Mem0 found data →
     │     ├─ Extract name: "Shivam"
     │     ├─ Respond: "Arre Shivam beta! Kaise ho? Aaj kya jaanna chahte ho?"
-    │     └─ Log assistant reply to MongoDB
+    │     └─ Log assistant reply to MongoDB with session-id="whatsapp:+918394833898"
     │
     └─ DONE
 ```
