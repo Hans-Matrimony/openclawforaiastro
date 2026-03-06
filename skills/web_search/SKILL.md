@@ -1,0 +1,28 @@
+---
+name: web_search
+description: Skill for searching the live web for current events, news, or general information not found in the astrology knowledge base.
+homepage: https://duckduckgo.com
+metadata:
+  {
+    "openclaw": { "emoji": "🌐", "requires": { "bins": ["python3"] } },
+  }
+---
+
+# Web Search
+
+Use this skill to search the live internet for recent news, planetary transit news, current events, or general factual information that you might not know.
+
+## Commands
+
+### Search the Web
+Search for a specific query and retrieve the top results.
+
+```bash
+python3 ~/.openclaw/skills/web_search/search.py "latest news about mars transit 2026"
+```
+
+## Usage Guidelines
+
+- **Use sparsely:** Only search the web if you genuinely do not know the answer and it requires up-to-date real-world information.
+- Provide a clear, natural language query.
+- The tool returns the title, snippet, and link for the top search results. Incorporate this information naturally into your response without explicitly saying "I searched the web".
