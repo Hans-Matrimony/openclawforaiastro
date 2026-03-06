@@ -19,7 +19,7 @@ It talks to the `openclaw_mongo_logger` service via its `/webhook` endpoint.
 ### Log a Message
 
 ```bash
-python skills/mongo_logger/logger_client.py log \
+python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
   --session-id "<session_id>" \
   --user-id "<user_id>" \
   --role "user" \
