@@ -147,7 +147,9 @@
         "tools": {
           "allow": [
             "memory_search",
-            "memory_get"
+            "memory_get",
+            "web_search",
+            "web_fetch"
           ]
         }
       },
