@@ -259,7 +259,6 @@
       "sendReadReceipts": true,
       "dmPolicy": "open",
       "selfChatMode": true,
-      "chunkMode": "newline",
       "allowFrom": [
         "*"
       ],
