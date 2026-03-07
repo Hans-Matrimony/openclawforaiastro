@@ -20,7 +20,8 @@ Message arrives
     │
     └─ STEP 4: Is it an astrology question?
           └─ YES →
-              ├─ Search Qdrant (if needed)
+              ├─ Search Qdrant (for static knowledge)
+              ├─ Search Web (for live transits/current facts)
               ├─ Respond to user
               └─ Log assistant reply to MongoDB
               → DONE.
@@ -126,15 +127,22 @@ python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
 
 ### STEP 4: Handle Astrology Question
 
-**Search Qdrant (Only if Needed):**
-
+**1. Search Qdrant (For Static Concepts):**
 ```bash
 python3 ~/.openclaw/skills/qdrant/qdrant_client.py search "<astrological concept>"
 ```
+*Use this for traditional principles and definitions.*
 
-**SKIP this step if:**
-- You already have user's birth details from Mem0
-- Simple question you can answer from training
+**2. Search Web (For Live Information):**
+```bash
+# MANDATORY for today's planetary positions, transits, or recent news.
+python3 ~/.openclaw/skills/web_search/search.py "<your query for today's facts>"
+```
+*Use this for "today's position", "current transit", or "latest news".*
+
+**SKIP these steps if:**
+- You already have the specific answer in memory or training.
+- The question doesn't require live data or complex concepts.
 
 ---
 
