@@ -4,43 +4,48 @@ import time
 from duckduckgo_search import DDGS
 
 def search(query):
-    # Try the specific query provided by the agent first
-    print(f"DEBUG: Searching for '{query}'", file=sys.stderr)
-    results = _perform_search(query)
-    if results and len(results) > 0:
-        return results
+    # Try multiple variations to ensure we get results for astrology
+    variations = [
+        query, # Original
+    ]
     
-    # FALLBACK: If no results, try a broader query (remove specific dates/terms)
-    # This helps if 'today' or 'March 7 2026' doesn't have many results yet
-    broad_query = query.lower().replace("vedic astrology", "").replace("ephemeris", "").replace("today", "current").strip()
-    if broad_query != query.lower():
-        print(f"DEBUG: No results. Retrying with broader query: '{broad_query}'", file=sys.stderr)
-        results = _perform_search(broad_query)
-        if results and len(results) > 0:
-            return results
-    
-    # SECOND FALLBACK: Absolute minimum query for Saturn position
+    # If searching for Saturn, try "Shani" and avoid store results
     if "saturn" in query.lower():
-        min_query = "Saturn transit position March 2026 astrology"
-        print(f"DEBUG: Final fallback attempt: '{min_query}'", file=sys.stderr)
-        results = _perform_search(min_query)
+        # Variation 1: Add Shani and vedic terms
+        var1 = query.lower().replace("saturn", "Shani transit") + " vedic astrology ephemeris"
+        variations.append(var1)
+        # Variation 2: Negative keywords for store
+        var2 = query.lower() + " -store -shop -deals -price -sale -buy"
+        variations.append(var2)
+        # Variation 3: Specific planetary position search
+        variations.append("Saturn transit position today March 2026 vedic")
+    
+    # Generic variation if no results
+    if "today" in query.lower():
+        variations.append(query.lower().replace("today", "current transit position"))
+
+    best_error = None
+    for v in variations:
+        print(f"DEBUG: Attempting search with: '{v}'", file=sys.stderr)
+        results = _perform_search(v)
         if results and len(results) > 0:
+            # Check if results are likely electronics store results
+            is_store = any("saturn.de" in r.get("href", "") or "technik" in r.get("title", "").lower() for r in results)
+            if is_store and "saturn" in v.lower():
+                print(f"DEBUG: Found store results, skipping...", file=sys.stderr)
+                continue
             return results
-            
-    return {"status": "no_results", "message": "No results found even after multiple fallsbacks."}
+        
+    return {"status": "no_results", "message": "No results found even after multiple variations."}
 
 def _perform_search(query):
-    last_error = None
-    for attempt in range(2):
-        try:
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=5))
-                if results and len(results) > 0:
-                    return results
-        except Exception as e:
-            last_error = str(e)
-            print(f"DEBUG: Attempt {attempt+1} failed: {last_error}", file=sys.stderr)
-            time.sleep(1)
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=5))
+            if results and len(results) > 0:
+                return results
+    except Exception as e:
+        print(f"DEBUG: Error during search execution: {str(e)}", file=sys.stderr)
     return None
 
 if __name__ == "__main__":
@@ -51,8 +56,5 @@ if __name__ == "__main__":
     query = " ".join(sys.argv[1:])
     results = search(query)
     
-    # Log raw results to stderr for debugging in Coolify logs
-    print(f"DEBUG_RESULTS: {json.dumps(results)}", file=sys.stderr)
-    
-    # Final JSON output for the openclaw tool execution
+    # Print the final result
     print(json.dumps(results, indent=2))
