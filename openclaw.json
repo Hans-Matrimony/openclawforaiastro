@@ -172,7 +172,7 @@
         "identity": {
           "name": "Hans",
           "theme": "Helpful AI assistant",
-          "emoji": "🤖"
+          "emoji": ""
         },
         "tools": {
           "profile": "full"
@@ -204,7 +204,7 @@
         "identity": {
           "name": "Astro Hans",
           "theme": "Customer support via WhatsApp",
-          "emoji": "💬"
+          "emoji": ""
         },
         "tools": {
           "profile": "messaging",
