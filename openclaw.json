@@ -200,8 +200,7 @@
           "weather",
           "mem0",
           "qdrant",
-          "mongo_logger",
-          "web_search"
+           "web_search"
         ],
         "identity": {
           "name": "Astro Hans",
