@@ -28,5 +28,6 @@ if __name__ == "__main__":
         sys.exit(1)
         
     query = " ".join(sys.argv[1:])
+    print(f"DEBUG: Searching for '{query}'", file=sys.stderr)
     results = search(query)
     print(json.dumps(results, indent=2))
