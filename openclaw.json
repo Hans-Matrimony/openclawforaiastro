@@ -161,7 +161,8 @@
       },
       "envelopeTimestamp": "on",
       "envelopeTimezone": "utc",
-      "envelopeElapsed": "on"
+      "envelopeElapsed": "on",
+      "bootstrapMaxChars": 50000
     },
     "list": [
       {
