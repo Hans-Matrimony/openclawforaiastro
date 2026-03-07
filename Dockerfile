@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 RUN npm install -g openclaw@latest
 # Install OpenClaw CLI
 # Install uv for Python tool management (needed for mcporter/uvx) and requests for Qdrant skill
-RUN pip3 install uv requests --break-system-packages
+RUN pip3 install uv requests duckduckgo-search --break-system-packages
 
 # Create directories
 RUN mkdir -p /app/.openclaw/agents/main/sessions
