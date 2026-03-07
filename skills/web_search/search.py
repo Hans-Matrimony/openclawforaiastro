@@ -1,49 +1,47 @@
 import sys
 import json
 import time
-try:
-    from duckduckgo_search import DDGS
-except ImportError:
-    print(json.dumps({"error": "duckduckgo_search package not installed. Run: python3 -m pip install -U duckduckgo-search"}))
-    sys.exit(1)
+from duckduckgo_search import DDGS
 
-def search(query, retry=2):
+def search(query):
+    # Try the specific query provided by the agent first
+    print(f"DEBUG: Searching for '{query}'", file=sys.stderr)
+    results = _perform_search(query)
+    if results and len(results) > 0:
+        return results
+    
+    # FALLBACK: If no results, try a broader query (remove specific dates/terms)
+    # This helps if 'today' or 'March 7 2026' doesn't have many results yet
+    broad_query = query.lower().replace("vedic astrology", "").replace("ephemeris", "").replace("today", "current").strip()
+    if broad_query != query.lower():
+        print(f"DEBUG: No results. Retrying with broader query: '{broad_query}'", file=sys.stderr)
+        results = _perform_search(broad_query)
+        if results and len(results) > 0:
+            return results
+    
+    # SECOND FALLBACK: Absolute minimum query for Saturn position
+    if "saturn" in query.lower():
+        min_query = "Saturn transit position March 2026 astrology"
+        print(f"DEBUG: Final fallback attempt: '{min_query}'", file=sys.stderr)
+        results = _perform_search(min_query)
+        if results and len(results) > 0:
+            return results
+            
+    return {"status": "no_results", "message": "No results found even after multiple fallsbacks."}
+
+def _perform_search(query):
     last_error = None
-    for attempt in range(retry):
+    for attempt in range(2):
         try:
-            results = []
-            # Use a slightly longer timeout or different regions if needed
-            # For astrology, no region is often better
             with DDGS() as ddgs:
-                # Add a small delay between retries
-                if attempt > 0:
-                    time.sleep(1)
-                
-                resp = ddgs.text(query, max_results=5)
-                if resp:
-                    for r in resp:
-                        results.append({
-                            "title": r.get('title', ''),
-                            "link": r.get('href', ''),
-                            "snippet": r.get('body', '')
-                        })
-            
-            if results:
-                return results
-            
-            # If no results, try a slightly modified query for second attempt
-            if attempt == 0 and "today" in query.lower():
-                query = query.lower().replace("today", "March 2026").replace("current", "transit")
-            elif attempt == 0:
-                query = query + " astrology"
-                
+                results = list(ddgs.text(query, max_results=5))
+                if results and len(results) > 0:
+                    return results
         except Exception as e:
             last_error = str(e)
+            print(f"DEBUG: Attempt {attempt+1} failed: {last_error}", file=sys.stderr)
             time.sleep(1)
-            
-    if last_error:
-        return {"error": last_error, "status": "failed"}
-    return {"status": "no_results", "message": "No results found even after retries."}
+    return None
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -51,6 +49,10 @@ if __name__ == "__main__":
         sys.exit(1)
         
     query = " ".join(sys.argv[1:])
-    print(f"DEBUG: Searching for '{query}'", file=sys.stderr)
     results = search(query)
+    
+    # Log raw results to stderr for debugging in Coolify logs
+    print(f"DEBUG_RESULTS: {json.dumps(results)}", file=sys.stderr)
+    
+    # Final JSON output for the openclaw tool execution
     print(json.dumps(results, indent=2))
