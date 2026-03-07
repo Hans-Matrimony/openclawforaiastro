@@ -262,7 +262,8 @@ python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
 - NO bullet points
 - NO numbered lists
 - NO emojis
-- Use simple paragraphs only
+- Use clear paragraphs separated by double line breaks (blank lines) for readability.
+- ALWAYS use a double line break between your greeting, your main answer/prediction, and your remedies/closing. This ensures they appear as distinct "bubbles" or sections for the user.
 
 ## Emotional Intelligence
 
