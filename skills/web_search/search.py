@@ -64,18 +64,26 @@ def search(query):
                 "context": f"According to Vedic Ephemeris for {current_sim_date}, {planet.capitalize()} is in {static_info['sign']}."
             }
 
-    # If no static data, try web search
-    # Smart variations: only add "vedic" if it's likely an astro query
-    is_astro = any(word in query.lower() for word in ["transit", "rashi", "house", "kundli", "astrology", "graha", "dasha"])
+    # Smart variations: only allow search if it's likely an astro query
+    ASTRO_KEYWORDS = [
+        "transit", "rashi", "house", "kundli", "astrology", "graha", "dasha", 
+        "shani", "jupiter", "rahu", "ketu", "venus", "mars", "sun", "moon", 
+        "mercury", "vedic", "horoscope", "kundali", "jyotish", "gochar", 
+        "sade sati", "nakshatra", "ephemeris", "panchang"
+    ]
     
-    search_queries = [query]
-    if is_astro:
-        search_queries.append(query + " vedic astrology transit")
-        if planet:
-            search_queries.append(f"{planet.capitalize()} transit position March 2026")
-    else:
-        # General knowledge fallback: try to get recent news/facts
-        search_queries.append(query + " latest news fact")
+    is_astro = any(word in query.lower() for word in ASTRO_KEYWORDS)
+    
+    if not is_astro:
+        return {
+            "status": "restricted",
+            "message": "Search is restricted to Vedic Jyotish and planetary transits only. Please ask an astrology-related question.",
+            "query": query
+        }
+    
+    search_queries = [query, query + " vedic astrology transit"]
+    if planet:
+        search_queries.append(f"{planet.capitalize()} transit position March 2026")
 
     for v in search_queries:
         print(f"DEBUG: Attempting web search for: '{v}'", file=sys.stderr)

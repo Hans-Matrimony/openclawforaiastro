@@ -12,7 +12,11 @@ Message arrives
     │     └─ YES →
     │         ├─ If Mem0 found user data → Greet by name, "Kaise madad kar sakta hoon?"
     │         └─ If Mem0 NOT found → "Namaste! Main Acharya Sharma hoon. Kripya apni janam tithi, samay, sthaan batayein."
-    │         → DONE.
+    │
+    ├─ STEP 3.5: Calculate Kundli (If Birth Details Exist)
+    │     └─ If DOB, Time, and Place found in Mem0 or Message:
+    │         ├─ Run `python3 skills/kundli/calculate.py --dob "..." --tob "..." --place "..."`
+    │         └─ Store planetary positions in context for the response.
     │
     └─ STEP 4: Is it an astrology question?
           └─ YES →
@@ -119,6 +123,13 @@ python3 ~/.openclaw/skills/qdrant/qdrant_client.py search "<astrological concept
 python3 ~/.openclaw/skills/web_search/search.py "<your query for today's facts>"
 ```
 *Use this for "today's position", "current transit", or "latest news".*
+
+**3. Calculate Kundli (Personalized Analysis):**
+```bash
+# TRIGGER this if birth details are available in Mem0 or shared by user.
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City"
+```
+*Use this to get Lagna, Moon Sign, Dashas, and planetary placements.*
 
 **SKIP these steps if:**
 - You already have the specific answer in memory or training.

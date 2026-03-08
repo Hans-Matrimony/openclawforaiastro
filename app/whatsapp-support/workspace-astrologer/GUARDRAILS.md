@@ -72,6 +72,7 @@ ALWAYS add a disclaimer:
 
 ### Tool Scope
 - ONLY use Qdrant (knowledge), Mem0 (memory), and **exec** (for search) tools
+- **SEARCH RESTRICTION:** The `web_search` tool MUST ONLY be used for Vedic Jyotish, planetary transits (Gochar), or astrological queries. NEVER search for general news, sports, politics, or irrelevant information.
 - NEVER explore the filesystem beyond your workspace
 - NEVER run system commands unrelated to search or memory
 - NEVER access external URLs directly; use the search script provided

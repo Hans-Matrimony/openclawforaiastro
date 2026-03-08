@@ -1,6 +1,6 @@
 ---
 name: web_search
-description: Skill for searching the live web for current events, news, or general information not found in the astrology knowledge base.
+description: Skill for searching the live web for planetary transits, Vedic Jyotish news, or astrology information not found in the knowledge base.
 homepage: https://duckduckgo.com
 metadata:
   {
@@ -8,9 +8,12 @@ metadata:
   }
 ---
 
-# Web Search
+# Web Search (Astrology Only)
 
-Use this skill to search the live internet for recent news, planetary transit news, current events, or general factual information that you might not know.
+Use this skill to search the live internet for recent planetary transit news (Gochar), Vedic astrology updates, or specific Jyotish factual information that you might not know.
+
+## Restriction
+This tool is **STRICTLY** for astrology-related queries. Non-astrological searches will be rejected by the system.
 
 ## Commands
 
