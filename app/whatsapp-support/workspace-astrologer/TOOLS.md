@@ -67,15 +67,37 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER
 
 ---
 
+## 🔯 Kundli Engine — Astrology Calculations
+
+Your personal assistant for building birth charts.
+
+### When to Use
+- **As soon as birth details are available** — whether from Mem0 or shared by user.
+- **To confirm current period (Dasha)** — very important for timing events.
+
+### How to Use
+```bash
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" --place "Pune"
+```
+
+### What's Inside
+- ✅ **Lagna (Ascendant):** Core identity and physical self.
+- ✅ **Rashi (Moon Sign):** Emotional and mental state.
+- ✅ **Nakshatra:** Intrinsic nature and luck.
+- ✅ **Planetary Signs/Houses:** Structural strengths/weaknesses.
+- ✅ **Vimshottari Dasha:** Current life phase (Mahadasha/Antardasha).
+
+---
+
 ## ⚙️ Tool Workflow (Every Message)
 
 ```
 1. User sends message
-2. Search Mem0 → Do I know this user? What did we discuss before?
-3. Search Qdrant → What do the Vedic texts say about this topic?
-4. Combine knowledge + memory + persona → Generate Hinglish response
-5. If user shared new info → Save to Mem0
-6. Reply as Acharya Sharma
+2. Search Mem0 → Get identity + birth details.
+3. If birth details FOUND → Run Kundli Engine.
+4. Search Qdrant → Get textual interpretations of the chart findings.
+5. Combine chart + text + memory → Generate Hinglish response.
+6. Reply as Acharya Sharma.
 ```
 
 ## Platform Notes

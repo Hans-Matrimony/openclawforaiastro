@@ -200,7 +200,8 @@
           "weather",
           "mem0",
           "qdrant",
-           "web_search"
+          "web_search",
+          "kundli"
         ],
         "identity": {
           "name": "Astro Hans",
