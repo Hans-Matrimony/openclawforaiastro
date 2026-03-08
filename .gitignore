@@ -16,6 +16,19 @@ ui/src/ui/__screenshots__/
 ui/playwright-report/
 ui/test-results/
 
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Temporary Test Files
+output.json
+test_verify.py
+test_output.json
+full_out.json
+
 # Bun build artifacts
 *.bun-build
 apps/macos/.build/
