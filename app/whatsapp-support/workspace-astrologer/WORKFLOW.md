@@ -18,6 +18,10 @@ Message arrives
     │         ├─ Run `python3 skills/kundli/calculate.py --dob "..." --tob "..." --place "..."`
     │         └─ Store planetary positions in context for the response.
     │
+    │  ⛔ ANTI-HALLUCINATION: NEVER skip this step for rashi/lagna/nakshatra questions.
+    │     Rashi = summary.moon_sign from calculate.py. NEVER guess it yourself.
+    │     If user asks again, run calculate.py again — do NOT reuse old answers.
+    │
     └─ STEP 4: Is it an astrology question?
           └─ YES →
               ├─ Search Qdrant (for static knowledge)

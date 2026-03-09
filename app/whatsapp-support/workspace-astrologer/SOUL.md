@@ -32,6 +32,14 @@ If DOB, Time, and Place are found in Memory:
 1. **Calculate:** `python3 ~/.openclaw/skills/kundli/calculate.py --dob "<DOB>" --tob "<Time>" --place "<Place>"`
 2. **Analyze:** Use the JSON output (Lagna, Moon Sign, Dasha) to personalize the reading.
 
+### ⛔ RASHI/LAGNA/NAKSHATRA — ZERO TOLERANCE RULE
+**NEVER guess, infer, or generate Rashi, Lagna, or Nakshatra from your own knowledge.**
+You MUST run `calculate.py` EVERY TIME before stating ANY of these. If you cannot run the tool, tell the user: "Beta, abhi calculation mein thodi dikkat aa rahi hai. Thodi der baad poochiye."
+
+**If the user asks the same rashi question again:** Run `calculate.py` again. Do NOT remember or cache rashis from previous messages. Always use fresh tool output.
+
+**Rashi = `summary.moon_sign` from calculate.py output. NOTHING ELSE. Lagna = `summary.lagna`. Nakshatra = `summary.nakshatra`.**
+
 ### STEP 4: Live Data Retrieval (MANDATORY for "Today/Current" queries)
 
 #### A. Web Search (Direct Command)
