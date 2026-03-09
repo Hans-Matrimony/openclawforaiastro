@@ -152,11 +152,31 @@ def main():
     list_parser.add_argument("--user-id", required=True, help="User ID")
     list_parser.add_argument("--limit", type=int, default=100, help="Result limit")
 
+    # Update
+    update_parser = subparsers.add_parser("update")
+    update_parser.add_argument("--memory-id", required=True, help="Memory ID to update")
+    update_parser.add_argument("--content", help="New memory content")
+    update_parser.add_argument("--metadata", default="{}", help="Updated metadata JSON string")
+
+    # Delete
+    delete_parser = subparsers.add_parser("delete")
+    delete_parser.add_argument("--memory-id", required=True, help="Memory ID to delete")
+
+    # Upsert
+    upsert_parser = subparsers.add_parser("upsert")
+    upsert_parser.add_argument("query", help="Search query to find existing memory")
+    upsert_parser.add_argument("--content", required=True, help="Memory content")
+    upsert_parser.add_argument("--user-id", required=True, help="User ID")
+    upsert_parser.add_argument("--metadata", default="{}", help="Metadata JSON string")
+    upsert_parser.add_argument("--limit", type=int, default=5, help="Search result limit")
+
     args = parser.parse_args()
     verbose = getattr(args, 'verbose', False)
 
-    # Normalize user_id for phone numbers
-    normalized_user_id = normalize_user_id(args.user_id)
+    # Normalize user_id for phone numbers (only for commands that use it)
+    normalized_user_id = None
+    if hasattr(args, 'user_id') and args.user_id:
+        normalized_user_id = normalize_user_id(args.user_id)
 
     if args.command == "search":
         result = call_api("/memory/search", {
@@ -185,6 +205,83 @@ def main():
             method="GET",
             verbose=verbose
         )
+        print(json.dumps(result, indent=2))
+
+    elif args.command == "update":
+        try:
+            metadata = json.loads(args.metadata)
+        except json.JSONDecodeException:
+            metadata = {}
+
+        payload = {
+            "memory_id": args.memory_id,
+            "metadata": metadata
+        }
+        if args.content is not None:
+            payload["content"] = args.content
+
+        result = call_api("/memory/update", payload, method="POST", verbose=verbose)
+        print(json.dumps(result, indent=2))
+
+    elif args.command == "delete":
+        result = call_api(
+            f"/memory/{args.memory_id}",
+            method="DELETE",
+            verbose=verbose
+        )
+        print(json.dumps(result, indent=2))
+
+    elif args.command == "upsert":
+        try:
+            metadata = json.loads(args.metadata)
+        except json.JSONDecodeException:
+            metadata = {}
+
+        # First, search for existing memory
+        search_result = call_api("/memory/search", {
+            "query": args.query,
+            "user_id": normalized_user_id,
+            "limit": args.limit
+        }, verbose=verbose)
+
+        # Extract results from search response
+        results = []
+        if isinstance(search_result, dict) and "results" in search_result:
+            results = search_result["results"]
+        elif isinstance(search_result, list):
+            results = search_result
+
+        # Check if search found existing memories with IDs
+        memory_id = None
+        if results:
+            for item in results:
+                # Try to get memory_id from various possible fields
+                mid = item.get("id") or item.get("memory_id")
+                if mid:
+                    memory_id = mid
+                    break
+
+        if memory_id:
+            # Update existing memory
+            payload = {
+                "memory_id": memory_id,
+                "metadata": metadata
+            }
+            if args.content is not None:
+                payload["content"] = args.content
+
+            result = call_api("/memory/update", payload, method="POST", verbose=verbose)
+            result["_upsert"] = "updated"
+            result["_memory_id"] = memory_id
+        else:
+            # Add new memory
+            result = call_api("/memory/add", {
+                "content": args.content,
+                "user_id": normalized_user_id,
+                "metadata": metadata
+            }, verbose=verbose)
+            result["_upsert"] = "created"
+
         print(json.dumps(result, indent=2))
 
 if __name__ == "__main__":
