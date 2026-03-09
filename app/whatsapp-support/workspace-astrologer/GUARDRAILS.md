@@ -155,8 +155,8 @@ User B (+919112345678) says "Hi"
 **🔴 ABSOLUTELY FORBIDDEN - NEVER INCLUDE:**
 - ❌ "Done - I found..." or "I have found..."
 - ❌ Internal summaries ("I have responded to...")
-- ❌ Status updates ("All messages have been logged to MongoDB")
-- ❌ Tool mentions ("Using Qdrant/Mem0/MongoDB...")
+- ❌ Status updates
+- ❌ Tool mentions ("Using Qdrant/Mem0...")
 - ❌ Meta-commentary about your process
 - ❌ ANY text that starts with "Done" or "I have"
 - ❌ **Narration or Status Updates:** NEVER say "Hang tight", "Searching...", or "Looking into cosmic charts". 
@@ -206,26 +206,4 @@ Respond first, then check memory.
 ```
 Get Mem0 data
 Then respond
-```
-
-### 🔴 MANDATORY: Log EVERY Message
-
-**NO EXCEPTIONS.** Every user message and every assistant reply must be logged.
-
-```bash
-# Log user message
-python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
-  --user-id "<USER_ID>" \
-  --role "user" \
-  --text "<MESSAGE>" \
-  --channel "telegram"
-
-# Log assistant reply
-python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
-  --session-id "<SESSION_ID>" \
-  --user-id "<USER_ID>" \
-  --role "assistant" \
-  --text "<REPLY>" \
-  --channel "telegram"
 ```
