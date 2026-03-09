@@ -212,11 +212,21 @@ def main():
             print(json.dumps({"error": "Content is required for update. Use --content argument."}, indent=2))
             return
 
-        # mem0ai update expects: memory_id, content (string)
+        # Parse metadata
+        try:
+            metadata = json.loads(args.metadata)
+        except json.JSONDecodeError:
+            metadata = {}
+
+        # mem0ai update expects: memory_id, content (string), metadata (optional)
         payload = {
             "memory_id": args.memory_id,
             "content": args.content
         }
+        
+        # Include metadata if provided
+        if metadata:
+            payload["metadata"] = metadata
 
         result = call_api("/memory/update", payload, method="POST", verbose=verbose)
         print(json.dumps(result, indent=2))
