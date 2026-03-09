@@ -208,24 +208,15 @@ def main():
         print(json.dumps(result, indent=2))
 
     elif args.command == "update":
-        try:
-            metadata = json.loads(args.metadata)
-        except json.JSONDecodeException:
-            metadata = {}
-
-        # mem0ai update expects: memory_id, data (str), metadata (optional)
-        if not args.content and not metadata:
-            print(json.dumps({"error": "Either --content or --metadata must be provided"}, indent=2))
+        if not args.content:
+            print(json.dumps({"error": "Content is required for update. Use --content argument."}, indent=2))
             return
 
-        # Build payload - data should be the content string
+        # mem0ai update expects: memory_id, content (string)
         payload = {
-            "memory_id": args.memory_id
+            "memory_id": args.memory_id,
+            "content": args.content
         }
-        if args.content is not None:
-            payload["data"] = args.content
-        if metadata:
-            payload["metadata"] = metadata
 
         result = call_api("/memory/update", payload, method="POST", verbose=verbose)
         print(json.dumps(result, indent=2))
@@ -269,13 +260,11 @@ def main():
                     break
 
         if memory_id:
-            # Update existing memory - mem0ai expects data as string
+            # Update existing memory
             payload = {
                 "memory_id": memory_id,
-                "data": args.content
+                "content": args.content
             }
-            if metadata:
-                payload["metadata"] = metadata
 
             result = call_api("/memory/update", payload, method="POST", verbose=verbose)
             result["_upsert"] = "updated"
