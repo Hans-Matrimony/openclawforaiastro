@@ -60,18 +60,28 @@ def calculate_kundli(dob_str, tob_str, place):
     # ADD FLATTENED SUMMARY FOR AI (CRITICAL FOR ACCURACY)
     try:
         lagna = chart.d1_chart.houses[0].to_dict().get('sign')
-        moon_sign = next(p for p in chart.d1_chart.planets if p.celestial_body == 'Moon').to_dict().get('sign')
-        nakshatra = chart.panchanga.nakshatra
+        # Get Moon planet object for its sign AND nakshatra
+        moon_planet = next(p for p in chart.d1_chart.planets if p.celestial_body == 'Moon')
+        moon_sign = moon_planet.to_dict().get('sign')
+        # CRITICAL: Always use the Moon's own nakshatra, NOT panchanga or any other planet
+        # Saturn or other planets in House 1 may have a different nakshatra (e.g. Rohini)
+        # which must NOT be confused with the Moon's birth star (Janma Nakshatra)
+        moon_nakshatra = moon_planet.to_dict().get('nakshatra')
+        # Fall back to panchanga only if Moon nakshatra unavailable
+        if not moon_nakshatra:
+            moon_nakshatra = chart.panchanga.nakshatra
         
         chart_data["summary"] = {
             "lagna": str(lagna),
             "moon_sign": str(moon_sign),
-            "nakshatra": str(nakshatra),
+            "nakshatra": str(moon_nakshatra),  # MOON's Nakshatra (Janma Nakshatra)
+            "nakshatra_note": "This is the Moon's Nakshatra (Janma Nakshatra/birth star). Not Saturn or any other planet.",
             "current_dasha": "Vimshottari Dasha is active. Check full 'dashas' field for timings."
         }
-        # Extra top-level keys for backup
+        # Extra top-level keys for backup - all three must be consistent
         chart_data["lagna"] = chart_data["summary"]["lagna"]
         chart_data["moon_sign"] = chart_data["summary"]["moon_sign"]
+        chart_data["nakshatra"] = chart_data["summary"]["nakshatra"]  # MOON's Nakshatra explicitly
     except Exception as e:
         chart_data["summary_error"] = str(e)
 
