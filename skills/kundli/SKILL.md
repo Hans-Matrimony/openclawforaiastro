@@ -23,7 +23,7 @@ The tool returns a detailed JSON object containing:
 - **metadata**: Echoes input and provides GPS coordinates.
 - **lagna**: The Ascendant sign.
 - **moon_sign**: The Rashi sign.
-- **nakshatra**: The birth star.
+- **nakshatra**: The Moon's birth star (Janma Nakshatra). This is ALWAYS the Moon's Nakshatra. Do NOT use the nakshatra of any other planet (e.g. Saturn in House 1) as the birth Nakshatra.
 - **panchang**: Tithi, Yoga, Karana, Weekday.
 - **planets**: A list of all planets and their positions.
 - **dashas**: Current Vimshottari Mahadasha and Antardasha.
