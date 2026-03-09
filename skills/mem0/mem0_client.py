@@ -213,12 +213,17 @@ def main():
         except json.JSONDecodeException:
             metadata = {}
 
+        # Build data dict for mem0's update method
+        data_dict = {}
+        if args.content is not None:
+            data_dict["memory"] = args.content
+        if metadata:
+            data_dict["metadata"] = metadata
+
         payload = {
             "memory_id": args.memory_id,
-            "metadata": metadata
+            "data": data_dict
         }
-        if args.content is not None:
-            payload["content"] = args.content
 
         result = call_api("/memory/update", payload, method="POST", verbose=verbose)
         print(json.dumps(result, indent=2))
@@ -263,12 +268,16 @@ def main():
 
         if memory_id:
             # Update existing memory
+            data_dict = {}
+            if args.content is not None:
+                data_dict["memory"] = args.content
+            if metadata:
+                data_dict["metadata"] = metadata
+
             payload = {
                 "memory_id": memory_id,
-                "metadata": metadata
+                "data": data_dict
             }
-            if args.content is not None:
-                payload["content"] = args.content
 
             result = call_api("/memory/update", payload, method="POST", verbose=verbose)
             result["_upsert"] = "updated"
