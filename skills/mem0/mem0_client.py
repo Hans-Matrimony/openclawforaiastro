@@ -26,7 +26,7 @@ except ImportError:
 
 MEM0_SERVER = os.getenv("MEM0_URL", "https://rg4g0gkk0wwkk4cc00g4sg0c.api.hansastro.com")
 MEM0_API_KEY = os.getenv("MEM0_API_KEY")
-DEFAULT_TIMEOUT = 10  # seconds
+DEFAULT_TIMEOUT = 30  # seconds (increased for upsert with multiple deletes)
 MAX_RETRIES = 3
 RETRY_DELAY = 1  # second
 
