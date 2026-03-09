@@ -235,7 +235,7 @@ def main():
         except json.JSONDecodeException:
             metadata = {}
 
-        # First, search for existing memory
+        # First, search for existing memories
         search_result = call_api("/memory/search", {
             "query": args.query,
             "user_id": normalized_user_id,
@@ -249,33 +249,38 @@ def main():
         elif isinstance(search_result, list):
             results = search_result
 
-        # Check if search found existing memories with IDs
-        memory_id = None
+        # Collect ALL matching memory IDs to delete
+        memory_ids_to_delete = []
         if results:
             for item in results:
-                # Try to get memory_id from various possible fields
                 mid = item.get("id") or item.get("memory_id")
                 if mid:
-                    memory_id = mid
-                    break
+                    memory_ids_to_delete.append(mid)
 
-        if memory_id:
-            # Update existing memory
-            payload = {
-                "memory_id": memory_id,
-                "content": args.content
-            }
+        # Delete ALL matching memories
+        deleted_count = 0
+        for mid in memory_ids_to_delete:
+            delete_result = call_api(
+                f"/memory/{mid}",
+                method="DELETE",
+                verbose=verbose
+            )
+            if isinstance(delete_result, dict) and delete_result.get("success"):
+                deleted_count += 1
 
-            result = call_api("/memory/update", payload, method="POST", verbose=verbose)
-            result["_upsert"] = "updated"
-            result["_memory_id"] = memory_id
+        # Add new memory (replaces all old ones)
+        result = call_api("/memory/add", {
+            "content": args.content,
+            "user_id": normalized_user_id,
+            "metadata": metadata
+        }, verbose=verbose)
+
+        # Add upsert metadata
+        if deleted_count > 0:
+            result["_upsert"] = "replaced"
+            result["_deleted_count"] = deleted_count
+            result["_deleted_ids"] = memory_ids_to_delete
         else:
-            # Add new memory
-            result = call_api("/memory/add", {
-                "content": args.content,
-                "user_id": normalized_user_id,
-                "metadata": metadata
-            }, verbose=verbose)
             result["_upsert"] = "created"
 
         print(json.dumps(result, indent=2))
