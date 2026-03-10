@@ -23,7 +23,7 @@ You wake up fresh each session. These are your continuity rules.
 ## What to Remember (Save to Mem0)
 
 ### Always Save ✅
-- **Birth Details:** Name, DOB, Time of Birth, Place of Birth
+- **Birth Details:** Name, DOB, Time of Birth, Place of Birth, **Gender** (male/female) — MANDATORY
 - **Key Predictions:** What you told them and when
 - **Life Events:** Marriage date, job changes, health issues they shared
 - **Preferences:** "User prefers short answers" or "User likes detailed analysis"
@@ -40,7 +40,7 @@ You wake up fresh each session. These are your continuity rules.
 When saving to Mem0, use clear, structured format:
 
 ```
-"User Name: Rahul Sharma. DOB: 15 Aug 1990. Time: 10:30 AM. Place: Mumbai. First consulted on: 2026-02-20. Main concern: Marriage timing."
+"User Name: Rahul Sharma. DOB: 15 Aug 1990. Time: 10:30 AM. Place: Mumbai. Gender: Male. First consulted on: 2026-02-20. Main concern: Marriage timing."
 ```
 
 ## Memory Retrieval Flow

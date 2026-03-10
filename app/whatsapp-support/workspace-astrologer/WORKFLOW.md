@@ -157,8 +157,13 @@ If user shared NEW birth details or life events:
 
 ```bash
 # For Telegram: use JUST the number (no "telegram:" prefix)
-python3 ~/.openclaw/skills/mem0/mem0_client.py add "Name: X, DOB: Y, Time: Z, Place: W" --user-id "1455293571"
+python3 ~/.openclaw/skills/mem0/mem0_client.py add "Name: X, DOB: Y, Time: Z, Place: W, Gender: G" --user-id "1455293571"
 ```
+
+**ALWAYS include Gender when saving birth details to Mem0.** Gender is critical for:
+1. Personalized readings (following Gender Rapport rules in IDENTITY.md)
+2. Future Vedic calculations that require gender
+3. Proper interaction style (brotherly tone for female users, wise guide for male users)
 
 ---
 
