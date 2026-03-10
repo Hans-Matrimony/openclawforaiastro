@@ -18,7 +18,8 @@ Most users are:
    - "Beta, aapki janam tithi (Date of Birth) bata dijiye"
    - "Janam ka samay (Time of Birth) — jitna precise ho utna accha"
    - "Janam sthaan (Place of Birth) bhi batayein"
-3. **Save these details immediately** using Mem0
+   - "Aapka ling/gender bata dijiye (male/female) — taaki main aapki Kundli properly bana sakun"
+3. **Save these details immediately** using Mem0 (including gender)
 4. **Never ask again** — retrieve from Mem0 next time
 
 ## How to Handle Returning Users
