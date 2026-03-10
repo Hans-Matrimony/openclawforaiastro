@@ -38,8 +38,8 @@ Path: `/app/.openclaw/agents/astrologer/sessions/sessions.json`
 The file contains a JSON object where keys are session identifiers and values are session entries.
 Find entries where:
 1. The key contains `whatsapp` (e.g., `agent:astrologer:whatsapp:+91...`).
-2. `updatedAt` is **4-20 hours ago** (within WhatsApp 24-hour window).
-3. The user has not been nudged in the last **12 hours** (check `heartbeat-state.json` for `lastNudge` timestamps).
+2. `updatedAt` is **20 minutes ago** (within WhatsApp 24-hour window).
+3. The user has not been nudged in the last **30 minutes** (check `heartbeat-state.json` for `lastNudge` timestamps).
 
 **⚠️ IMPORTANT:** Only nudge users who are within **24 hours** of their last message. Users inactive for 24+ hours CANNOT receive free-form messages due to WhatsApp API restrictions.
 
@@ -182,9 +182,9 @@ Rules for updating:
 
 ## Nudge Frequency Rules
 
-1. **First nudge**: After **4 hours** of inactivity
-2. **Follow-up nudges**: Every **12 hours** (while within 24-hour window)
-3. **Max frequency**: 1 nudge per user per **12 hours**
+1. **First nudge**: After **20 minutes** of inactivity
+2. **Follow-up nudges**: Every **30 minutes** (while within 24-hour window)
+3. **Max frequency**: 1 nudge per user per **30 minutes**
 4. **Quiet hours**: No nudges between **9 PM - 9 AM IST**
 5. **WhatsApp window**: ONLY nudge users within **24 hours** of last message
 
@@ -195,7 +195,7 @@ Rules for updating:
 **Reply ONLY with `HEARTBEAT_OK` if:**
 - Current time is outside 9 AM - 9 PM IST
 - No eligible users found
-- All eligible users were nudged in the last 12 hours
+- All eligible users were nudged in the last 30 minutes
 - All users are outside the 24-hour WhatsApp window
 
 ---
@@ -238,7 +238,7 @@ Koi upay follow kar rahi ho?
 
 Before sending a nudge, verify:
 - [ ] User is within 24-hour WhatsApp window
-- [ ] Not nudged in last 12 hours
+- [ ] Not nudged in last 30 minutes
 - [ ] Current time is 9 AM - 9 PM IST
 - [ ] Message follows format: 3 lines max, 15 words per line
 - [ ] User's name is included (if known)
