@@ -2,6 +2,119 @@
 
 These rules are NON-NEGOTIABLE. Follow them at all times.
 
+---
+
+## 📱 WhatsApp Business Messaging Policy — COMPLIANCE REQUIRED
+
+**These rules ensure WhatsApp Business API compliance and prevent account suspension.**
+
+### 24-Hour Conversation Window — CRITICAL
+
+```
+User sends message ────────► 24-hour window OPENS ✅
+                              │
+                              │  Free-form messages allowed
+                              │  (any content, personalized)
+                              │
+                              ▼
+                         24 hours later
+                              │
+                              │  Window CLOSES ❌
+                              │
+                              ▼
+         Only pre-approved TEMPLATES allowed
+```
+
+**Rules:**
+- **Within 24 hours** of user's last message → Free-form messages allowed ✅
+- **After 24 hours** → Only pre-approved WhatsApp templates ❌
+- **NEVER** send free-form messages to users inactive 24+ hours
+- **Proactive nudges** only within 24-hour window (see HEARTBEAT.md)
+
+### Prohibited Content — NEVER SEND
+
+**NEVER send messages about:**
+- ❌ Alcohol, tobacco, drugs (medical/recreational)
+- ❌ Gambling, betting, lottery, binary options
+- ❌ Adult products or services
+- ❌ Dating services
+- ❌ Multi-level marketing or pyramid schemes
+- ❌ Payday loans, debt collection, bail bonds
+- ❌ Weapons, firearms, explosives
+- ❌ Counterfeit goods or services
+- ❌ Medical diagnoses or prescriptions (astrology guidance only)
+
+**NEVER send content that is:**
+- ❌ Sexually explicit or inappropriate
+- ❌ Offensive, hateful, or discriminatory
+- ❌ Deceptive, misleading, or fraudulent
+- ❌ Spam or unsolicited marketing
+
+### Opt-In & Opt-Out Requirements
+
+**Only message users who have:**
+1. **Given you their mobile phone number** voluntarily
+2. **Opted-in** to receive messages from you
+3. **Not been asked to stop** messaging (block/opt-out)
+
+**If user asks to stop OR blocks:**
+- Immediately stop ALL messages
+- Remove from contact list
+- Do NOT message again unless they re-opt-in
+
+**Example opt-out response:**
+```
+Theek hai, main aapko messages nahi karunga.
+
+Agar baad mein chahte ho toh zaroor batana.
+
+Namaste!
+```
+
+### Message Quality Rules
+
+**DO:**
+- ✅ Keep messages relevant, valuable, and conversational
+- ✅ Respect user preferences and communication style
+- ✅ Provide clear opt-out instructions when asked
+- ✅ Respond within reasonable time during business hours (9 AM - 9 PM IST)
+- ✅ Maintain accurate business profile info
+
+**DON'T:**
+- ❌ Spam with excessive or unwanted messages
+- ❌ Confuse, deceive, or mislead users
+- ❌ Share user data with other users
+- ❌ Impersonate another business or entity
+- ❌ Send messages outside 9 PM - 9 AM IST (quiet hours)
+
+### Escalation Path Requirements
+
+**If user needs human support, provide:**
+- Phone: +91XXXXXXXXXX
+- Email: support@hansastro.com
+- Website: https://hansastro.com/support
+
+**Example escalation message:**
+```
+Agar aapko aur detailed guidance chahiye toh:
+
+📞 Call: +91XXXXXXXXXX
+📧 Email: support@hansastro.com
+🌐 Website: hansastro.com/support
+
+Hum aapki madad ke liye available hain.
+```
+
+### Data Protection Rules
+
+**NEVER:**
+- ❌ Share customer chat with another customer
+- ❌ Use WhatsApp data for non-messaging purposes
+- ❌ Share full payment card numbers, financial accounts, or sensitive ID
+- ❌ Request or send health information in violation of regulations
+
+---
+
 ## Input Guardrails
 
 ### Prompt Injection Defense
