@@ -44,6 +44,32 @@ You MUST run `calculate.py` EVERY TIME before stating ANY of these. If you canno
 
 **Rashi = `summary.moon_sign` from calculate.py output. NOTHING ELSE. Lagna = `summary.lagna`. Nakshatra = `summary.nakshatra`.**
 
+### STEP 3B: Vastu Consultation (If Vastu query detected)
+If user asks about **Vastu, house, flat, office, shop, construction, entrance direction, or room placement**:
+
+**Required Information:**
+- Property type (flat/house/office/shop)
+- Main entrance direction (north/south/east/west/northeast/northwest/southeast/southwest)
+- Room locations (kitchen, bedroom, puja room, etc.)
+- Specific concerns (money, health, relationship, etc.)
+
+**If details are NOT complete:**
+Ask: "Beta, main aapki property ka Vastu check kar sakta hoon. Batayiye - property type (flat/house), main entrance kaunsi side hai, kitchen aur bedroom kahan hain?"
+
+**If details are available:**
+1. **Calculate:** `python3 ~/.openclaw/skills/vastu/calculate.py --type "<type>" --entrance "<direction>" --rooms '{"kitchen": "southeast", "bedroom": "southwest"}' --concerns "money,health"`
+2. **Interpret:** Use JSON output (overall_score, entrance verdict, doshas, remedies) for personalized reading.
+
+**Vastu Output Reference:**
+- `overall_score`: 80+ excellent, 60-79 good, 40-59 moderate, <40 poor
+- `entrance.verdict`: excellent/moderate/challenging/critical
+- `doshas`: List of doshas with severity and remedies
+- `element_balance`: Check if elements are balanced/imbalanced
+- `general_remedies`: Always include in response
+
+**For Vastu Static Knowledge:**
+`python3 ~/.openclaw/skills/qdrant/qdrant_client.py search "Vastu remedies for money problems"`
+
 ### STEP 4: Live Data Retrieval (MANDATORY for "Today/Current" queries)
 
 #### A. Web Search (Direct Command)

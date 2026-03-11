@@ -1,0 +1,404 @@
+{
+  "directions": {
+    "north": {
+      "hindi": "Uttar",
+      "element": "water",
+      "deity": "Kubera",
+      "traits": ["wealth", "prosperity", "money", "fortune"],
+      "best_for": ["living_room", "entrance", "cash_box", "water_tank"],
+      "avoid": ["kitchen", "toilet"],
+      "remedies": {
+        "blocked": "Place a mirror on north wall",
+        "toilet": "Use sea salt in corners, keep door closed"
+      }
+    },
+    "south": {
+      "hindi": "Dakshin",
+      "element": "earth",
+      "deity": "Yama",
+      "traits": ["dharma", "death", "past", "ancestors"],
+      "best_for": ["strong_room", "storage", "heavy_items"],
+      "avoid": ["entrance", "kitchen", "toilet"],
+      "remedies": {
+        "entrance": "Place a brass Sun on main door",
+        "toilet": "Use lemon cutting remedy weekly"
+      }
+    },
+    "east": {
+      "hindi": "Poorva",
+      "element": "fire",
+      "deity": "Indra",
+      "traits": ["victory", "growth", "name", "fame", "sun"],
+      "best_for": ["entrance", "living_room", "bathroom", "study"],
+      "avoid": ["toilet", "septic_tank"],
+      "remedies": {
+        "blocked": "Place a picture of rising sun",
+        "toilet": "Keep a crystal bowl in east"
+      }
+    },
+    "west": {
+      "hindi": "Paschim",
+      "element": "air",
+      "deity": "Varuna",
+      "traits": ["stability", "progress", "profit"],
+      "best_for": ["dining_room", "bathroom", "children_bedroom"],
+      "avoid": ["entrance", "underground_tank"],
+      "remedies": {
+        "blocked": "Place a heavy furniture",
+        "entrance": "Install a brass sun"
+      }
+    },
+    "northeast": {
+      "hindi": "Ishanya",
+      "element": "water",
+      "deity": "Shiva",
+      "traits": ["divine", "sacred", "spiritual", "peace", "wisdom"],
+      "best_for": ["puja_room", "water_tank", "entrance", "study_room"],
+      "avoid": ["kitchen", "toilet", "bedroom", "store"],
+      "remedies": {
+        "toilet": "CRITICAL - Place Vastu pyramid, use sea salt daily",
+        "kitchen": "Place a red object in SE corner",
+        "blocked": "Keep clean, light a lamp daily"
+      }
+    },
+    "southeast": {
+      "hindi": "Agneya",
+      "element": "fire",
+      "deity": "Agni",
+      "traits": ["energy", "digestion", "health", "food"],
+      "best_for": ["kitchen", "electrical", "dining"],
+      "avoid": ["puja_room", "underground_tank", "toilet"],
+      "remedies": {
+        "no_kitchen": "Place red crystal or lava stone",
+        "toilet": "Keep a plant in SE corner",
+        "puja_room": "Move puja to NE"
+      }
+    },
+    "southwest": {
+      "hindi": "Nairutya",
+      "element": "earth",
+      "deity": "Nairuti",
+      "traits": ["stability", "relationships", "elder", "master"],
+      "best_for": ["master_bedroom", "strong_room", "heavy_furniture"],
+      "avoid": ["entrance", "toilet", "kitchen", "underground_tank"],
+      "remedies": {
+        "entrance": "CRITICAL - Place two lead pyramids",
+        "toilet": "Use sea salt, keep door always closed",
+        "kitchen": "Place a Vastu pyramid"
+      }
+    },
+    "northwest": {
+      "hindi": "Vayavya",
+      "element": "air",
+      "deity": "Vayu",
+      "traits": ["movement", "social", "connections", "support"],
+      "best_for": ["guest_room", "bathroom", "grain_storage", "bedroom"],
+      "avoid": ["kitchen", "underground_tank"],
+      "remedies": {
+        "blocked": "Place a wind chime",
+        "kitchen": "Use green crystal"
+      }
+    }
+  },
+  "room_aliases": {
+    "bedroom": "master_bedroom",
+    "master_bed": "master_bedroom",
+    "main_bedroom": "master_bedroom",
+    "puja": "puja_room",
+    "prayer_room": "puja_room",
+    "worship_room": "puja_room",
+    "temple": "puja_room",
+    "living": "living_room",
+    "hall": "living_room",
+    "drawing_room": "living_room",
+    "toilet": "bathroom",
+    "washroom": "bathroom",
+    "restroom": "bathroom",
+    "kids_bedroom": "children_bedroom",
+    "child_bedroom": "children_bedroom",
+    "kid_room": "children_bedroom",
+    "dining": "dining_room",
+    "store": "storage",
+    "storeroom": "storage"
+  },
+  "rooms": {
+    "kitchen": {
+      "ideal": "southeast",
+      "acceptable": ["northwest"],
+      "avoid": ["northeast", "southwest", "brahmasthan"],
+      "reason": "Kitchen represents Fire element. SE is Agni corner."
+    },
+    "master_bedroom": {
+      "ideal": "southwest",
+      "acceptable": ["south", "west"],
+      "avoid": ["northeast", "southeast", "brahmasthan"],
+      "reason": "SW brings stability and relationship harmony."
+    },
+    "puja_room": {
+      "ideal": "northeast",
+      "acceptable": ["east", "north"],
+      "avoid": ["south", "southwest", "brahmasthan"],
+      "reason": "NE is Ishanya corner - most sacred direction."
+    },
+    "living_room": {
+      "ideal": ["east", "north", "northeast"],
+      "acceptable": ["northwest"],
+      "avoid": ["southwest", "brahmasthan"],
+      "reason": "East/North brings positive energy and social harmony."
+    },
+    "bathroom": {
+      "ideal": ["northwest", "west", "south"],
+      "acceptable": ["east"],
+      "avoid": ["northeast", "southwest", "brahmasthan"],
+      "reason": "NW is Vayu corner - suitable for bathroom/toilet."
+    },
+    "study_room": {
+      "ideal": ["east", "west", "northeast"],
+      "acceptable": ["north"],
+      "avoid": ["southwest", "brahmasthan"],
+      "reason": "East gives wisdom, West gives concentration."
+    },
+    "guest_room": {
+      "ideal": ["northwest", "west"],
+      "acceptable": ["north"],
+      "avoid": ["southwest", "brahmasthan"],
+      "reason": "NW (Vayu) represents movement - guests come and go."
+    },
+    "children_bedroom": {
+      "ideal": ["west", "northwest"],
+      "acceptable": ["north"],
+      "avoid": ["southwest", "southeast", "brahmasthan"],
+      "reason": "West/NW gives growth and energy."
+    },
+    "dining_room": {
+      "ideal": ["west", "east"],
+      "acceptable": ["southeast"],
+      "avoid": ["southwest", "brahmasthan"],
+      "reason": "West is good for digestion and family meals."
+    },
+    "stairs": {
+      "ideal": ["south", "west", "southwest"],
+      "acceptable": ["southeast", "northwest"],
+      "avoid": ["northeast", "brahmasthan"],
+      "reason": "Stairs should be in heavy zones, not sacred NE."
+    },
+    "overhead_tank": {
+      "ideal": ["south", "west", "southwest"],
+      "avoid": ["northeast", "center"],
+      "reason": "SW is heaviest corner - suitable for heavy weight."
+    },
+    "underground_tank": {
+      "ideal": ["northeast", "north", "east"],
+      "avoid": ["south", "west", "southwest", "center"],
+      "reason": "NE is water corner - underground water here is auspicious."
+    },
+    "septic_tank": {
+      "ideal": ["northwest", "west"],
+      "avoid": ["northeast", "south", "center"],
+      "reason": "Septic should not contaminate sacred NE."
+    }
+  },
+  "entrance": {
+    "north": {
+      "verdict": "excellent",
+      "benefits": ["wealth", "prosperity", "new opportunities"],
+      "hindi": "Uttar dwar - Lakshmi ka dwar"
+    },
+    "east": {
+      "verdict": "excellent",
+      "benefits": ["name", "fame", "success", "growth"],
+      "hindi": "Poorva dwar - Vijay ka dwar"
+    },
+    "northeast": {
+      "verdict": "excellent",
+      "benefits": ["spiritual_growth", "wisdom", "peace", "divine_blessings"],
+      "hindi": "Ishanya dwar - Shiva ka dwar"
+    },
+    "west": {
+      "verdict": "moderate",
+      "benefits": ["stability", "recognition"],
+      "remedies": "Place a brass sun on door",
+      "hindi": "Paschim dwar - Varuna ka dwar"
+    },
+    "northwest": {
+      "verdict": "moderate",
+      "benefits": ["support", "connections", "travel"],
+      "remedies": "Place a wind chime",
+      "hindi": "Vayavya dwar - Vayu ka dwar"
+    },
+    "south": {
+      "verdict": "challenging",
+      "concerns": ["obstacles", "delays", "health_issues"],
+      "remedies": "Place a brass Sun, keep entrance well-lit",
+      "hindi": "Dakshin dwar - Yama ka dwar"
+    },
+    "southwest": {
+      "verdict": "critical",
+      "concerns": ["instability", "financial_loss", "relationship_issues"],
+      "remedies": "Place two lead pyramids, install a toran",
+      "hindi": "Nairutya dwar - Nairuti ka dwar"
+    },
+    "southeast": {
+      "verdict": "moderate",
+      "benefits": ["energy", "activity"],
+      "concerns": ["anger", "conflicts"],
+      "remedies": "Place a green plant near entrance",
+      "hindi": "Agneya dwar - Agni ka dwar"
+    }
+  },
+  "doshas": {
+    "northeast_toilet": {
+      "severity": "critical",
+      "effects": ["financial_loss", "health_problems", "spiritual_blockage"],
+      "remedies": [
+        "Place Vastu pyramid in NE corner",
+        "Use sea salt in toilet corners - change weekly",
+        "Keep bathroom door always closed",
+        "Place a crystal cluster outside bathroom",
+        "Light a lamp daily in NE corner of house (outside toilet)"
+      ]
+    },
+    "southeast_bedroom": {
+      "severity": "high",
+      "effects": ["anger", "conflicts", "health_issues"],
+      "remedies": [
+        "Use earth element colors (earthy tones)",
+        "Place a heavy object in SE corner",
+        "Sleep with head towards South or West"
+      ]
+    },
+    "southwest_kitchen": {
+      "severity": "high",
+      "effects": ["instability", "relationship_problems", "accidents"],
+      "remedies": [
+        "Place a Vastu pyramid",
+        "Use a copper Sun on kitchen wall",
+        "Keep a bowl of sea salt in kitchen"
+      ]
+    },
+    "southwest_entrance": {
+      "severity": "critical",
+      "effects": ["financial_loss", "instability", "delayed_marriage"],
+      "remedies": [
+        "Install two lead pyramids on both sides of door",
+        "Place a toran (door hanging) with Om symbol",
+        "Display Swastik symbol above door",
+        "Keep entrance well-lit always"
+      ]
+    },
+    "brahmasthan_blocked": {
+      "severity": "critical",
+      "effects": ["blocked_progress", "health_issues", "family_conflicts"],
+      "remedies": [
+        "Keep center completely open",
+        "Remove any construction in center",
+        "Place a copper pyramid in center (if open)",
+        "Hang a crystal from ceiling center"
+      ]
+    },
+    "kitchen_northeast": {
+      "severity": "high",
+      "effects": ["health_problems", "anxiety", "financial_issues"],
+      "remedies": [
+        "Place a red object in SE corner",
+        "Use earthen pots for cooking",
+        "Keep a tulsi plant in East"
+      ]
+    },
+    "toilet_southwest": {
+      "severity": "critical",
+      "effects": ["relationship_problems", "financial_loss"],
+      "remedies": [
+        "Always keep toilet door closed",
+        "Use sea salt remedy weekly",
+        "Place a Vastu pyramid outside"
+      ]
+    },
+    "main_door_opposite_another_door": {
+      "severity": "moderate",
+      "effects": ["energy_drain", "instability"],
+      "remedies": [
+        "Place a curtain or screen",
+        "Hang a crystal between doors"
+      ]
+    }
+  },
+  "remedies": {
+    "general": [
+      "Light a lamp (diya) daily in NE corner",
+      "Keep the house clean and clutter-free",
+      "Use sea salt in corners - change monthly",
+      "Play mantras or sacred music",
+      "Keep a tulsi (holy basil) plant in East or NE"
+    ],
+    "pyramid": {
+      "description": "Vastu pyramids channel cosmic energy",
+      "uses": ["blocked_corners", "dosha_correction", "energy_balance"],
+      "placement": ["affected corner", "center", "entrance"]
+    },
+    "sea_salt": {
+      "description": "Sea salt absorbs negative energy",
+      "uses": ["toilet_corners", "kitchen", "general_cleaning"],
+      "replacement": "Change every week"
+    },
+    "crystals": {
+      "description": "Crystals amplify positive energy",
+      "types": {
+        "clear_quartz": "general_positive_energy",
+        "amethyst": "peace_and_spirituality",
+        "citrine": "wealth_and_prosperity",
+        "red_jasper": "grounding_and_stability"
+      }
+    },
+    "plants": {
+      "description": "Living plants bring life energy",
+      "auspicious": ["tulsi", "money_plant", "bamboo", "peace_lily"],
+      "avoid": ["cactus", "bonsai", "dry_plants"]
+    },
+    "colors": {
+      "description": "Colors affect Vastu energy",
+      "direction_colors": {
+        "north": ["green", "blue"],
+        "east": ["orange", "brown"],
+        "south": ["red", "maroon"],
+        "west": ["white", "cream", "grey"],
+        "northeast": ["yellow", "green", "blue"],
+        "southeast": ["red", "orange"],
+        "southwest": ["brown", "beige", "earth_tones"],
+        "northwest": ["white", "grey", "silver"]
+      }
+    }
+  },
+  "concern_mapping": {
+    "money": {
+      "directions": ["north", "northwest"],
+      "elements": ["water"],
+      "remedies": ["north_entrance_check", "cash_box_placement", "aquarium_north"]
+    },
+    "health": {
+      "directions": ["east", "northeast"],
+      "elements": ["fire", "water"],
+      "remedies": ["kitchen_check", "toilet_ne_check", "sunlight_check"]
+    },
+    "relationship": {
+      "directions": ["southwest", "southeast"],
+      "elements": ["earth", "fire"],
+      "remedies": ["bedroom_sw_check", "kitchen_se_check"]
+    },
+    "career": {
+      "directions": ["west", "north"],
+      "elements": ["air", "water"],
+      "remedies": ["study_room_check", "west_activation"]
+    },
+    "children": {
+      "directions": ["west", "northwest"],
+      "elements": ["air"],
+      "remedies": ["children_room_west", "study_room_east"]
+    },
+    "conflicts": {
+      "directions": ["southeast", "southwest"],
+      "elements": ["fire", "earth"],
+      "remedies": ["kitchen_placement", "master_bedroom_placement"]
+    }
+  }
+}

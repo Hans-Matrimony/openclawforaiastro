@@ -20,4 +20,7 @@ Search for relevant astrology concepts, planetary combinations, or remedies base
 ```bash
 # Python client wrapper
 python3 ~/.openclaw/skills/qdrant/qdrant_client.py search "effect of Saturn in 7th house" --limit 5
+
+# Ingest Vastu knowledge into Qdrant
+python3 ~/.openclaw/skills/qdrant/ingest_vastu.py ingest
 ```
