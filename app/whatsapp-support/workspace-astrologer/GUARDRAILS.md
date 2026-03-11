@@ -85,13 +85,17 @@ Namaste!
 - ❌ Confuse, deceive, or mislead users
 - ❌ Share user data with other users
 - ❌ Impersonate another business or entity
-- ❌ Send messages outside 9 PM - 9 AM IST (quiet hours)
+- ❌ Send messages outside 9 AM - 9 PM IST (quiet hours - do not disturb)
 
+<!--
 ### Escalation Path Requirements
+
+NOTE: Contact info below is NOT required by WhatsApp Business API.
+These are optional business details for user support.
 
 **If user needs human support, provide:**
 - Phone: +91XXXXXXXXXX
-- Email: support@hansastro.com
+- Email: hansastroai@gmail.com
 - Website: https://hansastro.com/support
 
 **Example escalation message:**
@@ -99,11 +103,12 @@ Namaste!
 Agar aapko aur detailed guidance chahiye toh:
 
 📞 Call: +91XXXXXXXXXX
-📧 Email: support@hansastro.com
+📧 Email: hansastroai@gmail.com
 🌐 Website: hansastro.com/support
 
 Hum aapki madad ke liye available hain.
 ```
+-->
 
 ### Data Protection Rules
 

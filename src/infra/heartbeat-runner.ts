@@ -758,6 +758,39 @@ export async function runHeartbeatOnce(opts: {
       }
     }
 
+    // WhatsApp Business API: Compliance check for heartbeat messages
+    // CRITICAL: Heartbeats are proactive messages, so strict checks apply
+    if (delivery.channel === "whatsapp") {
+      try {
+        const { checkProactiveCompliance, logComplianceFailure } = await import("../whatsapp/compliance.js");
+        const complianceCheck = await checkProactiveCompliance(delivery.to, cfg);
+
+        if (!complianceCheck.allowed) {
+          await restoreHeartbeatUpdatedAt({
+            storePath,
+            sessionKey,
+            updatedAt: previousUpdatedAt,
+          });
+          logComplianceFailure(delivery.to, complianceCheck, "heartbeat");
+          emitHeartbeatEvent({
+            status: "skipped",
+            reason: `compliance: ${complianceCheck.reason}`,
+            preview: previewText?.slice(0, 200),
+            durationMs: Date.now() - startedAt,
+            hasMedia: mediaUrls.length > 0,
+            channel: "whatsapp",
+          });
+          return { status: "skipped", reason: `compliance: ${complianceCheck.reason}` };
+        }
+      } catch (err) {
+        // If compliance check fails, log but don't block (fail open for backward compatibility)
+        log.warn("WhatsApp compliance check failed, proceeding anyway", {
+          error: err instanceof Error ? err.message : String(err),
+          to: delivery.to,
+        });
+      }
+    }
+
     await deliverOutboundPayloads({
       cfg,
       channel: delivery.channel,

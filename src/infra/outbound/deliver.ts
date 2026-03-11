@@ -196,8 +196,55 @@ export async function deliverOutboundPayloads(params: {
     text?: string;
     mediaUrls?: string[];
   };
+  // WhatsApp Business API compliance options
+  skipComplianceCheck?: boolean; // For internal/system messages
+  isReplyToUser?: boolean; // If true, use relaxed compliance checks
 }): Promise<OutboundDeliveryResult[]> {
   const { cfg, channel, to, payloads } = params;
+
+  // WhatsApp Business API: Compliance check before ANY outbound message
+  // This prevents violations that lead to account bans
+  if (channel === "whatsapp" && !params.skipComplianceCheck) {
+    try {
+      const { checkReplyCompliance, checkProactiveCompliance, logComplianceFailure } = await import("../../whatsapp/compliance.js");
+
+      // Use relaxed checks for replies to user messages, strict checks for proactive messages
+      const complianceCheck = params.isReplyToUser
+        ? await checkReplyCompliance(to, cfg)
+        : await checkProactiveCompliance(to, cfg);
+
+      if (!complianceCheck.allowed) {
+        const error = new Error(`WhatsApp compliance check failed: ${complianceCheck.reason}`);
+        logComplianceFailure(to, complianceCheck, "outbound");
+
+        // If bestEffort is enabled, log and return empty results
+        if (params.bestEffort) {
+          params.onError?.(error, {
+            text: "",
+            mediaUrls: [],
+            channelData: undefined,
+          });
+          return [];
+        }
+
+        throw error;
+      }
+    } catch (err) {
+      // If compliance check itself fails (not a compliance failure), log but proceed
+      // This maintains backward compatibility while adding protection
+      if (!(err instanceof Error) || !err.message.includes("compliance check failed")) {
+        const { createSubsystemLogger } = await import("../../logging/subsystem.js");
+        const log = createSubsystemLogger("whatsapp/compliance");
+        log.warn("WhatsApp compliance check failed, proceeding anyway", {
+          error: err instanceof Error ? err.message : String(err),
+          to,
+        });
+      } else {
+        throw err;
+      }
+    }
+  }
+
   const accountId = params.accountId;
   const deps = params.deps;
   const abortSignal = params.abortSignal;
