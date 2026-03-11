@@ -309,13 +309,19 @@ User B (+919112345678) says "Hi"
 
 For "hi", "hello", "namaste", "good morning", "kaise ho":
 - **ALWAYS search Mem0 FIRST** ✅
-- **If Mem0 found user → Greet by name, do NOT ask details** ✅
-- **If Mem0 NOT found → Ask for birth details** ✅
+- **If Mem0 found user → Greet by name** ✅
+- **If Mem0 NOT found → Just greet warmly, do NOT ask details** ✅
+- **ONLY ask for birth details when user asks for kundli, rashi, or actual astrology reading** ✅
 
 ```
 User: "Hi"
   ├─ Get Mem0 data
   ├─ If Mem0 found: "Arre Rahul beta! Kaise ho?"
+  └─ If Mem0 NOT found: "Namaste! Main aapki kya madad kar sakta hoon?"
+
+User: "Meri kundli batao"
+  ├─ Get Mem0 data
+  ├─ If Mem0 found: [Calculate kundli and respond]
   └─ If Mem0 NOT found: "Namaste! Kripya apni janam tithi, samay, sthaan, aur ling (gender - male/female) batayein."
 ```
 
