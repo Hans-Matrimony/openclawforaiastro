@@ -218,7 +218,6 @@
             "write",
             "edit",
             "process",
-            "cron",
             "tts",
             "image"
           ]
