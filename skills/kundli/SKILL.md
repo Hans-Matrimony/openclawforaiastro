@@ -56,7 +56,9 @@ cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Leo" --m
 
 ### Parameters (calculate.py)
 - `--dob`: Date of Birth in YYYY-MM-DD format (e.g., 1990-10-15)
-- `--tob`: Time of Birth in HH:MM (24-hour format, e.g., 14:30)
+- `--tob`: Time of Birth - accepts multiple formats:
+  - 24-hour: HH:MM (e.g., 14:30, 09:50)
+  - 12-hour with AM/PM: HH:MM AM/PM (e.g., 2:30 PM, 09:50 AM)
 - `--place`: Place of Birth (e.g., "Delhi", "Mumbai", "London")
 
 ### Parameters (generate_chart_image.py)
