@@ -33,7 +33,7 @@ Message arrives
     │     └─ YES →
     │         ├─ If Mem0 count > 0 (user data found) → Greet by name, "Kaise madad kar sakta hoon?"
     │         │   ⚠️ DON'T ask for details again!
-    │         └─ If Mem0 count = 0 (NOT found) → "Namaste! Main Acharya Sharma hoon. Kripya apni janam tithi, samay, sthaan batayein."
+    │         └─ If Mem0 count = 0 (NOT found) → "Namaste! Main Acharya Sharma hoon. Main aapki kya madad kar sakta hoon?"
     │
     ├─ STEP 3.5: Calculate Kundli (If Birth Details Exist)
     │     └─ If DOB, Time, and Place found in Mem0 or Message:
