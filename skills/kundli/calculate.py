@@ -32,11 +32,34 @@ def get_coordinates(place):
     # Default to Delhi if all fails
     return 28.6139, 77.2090
 
+def parse_time(tob_str):
+    """Parse time string in various formats (12-hour with AM/PM or 24-hour)."""
+    tob_str = tob_str.strip()
+    
+    # Try 12-hour format with AM/PM (e.g., "09:50 AM", "9:50 PM", "09:50AM")
+    for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M:%S %p", "%I:%M:%S%p"]:
+        try:
+            return datetime.strptime(tob_str, fmt).time()
+        except ValueError:
+            continue
+    
+    # Try 24-hour format (e.g., "09:50", "21:30", "9:50")
+    for fmt in ["%H:%M", "%H:%M:%S"]:
+        try:
+            return datetime.strptime(tob_str, fmt).time()
+        except ValueError:
+            continue
+    
+    # If all fail, raise error with helpful message
+    raise ValueError(f"Unable to parse time '{tob_str}'. Use formats like '09:50', '21:30', '09:50 AM', or '9:50 PM'")
+
 def calculate_kundli(dob_str, tob_str, place):
     lat, lon = get_coordinates(place)
     
     # Parse date and time into a single datetime object
-    birth_dt = datetime.strptime(f"{dob_str} {tob_str}", "%Y-%m-%d %H:%M")
+    birth_time = parse_time(tob_str)
+    birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
+    birth_dt = datetime.combine(birth_date, birth_time)
     
     # Call the top-level API function
     # Signature: birth_date (datetime), latitude (float), longitude (float), timezone_offset (float)
@@ -98,7 +121,7 @@ def calculate_kundli(dob_str, tob_str, place):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Acharya Sharma Kundli Engine')
     parser.add_argument('--dob', required=True, help='Date of Birth (YYYY-MM-DD)')
-    parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM)')
+    parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM or HH:MM AM/PM)')
     parser.add_argument('--place', required=True, help='Place of Birth')
     
     args = parser.parse_args()
