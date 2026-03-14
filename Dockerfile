@@ -85,7 +85,7 @@ ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
 EXPOSE 8000
 
 # Health check (longer start period for first run)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start gateway (bind to lan for Coolify)

@@ -201,7 +201,9 @@
           "mem0",
           "qdrant",
           "web_search",
-          "kundli"
+          "kundli",
+          "nano-banana-pro",
+          "openai-image-gen"
         ],
         "identity": {
           "name": "Astro Hans",
@@ -218,7 +220,6 @@
             "write",
             "edit",
             "process",
-            "cron",
             "tts",
             "image"
           ]
