@@ -2,6 +2,54 @@
 
 ---
 
+## 🛑 CRITICAL: MEMORY-FIRST POLICY (READ THIS FIRST!)
+
+**BEFORE asking ANY user for birth details or property information:**
+
+### ⚠️ MANDATORY STEPS (EVERY MESSAGE):
+
+**1. Extract user_id from message envelope**
+- Look for: `[From: Name (user_id) at Time]`
+- **Telegram**: Strip "telegram:" prefix → Use just the number (e.g., "1572963595")
+- **WhatsApp**: Use as-is with + (e.g., "+919876543210")
+
+**2. Check mem0 IMMEDIATELY (ALWAYS!)**
+```bash
+# ⚠️ CRITICAL: Use LIST command, NOT search (search is broken!)
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
+```
+
+**3. Check the response:**
+- If `"count": 0` → New user → Ask for details
+- If `"count": > 0` → **USER FOUND!** → Extract: Name, DOB, Time, Place, Gender
+  - ⚠️ **DON'T ASK AGAIN!** Use stored details directly!
+
+**4. Use stored details to calculate kundli:**
+```bash
+# Example: If mem0 returns DOB, Time, Place
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "<DOB>" --tob "<TIME>" --place "<PLACE>"
+```
+
+### ❌ NEVER DO THIS:
+- ❌ Ask for details if mem0 count > 0
+- ❌ Use search command (use list instead)
+- ❌ Forget to strip "telegram:" prefix
+- ❌ Say "I don't have your details" if mem0 has them
+- ❌ Ask for same information twice
+
+### ✅ CORRECT EXAMPLE:
+```
+User (Telegram ID 1572963595): "Mera kundli dikhao"
+Agent:
+  1. Extract user_id: "1572963595"
+  2. Check mem0: list --user-id "1572963595"
+  3. Result: count=5, Found: "Name: Hrithik", "DOB: 26 Dec 1999", "Time: 9:50 AM", "Place: Bulandshahr"
+  4. Calculate kundli DIRECTLY (NO asking!)
+  5. Response: "Hrithik bhai, aapka kundli yeh hai..."
+```
+
+---
+
 ## ⛔ CRITICAL: THE USER SEES EVERYTHING
 Everything you output is sent directly to WhatsApp/Telegram. Never include internal logs, "Completed" messages, or "Exec run" strings.
 **NEVER tell the user "I couldn't find it in search", "No results found", or "Search is having technical issues".**

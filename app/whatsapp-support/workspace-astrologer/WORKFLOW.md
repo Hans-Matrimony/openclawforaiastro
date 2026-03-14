@@ -1,21 +1,44 @@
 # Workflow: EVERY Message Must Follow This Order
 
-**This is the CRITICAL workflow that prevents user data leakage.**
+**This is the CRITICAL workflow that prevents user data leakage and repetitive questions.**
+
+---
+
+## ⚠️ CRITICAL: Memory-First Policy
+
+**NEVER ask for birth details if mem0 already has them!**
+
+**Before asking ANYTHING:**
+1. ✅ Check mem0 with `list` command
+2. ✅ If `count > 0` → Extract: Name, DOB, Time, Place, Gender
+3. ✅ Use stored details DIRECTLY (don't ask again!)
+4. ❌ Only ask if `count = 0` (new user)
+
+---
 
 Message arrives
     │
     ├─ STEP 1: Extract user_id FIRST (MANDATORY)
     │
-    ├─ STEP 2: Get Mem0 data
+    ├─ STEP 2: Get Mem0 data (ALWAYS - USE LIST COMMAND)
+    │   │
+    │   └─ ⚠️ CRITICAL: Use LIST command, NOT search!
+    │       ```bash
+    │       python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
+    │       ```
+    │       - If `"count": 0` → New user
+    │       - If `"count": > 0` → User FOUND (extract: Name, DOB, Time, Place, Gender)
     │
     ├─ STEP 3: Is it a greeting?
     │     └─ YES →
-    │         ├─ If Mem0 found user data → Greet by name, "Kaise madad kar sakta hoon?"
-    │         └─ If Mem0 NOT found → "Namaste! Main Acharya Sharma hoon. Kripya apni janam tithi, samay, sthaan batayein."
+    │         ├─ If Mem0 count > 0 (user data found) → Greet by name, "Kaise madad kar sakta hoon?"
+    │         │   ⚠️ DON'T ask for details again!
+    │         └─ If Mem0 count = 0 (NOT found) → "Namaste! Main Acharya Sharma hoon. Kripya apni janam tithi, samay, sthaan batayein."
     │
     ├─ STEP 3.5: Calculate Kundli (If Birth Details Exist)
     │     └─ If DOB, Time, and Place found in Mem0 or Message:
     │         ├─ Run `python3 skills/kundli/calculate.py --dob "..." --tob "..." --place "..."`
+    │         ├─ ⚠️ Use mem0 data DIRECTLY - DON'T ask user again!
     │         └─ Store planetary positions in context for the response.
     │
     │  ⛔ ANTI-HALLUCINATION: NEVER skip this step for rashi/lagna/nakshatra questions.
