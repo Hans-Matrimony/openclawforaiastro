@@ -10,7 +10,38 @@ metadata:
 
 # Mem0 - Long-Term Memory
 
+**PRIORITY SKILL: MUST be checked FIRST for EVERY user message**
+
 Use this skill to store and retrieve memories for users. This is critical for maintaining context across sessions and understanding user preferences/history.
+
+## Mandatory Workflow for ALL User Messages
+
+For EVERY incoming user message, you MUST:
+
+1. **ALWAYS search mem0 FIRST** before asking any questions or taking any action:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py search "<relevant_query>" --user-id "<USER_ID>"
+   ```
+
+2. Use the results to personalize your response
+
+3. If user provides NEW information, **IMMEDIATELY** store it in mem0:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py add "<information_to_store>" --user-id "<USER_ID>"
+   ```
+
+4. If existing information needs updating, use upsert:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "<search_key>" --content "<new_content>" --user-id "<USER_ID>"
+   ```
+
+**Common Information to Store in Mem0:**
+- Birth details (DOB, time, place)
+- Property details for Vastu
+- User preferences (chart style, language, etc.)
+- Previous queries and their results
+- Important life events
+- Remedies suggested previously
 
 ## Commands
 

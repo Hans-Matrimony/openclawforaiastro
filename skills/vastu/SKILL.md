@@ -11,6 +11,20 @@ metadata:
 
 Use this skill to analyze properties according to Vastu Shastra principles - the ancient Indian science of architecture.
 
+## CRITICAL: ALWAYS Check Mem0 First
+
+For EVERY user message related to Vastu:
+1. **FIRST** search mem0 for existing property details and preferences:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py search "vastu property details entrance rooms" --user-id "<USER_ID>"
+   ```
+2. If property details found in mem0, use them directly
+3. Only ask for property details if NOT found in mem0
+4. When user provides property details, **IMMEDIATELY** store them in mem0:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Vastu property: <TYPE>, entrance: <DIRECTION>, rooms: <ROOMS>" --user-id "<USER_ID>"
+   ```
+
 ## Commands
 
 ### Analyze Property Vastu

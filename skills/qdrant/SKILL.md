@@ -12,6 +12,16 @@ metadata:
 
 Use this skill to retrieve expert astrological knowledge, principles, and remedies from the vector database.
 
+## CRITICAL: ALWAYS Check Mem0 First for User Context
+
+For EVERY user message:
+1. **FIRST** search mem0 for user's birth details, previous queries, and preferences:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details astrology preferences" --user-id "<USER_ID>"
+   ```
+2. Use mem0 results to personalize the knowledge base retrieval
+3. After providing Qdrant knowledge, store relevant findings in mem0 for future reference
+
 ## Commands
 
 ### Search Knowledge Base

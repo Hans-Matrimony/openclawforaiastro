@@ -25,6 +25,30 @@ metadata:
 
 # OpenAI Image Gen
 
+**RESTRICTED USE: Astrology-related images ONLY**
+
+This skill is configured to generate **ONLY astrology-related images** for the astrologer agent. This includes:
+
+## CRITICAL: ALWAYS Check Mem0 First
+
+For EVERY image generation request:
+1. **FIRST** search mem0 for user's birth details and preferences:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details kundli preferences" --user-id "<USER_ID>"
+   ```
+2. Use birth details from mem0 (Lagna, Moon Sign, Nakshatra) for chart generation
+3. Only ask for details if NOT found in mem0
+4. After generating image, store reference in mem0:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Kundli chart generated: <FILENAME> for <LAGNA> lagna" --user-id "<USER_ID>"
+   ```
+- Kundli charts, birth charts, horoscope diagrams
+- Zodiac sign illustrations
+- Planetary position diagrams
+- Vedic astrology visual representations
+
+**Do NOT use this skill for any other image generation purposes.**
+
 Generate a handful of “random but structured” prompts and render them via the OpenAI Images API.
 
 ## Run
