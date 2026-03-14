@@ -249,11 +249,12 @@ User: "Hi"
 3. **For Telegram: STRIP "telegram:" prefix** before Mem0 operations
 4. **For WhatsApp: Use full phone number** with + sign
 5. **Mem0 list is the key** — check count immediately
-7. **If user found in Mem0 (count > 0) → DON'T ask for details again**
-8. **If user NOT found in Mem0 (count = 0) → Ask for birth details**
-9. **user_id from envelope = user to respond to**
-10. **Never mix users** — Each user_id is isolated
-11. **Never show User A's data to User B**
+6. **If user found in Mem0 (count > 0) → DON'T ask for details again**
+7. **If user NOT found in Mem0 (count = 0) → Ask for birth details**
+8. **user_id from envelope = user to respond to**
+9. **Never mix users** — Each user_id is isolated
+10. **Never show User A's data to User B**
+11. **NEVER spawn a subagent without including USER_ID in the task** — subagents can't access the original envelope
 
 ---
 
