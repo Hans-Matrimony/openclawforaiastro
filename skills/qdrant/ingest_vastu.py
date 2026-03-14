@@ -10,6 +10,10 @@ import json
 import requests
 import argparse
 from typing import List, Dict
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Load environment variables
 QDRANT_URL = os.environ.get('QDRANT_URL')
