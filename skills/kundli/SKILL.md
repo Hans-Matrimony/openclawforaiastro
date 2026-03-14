@@ -47,8 +47,10 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 When a user asks to **"make kundali chart"**, **"generate chart image"**, or **"show my chart"**, first calculate their kundli to get the details, then generate a visual chart:
 
 ```bash
-python3 ~/.openclaw/skills/kundli/generate_chart_image.py --lagna "Leo" --moon-sign "Scorpio" --nakshatra "Anuradha" --filename "kundli_chart.png"
+cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Leo" --moon-sign "Scorpio" --nakshatra "Anuradha" --filename "kundli_chart.png"
 ```
+
+**Note:** Must use `uv run` (not `python3` directly) so inline dependencies are installed automatically.
 
 **IMPORTANT**: This script ONLY generates astrology-related images (Kundli charts). Do NOT use it for any other image generation purposes. For general images, use the dedicated image generation skills.
 
