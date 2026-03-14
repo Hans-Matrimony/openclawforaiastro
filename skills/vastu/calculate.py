@@ -240,14 +240,14 @@ def check_element_balance(rooms: Dict[str, str], rules: Dict) -> Dict:
 
 def calculate_vastu_score(entrance_analysis: Dict, room_analyses: List[Dict], doshas: List[Dict]) -> int:
     """Calculate overall Vastu score (0-100)."""
-    # Entrance weight: 30%
-    entrance_score = entrance_analysis.get("score", 50) * 0.3
+    # Entrance weight: 40%
+    entrance_score = entrance_analysis.get("score", 50) * 0.4
 
-    # Room placements weight: 50%
+    # Room placements weight: 60%
     if room_analyses:
-        room_score = sum(r.get("score", 50) for r in room_analyses) / len(room_analyses) * 0.5
+        room_score = sum(r.get("score", 50) for r in room_analyses) / len(room_analyses) * 0.6
     else:
-        room_score = 50 * 0.5
+        room_score = 50 * 0.6
 
     # Doshas penalty: -20%
     dosha_penalty = 0
@@ -260,7 +260,7 @@ def calculate_vastu_score(entrance_analysis: Dict, room_analyses: List[Dict], do
         elif severity == "moderate":
             dosha_penalty += 5
 
-    total_score = int(entrance_score + room_score - min(dosha_penalty, 20))
+    total_score = int(entrance_score + room_score - min(dosha_penalty, 25))
     return max(0, min(100, total_score))
 
 

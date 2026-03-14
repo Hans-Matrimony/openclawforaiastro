@@ -3,6 +3,10 @@ import sys
 import argparse
 import requests
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 def search_qdrant(query, limit=21):
     # Load env vars injected by OpenClaw or from .env if needed
