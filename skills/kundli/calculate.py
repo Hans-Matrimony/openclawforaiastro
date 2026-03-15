@@ -36,15 +36,15 @@ def parse_time(tob_str):
     """Parse time string in various formats (12-hour with AM/PM or 24-hour)."""
     tob_str = tob_str.strip()
     
-    # Try 12-hour format with AM/PM (e.g., "09:50 AM", "9:50 PM", "09:50AM")
-    for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M:%S %p", "%I:%M:%S%p"]:
+    # Try 12-hour format with AM/PM (e.g., "09:50 AM", "9:50 PM", "12 PM", "5AM")
+    for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M:%S %p", "%I:%M:%S%p", "%I %p", "%I%p"]:
         try:
             return datetime.strptime(tob_str, fmt).time()
         except ValueError:
             continue
     
-    # Try 24-hour format (e.g., "09:50", "21:30", "9:50")
-    for fmt in ["%H:%M", "%H:%M:%S"]:
+    # Try 24-hour format (e.g., "09:50", "21:30", "9")
+    for fmt in ["%H:%M", "%H:%M:%S", "%H"]:
         try:
             return datetime.strptime(tob_str, fmt).time()
         except ValueError:

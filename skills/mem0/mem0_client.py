@@ -184,6 +184,11 @@ def main():
             "user_id": normalized_user_id,
             "limit": args.limit
         }, verbose=verbose)
+        
+        # Unify output schema: convert 'results' to 'memories' for consistency with 'list'
+        if isinstance(result, dict) and "results" in result:
+            result["memories"] = result.pop("results")
+            
         print(json.dumps(result, indent=2))
 
     elif args.command == "add":
