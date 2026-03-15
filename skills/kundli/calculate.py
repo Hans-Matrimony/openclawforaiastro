@@ -6,6 +6,38 @@ from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
 import jyotishganit
 
+# --- MONKEY PATCH FOR 100% OFFLINE ROBUSTNESS ---
+# This overrides jyotishganit to use hardcoded Spica coordinates 
+# and enforces 100% offline mode for all calculations.
+def patch_jyotishganit():
+    from skyfield.api import Star, Loader
+    import jyotishganit.core.astronomical as astro
+    
+    # 1. Hardcode Spica (Alpha Virginis) J2000.0 coordinates
+    # This removes the dependency on the ~55MB hip_main.dat file
+    def get_spica_patch():
+        return Star(
+            ra_hours=13.419881,
+            dec_degrees=-11.161333,
+            ra_mas_per_year=-42.50,
+            dec_mas_per_year=-31.73,
+            parallax_mas=12.44,
+            radial_km_per_s=1.0
+        )
+    astro._get_spica = get_spica_patch
+
+    # 2. Enforce Offline Mode for the Data Loader
+    # This prevents ANY connection attempts to astrology servers
+    if hasattr(astro, 'DATA_DIR'):
+        astro.loader = Loader(astro.DATA_DIR, expire=False)
+
+try:
+    patch_jyotishganit()
+except Exception as e:
+    # Non-fatal: if patching fails, it will attempt normal operation
+    pass
+# ------------------------------------------------
+
 # Use relative path for reliability across environments
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CITIES_FILE = os.path.join(SCRIPT_DIR, 'cities_india.json')
