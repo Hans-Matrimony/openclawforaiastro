@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g openclaw@2026.3.10
+RUN npm install -g openclaw@2026.3.9
 # Install OpenClaw CLI
 # Install uv for Python tool management (needed for mcporter/uvx) and requests for Qdrant skill
 RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
