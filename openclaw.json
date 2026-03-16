@@ -171,6 +171,9 @@
         "id": "main",
         "name": "Hans AI Main",
         "workspace": "/app/.openclaw/workspace",
+        "model": {
+          "primary": "openai/gpt-4o"
+        },
         "identity": {
           "name": "Hans",
           "theme": "Helpful AI assistant",
@@ -217,7 +220,6 @@
             "exec",
             "read",
             "sessions_spawn",
-            "subagents",
             "write",
             "edit",
             "process",
