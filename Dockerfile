@@ -1,7 +1,7 @@
 FROM node:22-bookworm-slim
 
 # Cache bust
-ARG CACHEBUST=8
+ARG CACHEBUST=9
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
