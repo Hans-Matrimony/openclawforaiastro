@@ -47,10 +47,9 @@ When saving to Mem0, use clear, structured format:
 
 Every conversation:
 1. Get user ID (phone number or session ID)
-2. Run: `python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "<id>"`
-3. Run: `python3 ~/.openclaw/skills/mem0/mem0_client.py search "predictions" --user-id "<id>"`
-4. If results found → personalize your response
-5. If no results → treat as new user, ask for details
+2. Run: `python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<id>"`
+3. If count > 0 → Extract birth details from the `memories` list and personalize response
+4. If results NOT found → treat as new user, ask for details
 
 ## Memory Maintenance
 

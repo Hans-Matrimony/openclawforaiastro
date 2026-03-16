@@ -6,6 +6,38 @@ from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
 import jyotishganit
 
+# --- MONKEY PATCH FOR 100% OFFLINE ROBUSTNESS ---
+# This overrides jyotishganit to use hardcoded Spica coordinates 
+# and enforces 100% offline mode for all calculations.
+def patch_jyotishganit():
+    from skyfield.api import Star, Loader
+    import jyotishganit.core.astronomical as astro
+    
+    # 1. Hardcode Spica (Alpha Virginis) J2000.0 coordinates
+    # This removes the dependency on the ~55MB hip_main.dat file
+    def get_spica_patch():
+        return Star(
+            ra_hours=13.419881,
+            dec_degrees=-11.161333,
+            ra_mas_per_year=-42.50,
+            dec_mas_per_year=-31.73,
+            parallax_mas=12.44,
+            radial_km_per_s=1.0
+        )
+    astro._get_spica = get_spica_patch
+
+    # 2. Enforce Offline Mode for the Data Loader
+    # This prevents ANY connection attempts to astrology servers
+    if hasattr(astro, 'DATA_DIR'):
+        astro.loader = Loader(astro.DATA_DIR, expire=False)
+
+try:
+    patch_jyotishganit()
+except Exception as e:
+    # Non-fatal: if patching fails, it will attempt normal operation
+    pass
+# ------------------------------------------------
+
 # Use relative path for reliability across environments
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CITIES_FILE = os.path.join(SCRIPT_DIR, 'cities_india.json')
@@ -36,15 +68,15 @@ def parse_time(tob_str):
     """Parse time string in various formats (12-hour with AM/PM or 24-hour)."""
     tob_str = tob_str.strip()
     
-    # Try 12-hour format with AM/PM (e.g., "09:50 AM", "9:50 PM", "09:50AM")
-    for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M:%S %p", "%I:%M:%S%p"]:
+    # Try 12-hour format with AM/PM (e.g., "09:50 AM", "9:50 PM", "12 PM", "5AM")
+    for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M:%S %p", "%I:%M:%S%p", "%I %p", "%I%p"]:
         try:
             return datetime.strptime(tob_str, fmt).time()
         except ValueError:
             continue
     
-    # Try 24-hour format (e.g., "09:50", "21:30", "9:50")
-    for fmt in ["%H:%M", "%H:%M:%S"]:
+    # Try 24-hour format (e.g., "09:50", "21:30", "9")
+    for fmt in ["%H:%M", "%H:%M:%S", "%H"]:
         try:
             return datetime.strptime(tob_str, fmt).time()
         except ValueError:
