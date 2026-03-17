@@ -64,6 +64,33 @@ def get_coordinates(place):
     # Default to Delhi if all fails
     return 28.6139, 77.2090
 
+def parse_date(dob_str):
+    """Parse date string in various formats."""
+    dob_str = dob_str.strip()
+    
+    # Try various date formats
+    formats = [
+        "%Y-%m-%d",       # 2001-08-08
+        "%d-%m-%Y",       # 08-08-2001
+        "%d/%m/%Y",       # 08/08/2001
+        "%d %B %Y",       # 08 August 2001
+        "%d %b %Y",       # 08 Aug 2001
+        "%B %d, %Y",      # August 08, 2001
+        "%B %d %Y",       # August 08 2001
+        "%b %d, %Y",      # Aug 08, 2001
+        "%d-%B-%Y",       # 08-August-2001
+        "%Y/%m/%d",       # 2001/08/08
+        "%m/%d/%Y",       # 08/08/2001 (US format, try after others)
+    ]
+    
+    for fmt in formats:
+        try:
+            return datetime.strptime(dob_str, fmt).date()
+        except ValueError:
+            continue
+    
+    raise ValueError(f"Unable to parse date '{dob_str}'. Use formats like '2001-08-08', '08 August 2001', or '08-08-2001'")
+
 def parse_time(tob_str):
     """Parse time string in various formats (12-hour with AM/PM or 24-hour)."""
     tob_str = tob_str.strip()
@@ -90,7 +117,7 @@ def calculate_kundli(dob_str, tob_str, place):
     
     # Parse date and time into a single datetime object
     birth_time = parse_time(tob_str)
-    birth_date = datetime.strptime(dob_str, "%Y-%m-%d")
+    birth_date = parse_date(dob_str)
     birth_dt = datetime.combine(birth_date, birth_time)
     
     # Call the top-level API function
@@ -152,7 +179,7 @@ def calculate_kundli(dob_str, tob_str, place):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Acharya Sharma Kundli Engine')
-    parser.add_argument('--dob', required=True, help='Date of Birth (YYYY-MM-DD)')
+    parser.add_argument('--dob', required=True, help='Date of Birth (YYYY-MM-DD, DD Month YYYY, etc.)')
     parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM or HH:MM AM/PM)')
     parser.add_argument('--place', required=True, help='Place of Birth')
     
