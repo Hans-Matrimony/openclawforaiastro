@@ -42,8 +42,14 @@ Message arrives
     │         └─ Store planetary positions in context for the response.
     │
     │  ⛔ ANTI-HALLUCINATION: NEVER skip this step for rashi/lagna/nakshatra questions.
-    │     Rashi = summary.moon_sign from calculate.py. NEVER guess it yourself.
+    │     Rashi = ai_summary.rashi_info from calculate.py. NEVER guess it yourself.
     │     If user asks again, run calculate.py again — do NOT reuse old answers.
+    │
+    ├─ STEP 3.5B: Interpret Kundli for Response
+    │     └─ Read `KUNDLI_RESPONSE.md` for exact response templates.
+    │     ├─ Use `ai_summary.rashi_info` verbatim.
+    │     ├─ Use `ai_summary.dasha_info` for timing.
+    │     └─ Use `ai_summary.planet_positions` to find key planets for specific questions.
     │
     └─ STEP 4: Is it an astrology question?
           └─ YES →

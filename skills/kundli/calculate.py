@@ -146,26 +146,69 @@ def calculate_kundli(dob_str, tob_str, place):
         moon_planet = next(p for p in chart.d1_chart.planets if p.celestial_body == 'Moon')
         moon_sign = moon_planet.to_dict().get('sign')
         # CRITICAL: Always use the Moon's own nakshatra, NOT panchanga or any other planet
-        # Saturn or other planets in House 1 may have a different nakshatra (e.g. Rohini)
-        # which must NOT be confused with the Moon's birth star (Janma Nakshatra)
         moon_nakshatra = moon_planet.to_dict().get('nakshatra')
         # Fall back to panchanga only if Moon nakshatra unavailable
         if not moon_nakshatra:
             moon_nakshatra = chart.panchanga.nakshatra
+        moon_pada = moon_planet.to_dict().get('pada')
+            
+        # Rashi mapping for AI prompts
+        HINDI_RASHI = {
+            "Aries": "Mesh", "Taurus": "Vrishabh", "Gemini": "Mithun", "Cancer": "Kark",
+            "Leo": "Singh", "Virgo": "Kanya", "Libra": "Tula", "Scorpio": "Vrishchik",
+            "Sagittarius": "Dhanu", "Capricorn": "Makar", "Aquarius": "Kumbh", "Pisces": "Meen"
+        }
+        lagna_hindi = HINDI_RASHI.get(lagna, lagna) if lagna else lagna
+        moon_hindi = HINDI_RASHI.get(moon_sign, moon_sign) if moon_sign else moon_sign
+        
+        # Format current dasha
+        dashas = chart_data.get('dashas', {}).get('current', {}).get('mahadashas', {})
+        dasha_str = "Vimshottari Dasha is active. Check full 'dashas' field for timings."
+        if dashas:
+            md_planet = list(dashas.keys())[0]
+            md_data = dashas[md_planet]
+            md_end = md_data.get('end')
+            dasha_str = f"Current Mahadasha: {md_planet} (Ends {md_end}). "
+            
+            ads = md_data.get('antardashas', {})
+            if ads:
+                ad_planet = list(ads.keys())[0]
+                ad_end = ads[ad_planet].get('end')
+                dasha_str += f"Current Antardasha: {ad_planet} (Ends {ad_end})."
+
+        # Format Planets in houses
+        planets_summary = []
+        d1 = chart_data.get('d1Chart', {})
+        for house in d1.get('houses', []):
+            h_num = house.get('number')
+            for occ in house.get('occupants', []):
+                p_name = occ.get('celestialBody')
+                p_sign = occ.get('sign')
+                p_sign_hindi = HINDI_RASHI.get(p_sign, p_sign)
+                planets_summary.append(f"{p_name} is in House {h_num} ({p_sign}/{p_sign_hindi})")
         
         chart_data["summary"] = {
             "lagna": str(lagna),
             "moon_sign": str(moon_sign),
             "nakshatra": str(moon_nakshatra),  # MOON's Nakshatra (Janma Nakshatra)
             "nakshatra_note": "This is the Moon's Nakshatra (Janma Nakshatra/birth star). Not Saturn or any other planet.",
-            "current_dasha": "Vimshottari Dasha is active. Check full 'dashas' field for timings."
+            "current_dasha": dasha_str
         }
+        
+        chart_data["ai_summary"] = {
+            "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
+            "dasha_info": dasha_str,
+            "planet_positions": planets_summary,
+            "instructions_for_ai": "READ THIS FIRST: Do NOT guess rashis. Use the rashi_info above exactly as written. Look at dasha_info for timing predictions. Look at planet_positions for specific house queries (like marriage = 7th house)."
+        }
+        
         # Extra top-level keys for backup - all three must be consistent
         chart_data["lagna"] = chart_data["summary"]["lagna"]
         chart_data["moon_sign"] = chart_data["summary"]["moon_sign"]
         chart_data["nakshatra"] = chart_data["summary"]["nakshatra"]  # MOON's Nakshatra explicitly
     except Exception as e:
         chart_data["summary_error"] = str(e)
+
 
     # Add metadata
     chart_data["user_input"] = {
