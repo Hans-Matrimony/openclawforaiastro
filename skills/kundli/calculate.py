@@ -199,7 +199,7 @@ def calculate_kundli(dob_str, tob_str, place):
             "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
             "dasha_info": dasha_str,
             "planet_positions": planets_summary,
-            "instructions_for_ai": "READ THIS FIRST: Do NOT guess rashis. Use the rashi_info above exactly as written. Look at dasha_info for timing predictions. Look at planet_positions for specific house queries (like marriage = 7th house)."
+            "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions."
         }
         
         # Extra top-level keys for backup - all three must be consistent
