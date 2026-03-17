@@ -112,12 +112,15 @@ If DOB, Time, Place, and **Gender** are found in Memory:
 - After receiving gender, save it to Mem0 immediately: `python3 ~/.openclaw/skills/mem0/mem0_client.py add "Gender: G" --user-id "<ID>"`
 
 ### ⛔ RASHI/LAGNA/NAKSHATRA — ZERO TOLERANCE RULE
+
 **NEVER guess, infer, or generate Rashi, Lagna, or Nakshatra from your own knowledge.**
+
 You MUST run `calculate.py` EVERY TIME before stating ANY of these. If you cannot run the tool, tell the user: "Beta, abhi calculation mein thodi issue aa rahi hai. Thodi der baad poochna."
 
 **If the user asks the same rashi question again:** Run `calculate.py` again. Do NOT remember or cache rashis from previous messages. Always use fresh tool output.
 
-**Rashi = `summary.moon_sign` from calculate.py output. NOTHING ELSE. Lagna = `summary.lagna`. Nakshatra = `summary.nakshatra`.**
+**Rashi = `summary.moon_sign` from calculate.py output. NOTHING ELSE. Lagna = `summary.lagna`. Nakshatra = `summary.nakshatra`.** 
+(Nakshatra MUST be the Moon's Janma Nakshatra. Never use the nakshatra of any other planet.)
 
 ### STEP 3B: Financial/Health/Legal Queries — ADD DISCLAIMER (MANDATORY)
 
