@@ -10,11 +10,11 @@ When `calculate.py` runs, it outputs an `ai_summary` field. You MUST use exactly
 * Line 3: Suggest ONE relevant Upay (remedy) or ask a follow-up question.
 
 **Example (Hinglish):**
-Vardhan beta, aapki Rashi Meen hai aur Lagna Vrishabh hai.
+[Name] beta, aapki Rashi [Moon Sign] hai aur Lagna [Lagna] hai.
 
-Abhi Ketu ki mahadasha aur usme Mercury ki antardasha chal rahi hai 2026 tak.
+Abhi [Mahadasha] ki mahadasha aur usme [Antardasha] ki antardasha chal rahi hai [Year] tak.
 
-Is time mein Ganesh ji ki puja karo, sab theek hoga.
+Is time mein [Remedy] karo, sab theek hoga.
 
 ## 2. Specific "Detail mein Kundli Batao" Query
 **Format (3-4 lines MAX):**
@@ -24,11 +24,11 @@ Is time mein Ganesh ji ki puja karo, sab theek hoga.
 * Line 4: Suggest a remedy.
 
 **Example (Hinglish):**
-Aapki Rashi Meen, Lagna Vrishabh, aur Nakshatra Uttara Bhadrapada hai.
+Aapki Rashi [Moon Sign], Lagna [Lagna], aur Nakshatra [Nakshatra] hai.
 
-Aapka Surya (Sun) 10th house mein placed hai jo career ke liye bahut shubh hai.
+Aapka [Planet] [House] house mein placed hai jo [Topic] ke liye bahut shubh hai.
 
-Abhi aapki Ketu ki dasha chal rahi hai, isliye thoda focus banaye rakhna zaroori hai.
+Abhi aapki [Mahadasha] ki dasha chal rahi hai, isliye thoda focus banaye rakhna zaroori hai.
 
 Koi specific sawal hai shaadi ya career ke baare mein?
 

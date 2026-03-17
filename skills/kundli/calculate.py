@@ -187,49 +187,72 @@ def calculate_kundli(dob_str, tob_str, place):
                 p_sign_hindi = HINDI_RASHI.get(p_sign, p_sign)
                 planets_summary.append(f"{p_name} is in House {h_num} ({p_sign}/{p_sign_hindi})")
         
-        chart_data["summary"] = {
-            "lagna": str(lagna),
-            "moon_sign": str(moon_sign),
-            "nakshatra": str(moon_nakshatra),  # MOON's Nakshatra (Janma Nakshatra)
-            "nakshatra_note": "This is the Moon's Nakshatra (Janma Nakshatra/birth star). Not Saturn or any other planet.",
-            "current_dasha": dasha_str
+        # CONSTRUCT FINAL OUTPUT WITH SUMMARY AT THE TOP (To prevent truncation issues)
+        final_output = {
+            "summary": {
+                "lagna": str(lagna),
+                "moon_sign": str(moon_sign),
+                "nakshatra": str(moon_nakshatra),  # MOON's Nakshatra (Janma Nakshatra)
+                "nakshatra_note": "This is the Moon's Nakshatra (Janma Nakshatra/birth star). Not Saturn or any other planet.",
+                "current_dasha": dasha_str
+            },
+            "ai_summary": {
+                "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
+                "dasha_info": dasha_str,
+                "planet_positions": planets_summary,
+                "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions."
+            }
         }
         
-        chart_data["ai_summary"] = {
-            "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
-            "dasha_info": dasha_str,
-            "planet_positions": planets_summary,
-            "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions."
-        }
+        # Add back all the raw chart data for detail-heavy queries
+        final_output.update(chart_data)
         
         # Extra top-level keys for backup - all three must be consistent
-        chart_data["lagna"] = chart_data["summary"]["lagna"]
-        chart_data["moon_sign"] = chart_data["summary"]["moon_sign"]
-        chart_data["nakshatra"] = chart_data["summary"]["nakshatra"]  # MOON's Nakshatra explicitly
-    except Exception as e:
-        chart_data["summary_error"] = str(e)
+        final_output["lagna"] = final_output["summary"]["lagna"]
+        final_output["moon_sign"] = final_output["summary"]["moon_sign"]
+        final_output["nakshatra"] = final_output["summary"]["nakshatra"]  # MOON's Nakshatra explicitly
 
+    except Exception as e:
+        final_output = {
+            "summary_error": str(e),
+            "raw_data": chart_data
+        }
 
     # Add metadata
-    chart_data["user_input"] = {
+    final_output["user_input"] = {
         "dob": dob_str,
         "tob": tob_str,
         "place": place,
         "coordinates": {"lat": lat, "lon": lon}
     }
     
-    return chart_data
+    return final_output
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Acharya Sharma Kundli Engine')
     parser.add_argument('--dob', required=True, help='Date of Birth (YYYY-MM-DD, DD Month YYYY, etc.)')
     parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM or HH:MM AM/PM)')
     parser.add_argument('--place', required=True, help='Place of Birth')
+    parser.add_argument('--full', action='store_true', help='Return full raw data (warning: 7000+ lines)')
     
     args = parser.parse_args()
     
     try:
         output = calculate_kundli(args.dob, args.tob, args.place)
+        
+        # If not full mode, trim the output to essentials to prevent LLM confusion
+        if not args.full:
+            trimmed = {
+                "summary": output.get("summary"),
+                "ai_summary": output.get("ai_summary"),
+                "lagna": output.get("lagna"),
+                "moon_sign": output.get("moon_sign"),
+                "nakshatra": output.get("nakshatra"),
+                "user_input": output.get("user_input"),
+                "note": "Raw planet/dasha data hidden. Run with --full if you need specific degrees or full dasha tables."
+            }
+            output = trimmed
+            
         print(json.dumps(output, indent=2, default=lambda x: str(x)))
     except Exception as e:
         import traceback
