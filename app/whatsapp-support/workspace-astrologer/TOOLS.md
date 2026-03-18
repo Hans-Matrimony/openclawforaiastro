@@ -76,8 +76,16 @@ Your personal assistant for building birth charts.
 - **To confirm current period (Dasha)** — very important for timing events.
 
 ### How to Use
+
+**For Text Calculations (Always run this first to get details):**
 ```bash
 python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" --place "Pune"
+```
+
+**For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
+```bash
+# Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
+python3 ~/.openclaw/skills/kundli/generate_chart_image.py "Vrishabha" "Meen" "Revati"
 ```
 
 ### What's Inside
