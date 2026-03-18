@@ -201,12 +201,12 @@ def main():
         "Tula", "Vrishchika", "Dhanu", "Makara", "Kumbha", "Meena"
     ]
 
-    lagna_valid = any(sign.lower() in args.lagna.lower() for sign in astrology_signs)
-    moon_valid = any(sign.lower() in args.moon_sign.lower() for sign in astrology_signs)
+    lagna_valid = any(args.lagna.lower().strip() in sign.lower() for sign in astrology_signs)
+    moon_valid = any(args.moon_sign.lower().strip() in sign.lower() for sign in astrology_signs)
 
     if not lagna_valid or not moon_valid:
         print("Error: This script only generates astrology-related images (Kundli charts).", file=sys.stderr)
-        print("Please provide valid zodiac signs for Lagna and Moon Sign.", file=sys.stderr)
+        print(f"Lagna '{args.lagna}' or Moon Sign '{args.moon_sign}' is not recognized.", file=sys.stderr)
         sys.exit(1)
 
     # Generate the chart
