@@ -88,7 +88,8 @@
             "name": "GPT-4o",
             "reasoning": false,
             "input": [
-              "text"
+              "text",
+              "image"
             ],
             "cost": {
               "input": 0,
