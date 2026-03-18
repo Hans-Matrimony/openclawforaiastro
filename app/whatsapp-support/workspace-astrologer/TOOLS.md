@@ -85,7 +85,7 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
 # Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
-python3 ~/.openclaw/skills/kundli/generate_chart_image.py "Vrishabha" "Meen" "Revati"
+cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati"
 ```
 
 ### What's Inside
