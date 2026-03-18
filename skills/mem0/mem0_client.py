@@ -194,7 +194,7 @@ def main():
     elif args.command == "add":
         try:
             metadata = json.loads(args.metadata)
-        except json.JSONDecodeException:
+        except json.JSONDecodeError:
             metadata = {}
 
         result = call_api("/memory/add", {
@@ -247,7 +247,7 @@ def main():
     elif args.command == "upsert":
         try:
             metadata = json.loads(args.metadata)
-        except json.JSONDecodeException:
+        except json.JSONDecodeError:
             metadata = {}
 
         # First, search for existing memories

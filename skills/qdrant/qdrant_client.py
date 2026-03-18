@@ -40,10 +40,7 @@ def search_qdrant(query, limit=21):
             print(f"Embedding error: {e}", file=sys.stderr)
 
     if not vector:
-        # Fallback
-        print("Warning: Could not generate embedding. Returning mock result for verification.", file=sys.stderr)
-        # Mock result if embedding fails but we want to prove tool connectivity
-        print(json.dumps([{"payload": {"text": "Astrology principles suggest that..."}}]))
+        print(json.dumps({"error": "Could not generate embedding. Please check OPENAI_API_KEY is set correctly."}))
         return
 
     # Search Qdrant

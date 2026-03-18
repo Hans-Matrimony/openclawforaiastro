@@ -6,6 +6,13 @@ from datetime import datetime, timedelta
 from geopy.geocoders import Nominatim
 import jyotishganit
 
+try:
+    from timezonefinder import TimezoneFinder
+    from zoneinfo import ZoneInfo
+    _TZ_FINDER = TimezoneFinder()
+except ImportError:
+    _TZ_FINDER = None
+
 # --- MONKEY PATCH FOR 100% OFFLINE ROBUSTNESS ---
 # This overrides jyotishganit to use hardcoded Spica coordinates 
 # and enforces 100% offline mode for all calculations.
@@ -43,12 +50,15 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CITIES_FILE = os.path.join(SCRIPT_DIR, 'cities_india.json')
 
 def get_coordinates(place):
-    # Try local fallback first
+    # Try local fallback first (case-insensitive)
     try:
         with open(CITIES_FILE, 'r') as f:
             cities = json.load(f)
-            if place in cities:
-                return cities[place][0], cities[place][1]
+            # Case-insensitive lookup
+            place_lower = place.strip().lower()
+            for city_name, coords in cities.items():
+                if city_name.lower() == place_lower:
+                    return coords[0], coords[1], False
     except:
         pass
 
@@ -57,12 +67,30 @@ def get_coordinates(place):
         geolocator = Nominatim(user_agent="acharya_sharma_astro")
         location = geolocator.geocode(place + ", India")
         if location:
-            return location.latitude, location.longitude
+            return location.latitude, location.longitude, False
     except:
         pass
     
-    # Default to Delhi if all fails
-    return 28.6139, 77.2090
+    # Default to Delhi if all fails — but flag it
+    return 28.6139, 77.2090, True
+
+
+def get_timezone_offset(lat, lon):
+    """Detect timezone offset from coordinates. Falls back to IST (5.5)."""
+    if _TZ_FINDER is None:
+        return 5.5  # Fallback to IST if timezonefinder not installed
+    try:
+        tz_name = _TZ_FINDER.timezone_at(lat=lat, lng=lon)
+        if tz_name:
+            from datetime import timezone as _tz
+            tz = ZoneInfo(tz_name)
+            # Use a reference datetime to get UTC offset
+            ref_dt = datetime(2000, 6, 15, 12, 0, 0, tzinfo=tz)
+            offset_seconds = ref_dt.utcoffset().total_seconds()
+            return offset_seconds / 3600
+    except Exception:
+        pass
+    return 5.5  # Fallback to IST
 
 def parse_date(dob_str):
     """Parse date string in various formats."""
@@ -80,7 +108,6 @@ def parse_date(dob_str):
         "%b %d, %Y",      # Aug 08, 2001
         "%d-%B-%Y",       # 08-August-2001
         "%Y/%m/%d",       # 2001/08/08
-        "%m/%d/%Y",       # 08/08/2001 (US format, try after others)
     ]
     
     for fmt in formats:
@@ -113,12 +140,15 @@ def parse_time(tob_str):
     raise ValueError(f"Unable to parse time '{tob_str}'. Use formats like '09:50', '21:30', '09:50 AM', or '9:50 PM'")
 
 def calculate_kundli(dob_str, tob_str, place):
-    lat, lon = get_coordinates(place)
+    lat, lon, used_fallback = get_coordinates(place)
     
     # Parse date and time into a single datetime object
     birth_time = parse_time(tob_str)
     birth_date = parse_date(dob_str)
     birth_dt = datetime.combine(birth_date, birth_time)
+    
+    # Detect timezone from coordinates (falls back to IST if unavailable)
+    tz_offset = get_timezone_offset(lat, lon)
     
     # Call the top-level API function
     # Signature: birth_date (datetime), latitude (float), longitude (float), timezone_offset (float)
@@ -126,7 +156,7 @@ def calculate_kundli(dob_str, tob_str, place):
         birth_date=birth_dt,
         latitude=lat,
         longitude=lon,
-        timezone_offset=5.5, # Assume IST
+        timezone_offset=tz_offset,
         name="User"
     )
     
@@ -223,8 +253,12 @@ def calculate_kundli(dob_str, tob_str, place):
         "dob": dob_str,
         "tob": tob_str,
         "place": place,
-        "coordinates": {"lat": lat, "lon": lon}
+        "coordinates": {"lat": lat, "lon": lon},
+        "timezone_offset": tz_offset
     }
+    
+    if used_fallback:
+        final_output["warning"] = f"Could not find coordinates for '{place}'. Defaulted to Delhi (28.61, 77.21). Results may be inaccurate. Please verify the city name."
     
     return final_output
 

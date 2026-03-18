@@ -25,10 +25,11 @@ Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, 
 **CRITICAL: ALWAYS check mem0 first before asking for birth details**
 
 For EVERY user message related to Kundli:
-1. **FIRST** check mem0 for existing birth details using **LIST** (NOT search - search is broken):
+1. **FIRST** check mem0 for existing birth details using **LIST**:
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
    ```
+   > **NOTE:** Use `list` to get all stored memories. Use `search` only when you need semantic matching for a specific topic.
 2. If birth details found in mem0 (`"count": > 0`), extract: DOB, Time, Place from memories
 3. Only ask for birth details if NOT found in mem0 (`"count": 0`)
 4. When user provides birth details, **IMMEDIATELY** store them in mem0:

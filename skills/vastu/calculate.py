@@ -118,8 +118,8 @@ def analyze_room(room: str, direction: str, rules: Dict) -> Dict:
     }
 
 
-def detect_doshas(rooms: Dict[str, str], rules: Dict) -> List[Dict]:
-    """Detect Vastu doshas based on room placements."""
+def detect_doshas(rooms: Dict[str, str], rules: Dict, entrance_direction: str = "") -> List[Dict]:
+    """Detect Vastu doshas based on room placements and entrance."""
     detected = []
 
     dosha_rules = rules.get("doshas", {})
@@ -165,7 +165,7 @@ def detect_doshas(rooms: Dict[str, str], rules: Dict) -> List[Dict]:
                 elif dosha_key == "southwest_kitchen" and norm_dir == "southwest":
                     detected.append({
                         "dosha": dosha_key,
-                        "severity": dosca_info.get("severity"),
+                        "severity": dosha_info.get("severity"),
                         "cause": f"{room_name} in {direction}",
                         "effects": dosha_info.get("effects", []),
                         "remedies": dosha_info.get("remedies", [])
@@ -186,6 +186,19 @@ def detect_doshas(rooms: Dict[str, str], rules: Dict) -> List[Dict]:
                         "effects": dosha_info.get("effects", []),
                         "remedies": dosha_info.get("remedies", [])
                     })
+
+    # Check entrance-based doshas
+    if entrance_direction:
+        norm_entrance = normalize_direction(entrance_direction)
+        sw_entrance_dosha = dosha_rules.get("southwest_entrance")
+        if sw_entrance_dosha and norm_entrance == "southwest":
+            detected.append({
+                "dosha": "southwest_entrance",
+                "severity": sw_entrance_dosha.get("severity"),
+                "cause": f"Main entrance in {entrance_direction}",
+                "effects": sw_entrance_dosha.get("effects", []),
+                "remedies": sw_entrance_dosha.get("remedies", [])
+            })
 
     return detected
 
@@ -309,7 +322,7 @@ def analyze_vastu(
         room_analyses.append(analyze_room(room, direction, rules))
 
     # Detect doshas
-    doshas = detect_doshas(room_dict, rules)
+    doshas = detect_doshas(room_dict, rules, entrance_direction=entrance)
 
     # Check element balance
     element_balance = check_element_balance(room_dict, rules)

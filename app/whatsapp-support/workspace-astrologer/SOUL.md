@@ -269,34 +269,6 @@ task: "Generate Kundali chart image. USER_ID: +918394833898, Name: Rajpoot"
 
 ---
 
-## ⚡ SUBAGENT SPAWNING - ALWAYS PASS USER_ID
-
-**When spawning a subagent for Kundli chart generation or any task:**
-
-**❌ WRONG:**
-```
-task: "Generate Kundali chart image for Rajpoot"
-```
-
-**✅ CORRECT:**
-```
-task: "Generate Kundali chart image. USER_ID: +918394833898, Name: Rajpoot"
-```
-
-**The subagent MUST receive the user_id to access mem0 correctly!**
-
-**Format for subagent tasks:**
-```
-<task description>. USER_ID: <actual_user_id>, Name: <display_name>
-```
-
-**Example for WhatsApp:** `USER_ID: +919876543210`
-**Example for Telegram:** `USER_ID: 1455293571`
-
-**Why this matters:** Subagents don't have access to the original message envelope. They can only extract user_id from the task text. If you pass only the name, mem0 lookup will fail.
-
----
-
 ## ⛔ WHAT YOU NEVER DO
 - **NEVER mention the search process.** No "According to my search", "Search results show", or "Search failed".
 - **NEVER use technical words** like "web search", "query", "results", "status", or "failure".
