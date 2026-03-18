@@ -1,0 +1,16 @@
+{
+  "rashi_info": "Rashi (Moon Sign): Pisces (Meen). Lagna (Ascendant): Taurus (Vrishabh). Nakshatra: Uttara Bhadrapada Pada 4.",
+  "dasha_info": "Current Mahadasha: Ketu (Ends 2026-04-24). Current Antardasha: Mercury (Ends 2026-04-24).",
+  "planet_positions": [
+    "Saturn is in House 1 (Taurus/Vrishabh)",
+    "Jupiter is in House 2 (Gemini/Mithun)",
+    "Rahu is in House 2 (Gemini/Mithun)",
+    "Ketu is in House 8 (Sagittarius/Dhanu)",
+    "Mercury is in House 9 (Capricorn/Makar)",
+    "Sun is in House 10 (Aquarius/Kumbh)",
+    "Venus is in House 10 (Aquarius/Kumbh)",
+    "Moon is in House 11 (Pisces/Meen)",
+    "Mars is in House 11 (Pisces/Meen)"
+  ],
+  "instructions_for_ai": "SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above (Pisces/Meen). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions."
+}

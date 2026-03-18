@@ -1,0 +1,20 @@
+{
+  "mahadashas": {
+    "Ketu": {
+      "start": "2019-04-24",
+      "end": "2026-04-24",
+      "antardashas": {
+        "Mercury": {
+          "start": "2025-04-27",
+          "end": "2026-04-24",
+          "pratyantardashas": {
+            "Saturn": {
+              "start": "2026-02-26",
+              "end": "2026-04-24"
+            }
+          }
+        }
+      }
+    }
+  }
+}

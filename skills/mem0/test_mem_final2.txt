@@ -1,0 +1,51 @@
+{
+  "success": true,
+  "memories": [
+    {
+      "id": "068aff11-0ab1-47ef-96a5-3e60d44f5be5",
+      "memory": "Name is Vardhan Yadav",
+      "hash": "c17d34118995ea2a381afa3234b82f07",
+      "metadata": null,
+      "created_at": "2026-03-02T01:16:41.413609-08:00",
+      "updated_at": null,
+      "user_id": "+919760347653"
+    },
+    {
+      "id": "5b5c0fa2-ddd5-4870-bb3b-421a1faa4610",
+      "memory": "Time is 12 PM",
+      "hash": "5deaa2e2fe292aad12e2ba42a7599556",
+      "metadata": null,
+      "created_at": "2026-03-10T03:47:19.500279-07:00",
+      "updated_at": null,
+      "user_id": "+919760347653"
+    },
+    {
+      "id": "5f813331-f808-47dd-a150-507869485957",
+      "memory": "Date of Birth is 16 Feb 2002",
+      "hash": "5a9a454d6dcab71dda816299a060e642",
+      "metadata": null,
+      "created_at": "2026-03-02T01:16:41.423889-08:00",
+      "updated_at": "2026-03-09T02:31:36.961260-07:00",
+      "user_id": "+919760347653"
+    },
+    {
+      "id": "8a12d2fd-9fb5-4bd8-80ce-917e0cf59ea6",
+      "memory": "Gender is male",
+      "hash": "e501443a82ff23b78463cee8fcad0a41",
+      "metadata": null,
+      "created_at": "2026-03-10T03:47:19.520264-07:00",
+      "updated_at": null,
+      "user_id": "+919760347653"
+    },
+    {
+      "id": "a34934f9-2573-4bcc-8d17-6106347fe8cf",
+      "memory": "Place is Meerut, Uttar Pradesh",
+      "hash": "82282072b88933e775df0d8901f8fce9",
+      "metadata": null,
+      "created_at": "2026-03-02T01:16:41.434621-08:00",
+      "updated_at": null,
+      "user_id": "+919760347653"
+    }
+  ],
+  "count": 5
+}
