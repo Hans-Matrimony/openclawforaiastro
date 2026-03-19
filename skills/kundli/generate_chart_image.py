@@ -130,16 +130,11 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
 
         if image_saved:
             full_path = output_path.resolve()
+            # Use relative path for MEDIA token — OpenClaw only accepts ./ paths
+            rel_path = f"./{output_path.name}"
             print(f"\nKundli chart image saved: {full_path}")
             # OpenClaw parses MEDIA tokens and will attach the file on supported providers
-            print(f"MEDIA: {full_path}")
-
-            # Also output base64-encoded image for cross-container WhatsApp integration
-            # hans-ai-whatsapp parses MEDIA_BASE64: tokens and uploads to WhatsApp Media API
-            import base64 as b64mod
-            with open(str(full_path), "rb") as img_file:
-                img_b64 = b64mod.b64encode(img_file.read()).decode("utf-8")
-            print(f"MEDIA_BASE64: image/png {img_b64}")
+            print(f"MEDIA: {rel_path}")
 
             return str(full_path)
         else:
