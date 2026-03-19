@@ -88,6 +88,11 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati"
 ```
 
+**IMPORTANT OUTPUT INSTRUCTION FOR IMAGES:**
+When the image generation is complete, the script will output a `MEDIA:` path. You MUST include this exact path in your final reply to the user using this format exactly on its own line:
+`MEDIA: ~/.openclaw/skills/kundli/kundli-chart-YOUR-DATE.png`
+Do not change the path format. The framework will automatically read this `MEDIA:` tag and send the image file to WhatsApp.
+
 ### What's Inside
 - ✅ **Lagna (Ascendant):** Core identity and physical self.
 - ✅ **Rashi (Moon Sign):** Emotional and mental state.

@@ -20,10 +20,16 @@ describe("splitMediaFromOutput", () => {
     expect(result.text).toBe('MEDIA:"/Users/pete/My File.png"');
   });
 
-  it("rejects tilde media paths to prevent LFI", () => {
+  it("rejects generic tilde media paths to prevent LFI", () => {
     const result = splitMediaFromOutput("MEDIA:~/Pictures/My File.png");
     expect(result.mediaUrls).toBeUndefined();
     expect(result.text).toBe("MEDIA:~/Pictures/My File.png");
+  });
+
+  it("captures scoped openclaw tilde media paths", () => {
+    const result = splitMediaFromOutput("MEDIA:~/.openclaw/skills/kundli/out/kundli-chart.png");
+    expect(result.mediaUrls).toEqual(["~/.openclaw/skills/kundli/out/kundli-chart.png"]);
+    expect(result.text).toBe("");
   });
 
   it("rejects directory traversal media paths to prevent LFI", () => {

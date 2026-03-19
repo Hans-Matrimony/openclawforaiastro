@@ -28,6 +28,13 @@ function isValidMedia(candidate: string, opts?: { allowSpaces?: boolean }) {
     return true;
   }
 
+  // Allow paths within ~/.openclaw/ (the app's own data directory).
+  // loadWebMedia already handles tilde expansion; we scope to .openclaw to
+  // prevent arbitrary home-directory LFI.
+  if (candidate.startsWith("~/.openclaw/") && !candidate.includes("..")) {
+    return true;
+  }
+
   // Local paths: only allow safe relative paths starting with ./ that do not traverse upwards.
   return candidate.startsWith("./") && !candidate.includes("..");
 }
