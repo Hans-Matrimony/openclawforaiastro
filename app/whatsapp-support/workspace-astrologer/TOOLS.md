@@ -88,10 +88,10 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati"
 ```
 
-**IMPORTANT OUTPUT INSTRUCTION FOR IMAGES:**
+**IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, the script will output a `MEDIA:` path. You MUST include this exact path in your final reply to the user using this format exactly on its own line:
 `MEDIA: ~/.openclaw/skills/kundli/kundli-chart-YOUR-DATE.png`
-Do not change the path format. The framework will automatically read this `MEDIA:` tag and send the image file to WhatsApp.
+**NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery. It ONLY scans for the exact string `MEDIA: <path>`.
 
 ### What's Inside
 - ✅ **Lagna (Ascendant):** Core identity and physical self.
