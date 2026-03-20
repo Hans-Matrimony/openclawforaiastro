@@ -85,8 +85,12 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
 # Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
-cd ~/.openclaw/skills/kundli && pip3 install --break-system-packages -q google-genai>=1.0.0 pillow>=10.0.0 && python3 generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png"
+# FAST CHECK: Only installs if missing. Use process tool to wait for "Completed".
+cd ~/.openclaw/skills/kundli && (python3 -c "import google.genai, PIL" 2>/dev/null || pip3 install --break-system-packages -q google-genai>=1.0.0 pillow>=10.0.0) && python3 generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png"
 ```
+
+**⚠️ CRITICAL: PROCESS POLLING RULE**
+Because image generation involves a background process (`delta-ridge`), the command may return "Command still running". You MUST use the `process` tool to poll the PID until the status is **"Completed"**. If you see "Process still running", wait a moment and poll again. **NEVER** send your final response to the user until you have confirmed the script is finished.
 
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, you MUST include this exact path in your final reply to the user using this format exactly on its own line:

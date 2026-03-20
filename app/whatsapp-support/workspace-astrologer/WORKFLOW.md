@@ -164,6 +164,13 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 ```
 *Use this to get Lagna, Moon Sign, Dashas, and planetary placements.*
 
+**4. Generate Image (Only if requested):**
+```bash
+# TRIGGER this only if user asks for an image/photo.
+cd ~/.openclaw/skills/kundli && ... (see TOOLS.md for full command)
+```
+⚠️ **POLLING RULE:** If the command backgrounds, you **MUST** use the `process` tool to poll until **"Completed"**. Do NOT respond till it's finished.
+
 **SKIP these steps if:**
 - You already have the specific answer in memory or training.
 - The question doesn't require live data or complex concepts.
