@@ -84,13 +84,17 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
-# Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
 # FAST CHECK: Only installs if missing. Use process tool to wait for "Completed".
-cd ~/.openclaw/skills/kundli && (python3 -c "import google.genai, PIL" 2>/dev/null || pip3 install --break-system-packages -q google-genai>=1.0.0 pillow>=10.0.0) && python3 generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png"
+cd ~/.openclaw/skills/kundli && (python3 -c "import google.genai, PIL" 2>/dev/null || pip3 install --break-system-packages -q google-genai>=1.0.0 pillow>=10.0.0) && python3 generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png" && echo "### JOB COMPLETED ###"
 ```
 
-**⚠️ CRITICAL: PROCESS POLLING RULE**
-Because image generation involves a background process (`delta-ridge`), the command may return "Command still running". You MUST use the `process` tool to poll the PID until the status is **"Completed"**. If you see "Process still running", wait a moment and poll again. **NEVER** send your final response to the user until you have confirmed the script is finished.
+**⚠️ CRITICAL: THE POLLING LOOP (DO NOT SKIP)**
+Because image generation involves a background process (`delta-ridge`), the command will likely return "Command still running".
+1. You **MUST** use the `process` tool to poll the PID.
+2. If you see "Process still running", **DO NOT REPLY TO THE USER**.
+3. Use the `process` tool again (wait 5-10 seconds between calls if possible).
+4. **ONLY** when you see "### JOB COMPLETED ###" or the status becomes **"Completed"**, you can send your final response.
+5. If you reply with an empty `MEDIA:` tag while the process is still running, you have failed the task.
 
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, you MUST include this exact path in your final reply to the user using this format exactly on its own line:
