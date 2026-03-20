@@ -130,14 +130,13 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
 
         if image_saved:
             full_path = output_path.resolve()
-            # Use relative path for local tool trace, but tilde path for the Agent's return
-            rel_path = f"./{output_path.name}"
-            tilde_path = f"~/.openclaw/skills/kundli/{output_path.name}"
+            # Use host-relative path for the agent's return so the Host Node.js process can find it via fs.readFile
+            host_path = f"./skills/kundli/{output_path.name}"
             
             print(f"\nKundli chart image saved: {full_path}")
             # Ensure the file exists before printing the token
             if output_path.exists():
-                print(f"MEDIA: {tilde_path}")
+                print(f"MEDIA: {host_path}")
             else:
                 print(f"Error: File was not saved to {full_path}", file=sys.stderr)
                 sys.exit(1)
