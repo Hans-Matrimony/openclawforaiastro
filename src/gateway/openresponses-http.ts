@@ -535,13 +535,14 @@ export async function handleOpenResponsesHttpRequest(
         mediaUrls?: string[];
       }> } | null)?.payloads;
 
-      // DEBUG: Log payload structure
+      // DEBUG: Check payload structure
+      let payloadDebug = '';
       if (Array.isArray(payloads) && payloads.length > 0) {
         const firstPayload = payloads[0];
-        console.error('[DEBUG] First payload keys:', Object.keys(firstPayload));
-        console.error('[DEBUG] First payload has mediaUrl?', 'mediaUrl' in firstPayload, firstPayload.mediaUrl);
-        console.error('[DEBUG] First payload has mediaUrls?', 'mediaUrls' in firstPayload, firstPayload.mediaUrls);
-        console.error('[DEBUG] First payload text length:', firstPayload.text?.length);
+        const keys = Object.keys(firstPayload);
+        const hasMediaUrl = 'mediaUrl' in firstPayload;
+        const hasMediaUrls = 'mediaUrls' in firstPayload;
+        payloadDebug = `\n\n[DEBUG] Payload keys: ${JSON.stringify(keys)}, has mediaUrl: ${hasMediaUrl}, has mediaUrls: ${hasMediaUrls}`;
       }
 
       const usage = extractUsageFromResult(result);
@@ -596,8 +597,8 @@ export async function handleOpenResponsesHttpRequest(
         }
       }
       const content = contentParts.length > 0
-        ? contentParts.join("\n\n")
-        : "No response from OpenClaw.";
+        ? (contentParts.join("\n\n") + payloadDebug)
+        : ("No response from OpenClaw." + payloadDebug);
 
       const response = createResponseResource({
         id: responseId,
