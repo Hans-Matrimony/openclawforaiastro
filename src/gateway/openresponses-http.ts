@@ -535,15 +535,9 @@ export async function handleOpenResponsesHttpRequest(
         mediaUrls?: string[];
       }> } | null)?.payloads;
 
-      // DEBUG: Check payload structure
-      let payloadDebug = '';
-      if (Array.isArray(payloads) && payloads.length > 0) {
-        const firstPayload = payloads[0];
-        const keys = Object.keys(firstPayload);
-        const hasMediaUrl = 'mediaUrl' in firstPayload;
-        const hasMediaUrls = 'mediaUrls' in firstPayload;
-        payloadDebug = `\n\n[DEBUG] Payload keys: ${JSON.stringify(keys)}, has mediaUrl: ${hasMediaUrl}, has mediaUrls: ${hasMediaUrls}`;
-      }
+      // DEBUG: Force output to diagnose payload structure
+      const payloadStr = JSON.stringify(payloads);
+      const payloadDebug = `\n\n[PAYLOAD_DEBUG] ${payloadStr}`;
 
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
@@ -599,6 +593,9 @@ export async function handleOpenResponsesHttpRequest(
       const content = contentParts.length > 0
         ? (contentParts.join("\n\n") + payloadDebug)
         : ("No response from OpenClaw." + payloadDebug);
+
+      // ALSO log to stderr which should show up in OpenClaw logs
+      console.error(`[PAYLOAD_DEBUG] content length: ${content.length}, first 200 chars: ${content.substring(0, 200)}`);
 
       const response = createResponseResource({
         id: responseId,
