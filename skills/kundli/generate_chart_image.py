@@ -107,35 +107,10 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
             print("Error: No image URL returned from DALL-E 3.", file=sys.stderr)
             sys.exit(1)
             
-        print("Image generated! Downloading...", file=sys.stdout)
+        print("Image generated successfully!", file=sys.stdout)
+        print(f"MEDIA: {image_url}", file=sys.stdout)
         sys.stdout.flush()
-        
-        # Download image
-        img_response = requests.get(image_url)
-        img_response.raise_for_status()
-
-        from io import BytesIO
-        from PIL import Image as PILImage
-        
-        image = PILImage.open(BytesIO(img_response.content))
-        if image.mode == 'RGBA':
-            rgb_image = PILImage.new('RGB', image.size, (255, 255, 255))
-            rgb_image.paste(image, mask=image.split()[3])
-            rgb_image.save(str(output_path), 'PNG')
-        else:
-            image.convert('RGB').save(str(output_path), 'PNG')
-
-        full_path = output_path.resolve()
-        
-        print(f"\nKundli chart image saved successfully: {full_path}")
-        if output_path.exists():
-            print(f"MEDIA: {tilde_path}", file=sys.stdout)
-        else:
-            print(f"Error: File was not saved.", file=sys.stderr)
-            sys.exit(1)
-            
-        sys.stdout.flush()
-        return str(full_path)
+        return image_url
 
     except Exception as e:
         print(f"Error generating chart image: {e}", file=sys.stderr)

@@ -98,10 +98,10 @@ Because image generation involves a background process (`delta-ridge`), the comm
 5. If you reply with an empty `MEDIA:` tag while the process is still running, you have failed the task.
 
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
-When the image generation is complete, the script MUST have successfully saved `kundli.png`.
+When the image generation is complete, the script MUST have successfully printed `MEDIA: https://...` with a URL.
 If you receive "No output" from the polling tool or the background task, the image generation FAILED and you must restart the process.
-If it succeeds, you MUST include this exact line in your final reply on its own line:
-`MEDIA: ~/.openclaw/skills/kundli/kundli.png`
+If it succeeds, you MUST include the exact `MEDIA: https://...` line exactly as printed by the script in your final reply on its own line.
+Do NOT output `MEDIA: ~/.openclaw/skills/kundli/kundli.png`. Use the actual URL provided by the script.
 **NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery.
 
 ### What's Inside

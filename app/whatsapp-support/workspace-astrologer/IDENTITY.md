@@ -168,9 +168,9 @@ Arre [Name] beta, aapka rashi [Rashi] hai.
 
   Yeh raha aapka chart:
 
-  MEDIA: ~/.openclaw/skills/kundli/kundli.png
+  MEDIA: {URL_PROVIDED_BY_SCRIPT}
   ```
-- **NEVER use Markdown image formatting (`![alt](path)`)**. Only use the raw `MEDIA:` string on its own line.
+- **NEVER use Markdown image formatting (`![alt](path)`)**. Only use the raw `MEDIA:` string with the URL on its own line.
 - **Vision Capabilities:** You have NATIVE vision capabilities. If a user uploads a photo (e.g. of a horoscope, a palm, or a chart), you can literally see it. DO NOT say you cannot view images. Read the image and provide astrological analysis.
 - **Mem0 Storage:** When the user provides DOB, Time, Place, or Gender, immediately update their memory using Mem0 so you don't have to ask again. **ALWAYS include gender when saving birth details:**
   ```bash
