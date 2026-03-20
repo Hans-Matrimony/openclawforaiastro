@@ -2,12 +2,13 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "google-genai>=1.0.0",
+#     "openai>=1.0.0",
 #     "pillow>=10.0.0",
+#     "requests"
 # ]
 # ///
 """
-Generate Kundli Chart Images using Gemini 3 Pro Image (Nano Banana Pro).
+Generate Kundli Chart Images using OpenAI DALL-E 3.
 
 This script creates visual representations of Vedic astrology birth charts.
 Only generates astrology-related images (kundli charts, birth charts, etc.).
@@ -27,7 +28,7 @@ def get_api_key(provided_key: str | None) -> str | None:
     """Get API key from argument first, then environment."""
     if provided_key:
         return provided_key
-    return os.environ.get("GEMINI_API_KEY")
+    return os.environ.get("OPENAI_API_KEY")
 
 
 def create_chart_prompt(lagna: str, moon_sign: str, nakshatra: str, planets: list = None) -> str:
@@ -59,96 +60,88 @@ Style: Professional astrology chart, educational diagram, clean lines, tradition
 
 
 def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: str, resolution: str = "2K", api_key: str = None):
-    """Generate the kundli chart image using Gemini 3 Pro Image."""
+    """Generate the kundli chart image using OpenAI DALL-E 3."""
+    print("Initializing chart generation process and checking environment...", file=sys.stdout)
+    sys.stdout.flush()
 
     # Get API key
     api_key = get_api_key(api_key)
     if not api_key:
         print("Error: No API key provided.", file=sys.stderr)
-        print("Please either:", file=sys.stderr)
-        print("  1. Set GEMINI_API_KEY environment variable", file=sys.stderr)
-        print("  2. Pass --api-key argument", file=sys.stderr)
+        print("Please either Set OPENAI_API_KEY environment variable or pass --api-key", file=sys.stderr)
         sys.exit(1)
 
-    # Import after checking API key
-    from google import genai
-    from google.genai import types
+    import requests
+    from openai import OpenAI
     from PIL import Image as PILImage
     from io import BytesIO
 
     # Initialize client
-    client = genai.Client(api_key=api_key)
+    client = OpenAI(api_key=api_key)
 
     # Create prompt
     prompt = create_chart_prompt(lagna, moon_sign, nakshatra)
 
-    # Set up output path
-    output_path = Path(filename)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    # Map output to known Host Sandbox mount path if we are in Docker
+    # /workspace is mounted to ~/.openclaw/workspace-astrologer on the Host
+    output_path = Path("/workspace/skills/kundli/kundli.png")
+    if not output_path.parent.exists():
+        # Fall back to local path if not in Docker setup
+        output_path = Path("kundli.png").resolve()
 
-    print(f"Generating Kundli chart image...")
+    print(f"Generating Kundli chart image using DALL-E 3...")
     print(f"Lagna: {lagna}, Moon Sign: {moon_sign}, Nakshatra: {nakshatra}")
-    print(f"Resolution: {resolution}")
+    sys.stdout.flush()
 
     try:
-        response = client.models.generate_content(
-            model="gemini-3-pro-image-preview",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_modalities=["TEXT", "IMAGE"],
-                image_config=types.ImageConfig(
-                    image_size=resolution
-                )
-            )
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
         )
 
-        # Process response and save image
-        image_saved = False
-        for part in response.parts:
-            if part.text is not None:
-                # Log any text response
-                pass
-            elif part.inline_data is not None:
-                # Convert inline data to PIL Image and save as PNG
-                image_data = part.inline_data.data
-                if isinstance(image_data, str):
-                    import base64
-                    image_data = base64.b64decode(image_data)
-
-                image = PILImage.open(BytesIO(image_data))
-
-                # Ensure RGB mode for PNG
-                if image.mode == 'RGBA':
-                    rgb_image = PILImage.new('RGB', image.size, (255, 255, 255))
-                    rgb_image.paste(image, mask=image.split()[3])
-                    rgb_image.save(str(output_path), 'PNG')
-                elif image.mode == 'RGB':
-                    image.save(str(output_path), 'PNG')
-                else:
-                    image.convert('RGB').save(str(output_path), 'PNG')
-                image_saved = True
-
-        if image_saved:
-            full_path = output_path.resolve()
-            # Use relative path for local tool trace, but tilde path for the Agent's return
-            rel_path = f"./{output_path.name}"
-            tilde_path = f"~/.openclaw/skills/kundli/{output_path.name}"
-            
-            print(f"\nKundli chart image saved: {full_path}")
-            # Ensure the file exists before printing the token
-            if output_path.exists():
-                print(f"MEDIA: {tilde_path}")
-            else:
-                print(f"Error: File was not saved to {full_path}", file=sys.stderr)
-                sys.exit(1)
-
-            return str(full_path)
-        else:
-            print("Error: No image was generated.", file=sys.stderr)
+        image_url = response.data[0].url
+        if not image_url:
+            print("Error: No image URL returned from DALL-E 3.", file=sys.stderr)
             sys.exit(1)
+            
+        print("Image generated! Downloading...", file=sys.stdout)
+        sys.stdout.flush()
+        
+        # Download image
+        img_response = requests.get(image_url)
+        img_response.raise_for_status()
+
+        from io import BytesIO
+        from PIL import Image as PILImage
+        
+        image = PILImage.open(BytesIO(img_response.content))
+        if image.mode == 'RGBA':
+            rgb_image = PILImage.new('RGB', image.size, (255, 255, 255))
+            rgb_image.paste(image, mask=image.split()[3])
+            rgb_image.save(str(output_path), 'PNG')
+        else:
+            image.convert('RGB').save(str(output_path), 'PNG')
+
+        full_path = output_path.resolve()
+        tilde_path = "~/.openclaw/workspace-astrologer/skills/kundli/kundli.png"
+        
+        print(f"\nKundli chart image saved successfully: {full_path}")
+        if output_path.exists():
+            print(f"MEDIA: {tilde_path}", file=sys.stdout)
+        else:
+            print(f"Error: File was not saved.", file=sys.stderr)
+            sys.exit(1)
+            
+        sys.stdout.flush()
+        return str(full_path)
 
     except Exception as e:
         print(f"Error generating chart image: {e}", file=sys.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
         sys.exit(1)
 
 

@@ -7,8 +7,8 @@ metadata:
       {
         "emoji": "🔮",
         "requires": { "bins": ["python3", "uv"] },
-        "env": ["GEMINI_API_KEY"],
-        "envNote": "GEMINI_API_KEY is only required for chart image generation"
+        "env": ["OPENAI_API_KEY"],
+        "envNote": "OPENAI_API_KEY is only required for chart image generation"
       },
   }
 ---
