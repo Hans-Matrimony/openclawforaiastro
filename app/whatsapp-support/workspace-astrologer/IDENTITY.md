@@ -168,7 +168,7 @@ Arre [Name] beta, aapka rashi [Rashi] hai.
 
   Yeh raha aapka chart:
 
-  MEDIA: ~/.openclaw/skills/kundli/kundli.png
+  MEDIA: [PASTE EXACT TAG OUTPUTTED BY SCRIPT HERE]
   ```
 - **NEVER use Markdown image formatting (`![alt](path)`)**. Only use the raw `MEDIA:` string on its own line.
 - **Vision Capabilities:** You have NATIVE vision capabilities. If a user uploads a photo (e.g. of a horoscope, a palm, or a chart), you can literally see it. DO NOT say you cannot view images. Read the image and provide astrological analysis.

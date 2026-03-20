@@ -101,7 +101,8 @@ Because image generation involves a background process (`delta-ridge`), the comm
 When the image generation is complete, the script MUST have successfully saved `kundli.png`.
 If you receive "No output" from the polling tool or the background task, the image generation FAILED and you must restart the process.
 If it succeeds, you MUST include this exact path in your final reply accurately on its own line exactly like this:
-`MEDIA: ~/.openclaw/skills/kundli/kundli.png`
+If it succeeds, you MUST include the exact path printed by the script in your final reply accurately on its own line:
+(Look at the script's output, it will print exactly what you need to write, e.g. `MEDIA: ~/.openclaw/.../kundli.png`). Do not make up your own path!
 **NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery.
 
 ### What's Inside
