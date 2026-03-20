@@ -572,6 +572,9 @@ export async function handleOpenResponsesHttpRequest(
         return true;
       }
 
+      // CRITICAL: Add deployment marker FIRST so it's impossible to miss
+      const deploymentMarker = `\n\n===DEPLOYMENT_C42C3C469===\n\n`;
+
       // Build content from payloads, preserving MEDIA: tags for webhook consumers
       const contentParts: string[] = [];
       if (Array.isArray(payloads) && payloads.length > 0) {
@@ -590,9 +593,7 @@ export async function handleOpenResponsesHttpRequest(
           }
         }
       }
-      const content = contentParts.length > 0
-        ? (contentParts.join("\n\n") + payloadDebug)
-        : ("No response from OpenClaw." + payloadDebug);
+      const content = (deploymentMarker + contentParts.join("\n\n") + payloadDebug);
 
       // ALSO log to stderr which should show up in OpenClaw logs
       console.error(`[PAYLOAD_DEBUG] content length: ${content.length}, first 200 chars: ${content.substring(0, 200)}`);
