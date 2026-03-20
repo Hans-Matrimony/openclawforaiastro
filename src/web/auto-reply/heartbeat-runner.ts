@@ -297,7 +297,8 @@ export async function runWebHeartbeatOnce(opts: {
       return;
     }
 
-    const sendResult = await sender(to, finalText, { verbose });
+    const mediaUrl = replyPayload.mediaUrl || replyPayload.mediaUrls?.[0];
+    const sendResult = await sender(to, finalText, { verbose, mediaUrl });
     emitHeartbeatEvent({
       status: "sent",
       to,
