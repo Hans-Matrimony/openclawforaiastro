@@ -258,6 +258,7 @@
   },
   "channels": {
     "whatsapp": {
+      "blockStreaming": false,
       "chunkMode": "newline",
       "configWrites": true,
       "sendReadReceipts": true,
