@@ -208,6 +208,64 @@ export function splitMediaFromOutput(raw: string): {
   }
 
   if (media.length === 0) {
+    // FALLBACK: The AI may format MEDIA tags using Markdown link syntax:
+    //   MEDIA: [Kundli Chart](https://oaidalleapiprodscus.blob.core.windows.net/...)
+    // or split across lines:
+    //   MEDIA:[Kundli
+    //   Chart](https://oaidalleapiprodscus...)
+    // The line-by-line parser above misses these, so scan the full text as a fallback.
+
+    // Try Markdown link syntax: [text](url)
+    const mdLinkRe = /\[([^\]]*)\]\((https?:\/\/[^)]+)\)/gi;
+    for (const m of trimmedRaw.matchAll(mdLinkRe)) {
+      const url = m[2];
+      if (isValidMedia(url)) {
+        media.push(url);
+        foundMediaToken = true;
+        // Remove the entire markdown link from the kept lines
+        const fullMatch = m[0];
+        const idx = keptLines.findIndex((l) => l.includes(fullMatch) || l.includes(url));
+        if (idx !== -1) {
+          const cleaned = keptLines[idx].replace(fullMatch, "").trim();
+          if (cleaned) {
+            keptLines[idx] = cleaned;
+          } else {
+            keptLines.splice(idx, 1);
+          }
+        }
+      }
+    }
+
+    // Try standalone DALL-E URLs anywhere in the text (handles multi-line MEDIA tags)
+    if (media.length === 0) {
+      const dalleRe = /https:\/\/oaidalleapiprodscus\.[^\s"')]+/gi;
+      for (const m of trimmedRaw.matchAll(dalleRe)) {
+        const url = m[0].replace(/[)\]]+$/, ""); // strip trailing ) or ]
+        if (isValidMedia(url)) {
+          media.push(url);
+          foundMediaToken = true;
+          // Remove lines containing the URL
+          for (let i = keptLines.length - 1; i >= 0; i--) {
+            if (keptLines[i].includes("oaidalleapiprodscus")) {
+              keptLines.splice(i, 1);
+            }
+          }
+          break; // only need the first DALL-E URL
+        }
+      }
+    }
+
+    // Also remove any leftover "MEDIA:" lines that had no valid payload
+    if (media.length > 0) {
+      for (let i = keptLines.length - 1; i >= 0; i--) {
+        if (/^\s*MEDIA:\s*/i.test(keptLines[i]) && keptLines[i].trim().length < 30) {
+          keptLines.splice(i, 1);
+        }
+      }
+    }
+  }
+
+  if (media.length === 0) {
     const result: ReturnType<typeof splitMediaFromOutput> = {
       // Return cleaned text if we found a media token OR audio tag, otherwise original
       text: foundMediaToken || hasAudioAsVoice ? cleanedText : trimmedRaw,
@@ -218,10 +276,24 @@ export function splitMediaFromOutput(raw: string): {
     return result;
   }
 
+  // Re-clean the text if we modified keptLines in the fallback
+  let finalCleanedText = keptLines
+    .join("\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+
+  // Detect and strip [[audio_as_voice]] tag from the re-cleaned text
+  const finalAudioResult = parseAudioTag(finalCleanedText);
+  if (finalAudioResult.hadTag) {
+    finalCleanedText = finalAudioResult.text.replace(/\n{2,}/g, "\n").trim();
+  }
+
   return {
-    text: cleanedText,
+    text: finalCleanedText,
     mediaUrls: media,
     mediaUrl: media[0],
-    ...(hasAudioAsVoice ? { audioAsVoice: true } : {}),
+    ...(hasAudioAsVoice || finalAudioResult.audioAsVoice ? { audioAsVoice: true } : {}),
   };
 }
