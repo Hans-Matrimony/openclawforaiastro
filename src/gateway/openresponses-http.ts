@@ -563,13 +563,27 @@ export async function handleOpenResponsesHttpRequest(
         return true;
       }
 
-      const content =
-        Array.isArray(payloads) && payloads.length > 0
-          ? payloads
-              .map((p) => (typeof p.text === "string" ? p.text : ""))
-              .filter(Boolean)
-              .join("\n\n")
-          : "No response from OpenClaw.";
+      // Build content from payloads, preserving MEDIA: tags for webhook consumers
+      const contentParts: string[] = [];
+      if (Array.isArray(payloads) && payloads.length > 0) {
+        for (const p of payloads) {
+          if (typeof p.text === "string" && p.text) {
+            contentParts.push(p.text);
+          }
+          // Append media URLs as MEDIA: tags for webhook compatibility
+          if (p.mediaUrl) {
+            contentParts.push(`MEDIA: ${p.mediaUrl}`);
+          }
+          if (p.mediaUrls && p.mediaUrls.length > 0) {
+            for (const url of p.mediaUrls) {
+              contentParts.push(`MEDIA: ${url}`);
+            }
+          }
+        }
+      }
+      const content = contentParts.length > 0
+        ? contentParts.join("\n\n")
+        : "No response from OpenClaw.";
 
       const response = createResponseResource({
         id: responseId,
@@ -858,13 +872,27 @@ export async function handleOpenResponsesHttpRequest(
           return;
         }
 
-        const content =
-          Array.isArray(payloads) && payloads.length > 0
-            ? payloads
-                .map((p) => (typeof p.text === "string" ? p.text : ""))
-                .filter(Boolean)
-                .join("\n\n")
-            : "No response from OpenClaw.";
+        // Build content from payloads, preserving MEDIA: tags for webhook consumers
+        const contentParts: string[] = [];
+        if (Array.isArray(payloads) && payloads.length > 0) {
+          for (const p of payloads) {
+            if (typeof p.text === "string" && p.text) {
+              contentParts.push(p.text);
+            }
+            // Append media URLs as MEDIA: tags for webhook compatibility
+            if (p.mediaUrl) {
+              contentParts.push(`MEDIA: ${p.mediaUrl}`);
+            }
+            if (p.mediaUrls && p.mediaUrls.length > 0) {
+              for (const url of p.mediaUrls) {
+                contentParts.push(`MEDIA: ${url}`);
+              }
+            }
+          }
+        }
+        const content = contentParts.length > 0
+          ? contentParts.join("\n\n")
+          : "No response from OpenClaw.";
 
         accumulatedText = content;
         sawAssistantDelta = true;

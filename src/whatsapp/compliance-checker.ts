@@ -206,8 +206,7 @@ export async function handleOptKeywords(
   const text = messageText.toLowerCase().trim();
 
   // Import to avoid circular dependency
-  const { isOptOutMessage } = await import("./opt-out-handler.js");
-  const { isOptInMessage } = await import("./opt-in-handler.js");
+  const { isOptOutMessage, isOptInMessage } = await import("./opt-out-handler.js");
   const { reactivateOptIn } = await import("./opt-in-tracker.js");
 
   // Check for opt-out
