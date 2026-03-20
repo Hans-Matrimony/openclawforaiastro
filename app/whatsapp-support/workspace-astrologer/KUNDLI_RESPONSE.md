@@ -60,12 +60,26 @@ Surya Dev ko roz jal arpit karo, career mein tarakki hogi.
 
 ## 5. "Kundli Chart Image" Request
 
-**🛑 CRITICAL: The python script ALREADY outputs "MEDIA: <url>". Do NOT add your own MEDIA tag!**
+**🛑 MANDATORY WORKFLOW - EXECUTE IN ORDER:**
 
-**Format (3 lines MAX - no MEDIA tag needed):**
+**Step 1: Calculate Kundli (MANDATORY - MUST DO THIS FIRST!)**
+```
+exec: python3 ~/.openclaw/skills/kundli/calculate.py --dob "<DOB>" --tob "<TIME>" --place "<PLACE>"
+```
+Extract: Rashi, Lagna, Nakshatra from `ai_summary` field.
+
+**Step 2: Generate Chart Image (MANDATORY - MUST DO THIS SECOND!)**
+```
+exec: cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "<Lagna in Hindi>" --moon-sign "<Moon Sign in Hindi>" --nakshatra "<Nakshatra>"
+```
+Wait for the script to complete. It will output `MEDIA: <url>` automatically.
+
+**Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
+
+**Format (3 lines MAX - NO MEDIA tag needed):**
 * Line 1: Greet + confirm chart is ready.
-* Line 2: State Rashi and Lagna.
-* Line 3: Say "Yeh raha aapka chart:" and STOP. The script's MEDIA line will be sent automatically.
+* Line 2: State Rashi and Lagna (from Step 1's ai_summary).
+* Line 3: Say "Yeh raha aapka chart:" and STOP. The script's MEDIA line from Step 2 will be sent automatically.
 
 **Example (Hinglish):**
 Vardhan bhai, aapka Kundli chart tayyar ho gaya hai.
