@@ -534,6 +534,16 @@ export async function handleOpenResponsesHttpRequest(
         mediaUrl?: string;
         mediaUrls?: string[];
       }> } | null)?.payloads;
+
+      // DEBUG: Log payload structure
+      if (Array.isArray(payloads) && payloads.length > 0) {
+        const firstPayload = payloads[0];
+        console.error('[DEBUG] First payload keys:', Object.keys(firstPayload));
+        console.error('[DEBUG] First payload has mediaUrl?', 'mediaUrl' in firstPayload, firstPayload.mediaUrl);
+        console.error('[DEBUG] First payload has mediaUrls?', 'mediaUrls' in firstPayload, firstPayload.mediaUrls);
+        console.error('[DEBUG] First payload text length:', firstPayload.text?.length);
+      }
+
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
       const stopReason =
