@@ -529,7 +529,11 @@ export async function handleOpenResponsesHttpRequest(
         deps,
       );
 
-      const payloads = (result as { payloads?: Array<{ text?: string }> } | null)?.payloads;
+      const payloads = (result as { payloads?: Array<{
+        text?: string;
+        mediaUrl?: string;
+        mediaUrls?: string[];
+      }> } | null)?.payloads;
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
       const stopReason =
@@ -791,7 +795,11 @@ export async function handleOpenResponsesHttpRequest(
 
       // Fallback: if no streaming deltas were received, send the full response
       if (!sawAssistantDelta) {
-        const resultAny = result as { payloads?: Array<{ text?: string }>; meta?: unknown };
+        const resultAny = result as { payloads?: Array<{
+          text?: string;
+          mediaUrl?: string;
+          mediaUrls?: string[];
+        }>; meta?: unknown };
         const payloads = resultAny.payloads;
         const meta = resultAny.meta;
         const stopReason =
