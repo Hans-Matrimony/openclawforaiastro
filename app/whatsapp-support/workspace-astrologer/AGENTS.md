@@ -87,7 +87,7 @@ Gender is required for:
 
 **EVERY response must be:**
 - 1 sentence per line (MAXIMUM 15 words per sentence)
-- 2-3 lines total
+- 2-3 lines total (**Exception:** When sending an image, the `MEDIA:` tag must be the final line and does not count towards the 3-line limit)
 - Double newline (\n\n) between each line
 - NO paragraphs ever
 
