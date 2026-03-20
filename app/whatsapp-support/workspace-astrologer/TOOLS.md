@@ -79,14 +79,14 @@ Your personal assistant for building birth charts.
 
 **For Text Calculations (Always run this first to get details):**
 ```bash
-python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" --place "Pune"
+python3 /workspace/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" --place "Pune"
 ```
 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
 # Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
 # FAST CHECK: Only installs if missing. Use process tool to wait for "Completed".
-cd ~/.openclaw/skills/kundli && (python3 -c "import openai, requests, PIL" 2>/dev/null || pip3 install --break-system-packages -q openai requests pillow>=10.0.0) && python3 -u generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png" && echo "### JOB COMPLETED ###"
+cd /workspace/skills/kundli && (python3 -c "import openai, requests, PIL" 2>/dev/null || pip3 install --break-system-packages -q openai requests pillow>=10.0.0) && python3 -u generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png" && echo "### JOB COMPLETED ###"
 ```
 
 **⚠️ CRITICAL: THE POLLING LOOP (DO NOT SKIP)**
@@ -100,9 +100,8 @@ Because image generation involves a background process (`delta-ridge`), the comm
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, the script MUST have successfully saved `kundli.png`.
 If you receive "No output" from the polling tool or the background task, the image generation FAILED and you must restart the process.
-If it succeeds, you MUST include this exact path in your final reply accurately on its own line exactly like this:
-If it succeeds, you MUST include the exact path printed by the script in your final reply accurately on its own line:
-(Look at the script's output, it will print exactly what you need to write, e.g. `MEDIA: ~/.openclaw/.../kundli.png`). Do not make up your own path!
+If it succeeds, you MUST include this exact line in your final reply on its own line:
+`MEDIA: ~/.openclaw/workspace-astrologer/skills/kundli/kundli.png`
 **NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery.
 
 ### What's Inside
