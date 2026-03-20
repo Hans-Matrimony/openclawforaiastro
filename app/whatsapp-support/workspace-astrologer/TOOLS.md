@@ -79,14 +79,14 @@ Your personal assistant for building birth charts.
 
 **For Text Calculations (Always run this first to get details):**
 ```bash
-python3 /workspace/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" --place "Pune"
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" --place "Pune"
 ```
 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
 # Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
 # FAST CHECK: Only installs if missing. Use process tool to wait for "Completed".
-cd /workspace/skills/kundli && (python3 -c "import google.genai, PIL" 2>/dev/null || pip3 install --break-system-packages -q google-genai>=1.0.0 pillow>=10.0.0) && python3 generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png" && echo "### JOB COMPLETED ###"
+cd ~/.openclaw/skills/kundli && (python3 -c "import google.genai, PIL" 2>/dev/null || pip3 install --break-system-packages -q google-genai>=1.0.0 pillow>=10.0.0) && python3 generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png" && echo "### JOB COMPLETED ###"
 ```
 
 **⚠️ CRITICAL: THE POLLING LOOP (DO NOT SKIP)**
@@ -99,7 +99,7 @@ Because image generation involves a background process (`delta-ridge`), the comm
 
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, you MUST include this exact path in your final reply to the user using this format exactly on its own line:
-`MEDIA: ./skills/kundli/kundli.png`
+`MEDIA: ~/.openclaw/skills/kundli/kundli.png`
 **NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery. It ONLY scans for the exact string `MEDIA: <path>`.
 
 ### What's Inside
