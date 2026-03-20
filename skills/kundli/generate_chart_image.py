@@ -82,12 +82,8 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
     # Create prompt
     prompt = create_chart_prompt(lagna, moon_sign, nakshatra)
 
-    # Map output to known Host Sandbox mount path if we are in Docker
-    # /workspace is mounted to ~/.openclaw/workspace-astrologer on the Host
-    output_path = Path("/workspace/skills/kundli/kundli.png")
-    if not output_path.parent.exists():
-        # Fall back to local path if not in Docker setup
-        output_path = Path("kundli.png").resolve()
+    # Map output to current script directory in OpenClaw Container
+    output_path = Path("kundli.png").resolve()
 
     print(f"Generating Kundli chart image using DALL-E 3...")
     print(f"Lagna: {lagna}, Moon Sign: {moon_sign}, Nakshatra: {nakshatra}")
@@ -126,7 +122,7 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
             image.convert('RGB').save(str(output_path), 'PNG')
 
         full_path = output_path.resolve()
-        tilde_path = "~/.openclaw/workspace-astrologer/skills/kundli/kundli.png"
+        tilde_path = "~/.openclaw/skills/kundli/kundli.png"
         
         print(f"\nKundli chart image saved successfully: {full_path}")
         if output_path.exists():

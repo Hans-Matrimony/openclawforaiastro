@@ -72,7 +72,7 @@ Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
 
 Yeh raha aapka kundli chart.
 
-MEDIA: ~/.openclaw/workspace-astrologer/skills/kundli/kundli.png
+MEDIA: ~/.openclaw/skills/kundli/kundli.png
 
 ---
 **HARD RULES:**
@@ -80,4 +80,4 @@ MEDIA: ~/.openclaw/workspace-astrologer/skills/kundli/kundli.png
 2. Keep responses to **max 3-4 lines** (**Exception:** When sending an image, the `MEDIA:` tag must be the final line and does not count towards this limit).
 3. **Double newline (Enter twice)** between each line.
 4. **No heavy Hindi.** Use simple Hinglish (e.g. "placed hai", "strong chances hain").
-5. **MEDIA Tag:** Always use `MEDIA: ~/.openclaw/workspace-astrologer/skills/kundli/kundli.png` on its own line at the end.
+5. **MEDIA Tag:** Always use `MEDIA: ~/.openclaw/skills/kundli/kundli.png` on its own line at the end.
