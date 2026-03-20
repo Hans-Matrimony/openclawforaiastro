@@ -100,8 +100,8 @@ Because image generation involves a background process (`delta-ridge`), the comm
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, the script MUST have successfully printed `MEDIA: https://...` with a URL.
 If you receive "No output" from the polling tool or the background task, the image generation FAILED and you must restart the process.
-If it succeeds, you MUST include the exact `MEDIA: https://...` line exactly as printed by the script in your final reply on its own line.
-Do NOT output `MEDIA: ~/.openclaw/skills/kundli/kundli.png`. Use the actual URL provided by the script.
+If it succeeds, you MUST copy the exact `MEDIA: https://...` line printed by the script and paste it into your final reply on its own line.
+Do NOT invent a placeholder like "MEDIA: Kundli Chart". Do NOT use a file path. ONLY use the exact HTTPS URL output by the tool.
 **NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery.
 
 ### What's Inside
