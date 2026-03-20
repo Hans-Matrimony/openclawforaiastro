@@ -63,6 +63,15 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
     """Generate the kundli chart image using OpenAI DALL-E 3."""
     print("Initializing chart generation process and checking environment...", file=sys.stdout)
     sys.stdout.flush()
+    try:
+        import openai
+        import requests
+    except ImportError:
+        print("Installing missing dependencies...", file=sys.stdout)
+        import subprocess
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "-q", "openai>=1.0.0", "requests", "pillow>=10.0.0"])
+        print("Dependencies installed successfully.", file=sys.stdout)
+        sys.stdout.flush()
 
     # Get API key
     api_key = get_api_key(api_key)

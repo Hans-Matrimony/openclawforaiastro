@@ -85,8 +85,8 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
 # Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
-# FAST CHECK: Only installs if missing. Use process tool to wait for "Completed".
-cd ~/.openclaw/skills/kundli && (python3 -c "import openai, requests, PIL" 2>/dev/null || pip3 install --break-system-packages -q openai requests pillow>=10.0.0) && python3 -u generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png" && echo "### JOB COMPLETED ###"
+# The script will auto-install any missing dependencies. Use process tool to wait for "Completed".
+cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png"
 ```
 
 **⚠️ CRITICAL: THE POLLING LOOP (DO NOT SKIP)**
