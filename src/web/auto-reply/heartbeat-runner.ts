@@ -169,6 +169,21 @@ export async function runWebHeartbeatOnce(opts: {
     );
     const replyPayload = resolveHeartbeatReplyPayload(replyResult);
 
+    // DEBUG: Log what we received
+    heartbeatLogger.info(
+      {
+        to,
+        hasReplyPayload: !!replyPayload,
+        hasText: !!replyPayload?.text,
+        hasMediaUrl: !!replyPayload?.mediaUrl,
+        mediaUrlsCount: replyPayload?.mediaUrls?.length ?? 0,
+        textPreview: replyPayload?.text?.slice(0, 100),
+        mediaUrlPreview: replyPayload?.mediaUrl?.slice(0, 100),
+        allMediaUrls: replyPayload?.mediaUrls,
+      },
+      "heartbeat payload debug",
+    );
+
     if (
       !replyPayload ||
       (!replyPayload.text && !replyPayload.mediaUrl && !replyPayload.mediaUrls?.length)
@@ -298,6 +313,15 @@ export async function runWebHeartbeatOnce(opts: {
     }
 
     const mediaUrl = replyPayload.mediaUrl || replyPayload.mediaUrls?.[0];
+    heartbeatLogger.info(
+      {
+        to,
+        hasMediaUrl: !!mediaUrl,
+        mediaUrlPreview: mediaUrl?.slice(0, 100),
+        textLength: finalText.length,
+      },
+      "heartbeat about to send",
+    );
     const sendResult = await sender(to, finalText, { verbose, mediaUrl });
     emitHeartbeatEvent({
       status: "sent",
