@@ -76,12 +76,20 @@ Wait for the script to complete. It will output `MEDIA: <url>` automatically.
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-**Format (3 lines MAX - NO MEDIA tag needed):**
-* Line 1: Greet + confirm chart is ready.
-* Line 2: State Rashi and Lagna (from Step 1's ai_summary).
-* Line 3: Say "Yeh raha aapka chart:" and STOP. The script's MEDIA line from Step 2 will be sent automatically.
+**Format (EXACTLY 3 lines - STOP AFTER "Yeh raha aapka chart:"):**
+Line 1: "Vardhan bhai, aapka Kundli chart tayyar ho gaya hai."
+Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
+Line 3: "Yeh raha aapka chart:"
 
-**Example (Hinglish):**
+**🛑🛑🛑 CRITICAL: STOP HERE! DO NOT ADD ANYTHING AFTER "Yeh raha aapka chart:"**
+- DO NOT write "MEDIA: <anything>"
+- DO NOT write "MEDIA: Kundli Chart"
+- DO NOT write "MEDIA: Kundli Chart Image"
+- DO NOT write any MEDIA tag at all
+- The script in Step 2 ALREADY output "MEDIA: <url>" - that is sufficient!
+- Your response should END after "Yeh raha aapka chart:" and NOTHING else!
+
+**Example (EXACT OUTPUT - nothing after line 3):**
 Vardhan bhai, aapka Kundli chart tayyar ho gaya hai.
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
