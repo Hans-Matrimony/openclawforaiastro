@@ -22,6 +22,13 @@ Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, 
 
 ## Usage
 
+**CRITICAL - CHART IMAGE GENERATION RULES:**
+When generating Kundli chart images, you MUST:
+1. Run `calculate.py` to get the planet positions
+2. Extract the `planet_positions` array from the output
+3. Pass ALL planet positions to `generate_chart_image.py` using the `--planets` parameter
+4. If you skip the `--planets` parameter, the chart will be WRONG and RANDOM
+
 **CRITICAL - PRESERVE OUTPUT FORMAT:**
 - When the `generate_chart_image.py` script outputs `MEDIA: <url>`, you MUST include this EXACTLY as-is in your response
 - DO NOT convert it to Markdown link format like `[MEDIA](url)`
@@ -51,7 +58,7 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 ```
 
 ### Generate Kundli Chart Image
-When a user asks to **"make kundali chart"**, **"generate chart image"**, or **"show my chart"**, first calculate their kundli to get the details, then generate a visual chart:
+When a user asks to **"make kundali chart"**, **"generate chart image"**, or **"show my chart"**, follow these EXACT steps:
 
 **Step 1: Calculate Kundli**
 ```bash
@@ -59,21 +66,26 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 ```
 
 **Step 2: Extract planet positions from the output**
-Look for `"planet_positions"` array in the JSON output. It will contain entries like:
-- "Saturn is in House 1 (Taurus/Vrishabh)"
-- "Jupiter is in House 2 (Gemini/Mithun)"
-- etc.
+Look for `"planet_positions"` array in the JSON output. Copy EVERY entry from this array.
 
 **Step 3: Generate the chart image with ALL planet positions**
+IMPORTANT: Construct the command EXACTLY like this example:
 ```bash
-cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py \\
-  --lagna "Taurus" \\
-  --moon-sign "Pisces" \\
-  --nakshatra "Uttara Bhadrapada" \\
-  --planets '["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]'
+cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "VALUE_FROM_OUTPUT" --moon-sign "VALUE_FROM_OUTPUT" --nakshatra "VALUE_FROM_OUTPUT" --planets '["COPY_ALL_PLANET_POSITIONS_FROM_STEP_2"]'
 ```
 
-**CRITICAL:** You MUST pass the `--planets` parameter with ALL planet positions from the calculation output. Without this, DALL-E will generate a random/generic chart instead of the person's actual Kundli.
+REAL EXAMPLE:
+If `planet_positions` contains:
+```
+["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]
+```
+
+Then you MUST run:
+```bash
+cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Uttara Bhadrapada" --planets '["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]'
+```
+
+**CRITICAL:** You MUST include the `--planets` parameter with ALL planet positions. If you skip this, the chart will be RANDOM and WRONG!
 
 **Note:** Must use `uv run` (not `python3` directly) so inline dependencies are installed automatically.
 
