@@ -76,18 +76,27 @@ Wait for the script to complete. It will output `MEDIA: <url>` automatically.
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-**Format (EXACTLY 3 lines - STOP AFTER "Yeh raha aapka chart:"):**
-Line 1: "Vardhan bhai, aapka Kundli chart tayyar ho gaya hai."
+**🛑🛑🛑 CRITICAL: YOU MUST INCLUDE THE MEDIA TAG IN YOUR RESPONSE!**
+
+The script outputs `MEDIA: <url>` to console, but the webhook can't see console output.
+You MUST copy that URL and include it in your text response!
+
+**Format (EXACTLY 4 lines):**
+Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Yeh raha aapka chart:"
+Line 4: "MEDIA: <copy the exact URL from the script output>"
 
-**🛑🛑🛑 CRITICAL: STOP HERE! DO NOT ADD ANYTHING AFTER "Yeh raha aapka chart:"**
-- DO NOT write "MEDIA: <anything>"
-- DO NOT write "MEDIA: Kundli Chart"
-- DO NOT write "MEDIA: Kundli Chart Image"
-- DO NOT write any MEDIA tag at all
-- The script in Step 2 ALREADY output "MEDIA: <url>" - that is sufficient!
-- Your response should END after "Yeh raha aapka chart:" and NOTHING else!
+**EXAMPLE (what you should output):**
+Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+
+Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+
+Yeh raha aapka chart:
+
+MEDIA: https://oaidalleapiprodscus.blob.core.windows.net/private/org-RvWPAkIgfMlCSmFnmMhlCHxO/user-DKVLu8C1Ra6k47ZtJEHc3SXg/img-XXX.png
+
+**🛑 DO NOT add anything after the MEDIA URL!**
 
 **Example (EXACT OUTPUT - nothing after line 3):**
 Vardhan bhai, aapka Kundli chart tayyar ho gaya hai.

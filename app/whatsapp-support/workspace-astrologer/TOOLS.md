@@ -97,6 +97,10 @@ Because image generation involves a background process (`delta-ridge`), the comm
 4. **ONLY** when you see "### JOB COMPLETED ###" or the status becomes **"Completed"**, you can send your final response.
 5. If you reply with an empty `MEDIA:` tag while the process is still running, you have failed the task.
 
+**🛑🛑🛑 MOST CRITICAL: YOU MUST INCLUDE THE MEDIA URL IN YOUR RESPONSE!**
+The script outputs `MEDIA: <url>` to CONSOLE ONLY. The webhook CANNOT see console output!
+You MUST copy that URL and include it in your text response, or the user will NOT receive the image!
+
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
 When the image generation is complete, the script MUST have successfully printed `MEDIA: https://...` with a URL.
 If you receive "No output" from the polling tool or the background task, the image generation FAILED and you must restart the process.
