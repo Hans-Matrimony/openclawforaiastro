@@ -529,6 +529,11 @@ export async function handleOpenResponsesHttpRequest(
         deps,
       );
 
+      // BRUTE FORCE DEBUG: Log the entire result object to see what we're actually getting
+      console.error(`[BRUTE_DEBUG] Full result object:`, JSON.stringify(result, null, 2));
+      console.error(`[BRUTE_DEBUG] result keys:`, Object.keys(result ?? {}));
+      console.error(`[BRUTE_DEBUG] result.payloads:`, JSON.stringify((result as any)?.payloads, null, 2));
+
       const payloads = (result as { payloads?: Array<{
         text?: string;
         mediaUrl?: string;
