@@ -69,10 +69,22 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 Look for `"planet_positions"` array in the JSON output. Copy EVERY entry from this array.
 
 **Step 3: Generate the chart image with ALL planet positions**
-IMPORTANT: Construct the command EXACTLY like this example:
+
+**TEMPLATE - Copy this and fill in the values:**
 ```bash
-cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "VALUE_FROM_OUTPUT" --moon-sign "VALUE_FROM_OUTPUT" --nakshatra "VALUE_FROM_OUTPUT" --planets '["COPY_ALL_PLANET_POSITIONS_FROM_STEP_2"]'
+cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py \
+  --lagna "<PASTE_LAGNA_HERE>" \
+  --moon-sign "<PASTE_MOON_SIGN_HERE>" \
+  --nakshatra "<PASTE_NAKSHATRA_HERE>" \
+  --planets '<PASTE_ENTIRE_PLANET_POSITIONS_ARRAY_HERE>'
 ```
+
+**CRITICAL CHECKLIST before running the command:**
+- [ ] I ran `calculate.py` first and have the JSON output
+- [ ] I extracted the `planet_positions` array (it starts with `[` and ends with `]`)
+- [ ] I am passing the ENTIRE `planet_positions` array to `--planets` (every single entry!)
+- [ ] The `--planets` value is wrapped in single quotes: `--planets '[...]'`
+- [ ] The array inside is wrapped in double quotes: `["item1", "item2"]`
 
 REAL EXAMPLE:
 If `planet_positions` contains:
@@ -86,8 +98,6 @@ cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "Taur
 ```
 
 **CRITICAL:** You MUST include the `--planets` parameter with ALL planet positions. If you skip this, the chart will be RANDOM and WRONG!
-
-**Note:** Must use `uv run` (not `python3` directly) so inline dependencies are installed automatically.
 
 **IMPORTANT**: This script ONLY generates astrology-related images (Kundli charts). Do NOT use it for any other image generation purposes. For general images, use the dedicated image generation skills.
 
