@@ -540,9 +540,11 @@ export async function handleOpenResponsesHttpRequest(
         mediaUrls?: string[];
       }> } | null)?.payloads;
 
-      // DEBUG: Force output to diagnose payload structure
+      // DEBUG: Force output to diagnose payload structure - put in content so it definitely appears in webhook
+      const resultType = typeof result;
+      const resultKeys = result ? Object.keys(result) : 'null';
       const payloadStr = JSON.stringify(payloads);
-      const payloadDebug = `\n\n[PAYLOAD_DEBUG] ${payloadStr}`;
+      const payloadDebug = `\n\n[PAYLOAD_DEBUG] resultType=${resultType}, resultKeys=${JSON.stringify(resultKeys)}, payloads=${payloadStr}`;
 
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
