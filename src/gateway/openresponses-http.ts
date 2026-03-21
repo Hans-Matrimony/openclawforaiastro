@@ -591,7 +591,24 @@ export async function handleOpenResponsesHttpRequest(
         for (const p of payloads) {
           console.error(`[PAYLOAD_INSPECT] payload keys: ${Object.keys(p)}, has_text: ${typeof p.text === "string"}, has_mediaUrl: ${typeof p.mediaUrl === "string"}, has_mediaUrls: ${Array.isArray(p.mediaUrls)}`);
           if (typeof p.text === "string" && p.text) {
-            contentParts.push(p.text);
+            // Parse MEDIA: tags from text (skills might output them inline)
+            const textLines = p.text.split('\n');
+            let hasInlineMedia = false;
+            for (const line of textLines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('MEDIA:')) {
+                // Extract URL from MEDIA: line
+                const mediaUrl = trimmed.substring(6).trim();
+                console.error(`[PAYLOAD_INSPECT] Found inline MEDIA: tag in text: ${mediaUrl.substring(0, 100)}...`);
+                contentParts.push(`MEDIA: ${mediaUrl}`);
+                hasInlineMedia = true;
+              } else if (trimmed) {
+                contentParts.push(line);
+              }
+            }
+            if (!hasInlineMedia) {
+              contentParts.push(p.text);
+            }
           }
           // Append media URLs as MEDIA: tags for webhook compatibility
           if (p.mediaUrl) {
@@ -913,7 +930,24 @@ export async function handleOpenResponsesHttpRequest(
           for (const p of payloads) {
             console.error(`[PAYLOAD_INSPECT_STREAMING] payload keys: ${Object.keys(p)}, has_text: ${typeof p.text === "string"}, has_mediaUrl: ${typeof p.mediaUrl === "string"}, has_mediaUrls: ${Array.isArray(p.mediaUrls)}`);
             if (typeof p.text === "string" && p.text) {
-              contentParts.push(p.text);
+              // Parse MEDIA: tags from text (skills might output them inline)
+              const textLines = p.text.split('\n');
+              let hasInlineMedia = false;
+              for (const line of textLines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('MEDIA:')) {
+                  // Extract URL from MEDIA: line
+                  const mediaUrl = trimmed.substring(6).trim();
+                  console.error(`[PAYLOAD_INSPECT_STREAMING] Found inline MEDIA: tag in text: ${mediaUrl.substring(0, 100)}...`);
+                  contentParts.push(`MEDIA: ${mediaUrl}`);
+                  hasInlineMedia = true;
+                } else if (trimmed) {
+                  contentParts.push(line);
+                }
+              }
+              if (!hasInlineMedia) {
+                contentParts.push(p.text);
+              }
             }
             // Append media URLs as MEDIA: tags for webhook compatibility
             if (p.mediaUrl) {
