@@ -22,6 +22,12 @@ Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, 
 
 ## Usage
 
+**CRITICAL - PRESERVE OUTPUT FORMAT:**
+- When the `generate_chart_image.py` script outputs `MEDIA: <url>`, you MUST include this EXACTLY as-is in your response
+- DO NOT convert it to Markdown link format like `[MEDIA](url)`
+- DO NOT modify, wrap, or reformat the `MEDIA:` line in any way
+- Simply include the full `MEDIA: <url>` line verbatim in your response
+
 **CRITICAL: ALWAYS check mem0 first before asking for birth details**
 
 For EVERY user message related to Kundli:
