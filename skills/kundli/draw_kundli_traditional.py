@@ -11,19 +11,21 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
 # House positions in the North Indian diamond layout
+# In North Indian format, houses are FIXED (signs move based on Lagna)
+# House 1 is always at the top corner, numbering goes counter-clockwise
 HOUSE_POSITIONS = {
-    1: (400, 100),   # Top center
-    2: (550, 150),   # Upper right
-    3: (600, 250),   # Right
-    4: (600, 350),   # Lower right
-    5: (550, 450),   # Bottom right
-    6: (400, 500),   # Bottom center
-    7: (250, 450),   # Bottom left
-    8: (200, 350),   # Lower left
-    9: (200, 250),   # Left
-    10: (250, 150),  # Upper left
-    11: (300, 200),  # Inner left
-    12: (500, 200),  # Inner right
+    1: (400, 130),   # Top corner triangle
+    12: (480, 180),  # Upper right side
+    11: (320, 180),  # Upper left side
+    10: (240, 240),  # Left corner
+    2: (350, 230),   # Inner upper left
+    3: (350, 280),   # Inner lower left
+    9: (440, 230),   # Inner upper right
+    8: (440, 280),   # Inner lower right
+    4: (250, 360),   # Lower left side
+    5: (300, 430),   # Bottom corner
+    6: (500, 430),   # Bottom right side
+    7: (550, 360),   # Right corner
 }
 
 # Devanagari numerals
@@ -153,18 +155,36 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     # Draw nakshatra
     draw.text((400, 60), f"Nakshatra: {nakshatra}", fill='blue', font=font_small, anchor='mt')
 
-    # Draw diamond grid
+    # Draw proper North Indian Kundli grid
     center_x, center_y = 400, 300
-    points = [(center_x, 100), (600, 300), (center_x, 500), (200, 300)]
-    draw.polygon(points, outline='black', width=2)
 
-    # Inner lines
-    draw.line([(center_x, 100), (center_x, 500)], fill='black', width=2)
-    draw.line([(200, 300), (600, 300)], fill='black', width=2)
-    draw.line([(center_x, 100), (300, 200)], fill='black', width=2)
-    draw.line([(center_x, 100), (500, 200)], fill='black', width=2)
-    draw.line([(300, 200), (200, 300)], fill='black', width=2)
-    draw.line([(500, 200), (600, 300)], fill='black', width=2)
+    # Outer diamond boundary
+    outer_points = [(center_x, 100), (600, 300), (center_x, 500), (200, 300)]
+    draw.polygon(outer_points, outline='black', width=3)
+
+    # Calculate midpoints for proper segmentation
+    top_mid = (center_x, 200)      # Midpoint between (400,100) and (400,300)
+    right_mid = (500, 300)         # Midpoint between (600,300) and (400,300)
+    bottom_mid = (center_x, 400)   # Midpoint between (400,500) and (400,300)
+    left_mid = (300, 300)          # Midpoint between (200,300) and (400,300)
+
+    # Draw lines from corners to center (proper diamond segmentation)
+    # Top corner to center
+    draw.line([(center_x, 100), (center_x, center_y)], fill='black', width=2)
+    # Bottom corner to center
+    draw.line([(center_x, 500), (center_x, center_y)], fill='black', width=2)
+    # Left corner to center
+    draw.line([(200, 300), (center_x, center_y)], fill='black', width=2)
+    # Right corner to center
+    draw.line([(600, 300), (center_x, center_y)], fill='black', width=2)
+
+    # Draw the inner diamond (connecting midpoints) to create central houses
+    inner_points = [top_mid, right_mid, bottom_mid, left_mid]
+    draw.polygon(inner_points, outline='black', width=2)
+
+    # Draw lines dividing the inner diamond into 4 sections (for houses 11, 12, and their adjacent houses)
+    draw.line([(center_x, top_mid[1]), (center_x, bottom_mid[1])], fill='black', width=2)  # Vertical
+    draw.line([(left_mid[0], center_y), (right_mid[0], center_y)], fill='black', width=2)  # Horizontal
 
     # Draw house numbers (Devanagari)
     for house_num, (x, y) in HOUSE_POSITIONS.items():
