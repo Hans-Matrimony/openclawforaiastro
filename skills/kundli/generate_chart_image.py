@@ -36,30 +36,42 @@ def create_chart_prompt(lagna: str, moon_sign: str, nakshatra: str, planets: lis
     Create a detailed prompt for generating a kundli chart image.
     Only generates astrology-related content.
     """
-    prompt = f"""Create a professional Vedic Astrology Birth Chart (Kundli) visualization with the following details:
 
-**Lagna (Ascendant):** {lagna}
-**Moon Sign (Rashi):** {moon_sign}
-**Nakshatra (Birth Star):** {nakshatra}
+    # Build exact house placements from planet positions
+    house_description = ""
+    if planets:
+        house_description = "\n\n**EXACT House Placements (FOLLOW PRECISELY):**\n"
+        for planet_str in planets:
+            house_description += f"- {planet_str}\n"
 
-The chart should include:
-1. A traditional North Indian style chart grid (diamond format) with 12 houses
-2. Clearly marked Ascendant (Lagna) in the first house
-3. Moon sign position highlighted
-4. Nakshatra symbol displayed prominently
-5. Zodiac symbols for each house
-6. Traditional Vedic astrology color scheme (deep blues, golds, reds)
-7. Sanskrit numerals (1-12) for house numbers
-8. Decorative border with traditional Indian motifs
-9. Clean, professional astrological diagram style
-10. Title "KUNDLI CHART" at the top
+    prompt = f"""Create a professionally accurate Vedic Astrology Birth Chart (Kundli) North Indian style diagram.
 
-Style: Professional astrology chart, educational diagram, clean lines, traditional Vedic aesthetics."""
+**Birth Details:**
+- Lagna (Ascendant): {lagna} (must be in House 1, top center diamond)
+- Moon Sign (Rashi): {moon_sign}
+- Nakshatra (Birth Star): {nakshatra}
+{house_description}
+
+**CRITICAL INSTRUCTIONS - You MUST follow these exact placements:**
+1. Use North Indian chart format (diamond-shaped grid layout)
+2. Place Lagna "{lagna}" in House 1 (top center diamond)
+3. Place Moon in the house containing "{moon_sign}"
+4. Mark each house 1-12 with Sanskrit numerals (१, २, ३, etc.)
+5. Write the zodiac sign name in each house based on the placements above
+6. Highlight the Moon's position with a special symbol
+7. Display "{nakshatra}" Nakshatra prominently near the Moon
+8. Use traditional colors: Lagna house (gold), Moon house (silver), other houses (deep blue)
+9. Add decorative border with traditional Indian patterns
+10. Title "कुंडली चार्ट (KUNDLI CHART)" at top
+
+**Important:** This is a REAL person's birth chart. Each planet position shown above tells you EXACTLY which house it belongs in. Place each zodiac sign in its correct house following the placements.
+
+Style: Professional Vedic astrology chart, educational diagram, authentic North Indian format."""
 
     return prompt
 
 
-def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: str, resolution: str = "2K", api_key: str = None):
+def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: str, resolution: str = "2K", api_key: str = None, planets: list = None):
     """Generate the kundli chart image using OpenAI DALL-E 3."""
     print("Initializing chart generation process and checking environment...", file=sys.stdout)
     sys.stdout.flush()
@@ -89,7 +101,7 @@ def generate_chart_image(lagna: str, moon_sign: str, nakshatra: str, filename: s
     client = OpenAI(api_key=api_key)
 
     # Create prompt
-    prompt = create_chart_prompt(lagna, moon_sign, nakshatra)
+    prompt = create_chart_prompt(lagna, moon_sign, nakshatra, planets)
 
     # Save to current working directory.
     # With Runtime: direct, the script AND the Node.js server run in the SAME container.
@@ -160,10 +172,25 @@ def main():
     )
     parser.add_argument(
         "--api-key", "-k",
-        help="Gemini API key (overrides GEMINI_API_KEY env var)"
+        help="OpenAI API key (overrides OPENAI_API_KEY env var)"
+    )
+    parser.add_argument(
+        "--planets",
+        help="Planet positions as JSON string array (e.g., '[\"Saturn is in House 1\", \"Jupiter is in House 2\"]')"
     )
 
     args = parser.parse_args()
+
+    # Parse planets JSON if provided
+    planets = None
+    if args.planets:
+        try:
+            import json
+            planets = json.loads(args.planets)
+            print(f"Using {len(planets)} planet positions for accurate chart generation", file=sys.stdout)
+        except json.JSONDecodeError as e:
+            print(f"Warning: Could not parse planets JSON: {e}", file=sys.stderr)
+            print("Proceeding with basic chart generation (less accurate)", file=sys.stderr)
 
     # Generate filename if not provided
     if args.filename is None:
@@ -193,7 +220,8 @@ def main():
         nakshatra=args.nakshatra,
         filename=args.filename,
         resolution=args.resolution,
-        api_key=args.api_key
+        api_key=args.api_key,
+        planets=planets
     )
 
 

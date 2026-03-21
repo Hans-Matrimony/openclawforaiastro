@@ -53,9 +53,27 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 ### Generate Kundli Chart Image
 When a user asks to **"make kundali chart"**, **"generate chart image"**, or **"show my chart"**, first calculate their kundli to get the details, then generate a visual chart:
 
+**Step 1: Calculate Kundli**
 ```bash
-cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Leo" --moon-sign "Scorpio" --nakshatra "Anuradha" --filename "kundli_chart.png"
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City"
 ```
+
+**Step 2: Extract planet positions from the output**
+Look for `"planet_positions"` array in the JSON output. It will contain entries like:
+- "Saturn is in House 1 (Taurus/Vrishabh)"
+- "Jupiter is in House 2 (Gemini/Mithun)"
+- etc.
+
+**Step 3: Generate the chart image with ALL planet positions**
+```bash
+cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py \\
+  --lagna "Taurus" \\
+  --moon-sign "Pisces" \\
+  --nakshatra "Uttara Bhadrapada" \\
+  --planets '["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]'
+```
+
+**CRITICAL:** You MUST pass the `--planets` parameter with ALL planet positions from the calculation output. Without this, DALL-E will generate a random/generic chart instead of the person's actual Kundli.
 
 **Note:** Must use `uv run` (not `python3` directly) so inline dependencies are installed automatically.
 
@@ -72,6 +90,7 @@ cd ~/.openclaw/skills/kundli && uv run generate_chart_image.py --lagna "Leo" --m
 - `--lagna`: Ascendant sign (e.g., Leo, Scorpio, Aries) - **required**
 - `--moon-sign`: Moon sign/Rashi (e.g., Scorpio, Pisces, Cancer) - **required**
 - `--nakshatra`: Birth star/Nakshatra (e.g., Anuradha, Rohini, Ashwini) - **required**
+- `--planets`: JSON array of planet positions (e.g., '["Saturn is in House 1", "Moon is in House 11"]') - **CRITICAL for accurate charts**
 - `--filename`: Output filename (default: kundli-chart-YYYY-MM-DD-HHMMSS.png)
 - `--resolution`: Image resolution - 1K, 2K (default), or 4K
 
