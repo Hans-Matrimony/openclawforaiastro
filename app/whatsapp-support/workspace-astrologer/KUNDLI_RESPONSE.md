@@ -77,21 +77,19 @@ Wait for the script to complete. It will output `MEDIA_BASE64: image/png <data>`
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
 The script automatically outputs `MEDIA_BASE64: image/png <data>` to console.
-The webhook will detect this and send the image to WhatsApp.
+**IMPORTANT:** The webhook will detect this from console output. DO NOT include it in your text response!
 
-**Format (EXACTLY 3 lines):**
+**Format (EXACTLY 3 lines ONLY):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
-Line 3: "Yeh raha aapka traditional North Indian Kundli chart:"
+Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai."
 
-**EXAMPLE (what you should output):**
+**EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
 
-Yeh raha aapka chart:
-
-MEDIA: https://oaidalleapiprodscus.blob.core.windows.net/private/org-RvWPAkIgfMlCSmFnmMhlCHxO/user-DKVLu8C1Ra6k47ZtJEHc3SXg/img-XXX.png
+Aapka traditional North Indian Kundli chart niche mil raha hai.
 
 **🛑 DO NOT add anything after the MEDIA URL!**
 
