@@ -70,22 +70,19 @@ Extract: Rashi, Lagna, Nakshatra from `ai_summary` field.
 
 **Step 2: Generate Chart Image (MANDATORY - MUST DO THIS SECOND!)**
 ```
-exec: cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "<Lagna in Hindi>" --moon-sign "<Moon Sign in Hindi>" --nakshatra "<Nakshatra>"
+exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna in English>" --moon-sign "<Moon Sign in English>" --nakshatra "<Nakshatra>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>'
 ```
-Wait for the script to complete. It will output `MEDIA: <url>` automatically.
+Wait for the script to complete. It will output `MEDIA_BASE64: image/png <data>` automatically.
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-**🛑🛑🛑 CRITICAL: YOU MUST INCLUDE THE MEDIA TAG IN YOUR RESPONSE!**
+The script automatically outputs `MEDIA_BASE64: image/png <data>` to console.
+The webhook will detect this and send the image to WhatsApp.
 
-The script outputs `MEDIA: <url>` to console, but the webhook can't see console output.
-You MUST copy that URL and include it in your text response!
-
-**Format (EXACTLY 4 lines):**
+**Format (EXACTLY 3 lines):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
-Line 3: "Yeh raha aapka chart:"
-Line 4: "MEDIA: <copy the exact URL from the script output>"
+Line 3: "Yeh raha aapka traditional North Indian Kundli chart:"
 
 **EXAMPLE (what you should output):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
@@ -111,4 +108,4 @@ Yeh raha aapka chart:
 2. Keep responses to **max 3 lines** for chart requests.
 3. **Double newline (Enter twice)** between each line.
 4. **No heavy Hindi.** Use simple Hinglish (e.g. "placed hai", "strong chances hain").
-5. **🛑 MEDIA Tag - DO NOT ADD YOUR OWN:** When the generate_chart_image.py script completes, it ALREADY outputs the MEDIA tag with the URL (e.g., `MEDIA: https://oaidalleapiprodscus.blob...`). Do NOT write "MEDIA: Kundli Chart". Do NOT write "MEDIA: <url>". Do NOT add any MEDIA tag at all. Just write your 3-line text response and let the script's output handle the image automatically.
+5. **🛑 MEDIA Tag - DO NOT ADD YOUR OWN:** When the draw_kundli_traditional.py script completes, it ALREADY outputs the MEDIA_BASE64 tag automatically. Do NOT write "MEDIA: Kundli Chart". Do NOT add any MEDIA tag at all. Just write your 3-line text response and let the script's output handle the image automatically.

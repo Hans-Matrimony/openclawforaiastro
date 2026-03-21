@@ -86,7 +86,7 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 ```bash
 # Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
 # The script will auto-install any missing dependencies. Use process tool to wait for "Completed".
-cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "Vrishabha" --moon-sign "Meen" --nakshatra "Revati" --filename "kundli.png"
+cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Revati" --planets '[]'
 ```
 
 **⚠️ CRITICAL: THE POLLING LOOP (DO NOT SKIP)**
