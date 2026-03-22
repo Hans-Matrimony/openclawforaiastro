@@ -12,12 +12,12 @@ import urllib.request
 import urllib.parse
 from io import BytesIO
 
-# ✅ FIXED: No runtime pip install (PEP 668 safe)
+# Pillow import (safe)
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
     print("Error: Pillow (PIL) is not installed.", file=sys.stderr)
-    print("Install it using: pip install pillow OR sudo apt install python3-pil", file=sys.stderr)
+    print("Install using: pip install pillow OR sudo apt install python3-pil", file=sys.stderr)
     sys.exit(1)
 
 import argparse
@@ -129,34 +129,52 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     # Parse planets
     house_planets = parse_planet_positions(planet_positions or [])
 
-    # ✅ Lagna always in House 1 (correct for North Indian)
+    # Lagna always House 1
     house_planets.setdefault(1, [])
     if 'Lg' not in house_planets[1]:
         house_planets[1].insert(0, 'Lg')
 
-    # House positions
+    # 🔥 FIXED POSITIONS (better alignment)
     H_PLANETS = {
-        1: (200, 110), 2: (155, 65),  3: (65, 155),  4: (110, 200),
-        5: (65, 245),  6: (155, 335), 7: (200, 290), 8: (245, 335),
-        9: (335, 245), 10: (290, 200), 11: (335, 155), 12: (245, 65)
+        1: (200, 80),   # moved up (FIXED)
+        2: (140, 60),
+        3: (60, 140),
+        4: (100, 200),
+        5: (60, 260),
+        6: (140, 340),
+        7: (200, 300),
+        8: (260, 340),
+        9: (340, 260),
+        10: (300, 200),
+        11: (340, 140),
+        12: (260, 60)
     }
 
     H_SIGNS = {
-        1: (200, 160), 2: (125, 75),  3: (75, 125),  4: (150, 200),
-        5: (75, 275),  6: (125, 325), 7: (200, 240), 8: (275, 325),
-        9: (325, 275), 10: (250, 200), 11: (325, 125), 12: (275, 75)
+        1: (200, 130),  # adjusted down slightly
+        2: (120, 80),
+        3: (80, 120),
+        4: (140, 200),
+        5: (80, 280),
+        6: (120, 320),
+        7: (200, 250),
+        8: (280, 320),
+        9: (320, 280),
+        10: (260, 200),
+        11: (320, 120),
+        12: (280, 80)
     }
 
     # Draw houses
     for h in range(1, 13):
 
-        # Rotate signs based on Lagna
+        # Sign rotation
         s_idx = (lagna_idx + h - 1) % 12
         s_text = f"{s_idx + 1} {SIGN_ABBR[s_idx]}"
 
         draw.text(H_SIGNS[h], s_text, fill=TEXT_COLOR, font=font_s, anchor='mm')
 
-        # Draw planets
+        # Planets
         planets = house_planets.get(h, [])
 
         if planets:
@@ -175,7 +193,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         anchor='mm'
     )
 
-    # Output image
+    # Output
     img_io = BytesIO()
     img.save(img_io, 'PNG')
     return img_io.getvalue()
@@ -208,7 +226,7 @@ def main():
         b64 = base64.b64encode(image_data).decode()
         print(f"IMAGE_BASE64: {b64}")
 
-        # ✅ ImgBB upload (UNCHANGED)
+        # ImgBB upload (UNCHANGED)
         api_key = os.getenv("IMGBB_API_KEY")
 
         if api_key and api_key != "your_imgbb_key_here":
