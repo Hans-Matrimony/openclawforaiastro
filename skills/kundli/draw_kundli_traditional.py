@@ -217,14 +217,41 @@ def main():
             planet_positions
         )
 
-        # Output as base64 for WhatsApp
-        # Format: WHATSAPP_IMAGE:<phone_number>;<mime_type>;<base64_data>
-        # This bypasses OpenClaw's plugin and goes directly to webhook
+        # Upload to hans-ai-dashboard API
+        import os
+        import urllib.request
+        import json
+
+        dashboard_api = os.getenv("HANS_DASHBOARD_API", "http://hans-ai-dashboard:3000/api/kundli/upload")
+        phone_number = os.getenv("USER_PHONE", "+919760347653")
+
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
 
-        # Get phone number from environment or use placeholder
-        # The webhook will extract this format
-        print(f"WHATSAPP_IMAGE:+919760347653;image/png;{base64_string}")
+        payload = json.dumps({
+            "image_base64": base64_string,
+            "phone": phone_number
+        })
+
+        try:
+            req = urllib.request.Request(
+                dashboard_api,
+                data=payload.encode('utf-8'),
+                headers={'Content-Type': 'application/json'},
+                method='POST'
+            )
+
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.status == 200:
+                    result = json.loads(response.read().decode('utf-8'))
+                    image_url = result.get('url')
+                    print(f"IMAGE_URL: {image_url}")
+                else:
+                    print(f"Upload failed: status {response.status}", file=sys.stderr)
+                    print(f"ERROR: Could not upload image to dashboard", file=sys.stderr)
+        except Exception as e:
+            print(f"ERROR: Upload to dashboard failed: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

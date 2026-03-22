@@ -72,30 +72,29 @@ Extract: Rashi, Lagna, Nakshatra from `ai_summary` field.
 ```
 exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna in English>" --moon-sign "<Moon Sign in English>" --nakshatra "<Nakshatra>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>'
 ```
-Wait for the script to complete. It will output `KUNDLI_IMAGE: image/png <data>` automatically.
+Wait for the script to complete. It will output `IMAGE_URL: https://...` automatically.
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-**CRITICAL: You MUST include the entire `data:media_base64:` line in your response!**
+The script automatically uploads the image and outputs `IMAGE_URL: https://...`
+**YOU MUST INCLUDE THIS URL IN YOUR RESPONSE!**
 
-The script outputs a line like: `data:media_base64:image/png,iVBORw0KGgo...`
-**COPY THAT ENTIRE LINE** and paste it at the END of your response.
-
-**IMPORTANT RULES:**
-- The line starts with `data:media_base64:image/png,`
-- It contains THOUSANDS of characters - copy ALL of them
-- Do NOT truncate or shorten it
-- Do NOT wrap it in quotes or brackets
-- Do NOT change the format
-- Do NOT show error messages about it
-
-**EXACT FORMAT (4 lines):**
+**Format (EXACTLY 4 lines):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
-Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai."
-Line 4: [PASTE THE COMPLETE data:media_base64:image/png, LINE HERE - ALL THOUSANDS OF CHARACTERS]
+Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai:"
+Line 4: [PASTE THE IMAGE_URL HERE - STARTS WITH https://...]
 
-**YOUR RESPONSE MUST END WITH THE data:media_base64: LINE - THIS IS NOT OPTIONAL!**
+**EXAMPLE (exact output expected):**
+Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+
+Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+
+Aapka traditional North Indian Kundli chart niche mil raha hai:
+
+IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714567890.png
+
+**🛑 CRITICAL: You MUST include the IMAGE_URL line in your response! The webhook will extract it and send the image to WhatsApp.**
 
 **EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
