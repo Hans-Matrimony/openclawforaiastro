@@ -76,13 +76,25 @@ Wait for the script to complete. It will output `KUNDLI_IMAGE: image/png <data>`
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-The script automatically outputs `KUNDLI_IMAGE: image/png <data>` to console.
-**IMPORTANT:** The webhook will detect this from console output. DO NOT include it in your text response!
+**CRITICAL: The webhook CANNOT see tool outputs!** You must include the image data in your response.
 
-**Format (EXACTLY 3 lines ONLY):**
+After the script completes, it will output a line starting with `data:media_base64:image/png,`
+**COPY THAT ENTIRE LINE** (including the base64 data) and include it at the END of your response.
+
+**Format (4 lines MAX):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai."
+Line 4: [PASTE THE ENTIRE `data:media_base64:image/png,base64data...` LINE HERE]
+
+**EXAMPLE:**
+Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+
+Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+
+Aapka traditional North Indian Kundli chart niche mil raha hai.
+
+data:media_base64:image/png,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAIAAAAP3aGbAAAWE0lEQVR4nO3df6xkd13G8c/cO3e721VsKQWaNjWVslutEKlpuyB7/7AaMVoaXTHEotamUWypv6KhBSJoG...
 
 **EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
@@ -91,16 +103,11 @@ Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai.
 
-**🛑 CRITICAL: DO NOT include any image, base64 data, or markdown in your response!**
-- NO `![Kundli](data:image/png;base64,...)`
-- NO `MEDIA:`
-- NO `MEDIA_BASE64:`
-- NO `KUNDLI_IMAGE:`
-- NO base64 strings at all
-- NO error messages or warnings from OpenClaw (ignore "⚠️ ✉️ Message failed" or similar)
-- NO system messages or plugin errors
-
-Just output the 3 lines of text above. The webhook will automatically handle the image from the script's console output.
+**🛑 CRITICAL RULES:**
+- You MUST include the `data:media_base64:image/png,base64data...` line from the script output
+- Do NOT use markdown format like `![Kundli](data:image/png;base64,...)`
+- Do NOT include error messages or warnings from OpenClaw
+- Copy the ENTIRE `data:media_base64:` line exactly as the script outputs it
 
 **Example (EXACT OUTPUT - nothing after line 3):**
 Vardhan bhai, aapka Kundli chart tayyar ho gaya hai.
