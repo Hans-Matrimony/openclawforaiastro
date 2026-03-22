@@ -11,13 +11,8 @@ import json
 import subprocess
 from io import BytesIO
 
-# Try to import PIL, install if missing
-try:
-    from PIL import Image, ImageDraw, ImageFont
-except ImportError:
-    print("PIL not found, installing Pillow...", file=sys.stderr)
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "-q", "pillow"])
-    from PIL import Image, ImageDraw, ImageFont
+# Import PIL (must be pre-installed in container)
+from PIL import Image, ImageDraw, ImageFont
 
 # Colors from the scheme
 BG_COLOR = '#3D2605'    # Dark Chocolate Brown
@@ -72,7 +67,7 @@ def parse_planet_positions(planets_list):
 
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     """Draw proper North Indian Kundli chart: Fixed Houses, Moving Signs"""
-    img_size = 800
+    img_size = 400  # Reduced from 800 for faster generation & smaller base64
     img = Image.new('RGB', (img_size, img_size), color=BG_COLOR)
     draw = ImageDraw.Draw(img)
 
