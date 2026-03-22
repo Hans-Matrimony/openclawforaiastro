@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate traditional North Indian Kundli chart
+Generate traditional North Indian Kundli chart (Hindi/Horizontal layout)
 Outputs image as base64 for WhatsApp delivery
 """
 
@@ -12,7 +12,7 @@ import urllib.request
 import urllib.parse
 from io import BytesIO
 
-# Auto-install Pillow (UNCHANGED)
+# Auto-install Pillow
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
@@ -30,10 +30,10 @@ except ImportError:
 
 import argparse
 
-# Colors
-BG_COLOR = '#3D2605'
-LINE_COLOR = '#FFFFFF'
-TEXT_COLOR = '#FFD700'
+# Colors mapped exactly to your reference image
+BG_COLOR = '#2A1A08'    # Dark brown
+LINE_COLOR = '#8C7861'  # Muted tan/grey
+TEXT_COLOR = '#D1B054'  # Gold/yellow
 
 # Signs
 SIGN_NAMES = [
@@ -43,13 +43,12 @@ SIGN_NAMES = [
 
 SIGN_ABBR = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
 
-# Planet abbreviations
-PLANET_MAP = {
-    'Sun': 'Su', 'Moon': 'Mo', 'Mars': 'Ma', 'Mercury': 'Me',
-    'Jupiter': 'Ju', 'Venus': 'Ve', 'Saturn': 'Sa',
-    'Rahu': 'Ra', 'Ketu': 'Ke', 'Lagna': 'Lg'
+# Hindi Planet mappings matching your image
+HINDI_MAP = {
+    'Sun': 'सु', 'Moon': 'च', 'Mars': 'कु', 'Mercury': 'बु',
+    'Jupiter': 'ब्र', 'Venus': 'शु', 'Saturn': 'श',
+    'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'ल'
 }
-
 
 def parse_planet_positions(planets_list):
     house_planets = {}
@@ -64,10 +63,13 @@ def parse_planet_positions(planets_list):
             if "Lagna" in item:
                 name = "Lagna"
 
-            abbrev = PLANET_MAP.get(name, name[:2])
+            abbrev = HINDI_MAP.get(name, name[:2])
 
+            # Modifiers matching your image (* for Retrograde, ^ for Combust)
             if "[Retrograde]" in item:
                 abbrev += "*"
+            if "[Combust]" in item:
+                abbrev += "^"
 
             house = None
             for p in parts:
@@ -83,94 +85,89 @@ def parse_planet_positions(planets_list):
 
     return house_planets
 
-
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
-
     img_size = 400
     PAD = 20
 
     img = Image.new('RGB', (img_size, img_size), BG_COLOR)
     draw = ImageDraw.Draw(img)
 
-    # Fonts
+    # Aggressively hunt for Devanagari-supporting fonts
     font_paths = [
-        "C:\\Windows\\Fonts\\arial.ttf",
+        "C:\\Windows\\Fonts\\nirmala.ttf",           # Standard Windows Devanagari
+        "C:\\Windows\\Fonts\\mangal.ttf",            # Fallback Windows Devanagari
+        "C:\\Windows\\Fonts\\arial.ttf",             # Sometimes has fallback support
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf", # Standard Linux
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     ]
 
     for path in font_paths:
         try:
-            font_p = ImageFont.truetype(path, 18)
-            font_s = ImageFont.truetype(path, 12)
+            font_p = ImageFont.truetype(path, 16) # Slightly smaller for horizontal fit
+            font_s = ImageFont.truetype(path, 11)
             break
         except:
             continue
     else:
         font_p = font_s = ImageFont.load_default()
 
-    # Grid
+    # Grid Points
     L, T, R, B = PAD, PAD, img_size - PAD, img_size - PAD
     MX, MY = img_size // 2, img_size // 2
 
+    # Draw Outer Box and Lines
     draw.rectangle([L, T, R, B], outline=LINE_COLOR)
-
     draw.line([L, T, R, B], fill=LINE_COLOR)
     draw.line([R, T, L, B], fill=LINE_COLOR)
-
     draw.line([MX, T, R, MY], fill=LINE_COLOR)
     draw.line([R, MY, MX, B], fill=LINE_COLOR)
     draw.line([MX, B, L, MY], fill=LINE_COLOR)
     draw.line([L, MY, MX, T], fill=LINE_COLOR)
 
-    # Lagna index
     lagna_idx = SIGN_NAMES.index(lagna) if lagna in SIGN_NAMES else 0
-
     house_planets = parse_planet_positions(planet_positions or [])
 
-    # Lagna in House 1
+    # Ensure Lagna is in House 1
     house_planets.setdefault(1, [])
-    if 'Lg' not in house_planets[1]:
-        house_planets[1].insert(0, 'Lg')
+    if 'ल' not in house_planets[1]:
+        house_planets[1].insert(0, 'ल')
 
-    # Positions (UNCHANGED)
+    # Centers of the 12 spaces for HORIZONTAL planet placements
     H_PLANETS = {
-        1: (200, 75), 2: (120, 90), 3: (75, 150), 4: (120, 250),
-        5: (200, 320), 6: (280, 250), 7: (325, 150), 8: (280, 90),
-        9: (140, 140), 10: (140, 260), 11: (260, 260), 12: (260, 140)
+        1: (200, 110), 2: (110, 60), 3: (60, 110), 4: (110, 200),
+        5: (60, 290), 6: (110, 340), 7: (200, 290), 8: (290, 340),
+        9: (340, 290), 10: (290, 200), 11: (340, 110), 12: (290, 60)
     }
 
+    # Tucked corner coordinates for the Signs
     H_SIGNS = {
-        1: (200, 140), 2: (120, 120), 3: (100, 180), 4: (120, 280),
-        5: (200, 280), 6: (280, 280), 7: (300, 180), 8: (280, 120),
-        9: (150, 160), 10: (150, 240), 11: (250, 240), 12: (250, 160)
+        1: (200, 50), 2: (110, 35), 3: (35, 110), 4: (130, 150),
+        5: (35, 290), 6: (110, 365), 7: (200, 240), 8: (290, 365),
+        9: (365, 290), 10: (270, 150), 11: (365, 110), 12: (290, 35)
     }
 
-    # ✅ FIXED SIGN ORDER
     HOUSE_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12]
 
     for i, h in enumerate(HOUSE_ORDER):
-
         s_idx = (lagna_idx + i) % 12
         s_text = f"{s_idx + 1} {SIGN_ABBR[s_idx]}"
-
-        draw.text(H_SIGNS[h], s_text, fill=TEXT_COLOR, font=font_s, anchor='mm')
+        
+        # Draw signs tucked into corners
+        draw.text(H_SIGNS[h], s_text, fill=LINE_COLOR, font=font_s, anchor='mm')
 
         planets = house_planets.get(h, [])
         if planets:
             cx, cy = H_PLANETS[h]
-            for j, p in enumerate(planets):
-                offset = (j - (len(planets) - 1) / 2) * 18
-                draw.text((cx, cy + offset), p, fill=TEXT_COLOR, font=font_p, anchor='mm')
+            # Horizontal space-separated combination (e.g. "ल कु के*")
+            planet_text = " ".join(planets)
+            draw.text((cx, cy), planet_text, fill=TEXT_COLOR, font=font_p, anchor='mm')
 
-    # Footer
-    draw.text((MX, img_size - 10),
-              f"{nakshatra} | Moon: {moon_sign}",
-              fill=TEXT_COLOR, font=font_s, anchor='mm')
+    # Footer (Optional: remove if you don't want bottom text matching the image)
+    # draw.text((MX, img_size - 10), f"{nakshatra} | Moon: {moon_sign}", fill=LINE_COLOR, font=font_s, anchor='mm')
 
     img_io = BytesIO()
     img.save(img_io, 'PNG')
     return img_io.getvalue()
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -188,30 +185,21 @@ def main():
 
     try:
         image_data = draw_kundli_chart(
-            args.lagna,
-            args.moon_sign,
-            args.nakshatra,
-            planets
+            args.lagna, args.moon_sign, args.nakshatra, planets
         )
 
         b64 = base64.b64encode(image_data).decode()
         print(f"IMAGE_BASE64: {b64}")
 
-        # ImgBB upload (UNCHANGED)
+        # ImgBB upload
         api_key = os.getenv("IMGBB_API_KEY")
-
         if api_key and api_key != "your_imgbb_key_here":
             try:
                 payload = urllib.parse.urlencode({
-                    "key": api_key,
-                    "image": b64
+                    "key": api_key, "image": b64
                 }).encode()
 
-                req = urllib.request.Request(
-                    "https://api.imgbb.com/1/upload",
-                    data=payload
-                )
-
+                req = urllib.request.Request("https://api.imgbb.com/1/upload", data=payload)
                 with urllib.request.urlopen(req, timeout=10) as res:
                     data = json.loads(res.read().decode())
                     print(f"IMAGE_URL: {data['data']['url']}")
@@ -220,7 +208,6 @@ def main():
 
     except Exception as e:
         print("Error:", e, file=sys.stderr)
-
 
 if __name__ == "__main__":
     main()
