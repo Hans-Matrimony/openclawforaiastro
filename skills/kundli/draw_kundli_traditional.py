@@ -218,9 +218,7 @@ def main():
         )
 
         # Upload to hans-ai-dashboard API
-        import os
         import urllib.request
-        import json
 
         dashboard_api = os.getenv("HANS_DASHBOARD_API", "http://hans-ai-dashboard:3000/api/kundli/upload")
         phone_number = os.getenv("USER_PHONE", "+919760347653")
