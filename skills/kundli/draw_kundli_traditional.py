@@ -218,8 +218,9 @@ def main():
         )
 
         # Output as base64 for WhatsApp
+        # Use KUNDLI_IMAGE prefix to avoid OpenClaw WhatsApp plugin interception
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
-        print(f"MEDIA_BASE64: image/png {base64_string}")
+        print(f"KUNDLI_IMAGE: image/png {base64_string}")
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

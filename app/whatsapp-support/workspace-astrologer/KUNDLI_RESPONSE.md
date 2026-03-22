@@ -72,11 +72,11 @@ Extract: Rashi, Lagna, Nakshatra from `ai_summary` field.
 ```
 exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna in English>" --moon-sign "<Moon Sign in English>" --nakshatra "<Nakshatra>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>'
 ```
-Wait for the script to complete. It will output `MEDIA_BASE64: image/png <data>` automatically.
+Wait for the script to complete. It will output `KUNDLI_IMAGE: image/png <data>` automatically.
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-The script automatically outputs `MEDIA_BASE64: image/png <data>` to console.
+The script automatically outputs `KUNDLI_IMAGE: image/png <data>` to console.
 **IMPORTANT:** The webhook will detect this from console output. DO NOT include it in your text response!
 
 **Format (EXACTLY 3 lines ONLY):**
@@ -95,7 +95,10 @@ Aapka traditional North Indian Kundli chart niche mil raha hai.
 - NO `![Kundli](data:image/png;base64,...)`
 - NO `MEDIA:`
 - NO `MEDIA_BASE64:`
+- NO `KUNDLI_IMAGE:`
 - NO base64 strings at all
+- NO error messages or warnings from OpenClaw (ignore "⚠️ ✉️ Message failed" or similar)
+- NO system messages or plugin errors
 
 Just output the 3 lines of text above. The webhook will automatically handle the image from the script's console output.
 
