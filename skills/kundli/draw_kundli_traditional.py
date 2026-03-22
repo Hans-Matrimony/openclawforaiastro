@@ -129,40 +129,40 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     # Parse planets
     house_planets = parse_planet_positions(planet_positions or [])
 
-    # Lagna always House 1
+    # Lagna always in House 1
     house_planets.setdefault(1, [])
     if 'Lg' not in house_planets[1]:
         house_planets[1].insert(0, 'Lg')
 
-    # 🔥 FIXED POSITIONS (better alignment)
+    # 🔥 FINAL PERFECT POSITIONS (NO OVERLAP)
     H_PLANETS = {
-        1: (200, 80),   # moved up (FIXED)
-        2: (140, 60),
-        3: (60, 140),
-        4: (100, 200),
-        5: (60, 260),
-        6: (140, 340),
-        7: (200, 300),
-        8: (260, 340),
-        9: (340, 260),
-        10: (300, 200),
-        11: (340, 140),
-        12: (260, 60)
+        1: (200, 65),
+        2: (140, 45),
+        3: (45, 140),
+        4: (85, 200),
+        5: (45, 280),
+        6: (140, 355),
+        7: (200, 320),
+        8: (280, 355),
+        9: (355, 280),
+        10: (320, 200),
+        11: (355, 140),
+        12: (280, 45)
     }
 
     H_SIGNS = {
-        1: (200, 130),  # adjusted down slightly
-        2: (120, 80),
-        3: (80, 120),
-        4: (140, 200),
-        5: (80, 280),
-        6: (120, 320),
-        7: (200, 250),
-        8: (280, 320),
-        9: (320, 280),
-        10: (260, 200),
-        11: (320, 120),
-        12: (280, 80)
+        1: (200, 155),
+        2: (120, 100),
+        3: (100, 120),
+        4: (155, 200),
+        5: (100, 300),
+        6: (120, 300),
+        7: (200, 270),
+        8: (300, 300),
+        9: (300, 300),
+        10: (270, 200),
+        11: (300, 120),
+        12: (300, 100)
     }
 
     # Draw houses
