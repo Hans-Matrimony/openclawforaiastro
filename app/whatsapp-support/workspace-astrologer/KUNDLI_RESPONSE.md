@@ -1,7 +1,46 @@
 # Kundli Response Format (STRICT)
 
-**CRITICAL RULE: NEVER HALLUCINATE RASHIS. ALWAYS COPY-PASTE FROM `ai_summary`.**
+**🛑 CRITICAL RULE: NEVER HALLUCINATE RASHIS. ALWAYS COPY-PASTE FROM `ai_summary`.**
 When `calculate.py` runs, it outputs an `ai_summary` field. You MUST use exactly what is written there.
+
+---
+
+## 🚨 CRITICAL: EVERY Kundli Request MUST Run calculate.py FRESH!
+
+**This is the #1 cause of user complaints. Read this carefully.**
+
+### The Rule:
+**NEVER reuse Rashi/Lagna/Nakshatra values from previous calculations.**
+
+### The Workflow (MANDATORY - EVERY TIME):
+1. **Extract user_id from message envelope** (+919760347653, +918394833898, etc.)
+2. **Query mem0 for THIS user's birth details**:
+   ```bash
+   python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "+918394833898"
+   ```
+3. **Run calculate.py with THIS user's DOB, Time, Place**:
+   ```bash
+   python3 ~/.openclaw/skills/kundli/calculate.py --dob "1999-12-26" --tob "09:50" --place "Bulandshahr"
+   ```
+4. **Extract values FROM THE OUTPUT** - lagna, moon_sign, nakshatra
+5. **Use THOSE extracted values** in draw_kundli_traditional.py
+
+### What NOT To Do:
+❌ **DO NOT** reuse values from a previous user's calculation
+❌ **DO NOT** assume "same question = same answer" (every user has different birth details!)
+❌ **DO NOT** skip the mem0 query
+❌ **DO NOT** skip calculate.py and use cached values
+❌ **DO NOT** guess rashis from birth dates using your own knowledge
+
+### The Consequence:
+If you reuse Vardhan's Taurus/Pisces values for Hemant's chart, **Hemant will receive the WRONG Kundli**. This causes user complaints and loss of trust.
+
+### Remember:
+- **Every user_id = Different session = Different birth details**
+- **Same question ("meri kundli batao") from different users = DIFFERENT answers**
+- **Run calculate.py EVERY TIME for EVERY user**
+
+---
 
 ## 1. General "Meri Kundli Batao" Query
 **Format (3 lines MAX):**
@@ -62,11 +101,25 @@ Surya Dev ko roz jal arpit karo, career mein tarakki hogi.
 
 **🛑 MANDATORY WORKFLOW - EXECUTE IN ORDER:**
 
-**Step 1: Calculate Kundli (MANDATORY - MUST DO THIS FIRST!)**
+**🚨 STEP 0: Get User's Birth Details (MANDATORY - DO THIS FIRST!)**
 ```
-exec: python3 ~/.openclaw/skills/kundli/calculate.py --dob "<DOB>" --tob "<TIME>" --place "<PLACE>"
+exec: python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 ```
-Extract: Rashi, Lagna, Nakshatra from `ai_summary` field.
+Extract DOB, Time, Place from the memories. If not found, ask the user for their birth details.
+
+**🚨 STEP 1: Calculate Kundli (MANDATORY - MUST DO THIS SECOND!)**
+```
+exec: python3 ~/.openclaw/skills/kundli/calculate.py --dob "<USER'S DOB>" --tob "<USER'S TIME>" --place "<USER'S PLACE>"
+```
+⚠️ **CRITICAL:** Use the birth details from STEP 0, NOT from any previous calculation!
+⚠️ **CRITICAL:** Run this EVERY TIME, even if you just ran it for another user!
+⚠️ **CRITICAL:** Extract lagna, moon_sign, nakshatra, planet_positions FROM THE OUTPUT!
+
+**STEP 2: Generate Chart Image (MANDATORY - MUST DO THIS THIRD!)**
+```
+exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna from STEP 1>" --moon-sign "<Moon Sign from STEP 1>" --nakshatra "<Nakshatra from STEP 1>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>'
+```
+⚠️ **CRITICAL:** Use the EXACT values extracted from STEP 1's output, NOT from memory!
 
 **Step 2: Generate Chart Image (MANDATORY - MUST DO THIS SECOND!)**
 ```
@@ -86,8 +139,8 @@ The script automatically uploads the image and outputs `IMAGE_URL: https://...`
 **COPY THAT EXACT LINE AND PASTE IT IN YOUR RESPONSE!**
 
 **Format (EXACTLY 4 lines):**
-Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
-Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
+Line 1: "[Name] ji, aapka Kundli chart tayyar ho gaya hai."
+Line 2: "Aapka Rashi [Rashi from STEP 1] aur Lagna [Lagna from STEP 1] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai:"
 Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
 
@@ -102,20 +155,24 @@ Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
 **EXAMPLE:**
 Script outputs: `IMAGE_URL: https://i.ibb.co/nMyHHyJr/fc466174cd3f.png`
 Your response:
-Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+[Name] ji, aapka Kundli chart tayyar ho gaya hai.
 
-Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+Aapka Rashi [Cancer/Kark/Meen/etc] aur Lagna [Capricorn/Makar/Vrishabh/etc] hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai:
 
 IMAGE_URL: https://i.ibb.co/nMyHHyJr/fc466174cd3f.png
 
-**EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
-Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+⚠️ **NOTE:** The values in [brackets] must come from STEP 1's calculate.py output for THIS user, NOT from examples or previous users!
 
-Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+**EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
+[Name] ji, aapka Kundli chart tayyar ho gaya hai.
+
+Aapka Rashi [Moon Sign] aur Lagna [Lagna] hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai.
+
+⚠️ **NOTE:** Replace [Name], [Moon Sign], and [Lagna] with values from calculate.py output for THIS user!
 
 **🛑 CRITICAL RULES:**
 - You MUST include the `data:media_base64:image/png,base64data...` line from the script output
@@ -124,17 +181,21 @@ Aapka traditional North Indian Kundli chart niche mil raha hai.
 - Copy the ENTIRE `data:media_base64:` line exactly as the script outputs it
 
 **Example (EXACT OUTPUT - nothing after line 3):**
-Vardhan bhai, aapka Kundli chart tayyar ho gaya hai.
+[Name] bhai, aapka Kundli chart tayyar ho gaya hai.
 
-Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+Aapka Rashi [Moon Sign] aur Lagna [Lagna] hai.
 
 Yeh raha aapka chart:
 
+⚠️ **NOTE:** These values must come from calculate.py output for THIS user!
+
 ---
 **HARD RULES:**
-1. **Never use "Singh rashi" for Feb 16 born people.** Western astrology says Aquarius, Vedic astrology says Pisces/Meen. Always trust `calculate.py`.
-2. Keep responses to **max 3 lines** for chart requests.
-3. **Double newline (Enter twice)** between each line.
-4. **No heavy Hindi.** Use simple Hinglish (e.g. "placed hai", "strong chances hain").
-5. **🛑 MEDIA Tag - DO NOT ADD YOUR OWN:** When the draw_kundli_traditional.py script completes, it ALREADY outputs the MEDIA_BASE64 tag automatically. Do NOT write "MEDIA: Kundli Chart". Do NOT add any MEDIA tag at all. Just write your 3-line text response and let the script's output handle the image automatically.
-6. **🛑 NO BASE64 IN TEXT RESPONSE:** NEVER include `![Kundli](data:image/png;base64,...)` or any base64 data in your response. The webhook extracts it automatically from the script's console output. Including base64 in text causes WhatsApp errors.
+1. **🚨 CRITICAL: NEVER reuse birth details or rashis from examples!** Every user has unique birth details. Always run calculate.py for the CURRENT user with THEIR birth details from mem0.
+2. **Never use "Singh rashi" for Feb 16 born people.** Western astrology says Aquarius, Vedic astrology says Pisces/Meen. Always trust `calculate.py`.
+3. Keep responses to **max 3 lines** for chart requests.
+4. **Double newline (Enter twice)** between each line.
+5. **No heavy Hindi.** Use simple Hinglish (e.g. "placed hai", "strong chances hain").
+6. **🛑 MEDIA Tag - DO NOT ADD YOUR OWN:** When the draw_kundli_traditional.py script completes, it ALREADY outputs the MEDIA_BASE64 tag automatically. Do NOT write "MEDIA: Kundli Chart". Do NOT add any MEDIA tag at all. Just write your 3-line text response and let the script's output handle the image automatically.
+7. **🛑 NO BASE64 IN TEXT RESPONSE:** NEVER include `![Kundli](data:image/png;base64,...)` or any base64 data in your response. The webhook extracts it automatically from the script's console output. Including base64 in text causes WhatsApp errors.
+8. **🚨 EVERY TIME = EVERY USER:** "Meri kundli batao" from User A and "Meri kundli batao" from User B require TWO separate calculate.py runs with DIFFERENT birth details. Never reuse results!
