@@ -59,6 +59,10 @@ def parse_planet_positions(planets_list):
                 planet_full = "Lagna"
 
             abbrev = PLANET_HINDI.get(planet_full, planet_full[:2])
+            
+            # Add Retrograde status (*)
+            if "[Retrograde]" in planet_str:
+                abbrev += "*"
 
             if "is in House" in planet_str:
                 house_idx = parts.index("is") + 3
@@ -74,7 +78,7 @@ def parse_planet_positions(planets_list):
 
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     """Draw proper North Indian Kundli chart: Fixed Houses, Moving Signs"""
-    img_size = 400  # Reduced from 800 for faster generation & smaller base64
+    img_size = 400  # Matched to logic
     img = Image.new('RGB', (img_size, img_size), color=BG_COLOR)
     draw = ImageDraw.Draw(img)
 
@@ -82,71 +86,47 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if planet_positions:
         house_planets = parse_planet_positions(planet_positions)
 
-    # Fonts - Try multiple paths for cross-platform compatibility
-    font_sign = font_hindi = font_info = None
-
-    # List of font paths to try (Linux first, then Windows)
+    # Fonts - try cross-platform paths
     font_paths = [
-        # Linux Devanagari fonts
         "/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        # Windows fonts (for local testing)
         "C:\\Windows\\Fonts\\Nirmala.ttc",
-        "C:\\Windows\\Fonts\\arial.ttf",
-        # Fallback
-        "arial.ttf",
+        "arial.ttf"
     ]
-
-    for font_path in font_paths:
+    
+    font_sign = font_hindi = font_info = None
+    for p in font_paths:
         try:
-            if os.path.exists(font_path):
-                font_sign = ImageFont.truetype(font_path, 22)   # Sign numbers
-                font_hindi = ImageFont.truetype(font_path, 36)  # Planet abbreviations
-                font_info = ImageFont.truetype(font_path, 20)   # Nakshatra etc.
+            if os.path.exists(p):
+                font_sign = ImageFont.truetype(p, 12)   # Smaller sign numbers
+                font_hindi = ImageFont.truetype(p, 18)  # Scaled planets
+                font_info = ImageFont.truetype(p, 10)
                 break
-        except:
-            continue
-
-    # If no font loaded, use default
-    if font_sign is None:
+        except: continue
+    
+    if not font_sign:
         font_sign = font_hindi = font_info = ImageFont.load_default()
 
-    # Grid Constants
-    PAD = 40
+    # Grid Constants (400x400)
+    PAD = 15
     TOP, LEFT = PAD, PAD
     BOTTOM, RIGHT = img_size - PAD, img_size - PAD
     MID_X, MID_Y = img_size // 2, img_size // 2
 
     # Draw Outer Square
-    draw.rectangle([(LEFT, TOP), (RIGHT, BOTTOM)], outline=LINE_COLOR, width=3)
+    draw.rectangle([(LEFT, TOP), (RIGHT, BOTTOM)], outline=LINE_COLOR, width=1)
 
     # Draw Diagonals (X)
-    draw.line([(LEFT, TOP), (RIGHT, BOTTOM)], fill=LINE_COLOR, width=2)
-    draw.line([(RIGHT, TOP), (LEFT, BOTTOM)], fill=LINE_COLOR, width=2)
+    draw.line([(LEFT, TOP), (RIGHT, BOTTOM)], fill=LINE_COLOR, width=1)
+    draw.line([(RIGHT, TOP), (LEFT, BOTTOM)], fill=LINE_COLOR, width=1)
 
     # Draw Inner Diamond (Midpoints)
-    draw.line([(MID_X, TOP), (RIGHT, MID_Y)], fill=LINE_COLOR, width=2)
-    draw.line([(RIGHT, MID_Y), (MID_X, BOTTOM)], fill=LINE_COLOR, width=2)
-    draw.line([(MID_X, BOTTOM), (LEFT, MID_Y)], fill=LINE_COLOR, width=2)
-    draw.line([(LEFT, MID_Y), (MID_X, TOP)], fill=LINE_COLOR, width=2)
+    draw.line([(MID_X, TOP), (RIGHT, MID_Y)], fill=LINE_COLOR, width=1)
+    draw.line([(RIGHT, MID_Y), (MID_X, BOTTOM)], fill=LINE_COLOR, width=1)
+    draw.line([(MID_X, BOTTOM), (LEFT, MID_Y)], fill=LINE_COLOR, width=1)
+    draw.line([(LEFT, MID_Y), (MID_X, TOP)], fill=LINE_COLOR, width=1)
 
-    # --- HOUSE LOGIC (North Indian - 12 FIXED AREAS) ---
-    # House Indices (Fixed):
-    # 1:  Top Center Diamond
-    # 2:  Top Left Side Triangle
-    # 3:  Left Top Side Triangle
-    # 4:  Left Center Diamond
-    # 5:  Left Bottom Side Triangle
-    # 6:  Bottom Left Side Triangle
-    # 7:  Bottom Center Diamond
-    # 8:  Bottom Right Side Triangle
-    # 9:  Right Bottom Side Triangle
-    # 10: Right Center Diamond
-    # 11: Right Top Side Triangle
-    # 12: Top Right Side Triangle
-
-    # Sign number in each house: (LagnaSign + house - 1) % 12
+    # --- HOUSE LOGIC ---
     try:
         lagna_sign_num = SIGN_NAMES.index(lagna) + 1
     except:
@@ -157,41 +137,44 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         sign_num = ((lagna_sign_num + h - 2) % 12) + 1
         house_to_sign[h] = sign_num
 
-    # High-precision coordinates for 800x800 square (PAD=40)
-    # Centers of the 12 triangles/diamonds
+    # High-precision coordinates for 400x400 (PAD=15)
+    # Signs are small and near boundaries, Planets stacked in the middle
     H_DATA = {
-        1:  {'sign': (400, 310), 'planets': (400, 200)}, # Top Diamond
-        2:  {'sign': (310, 150), 'planets': (220, 110)}, # TL Side
-        3:  {'sign': (150, 310), 'planets': (110, 220)}, # LT Side
-        4:  {'sign': (290, 400), 'planets': (200, 400)}, # Left Diamond
-        5:  {'sign': (150, 490), 'planets': (110, 580)}, # LB Side
-        6:  {'sign': (310, 650), 'planets': (220, 690)}, # BL Side
-        7:  {'sign': (400, 490), 'planets': (400, 600)}, # Bottom Diamond
-        8:  {'sign': (490, 650), 'planets': (580, 690)}, # BR Side
-        9:  {'sign': (650, 490), 'planets': (690, 580)}, # RB Side
-        10: {'sign': (510, 400), 'planets': (600, 400)}, # Right Diamond
-        11: {'sign': (650, 310), 'planets': (690, 220)}, # RT Side
-        12: {'sign': (490, 150), 'planets': (580, 110)}, # TR Side
+        1:  {'sign': (200, 160), 'planets': (200, 100)}, # Top Diamond
+        2:  {'sign': (155, 75),  'planets': (120, 60)},  # TL Side
+        3:  {'sign': (75, 155),  'planets': (60, 120)},  # LT Side
+        4:  {'sign': (140, 200), 'planets': (100, 200)}, # Left Diamond
+        5:  {'sign': (75, 245),  'planets': (60, 280)},  # LB Side
+        6:  {'sign': (155, 325), 'planets': (120, 340)}, # BL Side
+        7:  {'sign': (200, 240), 'planets': (200, 300)}, # Bottom Diamond
+        8:  {'sign': (245, 325), 'planets': (280, 340)}, # BR Side
+        9:  {'sign': (325, 245), 'planets': (340, 280)}, # RB Side
+        10: {'sign': (260, 200), 'planets': (300, 200)}, # Right Diamond
+        11: {'sign': (325, 155), 'planets': (340, 120)}, # RT Side
+        12: {'sign': (245, 75),  'planets': (280, 60)},  # TR Side
     }
 
     # Rendering
     for h_num in range(1, 13):
-        # 1. Draw Sign Number
+        # 1. Sign Number
         sign_val = house_to_sign[h_num]
         s_x, s_y = H_DATA[h_num]['sign']
         draw.text((s_x, s_y), str(sign_val), fill=TEXT_COLOR, font=font_sign, anchor='mm')
 
-        # 2. Draw Planets
+        # 2. Planets (Vertical Stacking)
         planets = house_planets.get(h_num, [])
-        if h_num == 1 and 'ल' not in planets:
+        if h_num == 1 and 'ल' not in [p[0] for p in planets]:
             planets.insert(0, 'ल')
         
         if planets:
             p_x, p_y = H_DATA[h_num]['planets']
-            # Join multiple planets with space, possibly multiple lines if needed
-            # For now, horizontal space is enough
-            planet_text = " ".join(planets)
-            draw.text((p_x, p_y), planet_text, fill=TEXT_COLOR, font=font_hindi, anchor='mm')
+            for i, p_abbrev in enumerate(planets):
+                offset_y = (i - (len(planets)-1)/2) * 18
+                draw.text((p_x, p_y + offset_y), p_abbrev, fill=TEXT_COLOR, font=font_hindi, anchor='mm')
+
+    # Subtle Info
+    info_text = f"{nakshatra} | Moon: {moon_sign}"
+    draw.text((MID_X, img_size - 8), info_text, fill=TEXT_COLOR, font=font_info, anchor='mm')
 
     # Convert to bytes
     img_bytes = BytesIO()
