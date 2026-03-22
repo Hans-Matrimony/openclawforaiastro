@@ -8,12 +8,16 @@ services:
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
+      HANS_DASHBOARD_API: ${HANS_DASHBOARD_API:-http://hans-ai-dashboard:3000/api/kundli/upload}
+      USER_PHONE: ${USER_PHONE:-+919760347653}
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+    networks:
+      - hans-ai-network
     init: true
     restart: unless-stopped
     command:
@@ -42,5 +46,12 @@ services:
       - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
     stdin_open: true
     tty: true
+    networks:
+      - hans-ai-network
     init: true
     entrypoint: ["node", "dist/index.js"]
+
+networks:
+  hans-ai-network:
+    external: true
+    name: hans-ai-network
