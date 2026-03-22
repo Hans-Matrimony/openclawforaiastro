@@ -9,6 +9,7 @@ import argparse
 import base64
 import json
 import subprocess
+import urllib.parse
 from io import BytesIO
 
 # Import PIL (must be pre-installed in container)
@@ -217,37 +218,38 @@ def main():
             planet_positions
         )
 
-        # Upload to hans-ai-dashboard API
+        # Upload to ImgBB (free image hosting) - similar to DALL-E URL approach
         import urllib.request
 
-        dashboard_api = os.getenv("HANS_DASHBOARD_API", "http://hans-ai-dashboard:3000/api/kundli/upload")
-        phone_number = os.getenv("USER_PHONE", "+919760347653")
-
+        # Use ImgBB API (free, no key needed for basic usage)
+        imgbb_api_key = os.getenv("IMGBB_API_KEY", "your_imgbb_key_here")  # Get free key from imgbb.com
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
 
-        payload = json.dumps({
-            "image_base64": base64_string,
-            "phone": phone_number
-        })
-
         try:
+            # ImgBB API expects base64 data URL format
+            data_url = f"data:image/png;base64,{base64_string}"
+
+            payload = urllib.parse.urlencode({
+                'key': imgbb_api_key,
+                'image': base64_string
+            }).encode('utf-8')
+
             req = urllib.request.Request(
-                dashboard_api,
-                data=payload.encode('utf-8'),
-                headers={'Content-Type': 'application/json'},
+                'https://api.imgbb.com/1/upload',
+                data=payload,
                 method='POST'
             )
 
             with urllib.request.urlopen(req, timeout=10) as response:
                 if response.status == 200:
                     result = json.loads(response.read().decode('utf-8'))
-                    image_url = result.get('url')
+                    image_url = result['data']['url']
                     print(f"IMAGE_URL: {image_url}")
                 else:
                     print(f"Upload failed: status {response.status}", file=sys.stderr)
-                    print(f"ERROR: Could not upload image to dashboard", file=sys.stderr)
+                    print(f"ERROR: Could not upload image", file=sys.stderr)
         except Exception as e:
-            print(f"ERROR: Upload to dashboard failed: {e}", file=sys.stderr)
+            print(f"ERROR: Upload to ImgBB failed: {e}", file=sys.stderr)
             import traceback
             traceback.print_exc(file=sys.stderr)
 
