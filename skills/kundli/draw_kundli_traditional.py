@@ -231,15 +231,15 @@ def main():
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
 
         try:
-            # ImgBB expects: key in URL query parameter, image as multipart/form-data
-            data_url = f"data:image/png;base64,{base64_string}"
+            # ImgBB expects: key in URL query parameter, image as raw base64 in multipart/form-data
+            # Note: NOT data URL format, just raw base64 string
 
             # Use multipart/form-data encoding (not urlencoded)
             boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
             payload = (
                 f'--{boundary}\r\n'
                 f'Content-Disposition: form-data; name="image"\r\n\r\n'
-                f'{data_url}\r\n'
+                f'{base64_string}\r\n'
                 f'--{boundary}--\r\n'
             ).encode('utf-8')
 
