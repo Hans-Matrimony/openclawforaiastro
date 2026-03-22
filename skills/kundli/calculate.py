@@ -171,9 +171,17 @@ def calculate_kundli(dob_str, tob_str, place):
 
     # ADD FLATTENED SUMMARY FOR AI (CRITICAL FOR ACCURACY)
     try:
-        lagna = chart.d1_chart.houses[0].to_dict().get('sign')
-        # Get Moon planet object for its sign AND nakshatra
-        moon_planet = next(p for p in chart.d1_chart.planets if p.celestial_body == 'Moon')
+        # ✅ FIX 1: Find House 1 by number, NOT by index (houses may be unordered!)
+        lagna_house = next((h for h in chart.d1_chart.houses if h.to_dict().get('number') == 1), None)
+        lagna = lagna_house.to_dict().get('sign') if lagna_house else None
+
+        # ✅ FIX 2: Case-insensitive moon extraction (some libraries use "MOON" or "moon")
+        moon_planet = next(
+            (p for p in chart.d1_chart.planets if p.celestial_body.lower() == 'moon'),
+            None
+        )
+        if not moon_planet:
+            raise ValueError("Moon planet not found in chart data")
         moon_sign = moon_planet.to_dict().get('sign')
         # CRITICAL: Always use the Moon's own nakshatra, NOT panchanga or any other planet
         moon_nakshatra = moon_planet.to_dict().get('nakshatra')
@@ -192,6 +200,8 @@ def calculate_kundli(dob_str, tob_str, place):
         moon_hindi = HINDI_RASHI.get(moon_sign, moon_sign) if moon_sign else moon_sign
         
         # Format current dasha
+        # NOTE: Assumes dashas['current']['mahadashas'] is ordered with current dasha first.
+        # This is typically true for jyotishganit library, but may vary across versions.
         dashas = chart_data.get('dashas', {}).get('current', {}).get('mahadashas', {})
         dasha_str = "Vimshottari Dasha is active. Check full 'dashas' field for timings."
         if dashas:
@@ -207,9 +217,12 @@ def calculate_kundli(dob_str, tob_str, place):
                 dasha_str += f"Current Antardasha: {ad_planet} (Ends {ad_end})."
 
         # Format Planets in houses
-        planets_summary = []
+        # ✅ FIX 3: Sort houses by number to ensure consistent ordering
         d1 = chart_data.get('d1Chart', {})
-        for house in d1.get('houses', []):
+        houses_sorted = sorted(d1.get('houses', []), key=lambda x: x.get('number', 0))
+
+        planets_summary = []
+        for house in houses_sorted:
             h_num = house.get('number')
             for occ in house.get('occupants', []):
                 p_name = occ.get('celestialBody')
