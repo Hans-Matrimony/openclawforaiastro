@@ -6,6 +6,11 @@ Outputs image as base64 for WhatsApp delivery
 import os
 import sys
 import subprocess
+import json
+import base64
+import urllib.request
+import urllib.parse
+from io import BytesIO
 
 # Auto-install PIL if not available
 try:
@@ -168,7 +173,38 @@ def main():
     try:
         data = draw_kundli_chart(args.lagna, args.moon_sign, args.nakshatra, planets)
         b64 = base64.b64encode(data).decode()
-        print(f"IMAGE_BASE64: {b64}") # Unified output
+
+        # Upload to ImgBB
+        imgbb_api_key = os.getenv("IMGBB_API_KEY", "your_imgbb_key_here")
+
+        try:
+            boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
+            payload = (
+                f'--{boundary}\r\n'
+                f'Content-Disposition: form-data; name="image"\r\n\r\n'
+                f'{b64}\r\n'
+                f'--{boundary}--\r\n'
+            ).encode('utf-8')
+
+            upload_url = f'https://api.imgbb.com/1/upload?key={imgbb_api_key}'
+
+            req = urllib.request.Request(
+                upload_url,
+                data=payload,
+                method='POST'
+            )
+            req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
+
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.status == 200:
+                    result = json.loads(response.read().decode('utf-8'))
+                    image_url = result['data']['url']
+                    print(f"IMAGE_URL: {image_url}")
+                else:
+                    print(f"ERROR: Upload failed", file=sys.stderr)
+        except Exception as e:
+            print(f"ERROR: Upload to ImgBB failed: {e}", file=sys.stderr)
+
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
 
