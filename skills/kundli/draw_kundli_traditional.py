@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate traditional North Indian Kundli chart (Hindi/Horizontal layout)
+Generate traditional North Indian Kundli chart (Horizontal layout)
 Outputs image as base64 for WhatsApp delivery
 """
 
@@ -43,11 +43,11 @@ SIGN_NAMES = [
 
 SIGN_ABBR = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
 
-# Hindi Planet mappings matching your image
-HINDI_MAP = {
-    'Sun': 'सु', 'Moon': 'च', 'Mars': 'कु', 'Mercury': 'बु',
-    'Jupiter': 'ब्र', 'Venus': 'शु', 'Saturn': 'श',
-    'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'ल'
+# Swapped to English to fix the empty box [] font rendering error
+PLANET_MAP = {
+    'Sun': 'Su', 'Moon': 'Mo', 'Mars': 'Ma', 'Mercury': 'Me',
+    'Jupiter': 'Ju', 'Venus': 'Ve', 'Saturn': 'Sa',
+    'Rahu': 'Ra', 'Ketu': 'Ke', 'Lagna': 'Lg'
 }
 
 def parse_planet_positions(planets_list):
@@ -63,7 +63,7 @@ def parse_planet_positions(planets_list):
             if "Lagna" in item:
                 name = "Lagna"
 
-            abbrev = HINDI_MAP.get(name, name[:2])
+            abbrev = PLANET_MAP.get(name, name[:2])
 
             # Modifiers matching your image (* for Retrograde, ^ for Combust)
             if "[Retrograde]" in item:
@@ -92,12 +92,9 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     img = Image.new('RGB', (img_size, img_size), BG_COLOR)
     draw = ImageDraw.Draw(img)
 
-    # Aggressively hunt for Devanagari-supporting fonts
+    # Standard fonts that work across operating systems
     font_paths = [
-        "C:\\Windows\\Fonts\\nirmala.ttf",           # Standard Windows Devanagari
-        "C:\\Windows\\Fonts\\mangal.ttf",            # Fallback Windows Devanagari
-        "C:\\Windows\\Fonts\\arial.ttf",             # Sometimes has fallback support
-        "/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf", # Standard Linux
+        "C:\\Windows\\Fonts\\arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     ]
 
@@ -129,8 +126,8 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
 
     # Ensure Lagna is in House 1
     house_planets.setdefault(1, [])
-    if 'ल' not in house_planets[1]:
-        house_planets[1].insert(0, 'ल')
+    if 'Lg' not in house_planets[1]:
+        house_planets[1].insert(0, 'Lg')
 
     # Centers of the 12 spaces for HORIZONTAL planet placements
     H_PLANETS = {
@@ -158,7 +155,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         planets = house_planets.get(h, [])
         if planets:
             cx, cy = H_PLANETS[h]
-            # Horizontal space-separated combination (e.g. "ल कु के*")
+            # Horizontal space-separated combination (e.g. "Lg Ma Ke*")
             planet_text = " ".join(planets)
             draw.text((cx, cy), planet_text, fill=TEXT_COLOR, font=font_p, anchor='mm')
 
