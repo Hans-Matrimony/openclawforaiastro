@@ -1,61 +1,48 @@
 #!/usr/bin/env python3
 """
-Generate traditional North Indian Kundli chart with exact format
+Generate traditional North Indian Kundli chart with exact scheme from reference image
 Outputs image as base64 for WhatsApp delivery
 """
 import os
 import sys
 import argparse
 import base64
+import json
+import subprocess
 from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
 
-# House positions in the North Indian diamond layout
-# In North Indian format, houses are FIXED (signs move based on Lagna)
-# House 1 is always at the top corner, numbering goes counter-clockwise
-HOUSE_POSITIONS = {
-    1: (400, 130),   # Top corner triangle
-    12: (480, 180),  # Upper right side
-    11: (320, 180),  # Upper left side
-    10: (240, 240),  # Left corner
-    2: (350, 230),   # Inner upper left
-    3: (350, 280),   # Inner lower left
-    9: (440, 230),   # Inner upper right
-    8: (440, 280),   # Inner lower right
-    4: (250, 360),   # Lower left side
-    5: (300, 430),   # Bottom corner
-    6: (500, 430),   # Bottom right side
-    7: (550, 360),   # Right corner
+# Try to import PIL, install if missing
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError:
+    print("PIL not found, installing Pillow...", file=sys.stderr)
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "-q", "pillow"])
+    from PIL import Image, ImageDraw, ImageFont
+
+# Colors from the scheme
+BG_COLOR = '#3D2605'    # Dark Chocolate Brown
+LINE_COLOR = '#FFFFFF'  # White
+TEXT_COLOR = '#FFD700'  # Golden/Yellow
+
+# Sign Sequence (1-12 represented by names here, converted to numbers in chart)
+SIGN_NAMES = [
+    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+]
+
+# Planet Hindi Abbreviations
+PLANET_HINDI = {
+    'Sun': 'सू',
+    'Moon': 'च',
+    'Mars': 'मं',
+    'Mercury': 'बु',
+    'Jupiter': 'गु',
+    'Venus': 'शु',
+    'Saturn': 'श',
+    'Rahu': 'रा',
+    'Ketu': 'के',
+    'Lagna': 'ल'
 }
-
-# Devanagari numerals
-DEVANAGARI_NUMERALS = {
-    1: '१', 2: '२', 3: '३', 4: '४', 5: '५',
-    6: '६', 7: '७', 8: '८', 9: '९', 10: '१०',
-    11: '११', 12: '१२'
-}
-
-# Planet abbreviations with colors
-PLANET_COLORS = {
-    'Su': '#FF6B6B',  # Sun - Red
-    'Mo': '#C0C0C0',  # Moon - Silver
-    'Ma': '#FF4444',  # Mars - Dark Red
-    'Me': '#4ECDC4',  # Mercury - Green
-    'Ju': '#FFE66D',  # Jupiter - Yellow
-    'Ve': '#FFB6C1',  # Venus - Pink
-    'Sa': '#8B4513',  # Saturn - Brown
-    'Ra': '#4B0082',  # Rahu - Purple
-    'Ke': '#808080',  # Ketu - Gray
-}
-
-# Zodiac signs (English to Hindi mapping)
-ZODIAC_HINDI = {
-    'Aries': 'Mesha', 'Taurus': 'Vrishabh', 'Gemini': 'Mithun',
-    'Cancer': 'Karka', 'Leo': 'Simha', 'Virgo': 'Kanya',
-    'Libra': 'Tula', 'Scorpio': 'Vrishchika', 'Sagittarius': 'Dhanu',
-    'Capricorn': 'Makar', 'Aquarius': 'Kumbh', 'Pisces': 'Meen'
-}
-
 
 def parse_planet_positions(planets_list):
     """Parse planet positions from calculate.py output"""
@@ -64,15 +51,12 @@ def parse_planet_positions(planets_list):
     for planet_str in planets_list:
         try:
             parts = planet_str.split()
-            planet_name = parts[0]
+            planet_full = parts[0]
+            
+            if "Lagna" in planet_str:
+                planet_full = "Lagna"
 
-            planet_map = {
-                'Saturn': 'Sa', 'Jupiter': 'Ju', 'Rahu': 'Ra',
-                'Ketu': 'Ke', 'Mercury': 'Me', 'Sun': 'Su',
-                'Venus': 'Ve', 'Moon': 'Mo', 'Mars': 'Ma'
-            }
-
-            abbrev = planet_map.get(planet_name, planet_name[:2])
+            abbrev = PLANET_HINDI.get(planet_full, planet_full[:2])
 
             if "is in House" in planet_str:
                 house_idx = parts.index("is") + 3
@@ -86,116 +70,126 @@ def parse_planet_positions(planets_list):
 
     return house_planets
 
-
-def get_zodiac_sequence(lagna):
-    """Get zodiac signs in order starting from Lagna"""
-    zodiac_order = [
-        'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-        'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
-    ]
-
-    try:
-        start_idx = zodiac_order.index(lagna)
-    except ValueError:
-        start_idx = 0
-
-    # Rotate to start from Lagna
-    rotated = zodiac_order[start_idx:] + zodiac_order[:start_idx]
-    return rotated
-
-
-def draw_planets(draw, house_planets):
-    """Draw planets in their houses"""
-    try:
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf", 28)
-    except:
-        try:
-            font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-        except:
-            font_large = ImageFont.load_default()
-
-    for house_num, planets in house_planets.items():
-        if house_num in HOUSE_POSITIONS:
-            x, y = HOUSE_POSITIONS[house_num]
-            for i, planet in enumerate(planets):
-                color = PLANET_COLORS.get(planet, '#000000')
-                offset_y = i * 30
-                draw.text((x, y + offset_y), planet, fill=color, font=font_large)
-
-
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
-    """Draw traditional North Indian Kundli chart"""
-    img_width, img_height = 800, 600
-    img = Image.new('RGB', (img_width, img_height), color='white')
+    """Draw proper North Indian Kundli chart: Fixed Houses, Moving Signs"""
+    img_size = 800
+    img = Image.new('RGB', (img_size, img_size), color=BG_COLOR)
     draw = ImageDraw.Draw(img)
 
     house_planets = {}
     if planet_positions:
         house_planets = parse_planet_positions(planet_positions)
 
-    # Get fonts
-    try:
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf", 24)
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf", 28)
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf", 16)
-    except:
+    # Fonts - Try multiple paths for cross-platform compatibility
+    font_sign = font_hindi = font_info = None
+
+    # List of font paths to try (Linux first, then Windows)
+    font_paths = [
+        # Linux Devanagari fonts
+        "/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        # Windows fonts (for local testing)
+        "C:\\Windows\\Fonts\\Nirmala.ttc",
+        "C:\\Windows\\Fonts\\arial.ttf",
+        # Fallback
+        "arial.ttf",
+    ]
+
+    for font_path in font_paths:
         try:
-            font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
-            font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16)
+            if os.path.exists(font_path):
+                font_sign = ImageFont.truetype(font_path, 22)   # Sign numbers
+                font_hindi = ImageFont.truetype(font_path, 36)  # Planet abbreviations
+                font_info = ImageFont.truetype(font_path, 20)   # Nakshatra etc.
+                break
         except:
-            font_title = font_large = font_small = ImageFont.load_default()
+            continue
 
-    # Draw title
-    lagna_hindi = ZODIAC_HINDI.get(lagna, lagna)
-    moon_hindi = ZODIAC_HINDI.get(moon_sign, moon_sign)
-    title = f"Kundli - Lagna: {lagna_hindi}, Moon: {moon_hindi}"
-    draw.text((400, 30), title, fill='black', font=font_title, anchor='mt')
+    # If no font loaded, use default
+    if font_sign is None:
+        font_sign = font_hindi = font_info = ImageFont.load_default()
 
-    # Draw nakshatra
-    draw.text((400, 60), f"Nakshatra: {nakshatra}", fill='blue', font=font_small, anchor='mt')
+    # Grid Constants
+    PAD = 40
+    TOP, LEFT = PAD, PAD
+    BOTTOM, RIGHT = img_size - PAD, img_size - PAD
+    MID_X, MID_Y = img_size // 2, img_size // 2
 
-    # Draw proper North Indian Kundli grid
-    center_x, center_y = 400, 300
+    # Draw Outer Square
+    draw.rectangle([(LEFT, TOP), (RIGHT, BOTTOM)], outline=LINE_COLOR, width=3)
 
-    # Outer diamond boundary
-    outer_points = [(center_x, 100), (600, 300), (center_x, 500), (200, 300)]
-    draw.polygon(outer_points, outline='black', width=3)
+    # Draw Diagonals (X)
+    draw.line([(LEFT, TOP), (RIGHT, BOTTOM)], fill=LINE_COLOR, width=2)
+    draw.line([(RIGHT, TOP), (LEFT, BOTTOM)], fill=LINE_COLOR, width=2)
 
-    # Calculate midpoints for proper segmentation
-    top_mid = (center_x, 200)      # Midpoint between (400,100) and (400,300)
-    right_mid = (500, 300)         # Midpoint between (600,300) and (400,300)
-    bottom_mid = (center_x, 400)   # Midpoint between (400,500) and (400,300)
-    left_mid = (300, 300)          # Midpoint between (200,300) and (400,300)
+    # Draw Inner Diamond (Midpoints)
+    draw.line([(MID_X, TOP), (RIGHT, MID_Y)], fill=LINE_COLOR, width=2)
+    draw.line([(RIGHT, MID_Y), (MID_X, BOTTOM)], fill=LINE_COLOR, width=2)
+    draw.line([(MID_X, BOTTOM), (LEFT, MID_Y)], fill=LINE_COLOR, width=2)
+    draw.line([(LEFT, MID_Y), (MID_X, TOP)], fill=LINE_COLOR, width=2)
 
-    # Draw lines from corners to center (proper diamond segmentation)
-    # Top corner to center
-    draw.line([(center_x, 100), (center_x, center_y)], fill='black', width=2)
-    # Bottom corner to center
-    draw.line([(center_x, 500), (center_x, center_y)], fill='black', width=2)
-    # Left corner to center
-    draw.line([(200, 300), (center_x, center_y)], fill='black', width=2)
-    # Right corner to center
-    draw.line([(600, 300), (center_x, center_y)], fill='black', width=2)
+    # --- HOUSE LOGIC (North Indian - 12 FIXED AREAS) ---
+    # House Indices (Fixed):
+    # 1:  Top Center Diamond
+    # 2:  Top Left Side Triangle
+    # 3:  Left Top Side Triangle
+    # 4:  Left Center Diamond
+    # 5:  Left Bottom Side Triangle
+    # 6:  Bottom Left Side Triangle
+    # 7:  Bottom Center Diamond
+    # 8:  Bottom Right Side Triangle
+    # 9:  Right Bottom Side Triangle
+    # 10: Right Center Diamond
+    # 11: Right Top Side Triangle
+    # 12: Top Right Side Triangle
 
-    # Draw the inner diamond (connecting midpoints) to create central houses
-    inner_points = [top_mid, right_mid, bottom_mid, left_mid]
-    draw.polygon(inner_points, outline='black', width=2)
+    # Sign number in each house: (LagnaSign + house - 1) % 12
+    try:
+        lagna_sign_num = SIGN_NAMES.index(lagna) + 1
+    except:
+        lagna_sign_num = 1
+    
+    house_to_sign = {}
+    for h in range(1, 13):
+        sign_num = ((lagna_sign_num + h - 2) % 12) + 1
+        house_to_sign[h] = sign_num
 
-    # Draw lines dividing the inner diamond into 4 sections (for houses 11, 12, and their adjacent houses)
-    draw.line([(center_x, top_mid[1]), (center_x, bottom_mid[1])], fill='black', width=2)  # Vertical
-    draw.line([(left_mid[0], center_y), (right_mid[0], center_y)], fill='black', width=2)  # Horizontal
+    # High-precision coordinates for 800x800 square (PAD=40)
+    # Centers of the 12 triangles/diamonds
+    H_DATA = {
+        1:  {'sign': (400, 310), 'planets': (400, 200)}, # Top Diamond
+        2:  {'sign': (310, 150), 'planets': (220, 110)}, # TL Side
+        3:  {'sign': (150, 310), 'planets': (110, 220)}, # LT Side
+        4:  {'sign': (290, 400), 'planets': (200, 400)}, # Left Diamond
+        5:  {'sign': (150, 490), 'planets': (110, 580)}, # LB Side
+        6:  {'sign': (310, 650), 'planets': (220, 690)}, # BL Side
+        7:  {'sign': (400, 490), 'planets': (400, 600)}, # Bottom Diamond
+        8:  {'sign': (490, 650), 'planets': (580, 690)}, # BR Side
+        9:  {'sign': (650, 490), 'planets': (690, 580)}, # RB Side
+        10: {'sign': (510, 400), 'planets': (600, 400)}, # Right Diamond
+        11: {'sign': (650, 310), 'planets': (690, 220)}, # RT Side
+        12: {'sign': (490, 150), 'planets': (580, 110)}, # TR Side
+    }
 
-    # Draw house numbers (Devanagari)
-    for house_num, (x, y) in HOUSE_POSITIONS.items():
-        devanagari_num = DEVANAGARI_NUMERALS.get(house_num, str(house_num))
-        draw.text((x, y), devanagari_num, fill='blue', font=font_large, anchor='mm')
+    # Rendering
+    for h_num in range(1, 13):
+        # 1. Draw Sign Number
+        sign_val = house_to_sign[h_num]
+        s_x, s_y = H_DATA[h_num]['sign']
+        draw.text((s_x, s_y), str(sign_val), fill=TEXT_COLOR, font=font_sign, anchor='mm')
 
-    # Draw planets
-    draw_planets(draw, house_planets)
-
-    # Draw border
-    draw.rectangle([(10, 10), (img_width - 10, img_height - 10)], outline='black', width=3)
+        # 2. Draw Planets
+        planets = house_planets.get(h_num, [])
+        if h_num == 1 and 'ल' not in planets:
+            planets.insert(0, 'ल')
+        
+        if planets:
+            p_x, p_y = H_DATA[h_num]['planets']
+            # Join multiple planets with space, possibly multiple lines if needed
+            # For now, horizontal space is enough
+            planet_text = " ".join(planets)
+            draw.text((p_x, p_y), planet_text, fill=TEXT_COLOR, font=font_hindi, anchor='mm')
 
     # Convert to bytes
     img_bytes = BytesIO()
@@ -203,7 +197,6 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     img_bytes.seek(0)
 
     return img_bytes.read()
-
 
 def main():
     parser = argparse.ArgumentParser(description='Generate traditional Kundli chart')
@@ -216,13 +209,10 @@ def main():
 
     planet_positions = []
     if args.planets:
-        import json
         try:
             planet_positions = json.loads(args.planets)
         except json.JSONDecodeError:
             planet_positions = []
-
-    print(f"Generating traditional Kundli: Lagna={args.lagna}, Moon={args.moon_sign}", file=sys.stderr)
 
     try:
         image_bytes = draw_kundli_chart(
@@ -235,14 +225,12 @@ def main():
         # Output as base64 for WhatsApp
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
         print(f"MEDIA_BASE64: image/png {base64_string}")
-        print(f"✓ Generated {len(image_bytes)} bytes", file=sys.stderr)
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc(file=sys.stderr)
         sys.exit(1)
-
 
 if __name__ == "__main__":
     main()
