@@ -12,13 +12,21 @@ import urllib.request
 import urllib.parse
 from io import BytesIO
 
-# Pillow import (safe)
+# ✅ FIXED: Auto-install Pillow (like your old working code)
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
-    print("Error: Pillow (PIL) is not installed.", file=sys.stderr)
-    print("Install using: pip install pillow OR sudo apt install python3-pil", file=sys.stderr)
-    sys.exit(1)
+    try:
+        import subprocess
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install",
+            "--break-system-packages",
+            "pillow"
+        ])
+        from PIL import Image, ImageDraw, ImageFont
+    except Exception as e:
+        print("Error installing Pillow:", e, file=sys.stderr)
+        sys.exit(1)
 
 import argparse
 
@@ -134,47 +142,45 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if 'Lg' not in house_planets[1]:
         house_planets[1].insert(0, 'Lg')
 
-    # 🔥 FINAL PERFECT POSITIONS (NO OVERLAP)
+    # ✅ FIXED POSITIONS (no duplicates, no overlap)
     H_PLANETS = {
-        1: (200, 65),
-        2: (140, 45),
-        3: (45, 140),
-        4: (85, 200),
-        5: (45, 280),
-        6: (140, 355),
-        7: (200, 320),
-        8: (280, 355),
-        9: (355, 280),
-        10: (320, 200),
-        11: (355, 140),
-        12: (280, 45)
+        1: (200, 75),
+        2: (140, 60),
+        3: (60, 140),
+        4: (110, 200),
+        5: (60, 260),
+        6: (140, 340),
+        7: (200, 305),
+        8: (260, 340),
+        9: (340, 260),
+        10: (305, 200),
+        11: (340, 140),
+        12: (260, 60)
     }
 
     H_SIGNS = {
-        1: (200, 155),
-        2: (120, 100),
-        3: (100, 120),
-        4: (155, 200),
-        5: (100, 300),
-        6: (120, 300),
-        7: (200, 270),
-        8: (300, 300),
-        9: (300, 300),
-        10: (270, 200),
-        11: (300, 120),
-        12: (300, 100)
+        1: (200, 150),
+        2: (120, 90),
+        3: (90, 120),
+        4: (150, 200),
+        5: (90, 280),
+        6: (120, 310),
+        7: (200, 260),
+        8: (280, 310),
+        9: (310, 280),
+        10: (260, 200),
+        11: (310, 120),
+        12: (280, 90)
     }
 
     # Draw houses
     for h in range(1, 13):
 
-        # Sign rotation
         s_idx = (lagna_idx + h - 1) % 12
         s_text = f"{s_idx + 1} {SIGN_ABBR[s_idx]}"
 
         draw.text(H_SIGNS[h], s_text, fill=TEXT_COLOR, font=font_s, anchor='mm')
 
-        # Planets
         planets = house_planets.get(h, [])
 
         if planets:
@@ -193,7 +199,6 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         anchor='mm'
     )
 
-    # Output
     img_io = BytesIO()
     img.save(img_io, 'PNG')
     return img_io.getvalue()
