@@ -84,14 +84,20 @@ Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai."
 
-**EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG):**
+**EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai.
 
-**🛑 DO NOT add anything after the MEDIA URL!**
+**🛑 CRITICAL: DO NOT include any image, base64 data, or markdown in your response!**
+- NO `![Kundli](data:image/png;base64,...)`
+- NO `MEDIA:`
+- NO `MEDIA_BASE64:`
+- NO base64 strings at all
+
+Just output the 3 lines of text above. The webhook will automatically handle the image from the script's console output.
 
 **Example (EXACT OUTPUT - nothing after line 3):**
 Vardhan bhai, aapka Kundli chart tayyar ho gaya hai.
@@ -107,3 +113,4 @@ Yeh raha aapka chart:
 3. **Double newline (Enter twice)** between each line.
 4. **No heavy Hindi.** Use simple Hinglish (e.g. "placed hai", "strong chances hain").
 5. **🛑 MEDIA Tag - DO NOT ADD YOUR OWN:** When the draw_kundli_traditional.py script completes, it ALREADY outputs the MEDIA_BASE64 tag automatically. Do NOT write "MEDIA: Kundli Chart". Do NOT add any MEDIA tag at all. Just write your 3-line text response and let the script's output handle the image automatically.
+6. **🛑 NO BASE64 IN TEXT RESPONSE:** NEVER include `![Kundli](data:image/png;base64,...)` or any base64 data in your response. The webhook extracts it automatically from the script's console output. Including base64 in text causes WhatsApp errors.
