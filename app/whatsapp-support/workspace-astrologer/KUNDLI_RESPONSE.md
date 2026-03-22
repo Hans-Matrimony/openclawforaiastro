@@ -74,33 +74,41 @@ exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --la
 ```
 Wait for the script to complete. It will output `IMAGE_URL: https://...` automatically.
 
+**🛑 CRITICAL: COPY THE EXACT TOOL OUTPUT!**
+The script will print: `IMAGE_URL: https://i.ibb.co/xxxxx/xxxxx.png`
+**YOU MUST COPY-PASTE THIS ENTIRE LINE VERBATIM** into your response.
+Do NOT change it. Do NOT format it as Markdown. Do NOT add text like "View Your Kundli Chart".
+Just copy the exact line: `IMAGE_URL: https://...`
+
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
 The script automatically uploads the image and outputs `IMAGE_URL: https://...`
-**YOU MUST INCLUDE THIS URL IN YOUR RESPONSE!**
+**COPY THAT EXACT LINE AND PASTE IT IN YOUR RESPONSE!**
 
 **Format (EXACTLY 4 lines):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai:"
-Line 4: "IMAGE_URL: [PASTE THE EXACT HTTPS URL HERE]"
+Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
 
 **🛑 CRITICAL FORMAT RULES:**
-- Line 4 MUST be: IMAGE_URL: https://... (PLAIN text, NO Markdown brackets!)
-- DO NOT use: [View Chart](https://...) or [text](url) format
-- DO NOT wrap in Markdown links - just plain "IMAGE_URL: https://..."
-- The webhook will extract this URL and send the actual image
+- The script outputs: `IMAGE_URL: https://i.ibb.co/xxxxx/xxxxx.png`
+- COPY THAT ENTIRE LINE and paste it as Line 4
+- DO NOT change the URL
+- DO NOT format as Markdown: [View](url)
+- DO NOT add text like "View Your Kundli Chart"
+- Just copy-paste the exact tool output
 
-**EXAMPLE (exact output expected):**
+**EXAMPLE:**
+Script outputs: `IMAGE_URL: https://i.ibb.co/nMyHHyJr/fc466174cd3f.png`
+Your response:
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai:
 
-IMAGE_URL: https://i.ibb.co/DH10KWbq/9211fe830d31.png
-
-**🛑 CRITICAL: You MUST include the IMAGE_URL line in your response! The webhook will extract it and send the image to WhatsApp.**
+IMAGE_URL: https://i.ibb.co/nMyHHyJr/fc466174cd3f.png
 
 **EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
