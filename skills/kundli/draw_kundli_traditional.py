@@ -9,7 +9,6 @@ import sys
 import json
 import base64
 import urllib.request
-import urllib.parse
 from io import BytesIO
 
 # Auto-install Pillow
@@ -185,22 +184,38 @@ def main():
         )
 
         b64 = base64.b64encode(image_data).decode()
-        print(f"IMAGE_BASE64: {b64}")
 
         # ImgBB upload
         api_key = os.getenv("IMGBB_API_KEY")
         if api_key and api_key != "your_imgbb_key_here":
             try:
-                payload = urllib.parse.urlencode({
-                    "key": api_key, "image": b64
-                }).encode()
+                boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
+                payload = (
+                    f'--{boundary}\r\n'
+                    f'Content-Disposition: form-data; name="image"\r\n\r\n'
+                    f'{b64}\r\n'
+                    f'--{boundary}--\r\n'
+                ).encode('utf-8')
 
-                req = urllib.request.Request("https://api.imgbb.com/1/upload", data=payload)
-                with urllib.request.urlopen(req, timeout=10) as res:
-                    data = json.loads(res.read().decode())
-                    print(f"IMAGE_URL: {data['data']['url']}")
-            except:
-                pass
+                upload_url = f'https://api.imgbb.com/1/upload?key={api_key}'
+
+                req = urllib.request.Request(
+                    upload_url,
+                    data=payload,
+                    method='POST'
+                )
+                req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
+
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    if response.status == 200:
+                        result = json.loads(response.read().decode('utf-8'))
+                        print(f"IMAGE_URL: {result['data']['url']}")
+                    else:
+                        print(f"ERROR: ImgBB upload failed", file=sys.stderr)
+            except Exception as e:
+                print(f"ERROR: ImgBB upload failed: {e}", file=sys.stderr)
+        else:
+            print(f"ERROR: IMGBB_API_KEY not set", file=sys.stderr)
 
     except Exception as e:
         print("Error:", e, file=sys.stderr)
