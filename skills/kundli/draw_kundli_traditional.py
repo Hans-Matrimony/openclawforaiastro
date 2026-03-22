@@ -131,7 +131,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
 
     # Centers of the 12 spaces for HORIZONTAL planet placements
     H_PLANETS = {
-        1: (200, 55), # <--- FIXED: Pushed UP securely into House 1
+        1: (200, 55),
         2: (110, 60), 3: (60, 110), 4: (110, 200),
         5: (60, 290), 6: (110, 340), 7: (200, 290), 8: (290, 340),
         9: (340, 290), 10: (290, 200), 11: (340, 110), 12: (290, 60)
@@ -139,7 +139,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
 
     # Tucked corner coordinates for the Signs
     H_SIGNS = {
-        1: (200, 120), # <--- FIXED: Pulled DOWN towards the center cross
+        1: (200, 105), # <--- FINAL FIX: Grouped cleanly with Lagna
         2: (110, 35), 3: (35, 110), 4: (130, 150),
         5: (35, 290), 6: (110, 365), 7: (200, 240), 8: (290, 365),
         9: (365, 290), 10: (270, 150), 11: (365, 110), 12: (290, 35)
