@@ -32,235 +32,145 @@ SIGN_NAMES = [
     'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ]
 
+# Sign Abbreviations (matching professional charts)
+SIGN_ABBR = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis"]
+
 # Planet Hindi Abbreviations
 PLANET_HINDI = {
-    'Sun': 'सू',
-    'Moon': 'च',
-    'Mars': 'मं',
-    'Mercury': 'बु',
-    'Jupiter': 'गु',
-    'Venus': 'शु',
-    'Saturn': 'श',
-    'Rahu': 'रा',
-    'Ketu': 'के',
-    'Lagna': 'ल'
+    'Sun': 'सू', 'Moon': 'च', 'Mars': 'मं', 'Mercury': 'बु',
+    'Jupiter': 'गु', 'Venus': 'शु', 'Saturn': 'श', 'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'ल',
+    'Kuja': 'कु', 'Brahaspati': 'ब्र', 'Sury': 'सू', 'Chandr': 'च', 'Budh': 'बु', 'Guru': 'गु', 'Shukr': 'शु', 'Shani': 'श'
 }
 
 def parse_planet_positions(planets_list):
-    """Parse planet positions from calculate.py output"""
+    """Parse planet positions: 'Planet is in House X [Retrograde]'"""
     house_planets = {}
-
     for planet_str in planets_list:
         try:
             parts = planet_str.split()
-            planet_full = parts[0]
+            planet_name = parts[0]
+            if "Lagna" in planet_str: planet_name = "Lagna"
             
-            if "Lagna" in planet_str:
-                planet_full = "Lagna"
-
-            abbrev = PLANET_HINDI.get(planet_full, planet_full[:2])
-            
-            # Add Retrograde status (*)
+            p_abbrev = PLANET_HINDI.get(planet_name, planet_name[:2])
             if "[Retrograde]" in planet_str:
-                abbrev += "*"
-
-            if "is in House" in planet_str:
-                house_idx = parts.index("is") + 3
-                house_num = int(parts[house_idx])
-
-                if house_num not in house_planets:
-                    house_planets[house_num] = []
-                house_planets[house_num].append(abbrev)
-        except Exception:
-            continue
-
+                p_abbrev += "*"
+            
+            # Find house number
+            house_num = None
+            if "House" in parts:
+                idx = parts.index("House")
+                house_num = int(parts[idx+1].rstrip(',. '))
+            
+            if house_num:
+                if house_num not in house_planets: house_planets[house_num] = []
+                house_planets[house_num].append(p_abbrev)
+        except: continue
     return house_planets
 
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
-    """Draw proper North Indian Kundli chart: Fixed Houses, Moving Signs"""
-    img_size = 400  # Matched to logic
+    img_size = 400
+    PAD = 20
     img = Image.new('RGB', (img_size, img_size), color=BG_COLOR)
     draw = ImageDraw.Draw(img)
 
-    house_planets = {}
-    if planet_positions:
-        house_planets = parse_planet_positions(planet_positions)
-
-    # Fonts - try cross-platform paths
-    font_paths = [
-        "/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "C:\\Windows\\Fonts\\Nirmala.ttc",
-        "arial.ttf"
-    ]
-    
-    font_sign = font_hindi = font_info = None
-    for p in font_paths:
+    # 1. Fonts
+    font_paths = ["C:\\Windows\\Fonts\\Nirmala.ttc", "arial.ttf", "/usr/share/fonts/truetype/noto/NotoSansDevanagari.ttf"]
+    font_p = font_s = None
+    for fp in font_paths:
         try:
-            if os.path.exists(p):
-                font_sign = ImageFont.truetype(p, 12)   # Smaller sign numbers
-                font_hindi = ImageFont.truetype(p, 18)  # Scaled planets
-                font_info = ImageFont.truetype(p, 10)
+            if os.path.exists(fp) or "ttf" in fp:
+                font_p = ImageFont.truetype(fp, 18) # Planet
+                font_s = ImageFont.truetype(fp, 12) # Sign
                 break
         except: continue
+    if not font_p: font_p = font_s = ImageFont.load_default()
+
+    # 2. Grid (400x400)
+    L, T, R, B = PAD, PAD, img_size-PAD, img_size-PAD
+    MX, MY = img_size//2, img_size//2
+    draw.rectangle([L, T, R, B], outline=LINE_COLOR, width=1)
+    draw.line([L, T, R, B], fill=LINE_COLOR, width=1) # Diagonals
+    draw.line([R, T, L, B], fill=LINE_COLOR, width=1)
+    # Diamond
+    draw.line([MX, T, R, MY], fill=LINE_COLOR, width=1)
+    draw.line([R, MY, MX, B], fill=LINE_COLOR, width=1)
+    draw.line([MX, B, L, MY], fill=LINE_COLOR, width=1)
+    draw.line([L, MY, MX, T], fill=LINE_COLOR, width=1)
+
+    # 3. Data
+    try: lagna_idx = SIGN_NAMES.index(lagna)
+    except: lagna_idx = 0
     
-    if not font_sign:
-        font_sign = font_hindi = font_info = ImageFont.load_default()
+    house_planets = parse_planet_positions(planet_positions or [])
+    if 1 not in house_planets: house_planets[1] = []
+    if 'ल' not in [p[0] for p in house_planets[1]]: house_planets[1].insert(0, 'ल')
 
-    # Grid Constants (400x400)
-    PAD = 15
-    TOP, LEFT = PAD, PAD
-    BOTTOM, RIGHT = img_size - PAD, img_size - PAD
-    MID_X, MID_Y = img_size // 2, img_size // 2
+    # House mapping logic (Centers)
+    # Intersections of diag and diamond are at PAD + 1/4 of inner square
+    INNER = img_size - 2*PAD
+    IST = PAD + INNER // 4  # ~115
+    END = PAD + 3 * (INNER // 4) # ~285
 
-    # Draw Outer Square
-    draw.rectangle([(LEFT, TOP), (RIGHT, BOTTOM)], outline=LINE_COLOR, width=1)
-
-    # Draw Diagonals (X)
-    draw.line([(LEFT, TOP), (RIGHT, BOTTOM)], fill=LINE_COLOR, width=1)
-    draw.line([(RIGHT, TOP), (LEFT, BOTTOM)], fill=LINE_COLOR, width=1)
-
-    # Draw Inner Diamond (Midpoints)
-    draw.line([(MID_X, TOP), (RIGHT, MID_Y)], fill=LINE_COLOR, width=1)
-    draw.line([(RIGHT, MID_Y), (MID_X, BOTTOM)], fill=LINE_COLOR, width=1)
-    draw.line([(MID_X, BOTTOM), (LEFT, MID_Y)], fill=LINE_COLOR, width=1)
-    draw.line([(LEFT, MID_Y), (MID_X, TOP)], fill=LINE_COLOR, width=1)
-
-    # --- HOUSE LOGIC ---
-    try:
-        lagna_sign_num = SIGN_NAMES.index(lagna) + 1
-    except:
-        lagna_sign_num = 1
+    H_CENTERS = {
+        1:  (MX, (T+IST)//2 + 10), # Top Diamond center
+        2:  ((MX+IST)//2, (T+B)//8 + 15),
+        3:  ((L+MX)//4 + 20, (T+IST)//2 + 50),
+        4:  ((L+IST)//2 + 10, MY), # Left Diamond
+        5:  ((L+MX)//4 + 20, (B+END)//2 - 50),
+        6:  ((MX+IST)//2, (B+MY)//2 + 40),
+        7:  (MX, (B+END)//2 + 20), # Bottom Diamond
+        8:  ((MX+END)//2, (B+MY)//2 + 40),
+        9:  ((R+MX)//2 + 40, (B+END)//2 - 50),
+        10: ((R+END)//2 + 10, MY), # Right Diamond
+        11: ((R+MX)//2 + 40, (T+IST)//2 + 50),
+        12: ((MX+END)//2, (T+B)//8 + 15),
+    }
     
-    house_to_sign = {}
-    for h in range(1, 13):
-        sign_num = ((lagna_sign_num + h - 2) % 12) + 1
-        house_to_sign[h] = sign_num
-
-    # High-precision coordinates for 400x400 (PAD=15)
-    # Signs are small and near boundaries, Planets stacked in the middle
-    H_DATA = {
-        1:  {'sign': (200, 160), 'planets': (200, 100)}, # Top Diamond
-        2:  {'sign': (155, 75),  'planets': (120, 60)},  # TL Side
-        3:  {'sign': (75, 155),  'planets': (60, 120)},  # LT Side
-        4:  {'sign': (140, 200), 'planets': (100, 200)}, # Left Diamond
-        5:  {'sign': (75, 245),  'planets': (60, 280)},  # LB Side
-        6:  {'sign': (155, 325), 'planets': (120, 340)}, # BL Side
-        7:  {'sign': (200, 240), 'planets': (200, 300)}, # Bottom Diamond
-        8:  {'sign': (245, 325), 'planets': (280, 340)}, # BR Side
-        9:  {'sign': (325, 245), 'planets': (340, 280)}, # RB Side
-        10: {'sign': (260, 200), 'planets': (300, 200)}, # Right Diamond
-        11: {'sign': (325, 155), 'planets': (340, 120)}, # RT Side
-        12: {'sign': (245, 75),  'planets': (280, 60)},  # TR Side
+    # House apex for signs (Top/Edge of house)
+    H_SIGNS = {
+        1: (MX, T+15), 2: (MX-40, T+30), 3: (L+15, MY-40),
+        4: (IST+10, MY), 5: (L+15, MY+40), 6: (MX-40, B-30),
+        7: (MX, END+20), 8: (MX+40, B-30), 9: (R-15, MY+40),
+        10: (END+20, MY), 11: (R-15, MY-40), 12: (MX+40, T+30),
     }
 
     # Rendering
-    for h_num in range(1, 13):
-        # 1. Sign Number
-        sign_val = house_to_sign[h_num]
-        s_x, s_y = H_DATA[h_num]['sign']
-        draw.text((s_x, s_y), str(sign_val), fill=TEXT_COLOR, font=font_sign, anchor='mm')
+    for h in range(1, 13):
+        # A. Sign (e.g. "10 Cap")
+        s_idx = (lagna_idx + h - 1) % 12
+        s_text = f"{s_idx+1} {SIGN_ABBR[s_idx]}"
+        draw.text(H_SIGNS[h], s_text, fill=TEXT_COLOR, font=font_s, anchor='mm')
 
-        # 2. Planets (Vertical Stacking)
-        planets = house_planets.get(h_num, [])
-        if h_num == 1 and 'ल' not in [p[0] for p in planets]:
-            planets.insert(0, 'ल')
-        
+        # B. Planets (Vertical Stack)
+        planets = house_planets.get(h, [])
         if planets:
-            p_x, p_y = H_DATA[h_num]['planets']
-            for i, p_abbrev in enumerate(planets):
-                offset_y = (i - (len(planets)-1)/2) * 18
-                draw.text((p_x, p_y + offset_y), p_abbrev, fill=TEXT_COLOR, font=font_hindi, anchor='mm')
+            cx, cy = H_CENTERS[h]
+            for i, p in enumerate(planets):
+                oy = (i - (len(planets)-1)/2) * 20
+                draw.text((cx, cy + oy), p, fill=TEXT_COLOR, font=font_p, anchor='mm')
 
-    # Subtle Info
-    info_text = f"{nakshatra} | Moon: {moon_sign}"
-    draw.text((MID_X, img_size - 8), info_text, fill=TEXT_COLOR, font=font_info, anchor='mm')
+    # Footer
+    draw.text((MX, img_size - 10), f"{nakshatra} | Moon: {moon_sign}", fill=TEXT_COLOR, font=font_s, anchor='mm')
 
-    # Convert to bytes
-    img_bytes = BytesIO()
-    img.save(img_bytes, format='PNG')
-    img_bytes.seek(0)
-
-    return img_bytes.read()
+    img_io = BytesIO()
+    img.save(img_io, 'PNG')
+    return img_io.getvalue()
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate traditional Kundli chart')
-    parser.add_argument('--lagna', required=True, help='Lagna (Ascendant) sign')
-    parser.add_argument('--moon-sign', required=True, help='Moon sign')
-    parser.add_argument('--nakshatra', required=True, help='Nakshatra')
-    parser.add_argument('--planets', help='Planet positions as JSON array')
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--lagna', required=True)
+    parser.add_argument('--moon-sign', required=True)
+    parser.add_argument('--nakshatra', required=True)
+    parser.add_argument('--planets')
     args = parser.parse_args()
 
-    planet_positions = []
-    if args.planets:
-        try:
-            planet_positions = json.loads(args.planets)
-        except json.JSONDecodeError:
-            planet_positions = []
-
+    planets = json.loads(args.planets or '[]')
     try:
-        image_bytes = draw_kundli_chart(
-            args.lagna,
-            args.moon_sign,
-            args.nakshatra,
-            planet_positions
-        )
-
-        # Upload to ImgBB (free image hosting) - similar to DALL-E URL approach
-        import urllib.request
-
-        imgbb_api_key = os.getenv("IMGBB_API_KEY", "your_imgbb_key_here")
-        base64_string = base64.b64encode(image_bytes).decode('utf-8')
-
-        try:
-            # ImgBB expects: key in URL query parameter, image as raw base64 in multipart/form-data
-            # Note: NOT data URL format, just raw base64 string
-
-            # Use multipart/form-data encoding (not urlencoded)
-            boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
-            payload = (
-                f'--{boundary}\r\n'
-                f'Content-Disposition: form-data; name="image"\r\n\r\n'
-                f'{base64_string}\r\n'
-                f'--{boundary}--\r\n'
-            ).encode('utf-8')
-
-            # API key goes in URL query parameter
-            upload_url = f'https://api.imgbb.com/1/upload?key={imgbb_api_key}'
-
-            print(f"Uploading to ImgBB (image size: {len(image_bytes)} bytes, base64 size: {len(base64_string)} chars)...", file=sys.stderr)
-
-            req = urllib.request.Request(
-                upload_url,
-                data=payload,
-                method='POST'
-            )
-            req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
-
-            with urllib.request.urlopen(req, timeout=10) as response:
-                if response.status == 200:
-                    result = json.loads(response.read().decode('utf-8'))
-                    image_url = result['data']['url']
-                    print(f"IMAGE_URL: {image_url}")
-                else:
-                    error_data = response.read().decode('utf-8')
-                    print(f"Upload failed: status {response.status}", file=sys.stderr)
-                    print(f"ImgBB error response: {error_data}", file=sys.stderr)
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode('utf-8')
-            print(f"ERROR: Upload to ImgBB failed: {e.code} {e.reason}", file=sys.stderr)
-            print(f"ImgBB error response: {error_body}", file=sys.stderr)
-        except Exception as e:
-            print(f"ERROR: Upload to ImgBB failed: {e}", file=sys.stderr)
-            import traceback
-            traceback.print_exc(file=sys.stderr)
-
+        data = draw_kundli_chart(args.lagna, args.moon_sign, args.nakshatra, planets)
+        b64 = base64.b64encode(data).decode()
+        print(f"IMAGE_BASE64: {b64}") # Unified output
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()
