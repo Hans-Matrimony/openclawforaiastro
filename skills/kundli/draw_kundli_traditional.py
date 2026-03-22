@@ -116,16 +116,33 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     img = Image.new('RGB', (img_size, img_size), BG_COLOR)
     draw = ImageDraw.Draw(img)
 
-    # Use the robust font loader
-    font_path = get_devanagari_font()
-    if font_path:
+    # --- FONT FIX: Load Hindi for planets, English for signs ---
+    font_path_hindi = get_devanagari_font()
+    
+    # 1. Load Planet Font (Hindi)
+    if font_path_hindi:
         try:
-            font_p = ImageFont.truetype(font_path, 16) # Planet text size
-            font_s = ImageFont.truetype(font_path, 11) # Sign text size
+            font_p = ImageFont.truetype(font_path_hindi, 16)
         except:
-            font_p = font_s = ImageFont.load_default()
+            font_p = ImageFont.load_default()
     else:
-        font_p = font_s = ImageFont.load_default()
+        font_p = ImageFont.load_default()
+
+    # 2. Load Sign Font (English System Font)
+    font_paths_english = [
+        "C:\\Windows\\Fonts\\arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/System/Library/Fonts/Helvetica.ttc"
+    ]
+    for path in font_paths_english:
+        try:
+            font_s = ImageFont.truetype(path, 11)
+            break
+        except:
+            continue
+    else:
+        font_s = ImageFont.load_default()
+    # -----------------------------------------------------------
 
     # Grid Points
     L, T, R, B = PAD, PAD, img_size - PAD, img_size - PAD
@@ -150,7 +167,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
 
     # Centers of the 12 spaces for HORIZONTAL planet placements
     H_PLANETS = {
-        1: (200, 55), # Safely tucked up into the top diamond
+        1: (200, 55),
         2: (110, 60), 3: (60, 110), 4: (110, 200),
         5: (60, 290), 6: (110, 340), 7: (200, 290), 8: (290, 340),
         9: (340, 290), 10: (290, 200), 11: (340, 110), 12: (290, 60)
@@ -158,7 +175,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
 
     # Tucked corner coordinates for the Signs
     H_SIGNS = {
-        1: (200, 105), # Perfectly grouped under the top planet placement
+        1: (200, 105),
         2: (110, 35), 3: (35, 110), 4: (130, 150),
         5: (35, 290), 6: (110, 365), 7: (200, 240), 8: (290, 365),
         9: (365, 290), 10: (270, 150), 11: (365, 110), 12: (290, 35)
@@ -170,7 +187,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         s_idx = (lagna_idx + i) % 12
         s_text = f"{s_idx + 1} {SIGN_ABBR[s_idx]}"
         
-        # Draw signs tucked into corners
+        # Draw signs tucked into corners (Using the ENGLISH font)
         draw.text(H_SIGNS[h], s_text, fill=LINE_COLOR, font=font_s, anchor='mm')
 
         planets = house_planets.get(h, [])
@@ -178,6 +195,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
             cx, cy = H_PLANETS[h]
             # Horizontal space-separated combination (e.g. "ल कु के*")
             planet_text = " ".join(planets)
+            # Draw planets (Using the HINDI font)
             draw.text((cx, cy), planet_text, fill=TEXT_COLOR, font=font_p, anchor='mm')
 
     img_io = BytesIO()
@@ -204,9 +222,9 @@ def main():
         )
 
         b64 = base64.b64encode(image_data).decode()
-        print(f"IMAGE_BASE64: {b64}")
-
-        # ImgBB upload
+        
+        # We output standard base64 directly so your backend can use it, 
+        # or ImgBB upload runs if the key is provided
         api_key = os.getenv("IMGBB_API_KEY")
         if api_key and api_key != "your_imgbb_key_here":
             try:
@@ -236,7 +254,8 @@ def main():
             except Exception as e:
                 print(f"ERROR: ImgBB upload failed: {e}", file=sys.stderr)
         else:
-            print(f"ERROR: IMGBB_API_KEY not set", file=sys.stderr)
+            # If no ImgBB key, just print the base64 string
+            print(f"IMAGE_BASE64: {b64}")
 
     except Exception as e:
         print("Error:", e, file=sys.stderr)
