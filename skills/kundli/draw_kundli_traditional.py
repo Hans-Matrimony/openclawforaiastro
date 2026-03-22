@@ -43,13 +43,15 @@ SIGN_ABBR = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap
 # Planet Hindi Abbreviations
 PLANET_HINDI = {
     'Sun': 'सू', 'Moon': 'च', 'Mars': 'मं', 'Mercury': 'बु',
-    'Jupiter': 'गु', 'Venus': 'शु', 'Saturn': 'श', 'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'ल',
+    'Jupiter': 'गु', 'Venus': 'शु', 'Saturn': 'श', 'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'Lg',
     'Kuja': 'कु', 'Brahaspati': 'ब्र', 'Sury': 'सू', 'Chandr': 'च', 'Budh': 'बु', 'Guru': 'गु', 'Shukr': 'शु', 'Shani': 'श'
 }
 
 def parse_planet_positions(planets_list):
     """Parse planet positions: 'Planet is in House X [Retrograde]'"""
     house_planets = {}
+    if not planets_list: return house_planets
+    
     for planet_str in planets_list:
         try:
             parts = planet_str.split()
@@ -62,9 +64,8 @@ def parse_planet_positions(planets_list):
             
             # Find house number
             house_num = None
-            if "House" in parts:
-                idx = parts.index("House")
-                house_num = int(parts[idx+1].rstrip(',. '))
+            for p in parts:
+                if p.isdigit(): house_num = int(p); break
             
             if house_num:
                 if house_num not in house_planets: house_planets[house_num] = []
@@ -83,7 +84,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     font_p = font_s = None
     for fp in font_paths:
         try:
-            if os.path.exists(fp) or "ttf" in fp:
+            if os.path.exists(fp) or "ttf" in fp or "ttc" in fp:
                 font_p = ImageFont.truetype(fp, 18) # Planet
                 font_s = ImageFont.truetype(fp, 12) # Sign
                 break
@@ -93,6 +94,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     # 2. Grid (400x400)
     L, T, R, B = PAD, PAD, img_size-PAD, img_size-PAD
     MX, MY = img_size//2, img_size//2
+    # Boundaries
     draw.rectangle([L, T, R, B], outline=LINE_COLOR, width=1)
     draw.line([L, T, R, B], fill=LINE_COLOR, width=1) # Diagonals
     draw.line([R, T, L, B], fill=LINE_COLOR, width=1)
@@ -108,35 +110,20 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     
     house_planets = parse_planet_positions(planet_positions or [])
     if 1 not in house_planets: house_planets[1] = []
-    if 'ल' not in [p[0] for p in house_planets[1]]: house_planets[1].insert(0, 'ल')
+    if 'Lg' not in house_planets[1]: house_planets[1].insert(0, 'Lg')
 
-    # House mapping logic (Centers)
-    # Intersections of diag and diamond are at PAD + 1/4 of inner square
-    INNER = img_size - 2*PAD
-    IST = PAD + INNER // 4  # ~115
-    END = PAD + 3 * (INNER // 4) # ~285
-
-    H_CENTERS = {
-        1:  (MX, (T+IST)//2 + 10), # Top Diamond center
-        2:  ((MX+IST)//2, (T+B)//8 + 15),
-        3:  ((L+MX)//4 + 20, (T+IST)//2 + 50),
-        4:  ((L+IST)//2 + 10, MY), # Left Diamond
-        5:  ((L+MX)//4 + 20, (B+END)//2 - 50),
-        6:  ((MX+IST)//2, (B+MY)//2 + 40),
-        7:  (MX, (B+END)//2 + 20), # Bottom Diamond
-        8:  ((MX+END)//2, (B+MY)//2 + 40),
-        9:  ((R+MX)//2 + 40, (B+END)//2 - 50),
-        10: ((R+END)//2 + 10, MY), # Right Diamond
-        11: ((R+MX)//2 + 40, (T+IST)//2 + 50),
-        12: ((MX+END)//2, (T+B)//8 + 15),
+    # Precise House Geometry (Centers and Sign Labels)
+    # Centers for planets
+    H_PLANETS = {
+        1: (200, 110), 2: (155, 65),  3: (65, 155),  4: (110, 200),
+        5: (65, 245),  6: (155, 335), 7: (200, 290), 8: (245, 335),
+        9: (335, 245), 10: (290, 200), 11: (335, 155), 12: (245, 65)
     }
-    
-    # House apex for signs (Top/Edge of house)
+    # Sign labels (pushed away from lines)
     H_SIGNS = {
-        1: (MX, T+15), 2: (MX-40, T+30), 3: (L+15, MY-40),
-        4: (IST+10, MY), 5: (L+15, MY+40), 6: (MX-40, B-30),
-        7: (MX, END+20), 8: (MX+40, B-30), 9: (R-15, MY+40),
-        10: (END+20, MY), 11: (R-15, MY-40), 12: (MX+40, T+30),
+        1: (200, 160), 2: (125, 75),  3: (75, 125),  4: (150, 200),
+        5: (75, 275),  6: (125, 325), 7: (200, 240), 8: (275, 325),
+        9: (325, 275), 10: (250, 200), 11: (325, 125), 12: (275, 75)
     }
 
     # Rendering
@@ -149,7 +136,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         # B. Planets (Vertical Stack)
         planets = house_planets.get(h, [])
         if planets:
-            cx, cy = H_CENTERS[h]
+            cx, cy = H_PLANETS[h]
             for i, p in enumerate(planets):
                 oy = (i - (len(planets)-1)/2) * 20
                 draw.text((cx, cy + oy), p, fill=TEXT_COLOR, font=font_p, anchor='mm')
@@ -169,42 +156,29 @@ def main():
     parser.add_argument('--planets')
     args = parser.parse_args()
 
-    planets = json.loads(args.planets or '[]')
+    try:
+        planets = json.loads(args.planets) if args.planets else []
+    except:
+        planets = []
+
     try:
         data = draw_kundli_chart(args.lagna, args.moon_sign, args.nakshatra, planets)
         b64 = base64.b64encode(data).decode()
+        print(f"IMAGE_BASE64: {b64}")
 
-        # Upload to ImgBB
-        imgbb_api_key = os.getenv("IMGBB_API_KEY", "your_imgbb_key_here")
-
-        try:
-            boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
-            payload = (
-                f'--{boundary}\r\n'
-                f'Content-Disposition: form-data; name="image"\r\n\r\n'
-                f'{b64}\r\n'
-                f'--{boundary}--\r\n'
-            ).encode('utf-8')
-
-            upload_url = f'https://api.imgbb.com/1/upload?key={imgbb_api_key}'
-
-            req = urllib.request.Request(
-                upload_url,
-                data=payload,
-                method='POST'
-            )
-            req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
-
-            with urllib.request.urlopen(req, timeout=10) as response:
-                if response.status == 200:
-                    result = json.loads(response.read().decode('utf-8'))
-                    image_url = result['data']['url']
-                    print(f"IMAGE_URL: {image_url}")
-                else:
-                    print(f"ERROR: Upload failed", file=sys.stderr)
-        except Exception as e:
-            print(f"ERROR: Upload to ImgBB failed: {e}", file=sys.stderr)
-
+        # Optional ImgBB upload
+        api_key = os.getenv("IMGBB_API_KEY")
+        if api_key and api_key != "your_imgbb_key_here":
+            try:
+                boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
+                payload = f'--{boundary}\r\nContent-Disposition: form-data; name="image"\r\n\r\n{b64}\r\n--{boundary}--\r\n'.encode('utf-8')
+                req = urllib.request.Request(f'https://api.imgbb.com/1/upload?key={api_key}', data=payload, method='POST')
+                req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    if resp.status == 200:
+                        url = json.loads(resp.read().decode())['data']['url']
+                        print(f"IMAGE_URL: {url}")
+            except: pass
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
 
