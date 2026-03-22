@@ -165,20 +165,36 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if 'ल' not in house_planets[1]:
         house_planets[1].insert(0, 'ल')
 
-    # Centers of the 12 spaces for HORIZONTAL planet placements
+    # ✅ FIXED H_PLANETS mapping
     H_PLANETS = {
         1: (200, 55),
-        2: (110, 60), 3: (60, 110), 4: (110, 200),
-        5: (60, 290), 6: (110, 340), 7: (200, 290), 8: (290, 340),
-        9: (340, 290), 10: (290, 200), 11: (340, 110), 12: (290, 60)
+        2: (120, 90),
+        3: (70, 150),
+        4: (120, 260),
+        5: (200, 320),
+        6: (280, 260),
+        7: (320, 150),
+        8: (280, 90),
+        9: (260, 260),
+        10: (260, 150),
+        11: (140, 150),
+        12: (140, 90)
     }
 
-    # Tucked corner coordinates for the Signs
+    # ✅ FIXED H_SIGNS mapping
     H_SIGNS = {
         1: (200, 105),
-        2: (110, 35), 3: (35, 110), 4: (130, 150),
-        5: (35, 290), 6: (110, 365), 7: (200, 240), 8: (290, 365),
-        9: (365, 290), 10: (270, 150), 11: (365, 110), 12: (290, 35)
+        2: (110, 50),
+        3: (50, 110),
+        4: (110, 200),
+        5: (50, 300),
+        6: (110, 350),
+        7: (200, 250),
+        8: (290, 350),
+        9: (350, 300),
+        10: (290, 200),
+        11: (350, 110),
+        12: (290, 50)
     }
 
     HOUSE_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12]
@@ -197,6 +213,15 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
             planet_text = " ".join(planets)
             # Draw planets (Using the HINDI font)
             draw.text((cx, cy), planet_text, fill=TEXT_COLOR, font=font_p, anchor='mm')
+
+    # ✅ FIXED: Added Footer Back
+    draw.text(
+        (MX, img_size - 10),
+        f"{nakshatra} | Moon: {moon_sign}",
+        fill=TEXT_COLOR,
+        font=font_s,
+        anchor='mm'
+    )
 
     img_io = BytesIO()
     img.save(img_io, 'PNG')
