@@ -135,9 +135,13 @@ exec: python3 ~/.openclaw/skills/kundli/calculate.py --dob "<USER'S DOB>" --tob 
 
 **STEP 2: Generate Chart Image (MANDATORY - MUST DO THIS THIRD!)**
 ```
-exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna from STEP 1>" --moon-sign "<Moon Sign from STEP 1>" --nakshatra "<Nakshatra from STEP 1>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>'
+exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna from STEP 1>" --moon-sign "<Moon Sign from STEP 1>" --nakshatra "<Nakshatra from STEP 1>" --planets '<EXACT planet_positions ARRAY FROM STEP 1 OUTPUT>'
 ```
-⚠️ **CRITICAL:** Use the EXACT values extracted from STEP 1's output, NOT from memory!
+⚠️ **CRITICAL:**
+- You MUST include the --planets argument with the EXACT planet_positions array from STEP 1
+- The planet_positions array looks like: ["Moon is in House 1 (Capricorn/Makar)", "Ketu is in House 1..."]
+- Copy the ENTIRE array including brackets and quotes
+- DO NOT skip --planets or leave it empty - this causes missing planets in the chart!
 
 **Step 2: Generate Chart Image (MANDATORY - MUST DO THIS SECOND!)**
 ```

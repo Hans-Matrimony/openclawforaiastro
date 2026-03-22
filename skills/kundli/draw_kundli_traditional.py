@@ -202,7 +202,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     for i, h in enumerate(HOUSE_ORDER):
         s_idx = (lagna_idx + i) % 12
         s_text = f"{s_idx + 1} {SIGN_ABBR[s_idx]}"
-        
+
         # Draw signs tucked into corners (Using the ENGLISH font)
         draw.text(H_SIGNS[h], s_text, fill=LINE_COLOR, font=font_s, anchor='mm')
 
