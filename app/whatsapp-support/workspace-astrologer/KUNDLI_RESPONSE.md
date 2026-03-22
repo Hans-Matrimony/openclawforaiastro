@@ -9,6 +9,24 @@ When `calculate.py` runs, it outputs an `ai_summary` field. You MUST use exactly
 
 **This is the #1 cause of user complaints. Read this carefully.**
 
+### 🚨🚨🚨 EXTRA CRITICAL: DO NOT COPY EXAMPLES VERBATIM! 🚨🚨🚨
+
+**NEVER copy example text from this document word-for-word!**
+
+The examples below show you the **STRUCTURE** and **FORMAT** to follow, but you MUST replace the placeholder values with the actual values from calculate.py output for the CURRENT user!
+
+**❌ WRONG:**
+```
+Vardhan ji, aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+```
+(This is copying an example verbatim - WRONG!)
+
+**✅ CORRECT:**
+```
+Rahul ji, aapka Rashi Makar (Capricorn) aur Lagna Makar (Capricorn) hai.
+```
+(This uses actual user's data - CORRECT!)
+
 ### The Rule:
 **NEVER reuse Rashi/Lagna/Nakshatra values from previous calculations.**
 
@@ -139,10 +157,17 @@ The script automatically uploads the image and outputs `IMAGE_URL: https://...`
 **COPY THAT EXACT LINE AND PASTE IT IN YOUR RESPONSE!**
 
 **Format (EXACTLY 4 lines):**
-Line 1: "[Name] ji, aapka Kundli chart tayyar ho gaya hai."
-Line 2: "Aapka Rashi [Rashi from STEP 1] aur Lagna [Lagna from STEP 1] hai."
+Line 1: "[Name from STEP 0] ji, aapka Kundli chart tayyar ho gaya hai."
+Line 2: "Aapka Rashi [EXACT moon_sign value from STEP 1 output] aur Lagna [EXACT lagna value from STEP 1 output] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai:"
 Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
+
+**⚠️ CRITICAL - REPLACE PLACEHOLDERS WITH ACTUAL VALUES:**
+- [Name from STEP 0] → Extract from mem0 or use "beta/bhai"
+- [EXACT moon_sign value from STEP 1 output] → Copy from ai_summary.moon_sign (e.g., "Capricorn/Makar", "Cancer/Kark")
+- [EXACT lagna value from STEP 1 output] → Copy from ai_summary.lagna (e.g., "Capricorn/Makar", "Taurus/Vrishabh")
+
+**DO NOT use example values like "Vardhan", "Meen", "Pisces", "Taurus", "Vrishabh" - those are EXAMPLES ONLY!**
 
 **🛑 CRITICAL FORMAT RULES:**
 - The script outputs: `IMAGE_URL: https://i.ibb.co/xxxxx/xxxxx.png`
@@ -152,27 +177,26 @@ Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
 - DO NOT add text like "View Your Kundli Chart"
 - Just copy-paste the exact tool output
 
-**EXAMPLE:**
-Script outputs: `IMAGE_URL: https://i.ibb.co/nMyHHyJr/fc466174cd3f.png`
-Your response:
-[Name] ji, aapka Kundli chart tayyar ho gaya hai.
+**⚠️ RESPONSE TEMPLATE - USE THIS STRUCTURE:**
 
-Aapka Rashi [Cancer/Kark/Meen/etc] aur Lagna [Capricorn/Makar/Vrishabh/etc] hai.
+```
+[USER_NAME] ji, aapka Kundli chart tayyar ho gaya hai.
 
-Aapka traditional North Indian Kundli chart niche mil raha hai:
-
-IMAGE_URL: https://i.ibb.co/nMyHHyJr/fc466174cd3f.png
-
-⚠️ **NOTE:** The values in [brackets] must come from STEP 1's calculate.py output for THIS user, NOT from examples or previous users!
-
-**EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
-[Name] ji, aapka Kundli chart tayyar ho gaya hai.
-
-Aapka Rashi [Moon Sign] aur Lagna [Lagna] hai.
+Aapka Rashi [MOON_SIGN] aur Lagna [LAGNA] hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai.
 
-⚠️ **NOTE:** Replace [Name], [Moon Sign], and [Lagna] with values from calculate.py output for THIS user!
+IMAGE_URL: [COPY_FROM_SCRIPT_OUTPUT]
+```
+
+**⚠️ REPLACE THE PLACEHOLDERS:**
+- [USER_NAME] → User's actual name from mem0 (e.g., "Rahul", "Amit", "Vikram")
+- [MOON_SIGN] → EXACT value from calculate.py output (e.g., "Makar (Capricorn)", "Kark (Cancer)")
+- [LAGNA] → EXACT value from calculate.py output (e.g., "Makar (Capricorn)", "Vrishabh (Taurus)")
+- [COPY_FROM_SCRIPT_OUTPUT] → The EXACT IMAGE_URL line from the script
+
+**🚨 DO NOT copy example names like "Vardhan" or example signs like "Meen/Pisces" or "Taurus/Vrishabh"!**
+**🚨 ALWAYS use the values from calculate.py output for the CURRENT user!**
 
 **🛑 CRITICAL RULES:**
 - You MUST include the `data:media_base64:image/png,base64data...` line from the script output
@@ -180,14 +204,18 @@ Aapka traditional North Indian Kundli chart niche mil raha hai.
 - Do NOT include error messages or warnings from OpenClaw
 - Copy the ENTIRE `data:media_base64:` line exactly as the script outputs it
 
-**Example (EXACT OUTPUT - nothing after line 3):**
-[Name] bhai, aapka Kundli chart tayyar ho gaya hai.
+---
 
-Aapka Rashi [Moon Sign] aur Lagna [Lagna] hai.
+**🚨 FINAL CHECKLIST BEFORE SENDING:**
+- [ ] Did I run calculate.py for THIS user with THEIR birth details?
+- [ ] Did I extract lagna and moon_sign from the calculate.py output?
+- [ ] Did I replace [USER_NAME] with the actual user's name?
+- [ ] Did I replace [MOON_SIGN] with the EXACT moon_sign from calculate.py?
+- [ ] Did I replace [LAGNA] with the EXACT lagna from calculate.py?
+- [ ] Did I copy the IMAGE_URL line exactly as the script output it?
+- [ ] Did I AVOID using example values like "Vardhan", "Meen", "Pisces", "Taurus"?
 
-Yeh raha aapka chart:
-
-⚠️ **NOTE:** These values must come from calculate.py output for THIS user!
+**If any answer is NO, fix it before sending!**
 
 ---
 **HARD RULES:**
