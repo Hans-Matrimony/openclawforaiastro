@@ -83,7 +83,13 @@ The script automatically uploads the image and outputs `IMAGE_URL: https://...`
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai:"
-Line 4: [PASTE THE IMAGE_URL HERE - STARTS WITH https://...]
+Line 4: "IMAGE_URL: [PASTE THE EXACT HTTPS URL HERE]"
+
+**🛑 CRITICAL FORMAT RULES:**
+- Line 4 MUST be: IMAGE_URL: https://... (PLAIN text, NO Markdown brackets!)
+- DO NOT use: [View Chart](https://...) or [text](url) format
+- DO NOT wrap in Markdown links - just plain "IMAGE_URL: https://..."
+- The webhook will extract this URL and send the actual image
 
 **EXAMPLE (exact output expected):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
@@ -92,7 +98,7 @@ Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
 
 Aapka traditional North Indian Kundli chart niche mil raha hai:
 
-IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714567890.png
+IMAGE_URL: https://i.ibb.co/DH10KWbq/9211fe830d31.png
 
 **🛑 CRITICAL: You MUST include the IMAGE_URL line in your response! The webhook will extract it and send the image to WhatsApp.**
 
