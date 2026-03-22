@@ -221,17 +221,16 @@ def main():
         # Upload to ImgBB (free image hosting) - similar to DALL-E URL approach
         import urllib.request
 
-        # Use ImgBB API (free, no key needed for basic usage)
-        imgbb_api_key = os.getenv("IMGBB_API_KEY", "your_imgbb_key_here")  # Get free key from imgbb.com
+        imgbb_api_key = os.getenv("IMGBB_API_KEY", "your_imgbb_key_here")
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
 
         try:
-            # ImgBB API expects base64 data URL format
+            # ImgBB expects: image parameter as base64 data URL
             data_url = f"data:image/png;base64,{base64_string}"
 
             payload = urllib.parse.urlencode({
                 'key': imgbb_api_key,
-                'image': base64_string
+                'image': data_url
             }).encode('utf-8')
 
             req = urllib.request.Request(
@@ -246,8 +245,9 @@ def main():
                     image_url = result['data']['url']
                     print(f"IMAGE_URL: {image_url}")
                 else:
+                    error_data = response.read().decode('utf-8')
                     print(f"Upload failed: status {response.status}", file=sys.stderr)
-                    print(f"ERROR: Could not upload image", file=sys.stderr)
+                    print(f"ERROR: {error_data}", file=sys.stderr)
         except Exception as e:
             print(f"ERROR: Upload to ImgBB failed: {e}", file=sys.stderr)
             import traceback
