@@ -231,16 +231,18 @@ def main():
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
 
         try:
-            # ImgBB expects: image parameter as base64 data URL
+            # ImgBB expects: key in URL query parameter, image in POST body
             data_url = f"data:image/png;base64,{base64_string}"
 
             payload = urllib.parse.urlencode({
-                'key': imgbb_api_key,
                 'image': data_url
             }).encode('utf-8')
 
+            # API key goes in URL query parameter
+            upload_url = f'https://api.imgbb.com/1/upload?key={imgbb_api_key}'
+
             req = urllib.request.Request(
-                'https://api.imgbb.com/1/upload',
+                upload_url,
                 data=payload,
                 method='POST'
             )
