@@ -79,15 +79,26 @@ Wait for the script to complete. It will output `KUNDLI_IMAGE: image/png <data>`
 **CRITICAL: The webhook CANNOT see tool outputs!** You must include the image data in your response.
 
 After the script completes, it will output a line starting with `data:media_base64:image/png,`
-**COPY THAT ENTIRE LINE** (including the base64 data) and include it at the END of your response.
+**COPY THAT ENTIRE LINE EXACTLY AS IT APPEARS** and paste it at the END of your response.
+
+**DO NOT:**
+- ❌ Wrap it in Markdown like `![text](url)`
+- ❌ Change `data:media_base64:` to `data:image/png;base64,`
+- ❌ Add any formatting or modifications
+- ❌ Put it in quotes or brackets
+
+**DO:**
+- ✅ Copy the line EXACTLY as the script outputs it
+- ✅ Start with `data:media_base64:image/png,`
+- ✅ Include ALL the base64 characters (thousands of them)
 
 **Format (4 lines MAX):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai."
-Line 4: [PASTE THE ENTIRE `data:media_base64:image/png,base64data...` LINE HERE]
+Line 4: [PASTE THE EXACT LINE STARTING WITH data:media_base64:image/png,]
 
-**EXAMPLE:**
+**EXAMPLE (exact output expected):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
