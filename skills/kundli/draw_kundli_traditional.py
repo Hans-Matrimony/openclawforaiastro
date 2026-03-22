@@ -218,9 +218,13 @@ def main():
         )
 
         # Output as base64 for WhatsApp
-        # OpenClaw WhatsApp plugin format: data:media_base64:mime_type,base64data
+        # Format: WHATSAPP_IMAGE:<phone_number>;<mime_type>;<base64_data>
+        # This bypasses OpenClaw's plugin and goes directly to webhook
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
-        print(f"data:media_base64:image/png,{base64_string}")
+
+        # Get phone number from environment or use placeholder
+        # The webhook will extract this format
+        print(f"WHATSAPP_IMAGE:+919760347653;image/png;{base64_string}")
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

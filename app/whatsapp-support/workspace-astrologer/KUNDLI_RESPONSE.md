@@ -76,36 +76,26 @@ Wait for the script to complete. It will output `KUNDLI_IMAGE: image/png <data>`
 
 **Step 3: Respond to User (ONLY after Steps 1 and 2 complete!)**
 
-**CRITICAL: The webhook CANNOT see tool outputs!** You must include the image data in your response.
+**CRITICAL: You MUST include the entire `data:media_base64:` line in your response!**
 
-After the script completes, it will output a line starting with `data:media_base64:image/png,`
-**COPY THAT ENTIRE LINE EXACTLY AS IT APPEARS** and paste it at the END of your response.
+The script outputs a line like: `data:media_base64:image/png,iVBORw0KGgo...`
+**COPY THAT ENTIRE LINE** and paste it at the END of your response.
 
-**DO NOT:**
-- ❌ Wrap it in Markdown like `![text](url)`
-- ❌ Change `data:media_base64:` to `data:image/png;base64,`
-- ❌ Add any formatting or modifications
-- ❌ Put it in quotes or brackets
+**IMPORTANT RULES:**
+- The line starts with `data:media_base64:image/png,`
+- It contains THOUSANDS of characters - copy ALL of them
+- Do NOT truncate or shorten it
+- Do NOT wrap it in quotes or brackets
+- Do NOT change the format
+- Do NOT show error messages about it
 
-**DO:**
-- ✅ Copy the line EXACTLY as the script outputs it
-- ✅ Start with `data:media_base64:image/png,`
-- ✅ Include ALL the base64 characters (thousands of them)
-
-**Format (4 lines MAX):**
+**EXACT FORMAT (4 lines):**
 Line 1: "Vardhan ji, aapka Kundli chart tayyar ho gaya hai."
 Line 2: "Aapka Rashi [Rashi] aur Lagna [Lagna] hai."
 Line 3: "Aapka traditional North Indian Kundli chart niche mil raha hai."
-Line 4: [PASTE THE EXACT LINE STARTING WITH data:media_base64:image/png,]
+Line 4: [PASTE THE COMPLETE data:media_base64:image/png, LINE HERE - ALL THOUSANDS OF CHARACTERS]
 
-**EXAMPLE (exact output expected):**
-Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
-
-Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
-
-Aapka traditional North Indian Kundli chart niche mil raha hai.
-
-data:media_base64:image/png,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAIAAAAP3aGbAAAWE0lEQVR4nO3df6xkd13G8c/cO3e721VsKQWaNjWVslutEKlpuyB7/7AaMVoaXTHEotamUWypv6KhBSJoG...
+**YOUR RESPONSE MUST END WITH THE data:media_base64: LINE - THIS IS NOT OPTIONAL!**
 
 **EXAMPLE (what you should output - EXACTLY 3 lines, NO MEDIA TAG, NO IMAGE):**
 Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
