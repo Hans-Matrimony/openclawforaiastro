@@ -12,7 +12,7 @@ import urllib.request
 import urllib.parse
 from io import BytesIO
 
-# ✅ FIXED: Auto-install Pillow (like your old working code)
+# Auto-install Pillow (kept same as your working version)
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
@@ -142,35 +142,35 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if 'Lg' not in house_planets[1]:
         house_planets[1].insert(0, 'Lg')
 
-    # ✅ FIXED POSITIONS (no duplicates, no overlap)
+    # ✅ CORRECT HOUSE MAPPING (FIXED)
     H_PLANETS = {
-        1: (200, 75),
-        2: (140, 60),
-        3: (60, 140),
-        4: (110, 200),
-        5: (60, 260),
-        6: (140, 340),
-        7: (200, 305),
-        8: (260, 340),
-        9: (340, 260),
-        10: (305, 200),
-        11: (340, 140),
-        12: (260, 60)
+        1: (200, 75),    # Top
+        2: (120, 90),
+        3: (75, 150),
+        4: (120, 250),
+        5: (200, 320),
+        6: (280, 250),
+        7: (325, 150),
+        8: (280, 90),
+        9: (140, 140),
+        10: (140, 260),
+        11: (260, 260),
+        12: (260, 140)
     }
 
     H_SIGNS = {
-        1: (200, 150),
-        2: (120, 90),
-        3: (90, 120),
-        4: (150, 200),
-        5: (90, 280),
-        6: (120, 310),
-        7: (200, 260),
-        8: (280, 310),
-        9: (310, 280),
-        10: (260, 200),
-        11: (310, 120),
-        12: (280, 90)
+        1: (200, 140),
+        2: (120, 120),
+        3: (100, 180),
+        4: (120, 280),
+        5: (200, 280),
+        6: (280, 280),
+        7: (300, 180),
+        8: (280, 120),
+        9: (150, 160),
+        10: (150, 240),
+        11: (250, 240),
+        12: (250, 160)
     }
 
     # Draw houses
