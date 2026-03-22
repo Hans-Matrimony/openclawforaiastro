@@ -231,12 +231,17 @@ def main():
         base64_string = base64.b64encode(image_bytes).decode('utf-8')
 
         try:
-            # ImgBB expects: key in URL query parameter, image in POST body
+            # ImgBB expects: key in URL query parameter, image as multipart/form-data
             data_url = f"data:image/png;base64,{base64_string}"
 
-            payload = urllib.parse.urlencode({
-                'image': data_url
-            }).encode('utf-8')
+            # Use multipart/form-data encoding (not urlencoded)
+            boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
+            payload = (
+                f'--{boundary}\r\n'
+                f'Content-Disposition: form-data; name="image"\r\n\r\n'
+                f'{data_url}\r\n'
+                f'--{boundary}--\r\n'
+            ).encode('utf-8')
 
             # API key goes in URL query parameter
             upload_url = f'https://api.imgbb.com/1/upload?key={imgbb_api_key}'
@@ -248,6 +253,7 @@ def main():
                 data=payload,
                 method='POST'
             )
+            req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
 
             with urllib.request.urlopen(req, timeout=10) as response:
                 if response.status == 200:
