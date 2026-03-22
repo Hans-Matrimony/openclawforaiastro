@@ -241,6 +241,8 @@ def main():
             # API key goes in URL query parameter
             upload_url = f'https://api.imgbb.com/1/upload?key={imgbb_api_key}'
 
+            print(f"Uploading to ImgBB (image size: {len(image_bytes)} bytes, base64 size: {len(base64_string)} chars)...", file=sys.stderr)
+
             req = urllib.request.Request(
                 upload_url,
                 data=payload,
@@ -255,7 +257,11 @@ def main():
                 else:
                     error_data = response.read().decode('utf-8')
                     print(f"Upload failed: status {response.status}", file=sys.stderr)
-                    print(f"ERROR: {error_data}", file=sys.stderr)
+                    print(f"ImgBB error response: {error_data}", file=sys.stderr)
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            print(f"ERROR: Upload to ImgBB failed: {e.code} {e.reason}", file=sys.stderr)
+            print(f"ImgBB error response: {error_body}", file=sys.stderr)
         except Exception as e:
             print(f"ERROR: Upload to ImgBB failed: {e}", file=sys.stderr)
             import traceback
