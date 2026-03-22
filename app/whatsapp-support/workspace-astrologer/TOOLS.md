@@ -84,29 +84,29 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
-# Provide the Rashi (Moon Sign), Lagna (Ascendant), and Nakshatra obtained from calculate.py
-# The script will auto-install any missing dependencies. Use process tool to wait for "Completed".
+# Step 1: First run calculate.py to get Lagna, Moon Sign, Nakshatra
+# Step 2: Then run the image generation script
 cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Revati" --planets '[]'
 ```
 
-**⚠️ CRITICAL: THE POLLING LOOP (DO NOT SKIP)**
-Because image generation involves a background process (`delta-ridge`), the command will likely return "Command still running".
-1. You **MUST** use the `process` tool to poll the PID.
-2. If you see "Process still running", **DO NOT REPLY TO THE USER**.
-3. Use the `process` tool again (wait 5-10 seconds between calls if possible).
-4. **ONLY** when you see "### JOB COMPLETED ###" or the status becomes **"Completed"**, you can send your final response.
-5. If you reply with an empty `MEDIA:` tag while the process is still running, you have failed the task.
-
-**🛑🛑🛑 MOST CRITICAL: YOU MUST INCLUDE THE MEDIA URL IN YOUR RESPONSE!**
-The script outputs `MEDIA: <url>` to CONSOLE ONLY. The webhook CANNOT see console output!
+**⚠️ CRITICAL: YOU MUST INCLUDE THE IMAGE_URL IN YOUR RESPONSE!**
+The script outputs `IMAGE_URL: https://...` to CONSOLE.
 You MUST copy that URL and include it in your text response, or the user will NOT receive the image!
 
 **IMPORTANT OUTPUT INSTRUCTION FOR IMAGES (CRITICAL):**
-When the image generation is complete, the script MUST have successfully printed `MEDIA: https://...` with a URL.
-If you receive "No output" from the polling tool or the background task, the image generation FAILED and you must restart the process.
-If it succeeds, you MUST copy the exact `MEDIA: https://...` line printed by the script and paste it into your final reply on its own line.
-Do NOT invent a placeholder like "MEDIA: Kundli Chart". Do NOT use a file path. ONLY use the exact HTTPS URL output by the tool.
-**NEVER use Markdown image syntax (`![alt](url)`).** The framework does not understand Markdown images for WhatsApp delivery.
+When the image generation is complete, the script will print `IMAGE_URL: https://...` with a URL.
+You MUST copy the exact `IMAGE_URL: https://...` line printed by the script and paste it into your final reply on its own line.
+Do NOT invent a placeholder. ONLY use the exact HTTPS URL output by the tool.
+**NEVER use Markdown image syntax (`![alt](url)`).** The webhook will extract the IMAGE_URL and send the image.
+
+**Example exact output format:**
+```
+Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+
+Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+
+IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714567890.png
+```
 
 ### What's Inside
 - ✅ **Lagna (Ascendant):** Core identity and physical self.

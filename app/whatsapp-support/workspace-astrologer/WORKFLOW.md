@@ -51,7 +51,17 @@ Message arrives
     │     ├─ Use `ai_summary.dasha_info` for timing.
     │     └─ Use `ai_summary.planet_positions` to find key planets for specific questions.
     │
-    └─ STEP 4: Is it an astrology question?
+    └─ STEP 4: Check for Kundli Image Request (CHECK FIRST!)
+          └─ Does message contain: "image", "chart", "photo", "kundli banana", "generate kare", "dikhao", "bhejo"?
+            YES →
+              ├─ Run calculate.py if not already run (STEP 3.5)
+              ├─ Run draw_kundli_traditional.py with Lagna, Moon Sign, Nakshatra, planets
+              ├─ Wait for script to complete and output IMAGE_URL
+              ├─ Include IMAGE_URL in response (see KUNDLI_RESPONSE.md Section 5)
+              └─ DONE
+            NO → Continue to STEP 5
+
+    └─ STEP 5: Is it an astrology question?
           └─ YES →
               ├─ Search Qdrant (for static knowledge)
               ├─ Search Web (for live transits/current facts)
@@ -138,11 +148,11 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "1455293571"
 
 - **DONE**
 
-- **NO → Continue to STEP 4**
+- **NO → Continue to STEP 5**
 
 ---
 
-### STEP 4: Handle Astrology Question
+### STEP 5: Handle Astrology Question
 
 **1. Search Qdrant (For Static Concepts):**
 ```bash
@@ -177,7 +187,7 @@ cd ~/.openclaw/skills/kundli && ... (see TOOLS.md for full command)
 
 ---
 
-### STEP 5: Respond to User
+### STEP 6: Respond to User
 
 **Respond in Hinglish or English based on user's language.**
 
@@ -187,7 +197,7 @@ cd ~/.openclaw/skills/kundli && ... (see TOOLS.md for full command)
 
 ---
 
-### STEP 6: Save New Info (Only if User Shared Something New)
+### STEP 7: Save New Info (Only if User Shared Something New)
 
 If user shared NEW birth details or life events:
 
