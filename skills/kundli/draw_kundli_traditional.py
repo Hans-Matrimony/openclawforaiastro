@@ -5,15 +5,21 @@ Outputs image as base64 for WhatsApp delivery
 """
 import os
 import sys
+import subprocess
+
+# Auto-install PIL if not available
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError:
+    print("Installing Pillow library...", file=sys.stderr)
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "-q", "pillow"])
+    from PIL import Image, ImageDraw, ImageFont
+
 import argparse
 import base64
 import json
-import subprocess
 import urllib.parse
 from io import BytesIO
-
-# Import PIL (must be pre-installed in container)
-from PIL import Image, ImageDraw, ImageFont
 
 # Colors from the scheme
 BG_COLOR = '#3D2605'    # Dark Chocolate Brown
