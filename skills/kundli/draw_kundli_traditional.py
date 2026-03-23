@@ -70,8 +70,18 @@ def get_devanagari_font():
 def parse_planet_positions(planets_list):
     house_planets = {}
 
+    if not planets_list:
+        print(f"⚠️ WARNING: planets_list is empty or None", file=sys.stderr)
+        return house_planets
+
+    print(f"🔍 DEBUG: Processing {len(planets_list)} planet positions", file=sys.stderr)
+
     for item in planets_list:
         try:
+            if not isinstance(item, str):
+                print(f"⚠️ WARNING: Skipping non-string planet item: {type(item)} = {repr(item)}", file=sys.stderr)
+                continue
+
             parts = item.split()
             name = parts[0]
 
@@ -93,10 +103,15 @@ def parse_planet_positions(planets_list):
 
             if house:
                 house_planets.setdefault(house, []).append(abbrev)
+                print(f"  ✓ {name} → House {house} → {abbrev}", file=sys.stderr)
+            else:
+                print(f"  ⚠️ Could not find house number in: {item}", file=sys.stderr)
 
-        except:
+        except Exception as e:
+            print(f"⚠️ ERROR processing planet item '{item}': {e}", file=sys.stderr)
             continue
 
+    print(f"📊 RESULT: Planets in {len(house_planets)} houses: {list(house_planets.keys())}", file=sys.stderr)
     return house_planets
 
 
@@ -218,8 +233,16 @@ def main():
 
     try:
         planets = json.loads(args.planets) if args.planets else []
-    except:
+    except Exception as e:
+        print(f"⚠️ ERROR PARSING PLANETS: {e} | Raw input: {repr(args.planets)}", file=sys.stderr)
+        print(f"⚠️ TIP: --planets must be valid JSON array, e.g., '[\"Moon is in House 1\"]'", file=sys.stderr)
         planets = []
+
+    # Debug: Log how many planets were parsed
+    if planets:
+        print(f"🪐 Parsed {len(planets)} planet positions from --planets argument", file=sys.stderr)
+    else:
+        print(f"⚠️ WARNING: No planet positions provided. Chart will show only Lagna.", file=sys.stderr)
 
     image_data = draw_kundli_chart(
         args.lagna,
