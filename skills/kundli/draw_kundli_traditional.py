@@ -39,7 +39,8 @@ SIGN_ABBR = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap
 
 HINDI_MAP = {
     'Sun': 'सु', 'Moon': 'च', 'Mars': 'कु', 'Mercury': 'बु',
-    'Jupiter': 'ब्र', 'Venus': 'शु', 'Saturn': 'श',
+    'Jupiter': 'गु',   # Changed from 'ब्र' to avoid Pillow font breaking (ब्र requires complex ligature rendering)
+    'Venus': 'शु', 'Saturn': 'श',
     'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'ल'
 }
 
@@ -142,22 +143,21 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if 'ल' not in house_planets[1]:
         house_planets[1].insert(0, 'ल')
 
-    # 🔥 FINAL CORRECT GEOMETRY
+    # 🔥 STANDARD VEDIC NORTH INDIAN GEOMETRY
+    # These coordinates perfectly center the text inside the traditional diamonds and triangles
     HOUSE_POS = {
-        1: (200, 55),
-        2: (115, 115),
-        3: (55, 200),
-        4: (115, 285),
-        5: (200, 345),
-        6: (285, 285),
-        7: (345, 200),
-        8: (285, 115),
-
-        # ✅ FIXED INNER DIAMOND
-        9:  (285, 200),   # Right
-        10: (200, 115),   # Top
-        11: (115, 200),   # Left
-        12: (200, 285),   # Bottom
+        1: (200, 110),  # Top Center Diamond (Lagna ALWAYS goes here)
+        2: (110, 65),   # Top Left Triangle (Outer)
+        3: (65, 110),   # Middle Left Triangle (Upper)
+        4: (110, 200),  # Left Center Diamond
+        5: (65, 290),   # Middle Left Triangle (Lower)
+        6: (110, 335),  # Bottom Left Triangle (Outer)
+        7: (200, 290),  # Bottom Center Diamond
+        8: (290, 335),  # Bottom Right Triangle (Outer)
+        9: (335, 290),  # Middle Right Triangle (Lower)
+        10: (290, 200), # Right Center Diamond
+        11: (335, 110), # Middle Right Triangle (Upper)
+        12: (290, 65),  # Top Right Triangle (Outer)
     }
 
     for i in range(12):
@@ -180,7 +180,8 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         planets = house_planets.get(h, [])
         if planets:
             planet_text = " ".join(planets)
-            offset = 8 if len(planets) <= 2 else 12
+            # Push the Hindi text down slightly so it never overlaps the English zodiac number
+            offset = 14 if len(planets) <= 2 else 18
 
             draw.text(
                 (cx, cy + offset),
@@ -210,6 +211,8 @@ def main():
     parser.add_argument('--moon-sign', required=True)
     parser.add_argument('--nakshatra', required=True)
     parser.add_argument('--planets')
+    parser.add_argument('--user-id', help='User ID for MongoDB storage')
+    parser.add_argument('--session-id', help='Session ID for MongoDB storage')
 
     args = parser.parse_args()
 
@@ -227,7 +230,10 @@ def main():
 
     b64 = base64.b64encode(image_data).decode()
 
+    # Step 1: Upload to ImgBB (for WhatsApp delivery)
     api_key = os.getenv("IMGBB_API_KEY")
+    imgbb_url = None
+
     if api_key and api_key != "your_imgbb_key_here":
         try:
             boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
@@ -245,12 +251,55 @@ def main():
 
             with urllib.request.urlopen(req, timeout=10) as response:
                 result = json.loads(response.read().decode('utf-8'))
-                print(f"IMAGE_URL: {result['data']['url']}")
+                imgbb_url = result['data']['url']
+                print(f"IMAGE_URL: {imgbb_url}")
 
         except Exception as e:
             print(f"ERROR: ImgBB upload failed: {e}", file=sys.stderr)
     else:
         print(f"IMAGE_BASE64: {b64}")
+
+    # Step 2: Store to MongoDB GridFS (for permanent storage)
+    # Only if user_id is provided (prevents unnecessary storage calls)
+    if args.user_id:
+        try:
+            # Import the storage function from calculate.py
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from calculate import store_kundli_image_to_mongodb
+
+            # Prepare Kundli data for metadata
+            kundli_data = {
+                "lagna": args.lagna,
+                "moon_sign": args.moon_sign,
+                "nakshatra": args.nakshatra,
+                "chart_type": "north_indian_traditional"
+            }
+
+            # Prepare birth details (empty since we don't have them here)
+            birth_details = {
+                "note": "Birth details not available in draw_kundli_traditional.py"
+            }
+
+            # Store to MongoDB
+            storage_result = store_kundli_image_to_mongodb(
+                image_base64=f"data:image/png;base64,{b64}",
+                user_id=args.user_id,
+                birth_details=birth_details,
+                kundli_data=kundli_data,
+                session_id=args.session_id or f"unknown:{args.user_id}",
+                chart_type="north_indian_traditional",
+                format="png"
+            )
+
+            if storage_result and storage_result.get("success"):
+                # Silent success - don't print to avoid confusing the agent
+                pass
+        except ImportError:
+            # calculate.py not available - skip MongoDB storage
+            pass
+        except Exception as e:
+            # MongoDB storage failed - continue without failing the script
+            print(f"WARNING: MongoDB storage failed: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":

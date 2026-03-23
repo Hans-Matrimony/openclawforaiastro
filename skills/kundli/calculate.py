@@ -735,6 +735,75 @@ def calculate_kundli(dob_str, tob_str, place):
 
     return final_output
 
+
+# =============================================================================
+# KUNDLI IMAGE STORAGE TO MONGODB GRIDFS
+# =============================================================================
+
+def store_kundli_image_to_mongodb(
+    image_base64: str,
+    user_id: str,
+    birth_details: dict,
+    kundli_data: dict,
+    session_id: str = None,
+    chart_type: str = "north_indian",
+    format: str = "png"
+) -> dict | None:
+    """
+    Upload Kundli chart image to MongoDB GridFS via mongo_logger service.
+
+    This function is completely optional - if mongo_logger is unavailable,
+    it logs a warning and returns None without failing.
+
+    Args:
+        image_base64: Base64-encoded image data (with or without data:image/... prefix)
+        user_id: User's WhatsApp number (e.g., "+919760347653")
+        birth_details: Dict with date, time, place, lat, lon
+        kundli_data: Dict with lagna, moon_sign, nakshatra, etc.
+        session_id: Optional session ID for linking to conversation
+        chart_type: Type of chart ("north_indian", "south_indian", etc.)
+        format: Image format ("png", "jpg", etc.)
+
+    Returns:
+        dict with fileId and filename if successful, None if failed
+    """
+    import requests
+
+    # Get mongo logger URL from environment
+    mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "http://localhost:5000")
+    upload_url = f"{mongo_logger_url}/kundli-image"
+
+    # Prepare payload
+    payload = {
+        "userId": user_id,
+        "sessionId": session_id or f"whatsapp:{user_id}",
+        "birthDetails": birth_details,
+        "kundliData": kundli_data,
+        "imageBase64": image_base64,
+        "chartType": chart_type,
+        "format": format
+    }
+
+    try:
+        response = requests.post(upload_url, json=payload, timeout=30)
+
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Kundli image stored to MongoDB: file_id={result.get('fileId')}", file=sys.stderr)
+            return result
+        else:
+            print(f"⚠️  Failed to store Kundli image: HTTP {response.status_code}", file=sys.stderr)
+            return None
+
+    except requests.exceptions.ConnectionError:
+        print(f"⚠️  MongoDB logger not available at {mongo_logger_url}", file=sys.stderr)
+        print(f"   Kundli image not stored (continuing without storage)", file=sys.stderr)
+        return None
+    except Exception as e:
+        print(f"⚠️  Error storing Kundli image to MongoDB: {e}", file=sys.stderr)
+        return None
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Acharya Sharma Kundli Engine')
     parser.add_argument('--dob', required=True, help='Date of Birth (YYYY-MM-DD, DD Month YYYY, etc.)')
