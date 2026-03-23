@@ -124,19 +124,26 @@ def parse_planet_positions(planets_list, lagna=None):
                 if not str(house).strip() and sign and lagna:
                     house = get_house_from_sign(sign, lagna)
                 
-                # If name or house are effectively missing, skip
-                if not name or not str(house).strip():
-                    print(f"  ⚠️ Skipping incomplete dict: {item}", file=sys.stderr)
-                    continue
-
-                # Format: "Saturn is in House 1 (Taurus/Vrishabh)"
-                # Include sign if available to match calculate.py output format
-                if sign:
-                    planet_str = f"{name} is in House {house} ({sign})"
+                # Check if it provided 'position' string directly instead of discrete keys
+                position_str = item.get('position', '')
+                if not str(house).strip() and position_str and name:
+                    item = f"{name} {position_str}"
+                    print(f"  🔧 Converted 'position' dict to string: {name} → {item}", file=sys.stderr)
+                    # Automatically falls through to the string parsing block below!
                 else:
-                    planet_str = f"{name} is in House {house}"
-                item = planet_str
-                print(f"  🔧 Converted dict to string: {name} → {planet_str}", file=sys.stderr)
+                    # If name or house are effectively missing, skip
+                    if not name or not str(house).strip():
+                        print(f"  ⚠️ Skipping incomplete dict: {item}", file=sys.stderr)
+                        continue
+
+                    # Format: "Saturn is in House 1 (Taurus/Vrishabh)"
+                    # Include sign if available to match calculate.py output format
+                    if sign:
+                        planet_str = f"{name} is in House {house} ({sign})"
+                    else:
+                        planet_str = f"{name} is in House {house}"
+                    item = planet_str
+                    print(f"  🔧 Converted dict to string: {name} → {planet_str}", file=sys.stderr)
 
             if not isinstance(item, str):
                 print(f"⚠️ WARNING: Skipping non-string planet item: {type(item)} = {repr(item)}", file=sys.stderr)
