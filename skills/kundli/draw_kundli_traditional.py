@@ -320,37 +320,9 @@ def main():
 
     b64 = base64.b64encode(image_data).decode()
 
-    # Step 1: Upload to ImgBB (for WhatsApp delivery)
-    api_key = os.getenv("IMGBB_API_KEY")
-    imgbb_url = None
-
-    if api_key and api_key != "your_imgbb_key_here":
-        try:
-            boundary = '----WebKitFormBoundary' + os.urandom(16).hex()
-            payload = (
-                f'--{boundary}\r\n'
-                f'Content-Disposition: form-data; name="image"\r\n\r\n'
-                f'{b64}\r\n'
-                f'--{boundary}--\r\n'
-            ).encode('utf-8')
-
-            upload_url = f'https://api.imgbb.com/1/upload?key={api_key}'
-
-            req = urllib.request.Request(upload_url, data=payload, method='POST')
-            req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
-
-            with urllib.request.urlopen(req, timeout=10) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                imgbb_url = result['data']['url']
-                print(f"IMAGE_URL: {imgbb_url}")
-
-        except Exception as e:
-            print(f"ERROR: ImgBB upload failed: {e}", file=sys.stderr)
-    else:
-        print(f"IMAGE_BASE64: {b64}")
-
-    # Step 2: Store to MongoDB GridFS (for permanent storage)
-    # Only if user_id is provided (prevents unnecessary storage calls)
+    # Store to MongoDB GridFS (for permanent storage and webhook delivery)
+    # We require user_id to store correctly. If missing, we just output base64.
+    stored_url = None
     if args.user_id:
         try:
             # Import the storage function from calculate.py
@@ -365,7 +337,6 @@ def main():
                 "chart_type": "north_indian_traditional"
             }
 
-            # Prepare birth details (empty since we don't have them here)
             birth_details = {
                 "note": "Birth details not available in draw_kundli_traditional.py"
             }
@@ -376,20 +347,27 @@ def main():
                 user_id=args.user_id,
                 birth_details=birth_details,
                 kundli_data=kundli_data,
-                session_id=args.session_id or f"unknown:{args.user_id}",
+                session_id=args.session_id or f"whatsapp:{args.user_id}",
                 chart_type="north_indian_traditional",
                 format="png"
             )
 
             if storage_result and storage_result.get("success"):
-                # Silent success - don't print to avoid confusing the agent
-                pass
+                file_id = storage_result.get("fileId")
+                mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "http://localhost:5000")
+                stored_url = f"{mongo_logger_url}/kundli-image/{file_id}"
+                # Output the IMAGE_URL matching the mongo logger endpoint so Whatsapp Webhook can download it
+                print(f"IMAGE_URL: {stored_url}")
+                
         except ImportError:
-            # calculate.py not available - skip MongoDB storage
+            # calculate.py not available
             pass
         except Exception as e:
-            # MongoDB storage failed - continue without failing the script
             print(f"WARNING: MongoDB storage failed: {e}", file=sys.stderr)
+
+    if not stored_url:
+        # Fallback to pure base64 if MongoDB storage fails or no user_id
+        print(f"IMAGE_BASE64: {b64}")
 
 
 if __name__ == "__main__":
