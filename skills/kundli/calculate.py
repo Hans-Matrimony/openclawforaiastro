@@ -731,16 +731,19 @@ def calculate_kundli(dob_str, tob_str, place):
         else:
             # Fallback to jyotishganit
             d1 = chart_data.get('d1Chart', {})
-            houses_sorted = sorted(d1.get('houses', []), key=lambda x: x.get('number', 0))
-
             planets_summary = []
-            for house in houses_sorted:
-                h_num = house.get('number')
-                for occ in house.get('occupants', []):
-                    p_name = occ.get('celestialBody')
-                    p_sign = occ.get('sign')
-                    p_sign_hindi = HINDI_RASHI.get(p_sign, p_sign)
-                    planets_summary.append(f"{p_name} is in House {h_num} ({p_sign}/{p_sign_hindi})")
+            
+            # Loop through planets directly instead of relying on jyotishganit's house arrays
+            for p in d1.get('planets', []):
+                p_name = p.get('celestialBody')
+                p_sign = p.get('sign')
+                p_degree = p.get('degree', 0)
+                
+                # Force Whole Sign House calculation!
+                h_num = get_house_from_sign(p_sign, lagna)
+                p_sign_hindi = HINDI_RASHI.get(p_sign, p_sign)
+                
+                planets_summary.append(f"{p_name} is in House {h_num} ({p_sign}/{p_sign_hindi}) at {p_degree:.2f}°")
         
         # CONSTRUCT FINAL OUTPUT WITH SUMMARY AT THE TOP (To prevent truncation issues)
         final_output = {
