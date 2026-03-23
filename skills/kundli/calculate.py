@@ -49,6 +49,74 @@ except Exception as e:
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CITIES_FILE = os.path.join(SCRIPT_DIR, 'cities_india.json')
 
+# ✅ FIX #6: Nakshatra degree ranges for validation
+# Each nakshatra spans 13°20' (13.333°) of the zodiac
+NAKSHATRA_RANGES = [
+    ("Ashwini", 0, 13.333),
+    ("Bharani", 13.333, 26.666),
+    ("Krittika", 26.666, 40),
+    ("Rohini", 40, 53.333),
+    ("Mrigashira", 53.333, 66.666),
+    ("Ardra", 66.666, 80),
+    ("Punarvasu", 80, 93.333),
+    ("Pushya", 93.333, 106.666),
+    ("Ashlesha", 106.666, 120),
+    ("Magha", 120, 133.333),
+    ("Purva Phalguni", 133.333, 146.666),
+    ("Uttara Phalguni", 146.666, 160),
+    ("Hasta", 160, 173.333),
+    ("Chitra", 173.333, 186.666),
+    ("Swati", 186.666, 200),
+    ("Vishakha", 200, 213.333),
+    ("Anuradha", 213.333, 226.666),
+    ("Jyeshtha", 226.666, 240),
+    ("Mula", 240, 253.333),
+    ("Purva Ashadha", 253.333, 266.666),
+    ("Uttara Ashadha", 266.666, 280),
+    ("Shravana", 280, 293.333),
+    ("Dhanishta", 293.333, 306.666),
+    ("Shatabhisha", 306.666, 320),
+    ("Purva Bhadrapada", 320, 333.333),
+    ("Uttara Bhadrapada", 333.333, 346.666),
+    ("Revati", 346.666, 360),
+]
+
+# ✅ FIX #6: Helper to validate and correct nakshatra based on degree
+def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra):
+    """
+    Cross-check that the reported nakshatra matches the expected nakshatra
+    for the given Moon sign and degree. If mismatch found, return the CORRECT nakshatra.
+    """
+    # Map sign names to indices
+    sign_to_index = {
+        "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3, "Leo": 4, "Virgo": 5,
+        "Libra": 6, "Scorpio": 7, "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
+    }
+
+    sign_idx = sign_to_index.get(moon_sign, 0)
+
+    # Calculate absolute zodiac degree (0-360)
+    moon_abs_degree = sign_idx * 30 + moon_degree
+
+    # Find expected nakshatra for this degree
+    expected_nakshatra = None
+    for nakshatra, start, end in NAKSHATRA_RANGES:
+        if start <= moon_abs_degree < end:
+            expected_nakshatra = nakshatra
+            break
+
+    # Normalize nakshatra names (handle variations like "Uttara Ashadha" vs "Uttara Ashadha 1")
+    if expected_nakshatra and moon_nakshatra:
+        moon_nakshatra_base = moon_nakshatra.split()[0] if moon_nakshatra else moon_nakshatra
+        expected_nakshatra_base = expected_nakshatra.split()[0] if expected_nakshatra else expected_nakshatra
+
+        if moon_nakshatra_base != expected_nakshatra_base:
+            # ✅ FIX #1: Library error detected - RETURN CORRECT NAKSHATRA instead of failing
+            # This fixes the boundary case errors where library returns wrong nakshatra
+            return expected_nakshatra, True  # (corrected_nakshatra, was_corrected)
+
+    return moon_nakshatra, False  # (original_nakshatra, was_not_corrected)
+
 def get_coordinates(place):
     # Try local fallback first (case-insensitive)
     try:
@@ -138,21 +206,29 @@ def parse_date(dob_str):
 def parse_time(tob_str):
     """Parse time string in various formats (12-hour with AM/PM or 24-hour)."""
     tob_str = tob_str.strip()
-    
+
+    # ✅ FIX #7: Handle ambiguous "12" (noon vs midnight)
+    # Users often write just "12" without AM/PM, causing confusion
+    if tob_str in ["12", "12:00", "12.00"]:
+        raise ValueError(
+            f"Ambiguous time '{tob_str}'. Could be noon (12:00 PM) or midnight (12:00 AM). "
+            f"Please specify AM/PM or use 24-hour format (12:00 for noon, 00:00 for midnight)."
+        )
+
     # Try 12-hour format with AM/PM (e.g., "09:50 AM", "9:50 PM", "12 PM", "5AM")
     for fmt in ["%I:%M %p", "%I:%M%p", "%I:%M:%S %p", "%I:%M:%S%p", "%I %p", "%I%p"]:
         try:
             return datetime.strptime(tob_str, fmt).time()
         except ValueError:
             continue
-    
+
     # Try 24-hour format (e.g., "09:50", "21:30", "9")
     for fmt in ["%H:%M", "%H:%M:%S", "%H"]:
         try:
             return datetime.strptime(tob_str, fmt).time()
         except ValueError:
             continue
-    
+
     # If all fail, raise error with helpful message
     raise ValueError(f"Unable to parse time '{tob_str}'. Use formats like '09:50', '21:30', '09:50 AM', or '9:50 PM'")
 
@@ -193,7 +269,8 @@ def calculate_kundli(dob_str, tob_str, place):
     try:
         # ✅ FIX 4: Prefer chart.ascendant if available (more reliable)
         if hasattr(chart, 'ascendant') and chart.ascendant:
-            lagna = chart.ascendant.to_dict().get('sign')
+            # Note: jyotishganit doesn't provide degree in ascendant object, only sign
+            lagna = chart.ascendant.sign if hasattr(chart.ascendant, 'sign') else chart.ascendant.to_dict().get('sign')
         else:
             # Fallback: Find House 1 by number, NOT by index (houses may be unordered!)
             lagna_house = next((h for h in chart.d1_chart.houses if h.to_dict().get('number') == 1), None)
@@ -221,6 +298,35 @@ def calculate_kundli(dob_str, tob_str, place):
         if not moon_nakshatra:
             moon_nakshatra = chart.panchanga.nakshatra
         moon_pada = moon_data.get('pada')
+
+        # ✅ FIX 6 & 7: Initialize confidence and warnings BEFORE using them
+        confidence = "high"
+        warnings = []
+
+        # ✅ FIX 1: Validate and correct nakshatra based on degree (CRITICAL - fixes boundary errors)
+        moon_nakshatra, was_nakshatra_corrected = validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra)
+
+        # Add warning if nakshatra was corrected
+        if was_nakshatra_corrected:
+            warnings.append(f"Library returned incorrect nakshatra. Corrected to '{moon_nakshatra}' based on Moon's actual position ({moon_degree:.2f}° in {moon_sign}).")
+            confidence = "medium"
+
+        # Check if Moon is near sign boundary (within 1 degree)
+        if moon_degree > 29.0 or moon_degree < 1.0:
+            warnings.append(f"Moon is at {moon_degree:.2f}° in {moon_sign}, very near sign boundary. Small time difference (±2-3 minutes) could change Moon sign.")
+            confidence = "medium"
+
+        # Check if Moon is in a nakshatra that spans two signs (transition zones)
+        transition_nakshatras = ["Krittika", "Mrigashira", "Punarvasu", "Pushya", "Ashlesha",
+                                "Uttara Phalguni", "Hasta", "Chitra", "Vishakha", "Anuradha", "Jyeshtha",
+                                "Mula", "Purva Ashadha", "Shravana", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"]
+
+        moon_nakshatra_base = moon_nakshatra.split()[0] if moon_nakshatra else moon_nakshatra
+        if moon_nakshatra_base in transition_nakshatras:
+            if moon_degree > 13.0 or moon_degree < 0.33:
+                warnings.append(f"Moon is in {moon_nakshatra} (a transition nakshatra) near sign edge at {moon_degree:.2f}°. Verification recommended.")
+                if confidence == "high":
+                    confidence = "medium"
             
         # Rashi mapping for AI prompts
         HINDI_RASHI = {
@@ -269,7 +375,9 @@ def calculate_kundli(dob_str, tob_str, place):
                 "moon_sign": str(moon_sign),
                 "nakshatra": str(moon_nakshatra),  # MOON's Nakshatra (Janma Nakshatra)
                 "nakshatra_note": "This is the Moon's Nakshatra (Janma Nakshatra/birth star). Not Saturn or any other planet.",
-                "current_dasha": dasha_str
+                "current_dasha": dasha_str,
+                # ✅ FIX 7: Add confidence and warnings to output
+                "confidence": confidence,
             },
             "ai_summary": {
                 "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
@@ -278,6 +386,10 @@ def calculate_kundli(dob_str, tob_str, place):
                 "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions."
             }
         }
+
+        # ✅ FIX 7: Add warnings if any boundary issues detected
+        if warnings:
+            final_output["summary"]["warnings"] = warnings
         
         # Add back all the raw chart data for detail-heavy queries
         final_output.update(chart_data)
