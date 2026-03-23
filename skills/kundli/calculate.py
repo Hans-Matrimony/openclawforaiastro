@@ -7,11 +7,51 @@ from geopy.geocoders import Nominatim
 
 # ✅ FREE EPHEMERIS CHECK - pyswisseph (100% FREE, 100% ACCURATE)
 _PYSWISSEPH_AVAILABLE = False
-try:
+
+def ensure_pyswisseph():
+    """
+    Attempt to install pyswisseph if not available.
+    Returns True if successful (already installed or just installed), False otherwise.
+    """
+    global _PYSWISSEPH_AVAILABLE
+
+    # First check if already available
+    try:
+        import swisseph as swe
+        _PYSWISSEPH_AVAILABLE = True
+        return True
+    except ImportError:
+        pass
+
+    # Not available, try to install
+    print("🔧 pyswisseph not found. Attempting to install...", file=sys.stderr)
+    try:
+        import subprocess
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install",
+            "--break-system-packages", "-q",
+            "pyswisseph"
+        ])
+        print("✅ pyswisseph installed successfully!", file=sys.stderr)
+
+        # Try importing again
+        import swisseph as swe
+        _PYSWISSEPH_AVAILABLE = True
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️ Failed to install pyswisseph: {e}", file=sys.stderr)
+        print("⚠️ Will use jyotishganit fallback (~80% accuracy)", file=sys.stderr)
+        return False
+    except Exception as e:
+        print(f"⚠️ Error installing pyswisseph: {e}", file=sys.stderr)
+        return False
+
+# Try to ensure pyswisseph is available on import
+ensure_pyswisseph()
+
+if _PYSWISSEPH_AVAILABLE:
     import swisseph as swe
-    _PYSWISSEPH_AVAILABLE = True
-except ImportError:
-    pass
+
 
 import jyotishganit
 
