@@ -242,15 +242,21 @@ def degree_to_sign_degree(degree, ayanamsa=PYSWISSEPH_AYANAMSA['LAHIRI']):
     degree_in_sign = sidereal_degree % 30
     return SIGNS[sign_idx], degree_in_sign, sidereal_degree
 
-def get_house_from_degree(sidereal_degree, lagna_sidereal):
+def get_house_from_sign(planet_sign, lagna_sign):
     """
-    Calculate which house a planet is in based on its degree and Lagna.
-    Houses are 30° each, starting from Lagna.
+    Calculate House number strictly using the Vedic Whole Sign (Rashi) system.
+    House 1 is always the entire sign of the Lagna.
     """
-    # Calculate angular distance from Lagna (0-360)
-    distance = (sidereal_degree - lagna_sidereal) % 360
-    # House number (1-12)
-    house = int(distance // 30) + 1
+    sign_to_index = {
+        "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3, "Leo": 4, "Virgo": 5,
+        "Libra": 6, "Scorpio": 7, "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
+    }
+    
+    p_idx = sign_to_index.get(planet_sign, 0)
+    l_idx = sign_to_index.get(lagna_sign, 0)
+    
+    # Calculate difference in signs (1 to 12)
+    house = ((p_idx - l_idx) % 12) + 1
     return house
 
 # ✅ PYSWISSEPH CALCULATION ENGINE (100% FREE, 100% ACCURATE)
@@ -316,8 +322,8 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
             tropical_degree = xx[0] % 360
             sign, degree_in_sign, sidereal_degree = degree_to_sign_degree(tropical_degree, ayanamsa)
 
-            # Calculate which house this planet is in
-            house = get_house_from_degree(sidereal_degree, lagna_sidereal)
+            # Calculate which house this planet is in using WHOLE SIGN system
+            house = get_house_from_sign(sign, lagna_sign)
 
             planet_positions.append({
                 'name': planet_name,
