@@ -67,7 +67,23 @@ def get_devanagari_font():
         return None
 
 
-def parse_planet_positions(planets_list):
+def get_house_from_sign(planet_sign, lagna_sign):
+    """
+    Calculate House number strictly using the Vedic Whole Sign (Rashi) system.
+    House 1 is always the entire sign of the Lagna.
+    """
+    sign_to_index = {
+        "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3, "Leo": 4, "Virgo": 5,
+        "Libra": 6, "Scorpio": 7, "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
+    }
+    
+    p_idx = sign_to_index.get(planet_sign, 0)
+    l_idx = sign_to_index.get(lagna_sign, 0)
+    
+    house = ((p_idx - l_idx) % 12) + 1
+    return house
+
+def parse_planet_positions(planets_list, lagna=None):
     house_planets = {}
 
     if not planets_list:
@@ -83,6 +99,10 @@ def parse_planet_positions(planets_list):
                 name = item.get('planet') or item.get('name') or ''
                 house = item.get('house', '')
                 sign = item.get('sign', '')
+                
+                # If house is missing but we have sign and lagna, calculate it
+                if not str(house).strip() and sign and lagna:
+                    house = get_house_from_sign(sign, lagna)
                 
                 # If name or house are effectively missing, skip
                 if not name or not str(house).strip():
@@ -171,7 +191,7 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     draw.line([L, MY, MX, T], fill=LINE_COLOR)
 
     lagna_idx = SIGN_NAMES.index(lagna)
-    house_planets = parse_planet_positions(planet_positions or [])
+    house_planets = parse_planet_positions(planet_positions or [], lagna=lagna)
 
     # Ensure Lagna
     house_planets.setdefault(1, [])
