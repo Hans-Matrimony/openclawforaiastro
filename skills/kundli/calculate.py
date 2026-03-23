@@ -849,7 +849,7 @@ def store_kundli_image_to_mongodb(
                         os.environ[k] = v.strip('"\'')
 
     # Get mongo logger URL from environment
-    mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "http://localhost:5000")
+    mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com")
     upload_url = f"{mongo_logger_url}/kundli-image"
 
     # Prepare payload

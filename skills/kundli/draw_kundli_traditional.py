@@ -354,7 +354,7 @@ def main():
 
             if storage_result and storage_result.get("success"):
                 file_id = storage_result.get("fileId")
-                mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "http://localhost:5000")
+                mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com")
                 stored_url = f"{mongo_logger_url}/kundli-image/{file_id}"
                 # Output the IMAGE_URL matching the mongo logger endpoint so Whatsapp Webhook can download it
                 print(f"IMAGE_URL: {stored_url}")
