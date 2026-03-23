@@ -99,10 +99,10 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CITIES_FILE = os.path.join(SCRIPT_DIR, 'cities_india.json')
 
 # ✅ PYSWISSEPH CONSTANTS (FREE Swiss Ephemeris)
-# Planet IDs for pyswisseph
+# CORRECT Planet IDs (Ketu removed, handled manually)
 PYSWISSEPH_PLANETS = {
-    'Sun': 0, 'Moon': 1, 'Mars': 9, 'Mercury': 2,
-    'Jupiter': 4, 'Venus': 6, 'Saturn': 7, 'Rahu': 10, 'Ketu': 11
+    'Sun': 0, 'Moon': 1, 'Mercury': 2, 'Venus': 3,
+    'Mars': 4, 'Jupiter': 5, 'Saturn': 6, 'Rahu': 11
 }
 
 # Ayanamsa values ( Lahiri is most common for Vedic astrology)
@@ -336,6 +336,22 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
         except Exception as e:
             # Skip planets that fail to calculate
             continue
+
+    # ✅ Calculate Ketu manually (Always 180 degrees opposite Rahu)
+    rahu_data = next((p for p in planet_positions if p['name'] == 'Rahu'), None)
+    if rahu_data:
+        ketu_tropical = (rahu_data['tropical_degree'] + 180) % 360
+        k_sign, k_degree_in_sign, k_sidereal = degree_to_sign_degree(ketu_tropical, ayanamsa)
+        k_house = get_house_from_sign(k_sign, lagna_sign)
+
+        planet_positions.append({
+            'name': 'Ketu',
+            'tropical_degree': ketu_tropical,
+            'sidereal_degree': k_sidereal,
+            'sign': k_sign,
+            'degree_in_sign': k_degree_in_sign,
+            'house': k_house
+        })
 
     # Extract Moon data
     moon_data = next((p for p in planet_positions if p['name'] == 'Moon'), None)
