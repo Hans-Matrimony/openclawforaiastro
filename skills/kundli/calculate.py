@@ -81,11 +81,21 @@ NAKSHATRA_RANGES = [
     ("Revati", 346.666, 360),
 ]
 
-# ✅ FIX #6: Helper to validate and correct nakshatra based on degree
-def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra):
+# ✅ FIX: Calculate correct Pada (1-4) based on degree position within nakshatra
+def calculate_pada(absolute_degree, nakshatra_start):
     """
-    Cross-check that the reported nakshatra matches the expected nakshatra
-    for the given Moon sign and degree. If mismatch found, return the CORRECT nakshatra.
+    Calculate the Pada (quarter) of a nakshatra.
+    Each nakshatra (13°20') is divided into 4 padas of 3°20' (3.333°) each.
+    """
+    degree_within_nakshatra = absolute_degree - nakshatra_start
+    pada = int(degree_within_nakshatra // 3.333) + 1  # 1-4
+    return min(pada, 4)  # Ensure we don't exceed 4
+
+# ✅ FIX #6: Helper to validate and correct nakshatra AND pada based on degree
+def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra, moon_pada=None):
+    """
+    Cross-check that the reported nakshatra and pada match the expected values
+    for the given Moon sign and degree. If mismatch found, return the CORRECT values.
     """
     # Map sign names to indices
     sign_to_index = {
@@ -100,22 +110,39 @@ def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra):
 
     # Find expected nakshatra for this degree
     expected_nakshatra = None
+    nakshatra_start = None
     for nakshatra, start, end in NAKSHATRA_RANGES:
         if start <= moon_abs_degree < end:
             expected_nakshatra = nakshatra
+            nakshatra_start = start
             break
 
+    if expected_nakshatra is None:
+        return moon_nakshatra, moon_pada, False  # Can't determine, return as-is
+
+    # ✅ FIX: Calculate CORRECT pada based on absolute degree
+    correct_pada = calculate_pada(moon_abs_degree, nakshatra_start)
+
     # Normalize nakshatra names (handle variations like "Uttara Ashadha" vs "Uttara Ashadha 1")
-    if expected_nakshatra and moon_nakshatra:
+    nakshatra_corrected = False
+    pada_corrected = False
+
+    if moon_nakshatra:
         moon_nakshatra_base = moon_nakshatra.split()[0] if moon_nakshatra else moon_nakshatra
         expected_nakshatra_base = expected_nakshatra.split()[0] if expected_nakshatra else expected_nakshatra
 
         if moon_nakshatra_base != expected_nakshatra_base:
-            # ✅ FIX #1: Library error detected - RETURN CORRECT NAKSHATRA instead of failing
-            # This fixes the boundary case errors where library returns wrong nakshatra
-            return expected_nakshatra, True  # (corrected_nakshatra, was_corrected)
+            nakshatra_corrected = True
 
-    return moon_nakshatra, False  # (original_nakshatra, was_not_corrected)
+    # Check if pada is correct
+    if moon_pada and moon_pada != correct_pada:
+        pada_corrected = True
+
+    # Return corrected values if needed
+    final_nakshatra = expected_nakshatra if nakshatra_corrected else moon_nakshatra
+    final_pada = correct_pada if (pada_corrected or nakshatra_corrected) else moon_pada
+
+    return final_nakshatra, final_pada, (nakshatra_corrected or pada_corrected)
 
 def get_coordinates(place):
     # Try local fallback first (case-insensitive)
@@ -232,6 +259,70 @@ def parse_time(tob_str):
     # If all fail, raise error with helpful message
     raise ValueError(f"Unable to parse time '{tob_str}'. Use formats like '09:50', '21:30', '09:50 AM', or '9:50 PM'")
 
+# ✅ FIX: Planet validation layer - Ephemeris sanity checks
+def validate_planet_positions(chart_data):
+    """
+    Validate that key planets (Sun, Mercury, Mars) are in plausible positions.
+    This catches ephemeris calculation errors from jyotishganit.
+    """
+    validation_errors = []
+
+    d1 = chart_data.get('d1Chart', {})
+    planets = d1.get('planets', [])
+
+    planet_positions = {}
+    for planet in planets:
+        name = planet.get('celestialBody', '')
+        sign = planet.get('sign', '')
+        degree = planet.get('degree', 0)
+        planet_positions[name] = {'sign': sign, 'degree': degree}
+
+    # ✅ CRITICAL VALIDATION: Check for impossible planet positions
+    # Note: This is a basic sanity check. For production, use Swiss Ephemeris.
+
+    # Mercury should never be more than 28 degrees from Sun
+    if 'Sun' in planet_positions and 'Mercury' in planet_positions:
+        sun_sign = planet_positions['Sun']['sign']
+        merc_sign = planet_positions['Mercury']['sign']
+
+        sign_to_index = {
+            "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3, "Leo": 4, "Virgo": 5,
+            "Libra": 6, "Scorpio": 7, "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
+        }
+
+        sun_idx = sign_to_index.get(sun_sign, 0)
+        merc_idx = sign_to_index.get(merc_sign, 0)
+
+        # Calculate angular distance (0-180°)
+        distance = abs(merc_idx - sun_idx) * 30
+        if distance > 180:
+            distance = 360 - distance
+
+        # Mercury should be within 28° of Sun
+        if distance > 28:
+            validation_errors.append(
+                f"Mercury is in {merc_sign} ({distance:.0f}° from Sun in {sun_sign}). "
+                f"This exceeds maximum elongation of 28°. Ephemeris calculation may be incorrect."
+            )
+
+    # Mars should never be more than 47 degrees from Sun
+    if 'Sun' in planet_positions and 'Mars' in planet_positions:
+        sun_idx = sign_to_index.get(planet_positions['Sun']['sign'], 0)
+        mars_idx = sign_to_index.get(planet_positions['Mars']['sign'], 0)
+
+        distance = abs(mars_idx - sun_idx) * 30
+        if distance > 180:
+            distance = 360 - distance
+
+        if distance > 47:
+            validation_errors.append(
+                f"Mars is in {planet_positions['Mars']['sign']} ({distance:.0f}° from Sun in {planet_positions['Sun']['sign']}). "
+                f"This exceeds maximum elongation of 47°. Ephemeris calculation may be incorrect."
+            )
+
+    return validation_errors
+
+
 def calculate_kundli(dob_str, tob_str, place):
     # ✅ FIX #3: get_coordinates now raises ValueError if place not found
     # No more silent Delhi fallback
@@ -303,12 +394,12 @@ def calculate_kundli(dob_str, tob_str, place):
         confidence = "high"
         warnings = []
 
-        # ✅ FIX 1: Validate and correct nakshatra based on degree (CRITICAL - fixes boundary errors)
-        moon_nakshatra, was_nakshatra_corrected = validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra)
+        # ✅ FIX 1: Validate and correct BOTH nakshatra AND pada based on degree (CRITICAL)
+        moon_nakshatra, moon_pada, was_corrected = validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra, moon_pada)
 
-        # Add warning if nakshatra was corrected
-        if was_nakshatra_corrected:
-            warnings.append(f"Library returned incorrect nakshatra. Corrected to '{moon_nakshatra}' based on Moon's actual position ({moon_degree:.2f}° in {moon_sign}).")
+        # Add warning if nakshatra or pada was corrected
+        if was_corrected:
+            warnings.append(f"Library error detected. Corrected to '{moon_nakshatra} Pada {moon_pada}' based on Moon's actual position ({moon_degree:.2f}° in {moon_sign}).")
             confidence = "medium"
 
         # Check if Moon is near sign boundary (within 1 degree)
@@ -327,7 +418,12 @@ def calculate_kundli(dob_str, tob_str, place):
                 warnings.append(f"Moon is in {moon_nakshatra} (a transition nakshatra) near sign edge at {moon_degree:.2f}°. Verification recommended.")
                 if confidence == "high":
                     confidence = "medium"
-            
+
+        # ✅ FIX: Validate planet positions (Mercury, Mars, Sun)
+        planet_validation_errors = validate_planet_positions(chart_data)
+        if planet_validation_errors:
+            warnings.extend(planet_validation_errors)
+            confidence = "low"
         # Rashi mapping for AI prompts
         HINDI_RASHI = {
             "Aries": "Mesh", "Taurus": "Vrishabh", "Gemini": "Mithun", "Cancer": "Kark",
