@@ -100,6 +100,26 @@ def parse_planet_positions(planets_list, lagna=None):
                 house = item.get('house', '')
                 sign = item.get('sign', '')
                 
+                # Check for flat {'Planet': 'Sign'} format if standard format is missing
+                if not name and not sign:
+                    known_planets = {'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu', 'Lagna'}
+                    found_planets = False
+                    for k, v in item.items():
+                        if k in known_planets and isinstance(v, str):
+                            found_planets = True
+                            p_name = k
+                            p_sign = v
+                            p_house = get_house_from_sign(p_sign, lagna) if lagna else ''
+                            p_str = f"{p_name} is in House {p_house} ({p_sign})"
+                            print(f"  🔧 Converted flat dict: {p_name} → {p_str}", file=sys.stderr)
+                            
+                            abbrev = HINDI_MAP.get(p_name, p_name[:2])
+                            if p_house:
+                                house_planets.setdefault(p_house, []).append(abbrev)
+                                print(f"  ✓ {p_name} → House {p_house} → {abbrev}", file=sys.stderr)
+                    if found_planets:
+                        continue
+                
                 # If house is missing but we have sign and lagna, calculate it
                 if not str(house).strip() and sign and lagna:
                     house = get_house_from_sign(sign, lagna)
