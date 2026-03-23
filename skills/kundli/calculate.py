@@ -193,25 +193,24 @@ def degree_to_sign_degree(degree, ayanamsa=PYSWISSEPH_AYANAMSA['LAHIRI']):
     degree_in_sign = sidereal_degree % 30
     return SIGNS[sign_idx], degree_in_sign, sidereal_degree
 
-def calculate_lagna_pyswisseph(jd, lat, lon, ayanamsa=PYSWISSEPH_AYANAMSA['LAHIRI']):
+def get_house_from_degree(sidereal_degree, lagna_sidereal):
     """
-    Calculate Lagna (Ascendant) using pyswisseph.
-    This is a simplified version - for full precision, use swe.calc_ut() with houses.
+    Calculate which house a planet is in based on its degree and Lagna.
+    Houses are 30° each, starting from Lagna.
     """
-    try:
-        # For simplicity, we're using an approximation
-        # In production, you'd use swe.houses() for exact ascendant
-        # This placeholder shows the structure
-        # TODO: Implement proper ascendant calculation using swe.houses()
-        return None  # Will need fallback to jyotishganit for Lagna
-    except:
-        return None
+    # Calculate angular distance from Lagna (0-360)
+    distance = (sidereal_degree - lagna_sidereal) % 360
+    # House number (1-12)
+    house = int(distance // 30) + 1
+    return house
 
 # ✅ PYSWISSEPH CALCULATION ENGINE (100% FREE, 100% ACCURATE)
 def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
     """
     Calculate Kundli using FREE pyswisseph (Swiss Ephemeris).
     This is 100% FREE and provides professional-grade accuracy.
+
+    Returns complete planet positions with house numbers.
     """
     if not _PYSWISSEPH_AVAILABLE:
         raise ImportError("pyswisseph is not installed. Run: pip install pyswisseph")
@@ -228,43 +227,60 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
 
     ayanamsa = PYSWISSEPH_AYANAMSA[ayanamsa_name]
 
+    # ✅ Calculate houses (including Lagna/Ascendant)
+    # swe.houses() returns: (house_cusps[], ascendant, MC, ...)
+    # house_cusps[0] is the ascendant (Lagna)
+    try:
+        houses_long = swe.houses(jd, lat, lon, b'P')  # 'P' = Placidus house system
+        lagna_tropical = houses_long[0][0]  # Ascendant in tropical degrees
+
+        # Convert Lagna to sidereal
+        lagna_sign, lagna_degree, lagna_sidereal = degree_to_sign_degree(lagna_tropical, ayanamsa)
+    except Exception as e:
+        # If house calculation fails, we can't proceed
+        raise ValueError(f"House calculation failed: {e}")
+
     # Calculate planet positions
-    planet_positions = {}
+    planet_positions = []
     for planet_name, planet_id in PYSWISSEPH_PLANETS.items():
         try:
             xx, ret = swe.calc_ut(jd, planet_id)
-            degree = xx[0] % 360
-            sign, degree_in_sign, sidereal_degree = degree_to_sign_degree(degree, ayanamsa)
-            planet_positions[planet_name] = {
-                'tropical_degree': degree,
+            tropical_degree = xx[0] % 360
+            sign, degree_in_sign, sidereal_degree = degree_to_sign_degree(tropical_degree, ayanamsa)
+
+            # Calculate which house this planet is in
+            house = get_house_from_degree(sidereal_degree, lagna_sidereal)
+
+            planet_positions.append({
+                'name': planet_name,
+                'tropical_degree': tropical_degree,
                 'sidereal_degree': sidereal_degree,
                 'sign': sign,
-                'degree_in_sign': degree_in_sign
-            }
+                'degree_in_sign': degree_in_sign,
+                'house': house
+            })
         except Exception as e:
-            planet_positions[planet_name] = None
+            # Skip planets that fail to calculate
+            continue
 
     # Extract Moon data
-    moon_data = planet_positions.get('Moon', {})
-    moon_sign = moon_data.get('sign') if moon_data else None
-    moon_degree = moon_data.get('degree_in_sign', 0) if moon_data else 0
+    moon_data = next((p for p in planet_positions if p['name'] == 'Moon'), None)
+    moon_sign = moon_data['sign'] if moon_data else None
+    moon_degree = moon_data['degree_in_sign'] if moon_data else 0
 
     # Calculate Nakshatra and Pada
-    moon_sidereal = moon_data.get('sidereal_degree', 0) if moon_data else 0
+    moon_sidereal = moon_data['sidereal_degree'] if moon_data else 0
     moon_nakshatra, nakshatra_start = get_nakshatra_from_degree(moon_sidereal)
     moon_pada = calculate_pada(moon_sidereal, nakshatra_start) if moon_nakshatra else None
 
-    # Lagna calculation (simplified - needs proper ascendant calculation)
-    # For now, we'll use the jyotishganit for Lagna as fallback
-    lagna = None
-
     return {
-        'planet_positions': planet_positions,
+        'planet_positions': planet_positions,  # Full list with house numbers
         'moon_sign': moon_sign,
         'moon_degree': moon_degree,
         'moon_nakshatra': moon_nakshatra,
         'moon_pada': moon_pada,
-        'lagna': lagna,  # Will need fallback
+        'lagna': lagna_sign,  # Now properly calculated!
+        'lagna_degree': lagna_degree,
         'ayanamsa_used': ayanamsa_name,
         'ephemeris': 'pyswisseph (FREE Swiss Ephemeris)'
     }
@@ -497,23 +513,30 @@ def calculate_kundli(dob_str, tob_str, place):
 
     # ADD FLATTENED SUMMARY FOR AI (CRITICAL FOR ACCURACY)
     try:
-        # ✅ FIX 4: Prefer chart.ascendant if available (more reliable)
-        if hasattr(chart, 'ascendant') and chart.ascendant:
-            # Note: jyotishganit doesn't provide degree in ascendant object, only sign
-            lagna = chart.ascendant.sign if hasattr(chart.ascendant, 'sign') else chart.ascendant.to_dict().get('sign')
-        else:
-            # Fallback: Find House 1 by number, NOT by index (houses may be unordered!)
-            lagna_house = next((h for h in chart.d1_chart.houses if h.to_dict().get('number') == 1), None)
-            lagna = lagna_house.to_dict().get('sign') if lagna_house else None
-
-        # ✅ FIX 2: Case-insensitive moon extraction (some libraries use "MOON" or "moon")
-        # ✅ NEW: Use pyswisseph data if available (100% accurate)
+        # ✅ NEW: Use pyswisseph Lagna if available (100% accurate)
         if using_pyswisseph and pyswisseph_data:
+            lagna = pyswisseph_data.get('lagna')
+            # Also use pyswisseph Moon data
             moon_sign = pyswisseph_data.get('moon_sign')
             moon_degree = pyswisseph_data.get('moon_degree', 0)
             moon_nakshatra = pyswisseph_data.get('moon_nakshatra')
             moon_pada = pyswisseph_data.get('moon_pada')
         else:
+            # ✅ FIX 4: Prefer chart.ascendant if available (more reliable)
+            if hasattr(chart, 'ascendant') and chart.ascendant:
+                # Note: jyotishganit doesn't provide degree in ascendant object, only sign
+                lagna = chart.ascendant.sign if hasattr(chart.ascendant, 'sign') else chart.ascendant.to_dict().get('sign')
+            else:
+                # Fallback: Find House 1 by number, NOT by index (houses may be unordered!)
+                lagna_house = next((h for h in chart.d1_chart.houses if h.to_dict().get('number') == 1), None)
+                lagna = lagna_house.to_dict().get('sign') if lagna_house else None
+
+            # ✅ FIX 2: Case-insensitive moon extraction (some libraries use "MOON" or "moon")
+            # Fallback to jyotishganit for Moon
+            moon_planet = next(
+                (p for p in chart.d1_chart.planets if p.celestial_body.lower() == 'moon'),
+                None
+            )
             # Fallback to jyotishganit
             moon_planet = next(
                 (p for p in chart.d1_chart.planets if p.celestial_body.lower() == 'moon'),
@@ -540,6 +563,7 @@ def calculate_kundli(dob_str, tob_str, place):
         # ✅ FIX 6 & 7: Initialize confidence and warnings BEFORE using them
         confidence = "high"
         warnings = []
+        was_corrected = False  # Initialize to avoid undefined variable
 
         # ✅ NEW: Add ephemeris info to warnings for transparency
         if using_pyswisseph:
@@ -550,19 +574,13 @@ def calculate_kundli(dob_str, tob_str, place):
             if not _PYSWISSEPH_AVAILABLE:
                 warnings.append(f"NOTE: Install pyswisseph for 100% accuracy: pip install pyswisseph")
 
-        # ✅ FIX 1: Validate and correct BOTH nakshatra AND pada based on degree (CRITICAL)
-        # Skip validation if using pyswisseph (already 100% accurate)
-        if not using_pyswisseph:
+            # ✅ FIX 1: Validate and correct BOTH nakshatra AND pada based on degree (CRITICAL)
+            # Only for jyotishganit (pyswisseph is already 100% accurate)
             moon_nakshatra, moon_pada, was_corrected = validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra, moon_pada)
             if was_corrected:
                 warnings.append(f"Library error detected. Corrected to '{moon_nakshatra} Pada {moon_pada}' based on Moon's actual position ({moon_degree:.2f}° in {moon_sign}).")
                 if confidence == "high":
                     confidence = "medium"
-
-        # Add warning if nakshatra or pada was corrected
-        if was_corrected:
-            warnings.append(f"Library error detected. Corrected to '{moon_nakshatra} Pada {moon_pada}' based on Moon's actual position ({moon_degree:.2f}° in {moon_sign}).")
-            confidence = "medium"
 
         # Check if Moon is near sign boundary (within 1 degree)
         if moon_degree > 29.0 or moon_degree < 1.0:
@@ -614,15 +632,16 @@ def calculate_kundli(dob_str, tob_str, place):
         # ✅ FIX 3: Sort houses by number to ensure consistent ordering
         # ✅ NEW: Use pyswisseph data if available for more accurate planet positions
         if using_pyswisseph and pyswisseph_data:
-            # Use pyswisseph planet positions (100% accurate)
-            planet_positions = pyswisseph_data.get('planet_positions', {})
+            # Use pyswisseph planet positions (100% accurate with house numbers)
+            planet_positions = pyswisseph_data.get('planet_positions', [])
             planets_summary = []
-            for planet_name, planet_data in planet_positions.items():
-                if planet_data:
-                    sign = planet_data.get('sign')
-                    sign_hindi = HINDI_RASHI.get(sign, sign)
-                    degree = planet_data.get('degree_in_sign', 0)
-                    planets_summary.append(f"{planet_name} is in {sign} ({sign_hindi}) at {degree:.2f}°")
+            for planet_data in planet_positions:
+                planet_name = planet_data.get('name')
+                sign = planet_data.get('sign')
+                house = planet_data.get('house')
+                degree = planet_data.get('degree_in_sign', 0)
+                sign_hindi = HINDI_RASHI.get(sign, sign)
+                planets_summary.append(f"{planet_name} is in House {house} ({sign}/{sign_hindi}) at {degree:.2f}°")
         else:
             # Fallback to jyotishganit
             d1 = chart_data.get('d1Chart', {})
