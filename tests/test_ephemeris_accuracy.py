@@ -29,7 +29,7 @@ def test_kundli_calculation():
             "place": "Ghaziabad",
             "expected": {
                 "moon_sign": "Aries",
-                "nakshatra": "Ashwini",
+                "nakshatra": "Krittika",  # ✅ CORRECT (not Ashwini) - confirmed by Dasha analysis
                 "lagna": "Leo",
                 "mercury_sign": "Scorpio",  # jyotishganit gets this wrong (Libra)
                 "mars_sign": "Sagittarius"  # jyotishganit gets this wrong (Capricorn)

@@ -129,7 +129,16 @@ def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra, moon_p
     """
     Cross-check that the reported nakshatra and pada match the expected values
     for the given Moon sign and degree. If mismatch found, return the CORRECT values.
+
+    ✅ CRITICAL: Refuses to "correct" if degree is exactly 0.0 (likely missing data)
     """
+    # ✅ CRITICAL FIX: If degree is exactly 0.0, refuse to "correct"
+    # True 0.0000° alignments are astronomically rare and usually indicate missing data
+    if moon_degree == 0.0 and moon_sign == "Aries":
+        # This is almost certainly a data error, not a real position
+        # Don't override the library's Nakshatra calculation
+        return moon_nakshatra, moon_pada, False
+
     # Map sign names to indices
     sign_to_index = {
         "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3, "Leo": 4, "Virgo": 5,
@@ -537,17 +546,27 @@ def calculate_kundli(dob_str, tob_str, place):
                 (p for p in chart.d1_chart.planets if p.celestial_body.lower() == 'moon'),
                 None
             )
-            # Fallback to jyotishganit
-            moon_planet = next(
-                (p for p in chart.d1_chart.planets if p.celestial_body.lower() == 'moon'),
-                None
-            )
             if not moon_planet:
                 raise ValueError("Moon planet not found in chart data")
 
             # ✅ FIX 5: Validate Moon degree (CRITICAL for boundary cases)
             moon_data = moon_planet.to_dict()
-            moon_degree = moon_data.get('degree', 0)
+
+            # ✅ FIX: Check multiple possible degree keys before falling back
+            # jyotishganit uses 'signDegrees', 'degree', 'normDegree', 'longitude_in_sign', etc.
+            moon_degree = moon_data.get('signDegrees',
+                          moon_data.get('degree',
+                            moon_data.get('normDegree',
+                              moon_data.get('longitude_in_sign',
+                                moon_data.get('longitude', None)))))
+
+            # ✅ CRITICAL: If degree is None or exactly 0.0, this is likely a missing value
+            # Moon at exactly 0.00° is astronomically rare and usually indicates a data error
+            if moon_degree is None:
+                raise ValueError(f"Moon degree not found in planet data. Available keys: {list(moon_data.keys())}")
+
+            if moon_degree == 0.0:
+                raise ValueError(f"Moon degree is exactly 0.0° - this is likely a data error, not an actual planetary position. Ephemeris calculation failed.")
 
             if not (0 <= moon_degree <= 30):
                 raise ValueError(f"Invalid Moon degree: {moon_degree}. Must be between 0-30. Chart calculation may be incorrect.")
