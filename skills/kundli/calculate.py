@@ -58,7 +58,7 @@ def get_coordinates(place):
             place_lower = place.strip().lower()
             for city_name, coords in cities.items():
                 if city_name.lower() == place_lower:
-                    return coords[0], coords[1], False
+                    return coords[0], coords[1]
     except:
         pass
 
@@ -67,29 +67,46 @@ def get_coordinates(place):
         geolocator = Nominatim(user_agent="acharya_sharma_astro")
         location = geolocator.geocode(place + ", India")
         if location:
-            return location.latitude, location.longitude, False
+            return location.latitude, location.longitude
     except:
         pass
-    
-    # Default to Delhi if all fails — but flag it
-    return 28.6139, 77.2090, True
+
+    # ✅ FIX #3: FAIL LOUDLY instead of silent Delhi fallback
+    # Using wrong coordinates completely changes Lagna and Moon positions
+    raise ValueError(f"Could not find coordinates for '{place}'. Please provide a valid city name in India.")
 
 
-def get_timezone_offset(lat, lon):
-    """Detect timezone offset from coordinates. Falls back to IST (5.5)."""
+def get_timezone_offset(lat, lon, birth_dt=None):
+    """
+    Detect timezone offset from coordinates.
+    ✅ FIX #1 (CRITICAL): Use actual birth date/time instead of fixed reference
+
+    Timezone offsets depend on the actual date (DST, historical changes, etc.)
+    Using a fixed reference (2000-06-15) causes incorrect Lagna and Moon calculations.
+    """
     if _TZ_FINDER is None:
         return 5.5  # Fallback to IST if timezonefinder not installed
+
     try:
         tz_name = _TZ_FINDER.timezone_at(lat=lat, lng=lon)
         if tz_name:
             from datetime import timezone as _tz
             tz = ZoneInfo(tz_name)
-            # Use a reference datetime to get UTC offset
-            ref_dt = datetime(2000, 6, 15, 12, 0, 0, tzinfo=tz)
-            offset_seconds = ref_dt.utcoffset().total_seconds()
+
+            # ✅ FIX #1: Use actual birth datetime instead of fixed reference
+            # This ensures correct offset accounting for DST, historical changes, etc.
+            if birth_dt:
+                # Use actual birth date/time
+                localized_dt = birth_dt.replace(tzinfo=tz)
+            else:
+                # Fallback to current time if birth_dt not provided (shouldn't happen)
+                localized_dt = datetime.now(tz)
+
+            offset_seconds = localized_dt.utcoffset().total_seconds()
             return offset_seconds / 3600
     except Exception:
         pass
+
     return 5.5  # Fallback to IST
 
 def parse_date(dob_str):
@@ -140,15 +157,18 @@ def parse_time(tob_str):
     raise ValueError(f"Unable to parse time '{tob_str}'. Use formats like '09:50', '21:30', '09:50 AM', or '9:50 PM'")
 
 def calculate_kundli(dob_str, tob_str, place):
-    lat, lon, used_fallback = get_coordinates(place)
-    
+    # ✅ FIX #3: get_coordinates now raises ValueError if place not found
+    # No more silent Delhi fallback
+    lat, lon = get_coordinates(place)
+
     # Parse date and time into a single datetime object
     birth_time = parse_time(tob_str)
     birth_date = parse_date(dob_str)
     birth_dt = datetime.combine(birth_date, birth_time)
-    
-    # Detect timezone from coordinates (falls back to IST if unavailable)
-    tz_offset = get_timezone_offset(lat, lon)
+
+    # ✅ FIX #1: Pass birth_dt to get correct timezone offset
+    # Timezone offsets depend on actual birth date (DST, historical changes)
+    tz_offset = get_timezone_offset(lat, lon, birth_dt)
     
     # Call the top-level API function
     # Signature: birth_date (datetime), latitude (float), longitude (float), timezone_offset (float)
@@ -171,9 +191,13 @@ def calculate_kundli(dob_str, tob_str, place):
 
     # ADD FLATTENED SUMMARY FOR AI (CRITICAL FOR ACCURACY)
     try:
-        # ✅ FIX 1: Find House 1 by number, NOT by index (houses may be unordered!)
-        lagna_house = next((h for h in chart.d1_chart.houses if h.to_dict().get('number') == 1), None)
-        lagna = lagna_house.to_dict().get('sign') if lagna_house else None
+        # ✅ FIX 4: Prefer chart.ascendant if available (more reliable)
+        if hasattr(chart, 'ascendant') and chart.ascendant:
+            lagna = chart.ascendant.to_dict().get('sign')
+        else:
+            # Fallback: Find House 1 by number, NOT by index (houses may be unordered!)
+            lagna_house = next((h for h in chart.d1_chart.houses if h.to_dict().get('number') == 1), None)
+            lagna = lagna_house.to_dict().get('sign') if lagna_house else None
 
         # ✅ FIX 2: Case-insensitive moon extraction (some libraries use "MOON" or "moon")
         moon_planet = next(
@@ -182,13 +206,21 @@ def calculate_kundli(dob_str, tob_str, place):
         )
         if not moon_planet:
             raise ValueError("Moon planet not found in chart data")
-        moon_sign = moon_planet.to_dict().get('sign')
+
+        # ✅ FIX 5: Validate Moon degree (CRITICAL for boundary cases)
+        moon_data = moon_planet.to_dict()
+        moon_degree = moon_data.get('degree', 0)
+
+        if not (0 <= moon_degree <= 30):
+            raise ValueError(f"Invalid Moon degree: {moon_degree}. Must be between 0-30. Chart calculation may be incorrect.")
+
+        moon_sign = moon_data.get('sign')
         # CRITICAL: Always use the Moon's own nakshatra, NOT panchanga or any other planet
-        moon_nakshatra = moon_planet.to_dict().get('nakshatra')
+        moon_nakshatra = moon_data.get('nakshatra')
         # Fall back to panchanga only if Moon nakshatra unavailable
         if not moon_nakshatra:
             moon_nakshatra = chart.panchanga.nakshatra
-        moon_pada = moon_planet.to_dict().get('pada')
+        moon_pada = moon_data.get('pada')
             
         # Rashi mapping for AI prompts
         HINDI_RASHI = {
@@ -269,10 +301,10 @@ def calculate_kundli(dob_str, tob_str, place):
         "coordinates": {"lat": lat, "lon": lon},
         "timezone_offset": tz_offset
     }
-    
-    if used_fallback:
-        final_output["warning"] = f"Could not find coordinates for '{place}'. Defaulted to Delhi (28.61, 77.21). Results may be inaccurate. Please verify the city name."
-    
+
+    # ✅ FIX #3: No silent fallback warning anymore - we fail loudly instead
+    # If we reach here, coordinates are valid
+
     return final_output
 
 if __name__ == "__main__":
