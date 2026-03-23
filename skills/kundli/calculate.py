@@ -271,8 +271,20 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
     swe.set_ephe_path(ephe_path)
 
     # Convert to Julian Day
-    jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day,
-                    birth_dt.hour, birth_dt.minute, birth_dt.second)
+    # ✅ FIX: Try different method signatures for swe.julday()
+    # Older pyswisseph: swe.julday(year, month, day, hour, minute, second)
+    # Newer pyswisseph: swe.julday(datetime_object)
+    try:
+        # Try old-style (6 arguments)
+        jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day,
+                        birth_dt.hour, birth_dt.minute, birth_dt.second)
+    except TypeError as e:
+        # If that fails, try new-style (datetime object)
+        if "takes at most" in str(e) or "positional argument" in str(e):
+            print(f"⚠️ Trying alternative julday format...", file=sys.stderr)
+            jd = swe.julday(birth_dt)
+        else:
+            raise
 
     ayanamsa = PYSWISSEPH_AYANAMSA[ayanamsa_name]
 
@@ -280,13 +292,23 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
     # swe.houses() returns: (house_cusps[], ascendant, MC, ...)
     # house_cusps[0] is the ascendant (Lagna)
     try:
-        houses_long = swe.houses(jd, lat, lon, b'P')  # 'P' = Placidus house system
+        # Try different swe.houses() signatures
+        # Old: swe.houses(jd, lat, lon, b'P')
+        # New: swe.houses(jd, lat, lon, b'P', optionally more flags)
+        try:
+            houses_long = swe.houses(jd, lat, lon, b'P')
+        except TypeError as e:
+            print(f"⚠️ Trying alternative houses() format: {e}", file=sys.stderr)
+            # Try without system byte string
+            houses_long = swe.houses(jd, lat, lon, 'P')
+
         lagna_tropical = houses_long[0][0]  # Ascendant in tropical degrees
 
         # Convert Lagna to sidereal
         lagna_sign, lagna_degree, lagna_sidereal = degree_to_sign_degree(lagna_tropical, ayanamsa)
     except Exception as e:
         # If house calculation fails, we can't proceed
+        print(f"⚠️ pyswisseph house calculation failed: {e}", file=sys.stderr)
         raise ValueError(f"House calculation failed: {e}")
 
     # Calculate planet positions
