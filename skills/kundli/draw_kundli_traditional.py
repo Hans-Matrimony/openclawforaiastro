@@ -165,36 +165,20 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if 'ल' not in house_planets[1]:
         house_planets[1].insert(0, 'ल')
 
-    # ✅ FIXED H_PLANETS mapping
-    H_PLANETS = {
-        1: (200, 55),
-        2: (120, 90),
-        3: (70, 150),
-        4: (120, 260),
-        5: (200, 320),
-        6: (280, 260),
-        7: (320, 150),
-        8: (280, 90),
-        9: (260, 260),
-        10: (260, 150),
-        11: (140, 150),
-        12: (140, 90)
-    }
-
-    # ✅ FIXED H_SIGNS mapping
-    H_SIGNS = {
-        1: (200, 105),
-        2: (110, 50),
-        3: (50, 110),
-        4: (110, 200),
-        5: (50, 300),
-        6: (110, 350),
-        7: (200, 250),
-        8: (290, 350),
-        9: (350, 300),
-        10: (290, 200),
-        11: (350, 110),
-        12: (290, 50)
+    # ✅ FIXED: Correct North Indian diamond layout coordinates
+    HOUSE_POS = {
+        1: (200, 60),    # Top center
+        2: (110, 110),   # Top left
+        3: (60, 200),    # Left center
+        4: (110, 290),   # Bottom left
+        5: (200, 340),   # Bottom center
+        6: (290, 290),   # Bottom right
+        7: (340, 200),   # Right center
+        8: (290, 110),   # Top right
+        9: (260, 260),   # Inner bottom right
+        10: (260, 140),  # Inner top right
+        11: (140, 140),  # Inner top left
+        12: (140, 260),  # Inner bottom left
     }
 
     HOUSE_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12]
@@ -203,16 +187,18 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         s_idx = (lagna_idx + i) % 12
         s_text = f"{s_idx + 1} {SIGN_ABBR[s_idx]}"
 
-        # Draw signs tucked into corners (Using the ENGLISH font)
-        draw.text(H_SIGNS[h], s_text, fill=LINE_COLOR, font=font_s, anchor='mm')
+        # Get house center position
+        cx, cy = HOUSE_POS[h]
 
+        # Draw signs slightly above center (Using the ENGLISH font)
+        draw.text((cx, cy - 20), s_text, fill=LINE_COLOR, font=font_s, anchor='mm')
+
+        # Draw planets at center (Using the HINDI font)
         planets = house_planets.get(h, [])
         if planets:
-            cx, cy = H_PLANETS[h]
             # Horizontal space-separated combination (e.g. "ल कु के*")
             planet_text = " ".join(planets)
-            # Draw planets (Using the HINDI font)
-            draw.text((cx, cy), planet_text, fill=TEXT_COLOR, font=font_p, anchor='mm')
+            draw.text((cx, cy + 10), planet_text, fill=TEXT_COLOR, font=font_p, anchor='mm')
 
     # ✅ FIXED: Added Footer Back
     draw.text(
