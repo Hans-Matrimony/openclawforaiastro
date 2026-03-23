@@ -135,7 +135,7 @@ exec: python3 ~/.openclaw/skills/kundli/calculate.py --dob "<USER'S DOB>" --tob 
 
 **STEP 2: Generate Chart Image (MANDATORY - MUST DO THIS THIRD!)**
 ```
-exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna from STEP 1>" --moon-sign "<Moon Sign from STEP 1>" --nakshatra "<Nakshatra from STEP 1>" --planets '<EXACT planet_positions ARRAY FROM STEP 1 OUTPUT>'
+exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna from STEP 1>" --moon-sign "<Moon Sign from STEP 1>" --nakshatra "<Nakshatra from STEP 1>" --planets '<EXACT planet_positions ARRAY FROM STEP 1 OUTPUT>' --user-id "<USER_ID>"
 ```
 ⚠️ **CRITICAL:**
 - You MUST include the --planets argument with the EXACT planet_positions array from STEP 1
@@ -145,7 +145,7 @@ exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --la
 
 **Step 2: Generate Chart Image (MANDATORY - MUST DO THIS SECOND!)**
 ```
-exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna in English>" --moon-sign "<Moon Sign in English>" --nakshatra "<Nakshatra>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>'
+exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<Lagna in English>" --moon-sign "<Moon Sign in English>" --nakshatra "<Nakshatra>" --planets '<PASTE planet_positions ARRAY FROM STEP 1>' --user-id "<USER_ID>"
 ```
 Wait for the script to complete. It will output `IMAGE_URL: https://...` automatically.
 
@@ -203,10 +203,10 @@ IMAGE_URL: [COPY_FROM_SCRIPT_OUTPUT]
 **🚨 ALWAYS use the values from calculate.py output for the CURRENT user!**
 
 **🛑 CRITICAL RULES:**
-- You MUST include the `data:media_base64:image/png,base64data...` line from the script output
-- Do NOT use markdown format like `![Kundli](data:image/png;base64,...)`
+- You MUST include the `IMAGE_URL: https://...` line exactly as the script outputs it.
+- Do NOT use markdown format like `![Kundli](url)`
 - Do NOT include error messages or warnings from OpenClaw
-- Copy the ENTIRE `data:media_base64:` line exactly as the script outputs it
+- Copy the ENTIRE `IMAGE_URL:` line exactly as the script outputs it
 
 ---
 
