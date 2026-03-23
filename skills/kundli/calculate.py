@@ -455,18 +455,20 @@ def validate_planet_positions(chart_data):
                 f"This exceeds maximum elongation of 28°. Ephemeris calculation may be incorrect."
             )
 
-    # Mars should never be more than 47 degrees from Sun
-    if 'Sun' in planet_positions and 'Mars' in planet_positions:
+    # Venus should never be more than 47 degrees from Sun
+    # Venus is an inferior planet (orbits between Earth and Sun)
+    # It can never exceed ~47° elongation from the Sun
+    if 'Sun' in planet_positions and 'Venus' in planet_positions:
         sun_idx = sign_to_index.get(planet_positions['Sun']['sign'], 0)
-        mars_idx = sign_to_index.get(planet_positions['Mars']['sign'], 0)
+        venus_idx = sign_to_index.get(planet_positions['Venus']['sign'], 0)
 
-        distance = abs(mars_idx - sun_idx) * 30
+        distance = abs(venus_idx - sun_idx) * 30
         if distance > 180:
             distance = 360 - distance
 
         if distance > 47:
             validation_errors.append(
-                f"Mars is in {planet_positions['Mars']['sign']} ({distance:.0f}° from Sun in {planet_positions['Sun']['sign']}). "
+                f"Venus is in {planet_positions['Venus']['sign']} ({distance:.0f}° from Sun in {planet_positions['Sun']['sign']}). "
                 f"This exceeds maximum elongation of 47°. Ephemeris calculation may be incorrect."
             )
 
