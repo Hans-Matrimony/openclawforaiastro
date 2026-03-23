@@ -78,6 +78,26 @@ def parse_planet_positions(planets_list):
 
     for item in planets_list:
         try:
+            # ✅ FIX: Handle both STRING and DICT formats
+            if isinstance(item, dict):
+                # Convert dict to string format
+                name = item.get('name', '')
+                house = item.get('house')
+                sign = item.get('sign', '')
+
+                if not name or not house:
+                    print(f"  ⚠️ Skipping incomplete dict: {item}", file=sys.stderr)
+                    continue
+
+                # Format: "Saturn is in House 1 (Taurus/Vrishabh)"
+                # Include sign if available to match calculate.py output format
+                if sign:
+                    planet_str = f"{name} is in House {house} ({sign})"
+                else:
+                    planet_str = f"{name} is in House {house}"
+                item = planet_str
+                print(f"  🔧 Converted dict to string: {name} → {planet_str}", file=sys.stderr)
+
             if not isinstance(item, str):
                 print(f"⚠️ WARNING: Skipping non-string planet item: {type(item)} = {repr(item)}", file=sys.stderr)
                 continue
