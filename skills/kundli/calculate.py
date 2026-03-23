@@ -272,19 +272,16 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
 
     # Convert to Julian Day
     # ✅ FIX: Try different method signatures for swe.julday()
-    # Older pyswisseph: swe.julday(year, month, day, hour, minute, second)
-    # Newer pyswisseph: swe.julday(datetime_object)
+    # Old pyswisseph: swe.julday(year, month, day, hour, minute, second)
+    # New pyswisseph: swe.julday(timestamp) or swe.julday(year, month, day, ...)
+    # Try old-style (year, month, day, hour(fractional))
     try:
-        # Try old-style (6 arguments)
-        jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day,
-                        birth_dt.hour, birth_dt.minute, birth_dt.second)
-    except TypeError as e:
-        # If that fails, try new-style (datetime object)
-        if "takes at most" in str(e) or "positional argument" in str(e):
-            print(f"⚠️ Trying alternative julday format...", file=sys.stderr)
-            jd = swe.julday(birth_dt)
-        else:
-            raise
+        hour_fractional = birth_dt.hour + birth_dt.minute/60.0 + birth_dt.second/3600.0
+        jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day, hour_fractional)
+    except Exception as e:
+        print(f"⚠️ swe.julday failed with {e}, trying alternative...", file=sys.stderr)
+        # Try timestamp fallback if the version is weird
+        jd = swe.julday(birth_dt.timestamp())
 
     ayanamsa = PYSWISSEPH_AYANAMSA[ayanamsa_name]
 

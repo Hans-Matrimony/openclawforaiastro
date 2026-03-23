@@ -78,14 +78,14 @@ def parse_planet_positions(planets_list):
 
     for item in planets_list:
         try:
-            # ✅ FIX: Handle both STRING and DICT formats
             if isinstance(item, dict):
-                # Convert dict to string format
-                name = item.get('name', '')
-                house = item.get('house')
+                # Robust extraction of name and house
+                name = item.get('planet') or item.get('name') or ''
+                house = item.get('house', '')
                 sign = item.get('sign', '')
-
-                if not name or not house:
+                
+                # If name or house are effectively missing, skip
+                if not name or not str(house).strip():
                     print(f"  ⚠️ Skipping incomplete dict: {item}", file=sys.stderr)
                     continue
 
