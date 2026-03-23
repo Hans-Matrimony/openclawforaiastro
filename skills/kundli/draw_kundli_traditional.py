@@ -137,11 +137,12 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     lagna_idx = SIGN_NAMES.index(lagna)
     house_planets = parse_planet_positions(planet_positions or [])
 
+    # Ensure Lagna
     house_planets.setdefault(1, [])
     if 'ल' not in house_planets[1]:
         house_planets[1].insert(0, 'ल')
 
-    # 🔥 PERFECT GEOMETRY
+    # 🔥 FINAL CORRECT GEOMETRY
     HOUSE_POS = {
         1: (200, 55),
         2: (115, 115),
@@ -151,10 +152,12 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
         6: (285, 285),
         7: (345, 200),
         8: (285, 115),
-        9: (255, 255),
-        10: (255, 145),
-        11: (145, 145),
-        12: (145, 255),
+
+        # ✅ FIXED INNER DIAMOND
+        9:  (285, 200),   # Right
+        10: (200, 115),   # Top
+        11: (115, 200),   # Left
+        12: (200, 285),   # Bottom
     }
 
     for i in range(12):
