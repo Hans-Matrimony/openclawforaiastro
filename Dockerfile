@@ -1,6 +1,5 @@
 FROM node:22-bookworm-slim
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     sqlite3 \
     ffmpeg \
@@ -11,24 +10,21 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm
 RUN npm install -g pnpm
 
 WORKDIR /app
 
-# ✅ FIXED HERE
 RUN npm init -y
 
-# Install OpenClaw locally
+# install openclaw locally
 RUN pnpm add openclaw@latest
 
-# Install Python dependencies
+# python deps
 RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
 
-# Build UI
-RUN npx openclaw ui:build
+# ❌ REMOVE UI BUILD (this was breaking everything)
 
-# Create directories
+# directories
 RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/credentials \
     /app/.openclaw/id_keys \
@@ -44,7 +40,6 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
 
 RUN chmod -R 700 /app/.openclaw
 
-# Copy configs
 COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
@@ -53,12 +48,9 @@ COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrolo
 
 RUN chmod 600 /app/.openclaw/openclaw.json
 
-# Env
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
 
-# Port
 EXPOSE 8000
 
-# Start
 CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]
