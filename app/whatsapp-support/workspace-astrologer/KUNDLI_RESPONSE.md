@@ -139,9 +139,10 @@ exec: cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --la
 ```
 ⚠️ **CRITICAL:**
 - You MUST include the --planets argument with the EXACT planet_positions array from STEP 1
-- The planet_positions array looks like: ["Moon is in House 1 (Capricorn/Makar)", "Ketu is in House 1..."]
-- Copy the ENTIRE array including brackets and quotes
+- The planet_positions array looks like: ["Moon is in House 1...", "Ketu is in..."]
+- Copy the ENTIRE array including brackets and quotes, BUT MAKE SURE IT IS ALL ON A SINGLE LINE.
 - DO NOT skip --planets or leave it empty - this causes missing planets in the chart!
+- CRITICAL: Do NOT include any line breaks or newlines in the command, especially inside the --planets array. The entire `cd ... && python3 ...` command MUST be on a SINGLE line!
 
 **Step 2: Generate Chart Image (MANDATORY - MUST DO THIS SECOND!)**
 ```

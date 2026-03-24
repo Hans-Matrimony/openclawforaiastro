@@ -26,14 +26,14 @@ Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, 
 When generating Kundli chart images, you MUST:
 1. Run `calculate.py` to get the planet positions
 2. Extract the `planet_positions` array from the output
-3. Pass ALL planet positions to `generate_chart_image.py` using the `--planets` parameter
+3. Pass ALL planet positions to `draw_kundli_traditional.py` using the `--planets` parameter
 4. If you skip the `--planets` parameter, the chart will be WRONG and RANDOM
 
 **CRITICAL - PRESERVE OUTPUT FORMAT:**
-- When the `generate_chart_image.py` script outputs `MEDIA: <url>`, you MUST include this EXACTLY as-is in your response
-- DO NOT convert it to Markdown link format like `[MEDIA](url)`
-- DO NOT modify, wrap, or reformat the `MEDIA:` line in any way
-- Simply include the full `MEDIA: <url>` line verbatim in your response
+- When the `draw_kundli_traditional.py` script outputs `IMAGE_URL: <url>`, you MUST include this EXACTLY as-is in your response
+- DO NOT convert it to Markdown link format like `[IMAGE_URL](url)`
+- DO NOT modify, wrap, or reformat the `IMAGE_URL:` line in any way
+- Simply include the full `IMAGE_URL: <url>` line verbatim in your response
 
 **CRITICAL: ALWAYS check mem0 first before asking for birth details**
 
@@ -70,13 +70,9 @@ Look for `"planet_positions"` array in the JSON output. Copy EVERY entry from th
 
 **Step 3: Generate the chart image with ALL planet positions**
 
-**TEMPLATE - Copy this and fill in the values:**
+**TEMPLATE - Copy this and fill in the values (CRITICAL: MUST BE ON A SINGLE LINE):**
 ```bash
-cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py \
-  --lagna "<PASTE_LAGNA_HERE>" \
-  --moon-sign "<PASTE_MOON_SIGN_HERE>" \
-  --nakshatra "<PASTE_NAKSHATRA_HERE>" \
-  --planets '<PASTE_ENTIRE_PLANET_POSITIONS_ARRAY_HERE>'
+cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<PASTE_LAGNA_HERE>" --moon-sign "<PASTE_MOON_SIGN_HERE>" --nakshatra "<PASTE_NAKSHATRA_HERE>" --planets '<PASTE_ENTIRE_PLANET_POSITIONS_ARRAY_HERE>' --user-id "<USER_ID>"
 ```
 
 **CRITICAL CHECKLIST before running the command:**
@@ -92,9 +88,9 @@ If `planet_positions` contains:
 ["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]
 ```
 
-Then you MUST run:
+Then you MUST run (ON ONE SINGLE LINE):
 ```bash
-cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Uttara Bhadrapada" --planets '["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]'
+cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Uttara Bhadrapada" --planets '["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]' --user-id "USER_PHONE_NUMBER"
 ```
 
 **CRITICAL:** You MUST include the `--planets` parameter with ALL planet positions. If you skip this, the chart will be RANDOM and WRONG!
@@ -108,13 +104,12 @@ cd ~/.openclaw/skills/kundli && python3 -u generate_chart_image.py --lagna "Taur
   - 12-hour with AM/PM: HH:MM AM/PM (e.g., 2:30 PM, 09:50 AM)
 - `--place`: Place of Birth (e.g., "Delhi", "Mumbai", "London")
 
-### Parameters (generate_chart_image.py)
+### Parameters (draw_kundli_traditional.py)
 - `--lagna`: Ascendant sign (e.g., Leo, Scorpio, Aries) - **required**
 - `--moon-sign`: Moon sign/Rashi (e.g., Scorpio, Pisces, Cancer) - **required**
 - `--nakshatra`: Birth star/Nakshatra (e.g., Anuradha, Rohini, Ashwini) - **required**
 - `--planets`: JSON array of planet positions (e.g., '["Saturn is in House 1", "Moon is in House 11"]') - **CRITICAL for accurate charts**
-- `--filename`: Output filename (default: kundli-chart-YYYY-MM-DD-HHMMSS.png)
-- `--resolution`: Image resolution - 1K, 2K (default), or 4K
+- `--user-id`: User ID to store the generated chart against and return the correct webhook URL.
 
 ## Output
 The calculate.py tool returns a detailed JSON object containing:
@@ -126,7 +121,7 @@ The calculate.py tool returns a detailed JSON object containing:
 - **planets**: A list of all planets and their positions.
 - **dashas**: Current Vimshottari Mahadasha and Antardasha.
 
-The generate_chart_image.py tool creates and returns a visual Kundli chart image file.
+The draw_kundli_traditional.py tool creates and returns a visual Kundli chart image file.
 
 ## Guidelines for Interpretation
 1. **Lagna**: This is the most important part of the self. Interpret the 1st house based on this.

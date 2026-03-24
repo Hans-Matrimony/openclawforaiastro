@@ -85,7 +85,7 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 **For Generating Kundli Image (Only when user explicitly asks for an image/photo of their chart):**
 ```bash
 # Step 1: First run calculate.py to get Lagna, Moon Sign, Nakshatra
-# Step 2: Then run the image generation script
+# Step 2: Then run the image generation script. CRITICAL: The exact command MUST be on ONE SINGLE LINE! Do not break the JSON array across multiple lines.
 cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Revati" --planets '[]' --user-id "USER_PHONE_NUMBER"
 ```
 
