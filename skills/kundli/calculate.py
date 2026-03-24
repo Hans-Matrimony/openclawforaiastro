@@ -570,6 +570,12 @@ def calculate_kundli(dob_str, tob_str, place):
     # Timezone offsets depend on actual birth date (DST, historical changes)
     tz_offset = get_timezone_offset(lat, lon, birth_dt)
 
+    # ✅ FIX #8: Convert local time to UTC for pyswisseph
+    # Swiss Ephemeris requires UTC, but we have local time
+    # For IST (UTC+5:30), we subtract 5.5 hours to get UTC
+    from datetime import timedelta
+    utc_dt = birth_dt - timedelta(hours=tz_offset)
+
     # ✅ NEW: Try pyswisseph first (100% FREE, 100% ACCURATE)
     # Fall back to jyotishganit if pyswisseph unavailable
     using_pyswisseph = False
@@ -578,7 +584,9 @@ def calculate_kundli(dob_str, tob_str, place):
 
     if _PYSWISSEPH_AVAILABLE:
         try:
-            pyswisseph_data = calculate_kundli_pyswisseph(birth_dt, lat, lon)
+            # 🔥 FIX: Pass utc_dt instead of birth_dt to pyswisseph!
+            # This ensures planetary positions are calculated for the correct UTC time
+            pyswisseph_data = calculate_kundli_pyswisseph(utc_dt, lat, lon)
             using_pyswisseph = True
             ephemeris_info = "pyswisseph (FREE Swiss Ephemeris) - Primary"
         except Exception as e:
