@@ -749,9 +749,9 @@ def calculate_kundli(dob_str, tob_str, place):
                 planet_name = planet_data.get('name')
                 sign = planet_data.get('sign')
                 house = planet_data.get('house')
-                degree = planet_data.get('degree_in_sign', 0)
                 sign_hindi = HINDI_RASHI.get(sign, sign)
-                planets_summary.append(f"{planet_name} is in House {house} ({sign}/{sign_hindi}) at {degree:.2f}°")
+                # ⚠️ Remove degree symbol to avoid shell syntax errors when AI copies this to command line
+                planets_summary.append(f"{planet_name} is in House {house} ({sign}/{sign_hindi})")
         else:
             # Fallback to jyotishganit
             d1 = chart_data.get('d1Chart', {})
@@ -761,13 +761,13 @@ def calculate_kundli(dob_str, tob_str, place):
             for p in d1.get('planets', []):
                 p_name = p.get('celestialBody')
                 p_sign = p.get('sign')
-                p_degree = p.get('degree', 0)
-                
+
                 # Force Whole Sign House calculation!
                 h_num = get_house_from_sign(p_sign, lagna)
                 p_sign_hindi = HINDI_RASHI.get(p_sign, p_sign)
-                
-                planets_summary.append(f"{p_name} is in House {h_num} ({p_sign}/{p_sign_hindi}) at {p_degree:.2f}°")
+
+                # ⚠️ Remove degree symbol to avoid shell syntax errors when AI copies this to command line
+                planets_summary.append(f"{p_name} is in House {h_num} ({p_sign}/{p_sign_hindi})")
         
         # CONSTRUCT FINAL OUTPUT WITH SUMMARY AT THE TOP (To prevent truncation issues)
         final_output = {

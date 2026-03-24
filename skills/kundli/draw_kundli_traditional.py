@@ -296,12 +296,26 @@ def main():
     try:
         try:
             planets = json.loads(args.planets)
-        except json.JSONDecodeError:
-            print("🔧 JSON failed, falling back to ast.literal_eval for single quotes...", file=sys.stderr)
-            planets = ast.literal_eval(args.planets)
+        except json.JSONDecodeError as je:
+            print(f"🔧 JSON parsing failed: {je}", file=sys.stderr)
+            print(f"🔧 Raw input length: {len(args.planets)} chars", file=sys.stderr)
+            print(f"🔧 First 100 chars: {repr(args.planets[:100])}", file=sys.stderr)
+            print("🔧 Trying ast.literal_eval for single quotes...", file=sys.stderr)
+            try:
+                planets = ast.literal_eval(args.planets)
+            except (SyntaxError, ValueError) as se:
+                print(f"🔧 ast.literal_eval also failed: {se}", file=sys.stderr)
+                print(f"⚠️ CRITICAL ERROR: Unable to parse --planets argument!", file=sys.stderr)
+                print(f"⚠️ This usually means the shell command has unterminated quotes or special characters.", file=sys.stderr)
+                print(f"⚠️ Common causes:", file=sys.stderr)
+                print(f"   1. Degree symbol (°) in the data - try removing it", file=sys.stderr)
+                print(f"   2. Unescaped quotes inside the JSON array", file=sys.stderr)
+                print(f"   3. Command broken across multiple lines (must be ONE line)", file=sys.stderr)
+                print(f"⚠️ Raw input that failed: {repr(args.planets[:200])}", file=sys.stderr)
+                planets = []
     except Exception as e:
-        print(f"⚠️ ERROR PARSING PLANETS: {e} | Raw input: {repr(args.planets)}", file=sys.stderr)
-        print(f"⚠️ TIP: --planets must be a valid JSON array or Python string representation.", file=sys.stderr)
+        print(f"⚠️ UNEXPECTED ERROR PARSING PLANETS: {e}", file=sys.stderr)
+        print(f"⚠️ Raw input: {repr(args.planets[:200])}", file=sys.stderr)
         planets = []
 
     if planets:

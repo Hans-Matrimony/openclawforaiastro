@@ -29,6 +29,7 @@ When generating Kundli chart images, you MUST:
 3. Pass ALL 9 planet positions to `draw_kundli_traditional.py` using the `--planets` parameter
 4. If you skip the `--planets` parameter, the chart will be WRONG and RANDOM
 5. 🚨 **LAZINESS ALERT:** You MUST include ALL 9 planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu). DO NOT be lazy and only include 3-4 planets! The entire `planet_positions` array must be copied EXACTLY as-is from calculate.py output.
+6. ✅ **SHELL SYNTAX FIX:** The `planet_positions` format has been updated to NOT include degree symbols (e.g., removed "at 17.88°"). This prevents "Unterminated quoted string" errors when the AI copies the data to the shell command. You can copy the entire array exactly as shown in calculate.py output without worrying about special characters.
 
 **CRITICAL - PRESERVE OUTPUT FORMAT:**
 - When the `draw_kundli_traditional.py` script outputs `IMAGE_URL: <url>`, you MUST include this EXACTLY as-is in your response

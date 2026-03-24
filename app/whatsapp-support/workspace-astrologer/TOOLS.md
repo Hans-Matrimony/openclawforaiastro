@@ -86,10 +86,18 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 ```bash
 # Step 1: First run calculate.py to get Lagna, Moon Sign, Nakshatra
 # Step 2: Extract the planet positions from calculate.py output
-# Step 3: Then run the image generation script. CRITICAL: The exact command MUST be on ONE SINGLE LINE! Do not break the JSON array across multiple lines.
+# Step 3: CRITICAL - Remove degree symbols (°) from planet_positions to avoid shell syntax errors!
+#         Example: Change "Sun is in House 2 (Sagittarius) at 17.88°" to "Sun is in House 2 (Sagittarius)"
+# Step 4: Run the image generation script. CRITICAL: The exact command MUST be on ONE SINGLE LINE! Do not break the JSON array across multiple lines.
 # CRITICAL: You MUST pass the ENTIRE planet_positions array from calculate.py output with ALL 9 planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu). DO NOT BE LAZY and only include a few planets!
 cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Revati" --planets '["Sun is in House 12 (Aries)", "Moon is in House 11 (Pisces)", "Mars is in House 4 (Leo)", "Mercury is in House 1 (Taurus)", "Jupiter is in House 2 (Gemini)", "Venus is in House 3 (Cancer)", "Saturn is in House 5 (Virgo)", "Rahu is in House 6 (Libra)", "Ketu is in House 12 (Pisces)"]' --user-id "USER_PHONE_NUMBER"
 ```
+
+**⚠️ SHELL SYNTAX ERROR FIX:**
+If you see "Syntax error: Unterminated quoted string", it means the planet_positions contain special characters that break the shell command.
+- **Remove degree symbols (°):** Change `"at 17.88°"` to just the house/sign info
+- **Keep entire command on ONE line:** No line breaks in the middle of the --planets array
+- **Use single quotes for the outer array:** `--planets '[...items...]'`
 
 **🚨 CRITICAL WARNING: ALL 9 PLANETS MUST BE INCLUDED!**
 - ✅ CORRECT: Copy the ENTIRE `planet_positions` array from calculate.py output (all 9 planets)
