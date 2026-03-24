@@ -106,11 +106,11 @@ You MUST copy the exact `IMAGE_URL: https://...` line printed by the script and 
 Do NOT invent a placeholder. ONLY use the exact HTTPS URL output by the tool.
 **NEVER use Markdown image syntax (`![alt](url)`).** The webhook will extract the IMAGE_URL and send the image.
 
-**Example exact output format:**
+**Example exact output format (Match Language Mode!):**
 ```
-Vardhan ji, aapka Kundli chart tayyar ho gaya hai.
+Rahul ji, aapka Kundli chart tayyar ho gaya hai. (OR: Rahul ji, your Kundli chart is ready.)
 
-Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai.
+Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai. (OR: Your Rashi is Pisces...)
 
 IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714567890.png
 ```
@@ -131,7 +131,7 @@ IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714
 2. Search Mem0 → Get identity + birth details.
 3. If birth details FOUND → Run Kundli Engine.
 4. Search Qdrant → Get textual interpretations of the chart findings.
-5. Combine chart + text + memory → Generate Hinglish response.
+5. Combine chart + text + memory → Generate response matching Language Mode (English or Hinglish).
 6. Reply as Acharya Sharma.
 ```
 
