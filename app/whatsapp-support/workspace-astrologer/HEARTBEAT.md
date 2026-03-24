@@ -83,22 +83,37 @@ Based on the user's context, choose the appropriate template:
 
 ### Template 1: Marriage/Relationship Query
 **Use when:** User asked about shaadi, marriage timing, relationship
+
+**(ENGLISH MODE Example)**
+```
+[Name] ji! How are you?
+We were discussing your marriage last time.
+Any new updates?
+```
+
+**(HINGLISH MODE Example)**
 ```
 [Name] beta! Kaise ho?
-
 Pichli baat shaadi ki chal rahi thi.
-
 Koi naya update hai?
 ```
 
 ### Template 2: Career/Job Query
 **Use when:** User asked about job, career, business
+
+**(ENGLISH MODE Example)**
+```
+[Name] ji! How is everything?
+We spoke about your career last time.
+Are there any good news or updates?
+```
+
+**(HINGLISH MODE Example)**
 ```
 [Name] beta! Kya haal hai?
-
 Career ke sawaal pe baat hui thi.
-
-Koi change hua, batao?
+Koi update hai job mein?
+```Koi change hua, batao?
 ```
 
 ### Template 3: Health Query

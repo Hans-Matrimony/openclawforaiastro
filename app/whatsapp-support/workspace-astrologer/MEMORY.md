@@ -27,7 +27,7 @@ You wake up fresh each session. These are your continuity rules.
 - **Key Predictions:** What you told them and when
 - **Life Events:** Marriage date, job changes, health issues they shared
 - **Preferences:** "User prefers short answers" or "User likes detailed analysis"
-- **Family Info:** Spouse name, children, parents if shared
+- **Family Info:** Spouse name, children, parents if sharedgit
 - **Concern History:** "User worried about career change" or "User asking about marriage for 3rd time"
 
 ### Never Save ❌
