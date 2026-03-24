@@ -7,6 +7,7 @@ Outputs image as base64 for WhatsApp delivery
 import os
 import sys
 import json
+import ast  # Safely evaluates single-quoted python dictionaries
 import base64
 import urllib.request
 from io import BytesIO
@@ -39,10 +40,28 @@ SIGN_ABBR = ["Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap
 
 HINDI_MAP = {
     'Sun': 'सु', 'Moon': 'च', 'Mars': 'कु', 'Mercury': 'बु',
-    'Jupiter': 'गु',   # Changed from 'ब्र' to avoid Pillow font breaking (ब्र requires complex ligature rendering)
+    'Jupiter': 'गु',   # Changed from 'ब्र' to avoid Pillow font breaking
     'Venus': 'शु', 'Saturn': 'श',
     'Rahu': 'रा', 'Ketu': 'के', 'Lagna': 'ल'
 }
+
+# Mapping to handle AI agents passing Hindi names instead of English
+HINDI_TO_ENGLISH_SIGN = {
+    "Mesh": "Aries", "Vrishabh": "Taurus", "Mithun": "Gemini", "Kark": "Cancer",
+    "Singh": "Leo", "Kanya": "Virgo", "Tula": "Libra", "Vrishchik": "Scorpio",
+    "Dhanu": "Sagittarius", "Makar": "Capricorn", "Kumbh": "Aquarius", "Meen": "Pisces"
+}
+
+def normalize_sign_name(sign_name):
+    """Ensure the sign name is in standard English for internal logic"""
+    if not sign_name:
+        return sign_name
+        
+    # Handle potential casing issues
+    sign_name = sign_name.strip().title()
+    
+    # Translate to English if it's a Hindi name, otherwise leave it alone
+    return HINDI_TO_ENGLISH_SIGN.get(sign_name, sign_name)
 
 def get_devanagari_font():
     local_font = "NotoSansDevanagari-Regular.ttf"
@@ -65,7 +84,6 @@ def get_devanagari_font():
         return local_font
     except:
         return None
-
 
 def get_house_from_sign(planet_sign, lagna_sign):
     """
@@ -95,12 +113,10 @@ def parse_planet_positions(planets_list, lagna=None):
     for item in planets_list:
         try:
             if isinstance(item, dict):
-                # Robust extraction of name and house
                 name = item.get('planet') or item.get('name') or ''
                 house = item.get('house', '')
                 sign = item.get('sign', '')
                 
-                # Check for flat {'Planet': 'Sign'} format if standard format is missing
                 if not name and not sign:
                     known_planets = {'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu', 'Lagna'}
                     found_planets = False
@@ -120,24 +136,18 @@ def parse_planet_positions(planets_list, lagna=None):
                     if found_planets:
                         continue
                 
-                # If house is missing but we have sign and lagna, calculate it
                 if not str(house).strip() and sign and lagna:
                     house = get_house_from_sign(sign, lagna)
                 
-                # Check if it provided 'position' string directly instead of discrete keys
                 position_str = item.get('position', '')
                 if not str(house).strip() and position_str and name:
                     item = f"{name} {position_str}"
                     print(f"  🔧 Converted 'position' dict to string: {name} → {item}", file=sys.stderr)
-                    # Automatically falls through to the string parsing block below!
                 else:
-                    # If name or house are effectively missing, skip
                     if not name or not str(house).strip():
                         print(f"  ⚠️ Skipping incomplete dict: {item}", file=sys.stderr)
                         continue
 
-                    # Format: "Saturn is in House 1 (Taurus/Vrishabh)"
-                    # Include sign if available to match calculate.py output format
                     if sign:
                         planet_str = f"{name} is in House {house} ({sign})"
                     else:
@@ -180,7 +190,6 @@ def parse_planet_positions(planets_list, lagna=None):
 
     print(f"📊 RESULT: Planets in {len(house_planets)} houses: {list(house_planets.keys())}", file=sys.stderr)
     return house_planets
-
 
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     img_size = 400
@@ -225,21 +234,10 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     if 'ल' not in house_planets[1]:
         house_planets[1].insert(0, 'ल')
 
-    # 🔥 STANDARD VEDIC NORTH INDIAN GEOMETRY
-    # These coordinates perfectly center the text inside the traditional diamonds and triangles
     HOUSE_POS = {
-        1: (200, 110),  # Top Center Diamond (Lagna ALWAYS goes here)
-        2: (110, 65),   # Top Left Triangle (Outer)
-        3: (65, 110),   # Middle Left Triangle (Upper)
-        4: (110, 200),  # Left Center Diamond
-        5: (65, 290),   # Middle Left Triangle (Lower)
-        6: (110, 335),  # Bottom Left Triangle (Outer)
-        7: (200, 290),  # Bottom Center Diamond
-        8: (290, 335),  # Bottom Right Triangle (Outer)
-        9: (335, 290),  # Middle Right Triangle (Lower)
-        10: (290, 200), # Right Center Diamond
-        11: (335, 110), # Middle Right Triangle (Upper)
-        12: (290, 65),  # Top Right Triangle (Outer)
+        1: (200, 110), 2: (110, 65),  3: (65, 110),  4: (110, 200),
+        5: (65, 290),  6: (110, 335), 7: (200, 290), 8: (290, 335),
+        9: (335, 290), 10: (290, 200), 11: (335, 110), 12: (290, 65),
     }
 
     for i in range(12):
@@ -249,7 +247,6 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
 
         cx, cy = HOUSE_POS[h]
 
-        # Draw sign
         draw.text(
             (cx, cy - 18),
             s_text,
@@ -258,11 +255,9 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
             anchor='mm'
         )
 
-        # Draw planets
         planets = house_planets.get(h, [])
         if planets:
             planet_text = " ".join(planets)
-            # Push the Hindi text down slightly so it never overlaps the English zodiac number
             offset = 14 if len(planets) <= 2 else 18
 
             draw.text(
@@ -273,7 +268,6 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
                 anchor='mm'
             )
 
-    # Footer
     draw.text(
         (MX, img_size - 10),
         f"{nakshatra} | Moon: {moon_sign}",
@@ -286,7 +280,6 @@ def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
     img.save(img_io, 'PNG')
     return img_io.getvalue()
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--lagna', required=True)
@@ -298,41 +291,49 @@ def main():
 
     args = parser.parse_args()
 
+    # Bulletproof parsing for JSON strings with double OR single quotes
     try:
-        planets = json.loads(args.planets) if args.planets else []
+        if args.planets:
+            try:
+                planets = json.loads(args.planets)
+            except json.JSONDecodeError:
+                print("🔧 JSON failed, falling back to ast.literal_eval for single quotes...", file=sys.stderr)
+                planets = ast.literal_eval(args.planets)
+        else:
+            planets = []
     except Exception as e:
         print(f"⚠️ ERROR PARSING PLANETS: {e} | Raw input: {repr(args.planets)}", file=sys.stderr)
-        print(f"⚠️ TIP: --planets must be valid JSON array, e.g., '[\"Moon is in House 1\"]'", file=sys.stderr)
+        print(f"⚠️ TIP: --planets must be a valid JSON array or Python string representation.", file=sys.stderr)
         planets = []
 
-    # Debug: Log how many planets were parsed
     if planets:
         print(f"🪐 Parsed {len(planets)} planet positions from --planets argument", file=sys.stderr)
     else:
         print(f"⚠️ WARNING: No planet positions provided. Chart will show only Lagna.", file=sys.stderr)
 
+    # Normalize inputs in case the AI agent passes Hindi names instead of English
+    safe_lagna = normalize_sign_name(args.lagna)
+    safe_moon = normalize_sign_name(args.moon_sign)
+
     image_data = draw_kundli_chart(
-        args.lagna,
-        args.moon_sign,
+        safe_lagna,
+        safe_moon,
         args.nakshatra,
         planets
     )
 
     b64 = base64.b64encode(image_data).decode()
 
-    # Store to MongoDB GridFS (for permanent storage and webhook delivery)
-    # We require user_id to store correctly. If missing, we just output base64.
     stored_url = None
     if args.user_id:
         try:
-            # Import the storage function from calculate.py
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             from calculate import store_kundli_image_to_mongodb
 
-            # Prepare Kundli data for metadata
+            # Use the safe, normalized english names for the database
             kundli_data = {
-                "lagna": args.lagna,
-                "moon_sign": args.moon_sign,
+                "lagna": safe_lagna,
+                "moon_sign": safe_moon,
                 "nakshatra": args.nakshatra,
                 "chart_type": "north_indian_traditional"
             }
@@ -341,7 +342,6 @@ def main():
                 "note": "Birth details not available in draw_kundli_traditional.py"
             }
 
-            # Store to MongoDB
             storage_result = store_kundli_image_to_mongodb(
                 image_base64=f"data:image/png;base64,{b64}",
                 user_id=args.user_id,
@@ -356,19 +356,15 @@ def main():
                 file_id = storage_result.get("fileId")
                 mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com")
                 stored_url = f"{mongo_logger_url}/kundli-image/{file_id}"
-                # Output the IMAGE_URL matching the mongo logger endpoint so Whatsapp Webhook can download it
                 print(f"IMAGE_URL: {stored_url}")
                 
         except ImportError:
-            # calculate.py not available
             pass
         except Exception as e:
             print(f"WARNING: MongoDB storage failed: {e}", file=sys.stderr)
 
     if not stored_url:
-        # Fallback to pure base64 if MongoDB storage fails or no user_id
         print(f"IMAGE_BASE64: {b64}")
-
 
 if __name__ == "__main__":
     main()
