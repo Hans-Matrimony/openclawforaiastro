@@ -285,22 +285,20 @@ def main():
     parser.add_argument('--lagna', required=True)
     parser.add_argument('--moon-sign', required=True)
     parser.add_argument('--nakshatra', required=True)
-    parser.add_argument('--planets')
+    parser.add_argument('--planets', required=True, help='JSON array of planet positions (REQUIRED)')
     parser.add_argument('--user-id', help='User ID for MongoDB storage')
     parser.add_argument('--session-id', help='Session ID for MongoDB storage')
 
     args = parser.parse_args()
 
     # Bulletproof parsing for JSON strings with double OR single quotes
+    # --planets is now REQUIRED, so the AI must provide it
     try:
-        if args.planets:
-            try:
-                planets = json.loads(args.planets)
-            except json.JSONDecodeError:
-                print("🔧 JSON failed, falling back to ast.literal_eval for single quotes...", file=sys.stderr)
-                planets = ast.literal_eval(args.planets)
-        else:
-            planets = []
+        try:
+            planets = json.loads(args.planets)
+        except json.JSONDecodeError:
+            print("🔧 JSON failed, falling back to ast.literal_eval for single quotes...", file=sys.stderr)
+            planets = ast.literal_eval(args.planets)
     except Exception as e:
         print(f"⚠️ ERROR PARSING PLANETS: {e} | Raw input: {repr(args.planets)}", file=sys.stderr)
         print(f"⚠️ TIP: --planets must be a valid JSON array or Python string representation.", file=sys.stderr)
@@ -309,7 +307,7 @@ def main():
     if planets:
         print(f"🪐 Parsed {len(planets)} planet positions from --planets argument", file=sys.stderr)
     else:
-        print(f"⚠️ WARNING: No planet positions provided. Chart will show only Lagna.", file=sys.stderr)
+        print(f"⚠️ ERROR: No planet positions provided after parsing. Chart will be incomplete!", file=sys.stderr)
 
     # Normalize inputs in case the AI agent passes Hindi names instead of English
     safe_lagna = normalize_sign_name(args.lagna)
