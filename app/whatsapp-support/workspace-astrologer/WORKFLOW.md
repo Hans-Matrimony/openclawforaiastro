@@ -19,9 +19,9 @@
 Message arrives
     │
     ├─ STEP 0: LANGUAGE LOCK (MANDATORY FIRST STEP)
-    │     ├─ Analyze the user's RAW text. Is it English or Hinglish?
-    │     └─ If English: LOCK output to [ENGLISH MODE]. TRANSLATE ALL TEMPLATES. NEVER use Hinglish words.
-    │     └─ If Hinglish: LOCK output to [HINGLISH MODE].
+    │     ├─ Analyze the exact RAW text of the user's latest statement.
+    │     ├─ If English: LOCK output to [ENGLISH MODE]. TRANSLATE ALL TEMPLATES TO ENGLISH. NEVER use Hinglish words.
+    │     └─ If Hinglish: LOCK output to [HINGLISH MODE]. TRANSLATE ALL TEMPLATES TO HINGLISH. NEVER use pure English sentences.
     │
     ├─ STEP 1: Extract user_id FIRST (MANDATORY)
     │
