@@ -785,7 +785,7 @@ def calculate_kundli(dob_str, tob_str, place):
                 "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
                 "dasha_info": dasha_str,
                 "planet_positions": planets_summary,
-                "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions."
+                "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). If you state any other Rashi, you are hallucinating Western astrology dates and will be penalized. Look at dasha_info for timing predictions. CRITICAL FOR IMAGE GENERATION: When running draw_kundli_traditional.py, you MUST copy the ENTIRE planet_positions array above EXACTLY AS-IS without skipping any planets. Do NOT be lazy and only include a few planets - ALL 9 planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu) must be included in the --planets argument."
             }
         }
 

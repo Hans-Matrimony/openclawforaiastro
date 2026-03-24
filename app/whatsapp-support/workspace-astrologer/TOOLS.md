@@ -87,9 +87,14 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "1994-05-10" --tob "16:45" 
 # Step 1: First run calculate.py to get Lagna, Moon Sign, Nakshatra
 # Step 2: Extract the planet positions from calculate.py output
 # Step 3: Then run the image generation script. CRITICAL: The exact command MUST be on ONE SINGLE LINE! Do not break the JSON array across multiple lines.
-# CRITICAL: You MUST pass actual planet data from calculate.py output, NOT an empty array!
-cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Revati" --planets '["Sun is in House 12 (Aries)", "Moon is in House 11 (Pisces)", "Mars is in House 4 (Leo)"]' --user-id "USER_PHONE_NUMBER"
+# CRITICAL: You MUST pass the ENTIRE planet_positions array from calculate.py output with ALL 9 planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu). DO NOT BE LAZY and only include a few planets!
+cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Revati" --planets '["Sun is in House 12 (Aries)", "Moon is in House 11 (Pisces)", "Mars is in House 4 (Leo)", "Mercury is in House 1 (Taurus)", "Jupiter is in House 2 (Gemini)", "Venus is in House 3 (Cancer)", "Saturn is in House 5 (Virgo)", "Rahu is in House 6 (Libra)", "Ketu is in House 12 (Pisces)"]' --user-id "USER_PHONE_NUMBER"
 ```
+
+**🚨 CRITICAL WARNING: ALL 9 PLANETS MUST BE INCLUDED!**
+- ✅ CORRECT: Copy the ENTIRE `planet_positions` array from calculate.py output (all 9 planets)
+- ❌ WRONG: Only include 3-4 planets like `["Sun is in House 1", "Moon is in House 2", "Mars is in House 3"]`
+- The AI will be PENALIZED for lazy behavior if it skips planets!
 
 **⚠️ CRITICAL: YOU MUST INCLUDE THE IMAGE_URL IN YOUR RESPONSE!**
 The script outputs `IMAGE_URL: https://...` to CONSOLE.

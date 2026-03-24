@@ -26,8 +26,9 @@ Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, 
 When generating Kundli chart images, you MUST:
 1. Run `calculate.py` to get the planet positions
 2. Extract the `planet_positions` array from the output
-3. Pass ALL planet positions to `draw_kundli_traditional.py` using the `--planets` parameter
+3. Pass ALL 9 planet positions to `draw_kundli_traditional.py` using the `--planets` parameter
 4. If you skip the `--planets` parameter, the chart will be WRONG and RANDOM
+5. 🚨 **LAZINESS ALERT:** You MUST include ALL 9 planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu). DO NOT be lazy and only include 3-4 planets! The entire `planet_positions` array must be copied EXACTLY as-is from calculate.py output.
 
 **CRITICAL - PRESERVE OUTPUT FORMAT:**
 - When the `draw_kundli_traditional.py` script outputs `IMAGE_URL: <url>`, you MUST include this EXACTLY as-is in your response

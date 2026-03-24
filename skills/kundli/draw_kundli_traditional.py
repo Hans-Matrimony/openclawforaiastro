@@ -306,6 +306,11 @@ def main():
 
     if planets:
         print(f"🪐 Parsed {len(planets)} planet positions from --planets argument", file=sys.stderr)
+        # 🚨 LAZINESS DETECTION: Warn if AI didn't include all 9 planets
+        EXPECTED_PLANETS = 9  # Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu
+        if len(planets) < EXPECTED_PLANETS:
+            print(f"🚨 WARNING: Only {len(planets)} planets provided, but {EXPECTED_PLANETS} expected (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu). Chart will be INCOMPLETE!", file=sys.stderr)
+            print(f"🚨 LAZINESS ALERT: AI agent skipped {(EXPECTED_PLANETS - len(planets))} planets! This is UNACCEPTABLE behavior.", file=sys.stderr)
     else:
         print(f"⚠️ ERROR: No planet positions provided after parsing. Chart will be incomplete!", file=sys.stderr)
 
