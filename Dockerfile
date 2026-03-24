@@ -16,19 +16,19 @@ RUN npm install -g pnpm
 
 WORKDIR /app
 
-# 🔴 CREATE package.json (IMPORTANT)
+# Create package.json (required for pnpm)
 RUN pnpm init -y
 
-# 🔴 INSTALL OPENCLAW LOCALLY (NOT GLOBAL)
+# Install OpenClaw locally (IMPORTANT: no global install)
 RUN pnpm add openclaw@latest
 
-# Install Python deps
+# Install Python dependencies
 RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
 
-# 🔴 BUILD UI (THIS FIXES YOUR ERROR)
-RUN pnpm dlx openclaw ui:build
+# 🔥 Build OpenClaw UI (FIXES YOUR ERROR)
+RUN npx openclaw ui:build
 
-# Create directories
+# Create required directories
 RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/credentials \
     /app/.openclaw/id_keys \
@@ -42,23 +42,57 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/.pi \
     /app/workspace
 
+# Fix permissions
 RUN chmod -R 700 /app/.openclaw
 
-# Copy your configs
+# Copy your configuration files
 COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 
+# Secure config file
 RUN chmod 600 /app/.openclaw/openclaw.json
 
-# Env
+# Set environment
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
 
-# Port
+# Environment variables (Coolify will inject values)
+ARG OPENCLAW_GATEWAY_TOKEN
+ENV OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+
+ARG ZAI_API_KEY
+ENV ZAI_API_KEY=${ZAI_API_KEY}
+
+ARG OPENAI_API_KEY
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+
+ARG MEM0_URL
+ENV MEM0_URL=${MEM0_URL}
+
+ARG QDRANT_URL
+ENV QDRANT_URL=${QDRANT_URL}
+
+ARG QDRANT_API_KEY
+ENV QDRANT_API_KEY=${QDRANT_API_KEY}
+
+ARG QDRANT_MCP_URL
+ENV QDRANT_MCP_URL=${QDRANT_MCP_URL}
+
+ARG MEM0_API_KEY
+ENV MEM0_API_KEY=${MEM0_API_KEY}
+
+ARG TELEGRAM_BOT_TOKEN
+ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+
+# Expose port
 EXPOSE 8000
 
-# Start
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Start OpenClaw
 CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]
