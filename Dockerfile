@@ -1,8 +1,5 @@
 FROM node:22-bookworm-slim
 
-# Cache bust
-ARG CACHEBUST=9
-
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     sqlite3 \
@@ -14,79 +11,54 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g openclaw@latest
-# Install OpenClaw CLI
-# Install uv for Python tool management (needed for mcporter/uvx) and requests for Qdrant skill
-RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
-
-# Create directories
-RUN mkdir -p /app/.openclaw/agents/main/sessions
-RUN mkdir -p /app/.openclaw/credentials
-RUN mkdir -p /app/.openclaw/id_keys
-RUN mkdir -p /app/.openclaw/workspace
-RUN mkdir -p /app/.openclaw/workspace/memories
-
-RUN mkdir -p /app/.openclaw/agents/astrologer/sessions
-RUN mkdir -p /app/.openclaw/workspace-astrologer
-RUN mkdir -p /app/.openclaw/workspace-astrologer/memories
-RUN mkdir -p /app/.openclaw/config
-RUN mkdir -p /app/.openclaw/skills
-RUN mkdir -p /app/.openclaw/.pi
-RUN mkdir -p /app/workspace
-
-# Fix permissions
-RUN chmod -R 700 /app/.openclaw
+# Install pnpm
+RUN npm install -g pnpm
 
 WORKDIR /app
 
-# Copy configuration and resources
+# 🔴 CREATE package.json (IMPORTANT)
+RUN pnpm init -y
+
+# 🔴 INSTALL OPENCLAW LOCALLY (NOT GLOBAL)
+RUN pnpm add openclaw@latest
+
+# Install Python deps
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
+
+# 🔴 BUILD UI (THIS FIXES YOUR ERROR)
+RUN pnpm dlx openclaw ui:build
+
+# Create directories
+RUN mkdir -p /app/.openclaw/agents/main/sessions \
+    /app/.openclaw/credentials \
+    /app/.openclaw/id_keys \
+    /app/.openclaw/workspace \
+    /app/.openclaw/workspace/memories \
+    /app/.openclaw/agents/astrologer/sessions \
+    /app/.openclaw/workspace-astrologer \
+    /app/.openclaw/workspace-astrologer/memories \
+    /app/.openclaw/config \
+    /app/.openclaw/skills \
+    /app/.openclaw/.pi \
+    /app/workspace
+
+RUN chmod -R 700 /app/.openclaw
+
+# Copy your configs
 COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 
-# permission fix
 RUN chmod 600 /app/.openclaw/openclaw.json
 
-# Set environment
+# Env
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
 
-# Environment variables
-ARG OPENCLAW_GATEWAY_TOKEN
-ENV OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-
-ARG ZAI_API_KEY
-ENV ZAI_API_KEY=${ZAI_API_KEY}
-
-ARG OPENAI_API_KEY
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
-
-ARG MEM0_URL
-ENV MEM0_URL=${MEM0_URL}
-
-ARG QDRANT_URL
-ENV QDRANT_URL=${QDRANT_URL}
-
-ARG QDRANT_API_KEY
-ENV QDRANT_API_KEY=${QDRANT_API_KEY}
-
-ARG QDRANT_MCP_URL
-ENV QDRANT_MCP_URL=${QDRANT_MCP_URL}
-
-ARG MEM0_API_KEY
-ENV MEM0_API_KEY=${MEM0_API_KEY}
-
-ARG TELEGRAM_BOT_TOKEN
-ENV TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-
-# Expose port
+# Port
 EXPOSE 8000
 
-# Health check (longer start period for first run)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Start gateway (bind to lan for Coolify)
-CMD ["openclaw", "gateway", "--port", "8000", "--bind", "lan"]
+# Start
+CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]
