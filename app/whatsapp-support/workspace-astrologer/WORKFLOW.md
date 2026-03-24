@@ -270,7 +270,16 @@ User: "Hi"
     ├─ STEP 2: Get Mem0 list → count=0 (new user)
     ├─ STEP 3: It's a greeting + Mem0 NOT found
     ├─ STEP 5.5: Detect Language → English → **ENGLISH MODE**
-    │     └─ Respond: "Hello! I am Acharya Sharma. Could you please share your birth date, time, place, and gender?"
+    │     └─ Respond:
+         ```
+         Hello! I am Acharya Sharma. Could you please share your details:
+
+         Name:
+         Date of Birth:
+         Time:
+         Place of Birth:
+         Gender:
+         ```
     └─ DONE
 ```
 
