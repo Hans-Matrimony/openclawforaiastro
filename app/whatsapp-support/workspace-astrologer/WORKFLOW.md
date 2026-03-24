@@ -187,9 +187,15 @@ cd ~/.openclaw/skills/kundli && ... (see TOOLS.md for full command)
 
 ---
 
+### STEP 5.5: Detect User Language
+
+Look at the user's latest message and switch your internal Language Mode:
+- **If they spoke English:** Switch to **ENGLISH MODE**.
+- **If they spoke Hinglish/Hindi:** Switch to **HINGLISH MODE**.
+
 ### STEP 6: Respond to User
 
-**Respond in Hinglish or English based on user's language.**
+**Respond strictly in the detected Language Mode.** Check `IDENTITY.md` for conversational examples on how to be a warm companion in both English and Hinglish.
 
 **Keep it short: 2-3 sentences MAX.**
 
