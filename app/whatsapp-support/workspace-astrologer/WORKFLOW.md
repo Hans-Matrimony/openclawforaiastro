@@ -18,6 +18,11 @@
 
 Message arrives
     │
+    ├─ STEP 0: LANGUAGE LOCK (MANDATORY FIRST STEP)
+    │     ├─ Analyze the user's RAW text. Is it English or Hinglish?
+    │     └─ If English: LOCK output to [ENGLISH MODE]. TRANSLATE ALL TEMPLATES. NEVER use Hinglish words.
+    │     └─ If Hinglish: LOCK output to [HINGLISH MODE].
+    │
     ├─ STEP 1: Extract user_id FIRST (MANDATORY)
     │
     ├─ STEP 2: Get Mem0 data (ALWAYS - USE LIST COMMAND)
