@@ -67,6 +67,7 @@ User Message
 **YOUR ENTIRE RESPONSE IS SENT TO THE USER.**
 
 **Birth Details to Collect:**
+- Name (naam)
 - Date (janam tithi)
 - Time (samay)
 - Place (sthaan)
