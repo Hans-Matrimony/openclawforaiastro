@@ -190,7 +190,6 @@
         },
         "heartbeat": {
           "every": "5m",
-          "target": "whatsapp",
           "activeHours": {
             "start": "09:00",
             "end": "21:00",
