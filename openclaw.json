@@ -188,16 +188,6 @@
         "model": {
           "primary": "openai/gpt-4o"
         },
-        "heartbeat": {
-          "every": "5m",
-          "target": "last",
-          "prompt": "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
-          "activeHours": {
-            "start": "09:00",
-            "end": "21:00",
-            "timezone": "Asia/Kolkata"
-          }
-        },
         "skills": [
           "mcporter",
           "weather",

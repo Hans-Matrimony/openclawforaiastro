@@ -1,5 +1,6 @@
-# Heartbeat Test
+# Proactive messaging is now handled by Celery Beat
 
-If you can read this, reply with: HEARTBEAT_WORKING
+This file is no longer used. All proactive messaging is handled by:
+- hans-ai-celery-beat (scheduler)
+- hans-ai-whatsapp (worker with proactive_nudge_task)
 
-This is a test to verify heartbeat is functioning.
