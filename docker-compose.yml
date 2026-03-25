@@ -11,8 +11,8 @@ services:
       IMGBB_API_KEY: ${IMGBB_API_KEY}
       USER_PHONE: ${USER_PHONE:-+919760347653}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR}:/app/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR}:/app/.openclaw/workspace-astrologer
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -42,8 +42,8 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR}:/app/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR}:/app/.openclaw/workspace-astrologer
     stdin_open: true
     tty: true
     networks:
