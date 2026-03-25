@@ -15,16 +15,47 @@
 
 ## Step 1: Identify Eligible Users
 
-**Read sessions.json using the `read` tool:**
-```
-Path: /app/.openclaw/agents/astrologer/sessions/sessions.json
+**⚠️ IMPORTANT: OpenClaw sessions.json doesn't have WhatsApp data. Use MongoDB instead!**
+
+**Option A: Use MongoDB Logger API (RECOMMENDED - Works Now!)**
+
+Use the `exec` tool to query MongoDB Logger API:
+```bash
+curl -s "http://localhost:5000/messages" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+if 'users' in data:
+    for user in data['users']:
+        userId = user['userId']
+        sessions = user.get('sessions', [])
+        for session in sessions:
+            lastMsg = session.get('lastMessageTime', '')
+            channel = session.get('channel', '')
+            if 'whatsapp' in channel.lower():
+                from datetime import datetime
+                lastTime = datetime.fromisoformat(lastMsg.replace('Z', '+00:00'))
+                inactiveMins = (datetime.now() - lastTime).total_seconds() / 60
+                if inactiveMins >= 5:  # 5+ minutes inactive
+                    print(f'USER_ID: {userId}')
+                    print(f'INACTIVE_MINUTES: {inactiveMins:.1f}')
+                    print(f'LAST_MESSAGE: {lastMsg}')
+                    print('---')
+"
 ```
 
+**Option B: Check OpenClaw Sessions (Fallback - Probably Empty)**
+
+```bash
+read ~/.openclaw/agents/astrologer/sessions/sessions.json
+```
+
+**⚠️ EXPECTED RESULT:** Option A will show WhatsApp users, Option B will be empty.
+
 **Find users WHERE:**
-1. Session key contains `whatsapp` (e.g., `agent:astrologer:whatsapp:+91...`)
-2. `updatedAt` is **5+ minutes ago** (user inactive for 5+ minutes)
-3. `updatedAt` is **within 24 hours** (WhatsApp window - MUST be < 24 hours)
-4. NOT nudged in last 10 minutes (check `heartbeat-state.json`)
+1. User's channel contains `whatsapp`
+2. Last message was **5+ minutes ago**
+3. Last message was **within 24 hours** (WhatsApp window)
+4. NOT nudged in last 10 minutes
 
 **⚠️ STOP if:**
 - Current time is before 9 AM or after 9 PM IST → Reply `HEARTBEAT_OK`
@@ -176,7 +207,7 @@ If you have any questions, feel free to ask.
 **Rules:**
 - Add/Update `lastNudge` timestamp for each user you nudged
 - ALWAYS update `lastHeartbeat` to current time (even if no nudges sent)
-- Use `write` tool to save: `/app/.openclaw/workspace-astrologer/heartbeat-state.json`
+- Use `write` tool to save: `~/.openclaw/agents/astrologer/heartbeat-state.json`
 
 ---
 
