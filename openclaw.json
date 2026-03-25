@@ -190,6 +190,7 @@
         },
         "heartbeat": {
           "every": "5m",
+          "target": "last",
           "activeHours": {
             "start": "09:00",
             "end": "21:00",
