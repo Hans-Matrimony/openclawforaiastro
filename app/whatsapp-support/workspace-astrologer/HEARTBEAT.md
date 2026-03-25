@@ -1,281 +1,254 @@
 # Heartbeat: Proactive Nudge System
 
-When you receive a heartbeat poll, follow these steps IN ORDER.
+**When you receive a heartbeat poll, your goal is to send personalized follow-up messages to users who haven't messaged in a while.**
 
 ---
 
-## ⚠️ WHATSAPP 24-HOUR RULE (CRITICAL)
+## ⚠️ CRITICAL RULES (READ FIRST!)
 
-**WhatsApp Business API restricts proactive messaging:**
+1. **WhatsApp 24-Hour Window:** ONLY nudge users who messaged within the last 24 hours
+2. **Quiet Hours:** ONLY nudge between 9 AM - 9 PM IST
+3. **Nudge Cooldown:** NEVER nudge the same user within 30 minutes
+4. **Use "ji" NOT "beta":** When name is known, ALWAYS use "[Name] ji"
 
+---
+
+## Step 1: Identify Eligible Users
+
+**Read sessions.json using the `read` tool:**
 ```
-User sends message ────────────────────────────────────────► 24-hour window STARTS
-                                                              │
-                                                              │  ✅ FREE-FORM messages allowed
-                                                              │     (any content, personalized)
-                                                              │
-                                                              ▼
-                                                         24 hours later
-                                                              │
-                                                              │  ❌ window CLOSES
-                                                              │
-                                                              ▼
-                 ❌ CANNOT send free-form messages anymore
-                 ✅ MUST use pre-approved WhatsApp templates
+Path: /app/.openclaw/agents/astrologer/sessions/sessions.json
 ```
 
-**Summary:**
-- **Within 24 hours** of user's last message → Free-form personalized messages ✅
-- **After 24 hours** → Only pre-approved templates ❌
+**Find users WHERE:**
+1. Session key contains `whatsapp` (e.g., `agent:astrologer:whatsapp:+91...`)
+2. `updatedAt` is **5+ minutes ago** (user inactive for 5+ minutes)
+3. `updatedAt` is **within 24 hours** (WhatsApp window - MUST be < 24 hours)
+4. NOT nudged in last 10 minutes (check `heartbeat-state.json`)
+
+**⚠️ STOP if:**
+- Current time is before 9 AM or after 9 PM IST → Reply `HEARTBEAT_OK`
+- No eligible users found → Reply `HEARTBEAT_OK`
+- All users nudged in last 30 minutes → Reply `HEARTBEAT_OK`
 
 ---
 
-## Step 1: Identify Inactive Users
+## ⚠️ TESTING CONFIGURATION (CURRENT)
 
-Read the central session store using the `read` tool:
-Path: `/app/.openclaw/agents/astrologer/sessions/sessions.json`
+**For testing purposes, heartbeat is configured to:**
+- Run every **5 minutes** (very frequent for testing)
+- Check for users inactive for **5+ minutes**
+- Nudge cooldown: **10 minutes** (don't spam during testing)
+- Active hours: **9 AM - 9 PM IST**
 
-The file contains a JSON object where keys are session identifiers and values are session entries.
-Find entries where:
-1. The key contains `whatsapp` (e.g., `agent:astrologer:whatsapp:+91...`).
-2. `updatedAt` is **20 minutes ago** (within WhatsApp 24-hour window).
-3. The user has not been nudged in the last **30 minutes** (check `heartbeat-state.json` for `lastNudge` timestamps).
-
-**⚠️ IMPORTANT:** Only nudge users who are within **24 hours** of their last message. Users inactive for 24+ hours CANNOT receive free-form messages due to WhatsApp API restrictions.
-
----
-
-## Step 2: Filter by Quiet Hours
-
-Only proceed with nudges if the current time is between **9 AM and 9 PM IST**.
-**Note: Even in quiet hours, you MUST still complete Step 5 (Update State).**
+**🔴 FOR PRODUCTION:** Change these values:
+- Run every **1-2 hours** (not too frequent)
+- Check for users inactive for **8-10 hours** (realistic inactivity)
+- Nudge cooldown: **30 minutes** (avoid annoyance)
 
 ---
 
-## Step 3: Get User Context from Mem0
+## Step 2: Get User Context from Mem0
 
-For each eligible user:
+**For EACH eligible user, run:**
+```bash
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<phone_number>" --limit 50
+```
 
-1. **Extract User ID**: Get the phone number from the session key (e.g., `+918534823036`).
-2. **List all memories** for the user:
-   ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<phone_number>" --limit 50
-   ```
-3. **Analyze memories to identify**:
-   - User's name
-   - Gender (for tone: friendly/brotherly for female, wise guide for male)
-   - Birth details (rashi, lagna, nakshatra)
-   - Last consulted topics (marriage, career, health, etc.)
-   - Current concerns or ongoing issues
+**Extract from memories:**
+- User's name (if available)
+- Language preference (English vs Hinglish)
+- Last topic discussed (marriage, career, health, etc.)
+- Any predictions given (to reference in nudge)
 
 ---
 
-## Step 4: Compose Personalized Nudges
+## Step 3: Compose Personalized Nudge
 
-**Format Rules (STRICT):**
-- Maximum **3 lines**
-- **1 sentence per line**
-- Maximum **15 words per sentence**
-- **Double newlines between lines**
-- **NO paragraphs**
-
-Based on the user's context, choose the appropriate template:
+**⚠️ CRITICAL: Match Language Mode!**
+- If user speaks English → Use English template
+- If user speaks Hinglish → Use Hinglish template
+- If name is known → Use "[Name] ji" (NOT "beta"!)
 
 ### Template 1: Marriage/Relationship Query
 **Use when:** User asked about shaadi, marriage timing, relationship
 
-**(ENGLISH MODE Example)**
+**HINGLISH MODE:**
 ```
-[Name] ji! How are you?
-We were discussing your marriage last time.
-Any new updates?
+Arre [Name] ji! Kya ho gaya?
+
+Pichli baar shaadi ki baat hui thi, koi update hai?
+
+April ke baad time accha hai, bata na kaisa chal raha hai.
 ```
 
-**(HINGLISH MODE Example)**
+**ENGLISH MODE:**
 ```
-[Name] beta! Kaise ho?
-Pichli baat shaadi ki chal rahi thi.
-Koi naya update hai?
+Oh wow [Name] ji! How have you been?
+
+We were discussing your marriage last time, any updates?
+
+The timing looks good after April, let me know how things are going.
 ```
 
 ### Template 2: Career/Job Query
 **Use when:** User asked about job, career, business
 
-**(ENGLISH MODE Example)**
+**HINGLISH MODE:**
 ```
-[Name] ji! How is everything?
-We spoke about your career last time.
-Are there any good news or updates?
+[Name] ji! Kya haal hai aajkal?
+
+Job change ki baat hui thi, koi update hai job mein?
+
+Next 2 months mein acche opportunities aa sakte hain.
 ```
 
-**(HINGLISH MODE Example)**
+**ENGLISH MODE:**
 ```
-[Name] beta! Kya haal hai?
-Career ke sawaal pe baat hui thi.
-Koi update hai job mein?
-```Koi change hua, batao?
+[Name] ji! How is everything going?
+
+We spoke about your career last time, any updates on the job front?
+
+Good opportunities might come in the next 2 months.
 ```
 
 ### Template 3: Health Query
 **Use when:** User asked about health, illness
+
+**HINGLISH MODE:**
 ```
-[Name] ji! Swasth kaisa hai?
+[Name] ji! Kaise ho aap?
 
-Health concern discuss kiya tha.
+Health ki baat hui thi, ab kaisa feel ho raha hai?
 
-Ab kaisa feel ho raha?
+Upay follow kar rahe ho na?
+```
+
+**ENGLISH MODE:**
+```
+[Name] ji! How are you doing?
+
+We discussed your health last time, how are you feeling now?
+
+Are you following the remedies?
 ```
 
 ### Template 4: General Check-in (No specific topic)
 **Use when:** No clear topic from memories
+
+**HINGLISH MODE:**
 ```
-Namaste [Name] ji!
+Arre [Name] ji! Kya ho gaya?
 
-Kafi din ho gaye, kaise ho?
+Kafi din ho gaye, kaise ho aaj?
 
-Koi sawaal ho toh batana.
-```
-
-### Template 5: Female User (Gender Rapport)
-**Use when:** User is female - friendly, brotherly tone
-```
-Arre [Name]! Long time!
-
-Kaise chal raha hai sab?
-
-Kuch bhi discuss karna ho toh msg kar.
+Koi sawaal ho toh zaroor batana.
 ```
 
-### Template 6: Male User (Gender Rapport)
-**Use when:** User is male - wise guide tone
+**ENGLISH MODE:**
 ```
-Namaste [Name] beta!
+Oh wow [Name] ji! Long time no see.
 
-Kya haal hai aajkal?
+How have you been?
 
-Koi madad chahiye toh zaroor batana.
+If you have any questions, feel free to ask.
 ```
-
-### Important Notes:
-- Use user's **name** if found in memories
-- Reference their **last topic** naturally
-- Keep it **warm and brief**
-- End with a **gentle question**
-- Follow **Gender Rapport** rules from IDENTITY.md
 
 ---
 
-## Step 5: Send Messages
+## Step 4: Send Nudges & Update State
 
-For each nudge:
-1. Use the agent's reply mechanism to send the message
-2. The system will deliver via WhatsApp API
-3. Track the nudge timestamp
+**For EACH user you want to nudge:**
+1. Generate personalized message using templates above
+2. Send the message (system will deliver via WhatsApp)
+3. Track timestamp in heartbeat-state.json
 
----
-
-## Step 6: Update State (ALWAYS DO THIS - CRITICAL)
-
-**You MUST update `heartbeat-state.json` EVERY TIME, even if no nudges were sent.**
-
-Use the `write` tool to update `/app/.openclaw/workspace-astrologer/heartbeat-state.json`:
+**⚠️ AFTER processing all users, update heartbeat-state.json:**
 ```json
 {
     "users": {
-        "+91XXXXXXXXXX": "2026-03-10T14:30:00.000Z"
+        "+919876543210": "2026-03-25T14:30:00.000Z"
     },
-    "lastHeartbeat": "2026-03-10T14:30:00.000Z"
+    "lastHeartbeat": "2026-03-25T14:30:00.000Z"
 }
 ```
 
-Rules for updating:
-- Set `lastNudge` (ISO timestamp) for each user who received a nudge
-- ALWAYS set `lastHeartbeat` to current ISO timestamp
-- If no users were nudged, just update `lastHeartbeat` and keep `users` as-is
+**Rules:**
+- Add/Update `lastNudge` timestamp for each user you nudged
+- ALWAYS update `lastHeartbeat` to current time (even if no nudges sent)
+- Use `write` tool to save: `/app/.openclaw/workspace-astrologer/heartbeat-state.json`
 
 ---
 
-## Nudge Frequency Rules
+## Step 5: Reply with Heartbeat Status
 
-1. **First nudge**: After **20 minutes** of inactivity
-2. **Follow-up nudges**: Every **30 minutes** (while within 24-hour window)
-3. **Max frequency**: 1 nudge per user per **30 minutes**
-4. **Quiet hours**: No nudges between **9 PM - 9 AM IST**
-5. **WhatsApp window**: ONLY nudge users within **24 hours** of last message
+**After completing ALL steps, reply with:**
+- `HEARTBEAT_OK` if heartbeat completed successfully (even if no nudges sent)
+- DO NOT include any other text or explanation
+- DO NOT send nudges as your reply (they should already be sent via system)
 
 ---
 
-## Suppression Rules
+## Quick Reference Summary
 
-**Reply ONLY with `HEARTBEAT_OK` if:**
-- Current time is outside 9 AM - 9 PM IST
-- No eligible users found
-- All eligible users were nudged in the last 30 minutes
-- All users are outside the 24-hour WhatsApp window
+**WHEN to nudge:**
+- ✅ User inactive for **5+ minutes**
+- ✅ Within 24 hours of their last message
+- ✅ Current time 9 AM - 9 PM IST
+- ✅ Not nudged in last **10 minutes**
+
+**WHEN to skip (reply HEARTBEAT_OK):**
+- ❌ Before 9 AM or after 9 PM IST
+- ❌ No eligible users found
+- ❌ All users recently nudged
+- ❌ Users outside 24-hour window
+
+**🔧 TESTING MODE:**
+- Inactivity threshold: **5 minutes** (for quick testing)
+- Nudge cooldown: **10 minutes** (to avoid spam during testing)
+- Heartbeat frequency: **Every 5 minutes** (check often for testing)
+
+**MESSAGE FORMAT:**
+- 3 lines maximum
+- Use "[Name] ji" (NOT "beta")
+- Reference last topic naturally
+- Match language (English/Hinglish)
+- End with a question
 
 ---
 
 ## Examples
 
-### Example 1: User Asked About Marriage
-**Memories show:** Name=Priya, Female, asked about marriage timing, Rashi=Tula
+### Example 1: Marriage Query (Hinglish)
+**Memories:** Name=Rahul, Last topic=Marriage timing, Prediction=April 2026
 ```
-Priya beta! Kaise ho?
+Arre Rahul ji! Kya ho gaya?
 
-Shaadi ki baat hui thi, koi progress?
+Pichli baar shaadi ki baat hui thi, koi update hai?
 
-Tula rashi hai na, accha time chal raha hai.
-```
-
-### Example 2: User Asked About Career
-**Memories show:** Name=Rahul, Male, asked about job change
-```
-Rahul beta! Kya haal hai?
-
-Job change ki baat hui thi, koi update?
-
-Guidance chahiye toh bata dena.
+April ke baad time accha hai, bata na kaisa chal raha hai.
 ```
 
-### Example 3: Health-Conscious User
-**Memories show:** Name=Sunita, Female, health concerns
+### Example 2: Career Query (English)
+**Memories:** Name=Priya, Last topic=Job change, Language=English
 ```
-Sunita ji! Kaise ho aap?
+Oh wow Priya ji! How have you been?
 
-Health ki baat hui thi, ab kaisa hai?
+We spoke about your career last time, any updates on the job front?
 
-Koi upay follow kar rahi ho?
+Good opportunities might come in the next 2 months.
+```
+
+### Example 3: General Check-in (No Topic)
+**Memories:** Name=Amit, No specific topic, Language=Hinglish
+```
+Arre Amit ji! Kya ho gaya?
+
+Kafi din ho gaye, kaise ho aaj?
+
+Koi sawaal ho toh zaroor batana.
 ```
 
 ---
 
-## Quality Checklist
-
-Before sending a nudge, verify:
-- [ ] User is within 24-hour WhatsApp window
-- [ ] Not nudged in last 30 minutes
-- [ ] Current time is 9 AM - 9 PM IST
-- [ ] Message follows format: 3 lines max, 15 words per line
-- [ ] User's name is included (if known)
-- [ ] Gender-appropriate tone (from IDENTITY.md)
-- [ ] References previous conversation topic
-
----
-
-## WhatsApp Window Limitations
-
-**What CANNOT be done (outside 24-hour window):**
-- ❌ Send free-form personalized messages
-- ❌ Send "Namaste [Name], kaise ho?" type messages
-- ❌ Send proactive nudges after 24+ days of inactivity
-
-**What CAN be done (after 24-hour window):**
-- ✅ Use pre-approved WhatsApp templates
-- ✅ Re-engage users who haven't messaged in a while
-- ✅ Requires template setup in WhatsApp Business Manager
-
-**For long-term re-engagement (24+ hours inactive), use WhatsApp templates instead.**
-
----
-
-**Remember:** This proactive system works within WhatsApp's 24-hour conversation window. The goal is to show users you remember them with personalized follow-ups while they're still within the messaging window.
+**Remember:** The goal is to show users you remember them and care about their journey, while respecting WhatsApp's 24-hour messaging window.
