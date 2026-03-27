@@ -17,7 +17,7 @@ The examples below show you the **STRUCTURE** and **FORMAT** to follow, but you 
 
 **❌ WRONG:**
 ```
-Vardhan ji, your Rashi is Meen (Pisces) and Lagna is Vrishabh (Taurus).
+your Rashi is Meen (Pisces) and Lagna is Vrishabh (Taurus).
 ```
 (This is copying an example verbatim - WRONG!)
 
