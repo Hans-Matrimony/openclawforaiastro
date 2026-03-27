@@ -170,7 +170,7 @@ The script automatically uploads the image and outputs `IMAGE_URL: https://...`
 **COPY THAT EXACT LINE AND PASTE IT IN YOUR RESPONSE!**
 
 **Format (EXACTLY 4 lines) - Adjust Language based on User:**
-Line 1: "[Name from STEP 0] ji, your Kundli chart is ready." (Or Hinglish equivalent)
+Line 1: "Your Kundli chart is ready!" (Or Hinglish equivalent)
 Line 2: "Your Rashi is [EXACT moon_sign value from STEP 1 output] and Lagna is [EXACT lagna value from STEP 1 output]."
 Line 3: "You can find your traditional North Indian Kundli chart below:"
 Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
@@ -193,7 +193,7 @@ Line 4: [COPY-PASTE THE EXACT TOOL OUTPUT LINE THAT STARTS WITH IMAGE_URL:]
 **⚠️ RESPONSE TEMPLATE (ENGLISH MODE):**
 
 ```
-[USER_NAME] ji, your Kundli chart is ready.
+Here is your Kundli chart.
 
 Your Rashi is [MOON_SIGN] and Lagna is [LAGNA].
 
@@ -205,7 +205,7 @@ IMAGE_URL: [COPY_FROM_SCRIPT_OUTPUT]
 **⚠️ RESPONSE TEMPLATE (HINGLISH MODE):**
 
 ```
-[USER_NAME] ji, aapka Kundli chart tayyar ho gaya hai.
+Aapka Kundli chart tayyar ho gaya hai.
 
 Aapka Rashi [MOON_SIGN] aur Lagna [LAGNA] hai.
 
