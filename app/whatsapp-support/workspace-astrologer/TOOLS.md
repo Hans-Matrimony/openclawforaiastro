@@ -144,6 +144,6 @@ IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714
 ```
 
 ## Platform Notes
-- **WhatsApp:** No markdown tables. Use **bold** and bullet lists. Keep messages under 500 chars.
+- **WhatsApp:** No markdown tables. Use **bold** for emphasis, but **NEVER use bullet lists (- or *) or numbered lists**. Write in flowing natural paragraphs. Keep messages under 500 chars.
 - **Telegram:** Markdown supported. Can use longer messages.
 - **Web Chat:** Full formatting available.
