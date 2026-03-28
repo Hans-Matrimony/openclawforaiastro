@@ -782,10 +782,10 @@ def calculate_kundli(dob_str, tob_str, place):
                 "ephemeris": ephemeris_info,  # ✅ NEW: Indicate which ephemeris was used
             },
             "ai_summary": {
-                "rashi_info": f"Rashi (Moon Sign): {moon_sign} ({moon_hindi}). Lagna (Ascendant): {lagna} ({lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
+                "rashi_info": f"Rashi (Moon Sign): {moon_sign} (Hindi: {moon_hindi}). Lagna (Ascendant): {lagna} (Hindi: {lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
                 "dasha_info": dasha_str,
                 "planet_positions": planets_summary,
-                "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! You MUST reply saying their Rashi is exactly what is written in rashi_info above ({moon_sign}/{moon_hindi}). Look at dasha_info for timing predictions. CRITICAL LANGUAGE LOCK: You are currently processing an astrology query. You MUST look at the user's EXACT words for this query. If their question was in English (e.g., 'when will i get marry'), YOU MUST ABANDON HINGLISH ENTIRELY AND REPLY 100% IN ENGLISH right now. Ignore your own previous Hinglish messages. If their current question is in Hindi/Hinglish (e.g., 'kya aaj ka din acha rahega'), YOU MUST REPLY 100% IN HINGLISH. Translation Rule: The astrology tool data provided above is in English. You MUST translate this data into the user's current language! CRITICAL FOR IMAGE GENERATION: When running draw_kundli_traditional.py, you MUST copy the ENTIRE planet_positions array."
+                "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! Rashi is {moon_sign} and Lagna is {lagna}. Look at dasha_info for timing predictions. 🚨 HYPER-CRITICAL LANGUAGE LOCK: You MUST analyze the EXACT LANGUAGE of the user's last message. If the user spoke ENGLISH (e.g. 'tell me about my career'), YOU MUST ABANDON HINGLISH ENTIRELY AND REPLY 100% IN PURE ENGLISH right now! Do NOT use Hindi words like 'shaadi', 'kaise ho', or 'beta' in English mode! If the user spoke HINGLISH/HINDI, you MUST reply 100% IN HINGLISH. CRITICAL FOR IMAGE GENERATION: When running draw_kundli_traditional.py, you MUST copy the ENTIRE planet_positions array."
             }
         }
 
