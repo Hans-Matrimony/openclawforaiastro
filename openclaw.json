@@ -307,8 +307,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "${OPENCLAW_GATEWAY_TOKEN}",
-      "scopes": ["operator.admin", "operator.write", "operator.read", "operator.approvals", "operator.pairing"]
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
     "trustedProxies": [
       "10.0.0.0/8",
