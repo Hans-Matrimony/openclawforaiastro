@@ -186,8 +186,11 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openai/gpt-4o"
+          "primary": "openai/gpt-4o",
+          "fallback": ["openai/gpt-4o"]
         },
+        "temperature": 0.7,
+        "maxTokens": 500,
         "skills": [
           "mcporter",
           "weather",
