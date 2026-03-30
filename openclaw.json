@@ -131,7 +131,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "zai/glm-5"
+        "primary": "openai/gpt-4o"
       },
       "models": {
         "zai/glm-5": {
@@ -209,8 +209,6 @@
           "alsoAllow": [
             "exec",
             "read",
-            "write",
-            "edit",
             "process",
             "tts",
             "image"
