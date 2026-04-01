@@ -51,6 +51,10 @@ RUN chmod 600 /app/.openclaw/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
 
+# Health check to ensure the gateway is responsive
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:8000/ || exit 1
+
 EXPOSE 8000
 
 CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]
