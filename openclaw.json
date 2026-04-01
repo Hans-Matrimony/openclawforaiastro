@@ -212,7 +212,7 @@
             "process",
             "tts",
             "image",
-            "python3 ~/.openclaw/skills/mem0/mem0_client.py *"
+            "python3 /app/.openclaw/skills/mem0/mem0_client.py *"
           ]
         }
       }
@@ -240,7 +240,9 @@
   ],
   "commands": {
     "native": "auto",
-    "nativeSkills": "auto",
+    "nativeSkills": [
+        "python3 /app/.openclaw/skills/mem0/mem0_client.py *"
+    ],
     "restart": true,
     "ownerDisplay": "raw"
   },
