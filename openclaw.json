@@ -332,7 +332,7 @@
       }
     },
     "telegram": {
-      "enabled": true,
+      "enabled": false,
       "configWrites": true,
       "dmPolicy": "open",
       "botToken": "${TELEGRAM_BOT_TOKEN}",
@@ -386,7 +386,7 @@
   "plugins": {
     "entries": {
       "telegram": {
-        "enabled": true
+        "enabled": false
       },
       "whatsapp": {
         "enabled": true
