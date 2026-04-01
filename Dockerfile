@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g pnpm openclaw@latest
+RUN npm install -g pnpm openclaw@2026.3.28
 
 WORKDIR /app
 
