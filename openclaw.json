@@ -78,19 +78,19 @@
           }
         ]
       },
-      "xai": {
-        "baseUrl": "https://api.x.ai/v1",
+      "groq": {
+        "baseUrl": "https://api.groq.com/openai/v1",
         "apiKey": "${GROQ_API_KEY}",
         "api": "openai-completions",
         "models": [
           {
-            "id": "grok-4.20-reasoning",
-            "name": "Grok 4.20 reasoning",
-            "reasoning": true,
-            "input": ["text", "image"],
+            "id": "llama-3.3-70b-versatile",
+            "name": "Llama 3.3 70B",
+            "reasoning": false,
+            "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 128000,
-            "maxTokens": 131072
+            "maxTokens": 32768
           }
         ]
       },
@@ -123,14 +123,14 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "xai/grok-4.20-reasoning"
+        "primary": "groq/llama-3.3-70b-versatile"
       },
       "models": {
         "zai/glm-5": {
           "alias": "GLM"
         },
-        "xai/grok-4.20-reasoning": {
-          "alias": "grok"
+        "groq/llama-3.3-70b-versatile": {
+          "alias": "groq"
         },
         "google/gemini-2.5-flash-lite": {
           "alias": "gemini"
@@ -178,7 +178,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "xai/grok-4.20-reasoning"
+          "primary": "groq/llama-3.3-70b-versatile"
         },
         "skills": [
           "mcporter",
