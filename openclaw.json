@@ -211,7 +211,8 @@
             "read",
             "process",
             "tts",
-            "image"
+            "image",
+            "python3 /app/.openclaw/skills/mem0/mem0_client.py *"
           ]
         }
       }

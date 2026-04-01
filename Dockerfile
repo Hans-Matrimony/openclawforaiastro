@@ -17,7 +17,7 @@ WORKDIR /app
 RUN npm init -y
 
 # install openclaw locally
-RUN pnpm add grammy
+RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
 RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
