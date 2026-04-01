@@ -78,6 +78,65 @@
           }
         ]
       },
+      "openai": {
+        "baseUrl": "https://api.openai.com/v1",
+        "apiKey": "${OPENAI_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "gpt-4o",
+            "name": "GPT-4o",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          }
+        ]
+      },
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com",
+        "apiKey": "${DEEPSEEK_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "deepseek-chat",
+            "name": "DeepSeek V3.2 Chat",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0.28,
+              "output": 0.42,
+              "cacheRead": 0.028,
+              "cacheWrite": 0.28
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-reasoner",
+            "name": "DeepSeek V3.2 Reasoner",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": {
+              "input": 0.28,
+              "output": 0.42,
+              "cacheRead": 0.028,
+              "cacheWrite": 0.28
+            },
+            "contextWindow": 128000,
+            "maxTokens": 32768
+          }
+        ]
+      },
       "groq": {
         "baseUrl": "https://api.groq.com/openai/v1",
         "apiKey": "${GROQ_API_KEY}",
@@ -123,11 +182,20 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "groq/llama-3.3-70b-versatile"
+        "primary": "deepseek/deepseek-chat"
       },
       "models": {
         "zai/glm-5": {
           "alias": "GLM"
+        },
+        "openai/gpt-4o": {
+          "alias": "gpt4"
+        },
+        "deepseek/deepseek-chat": {
+          "alias": "deepseek"
+        },
+        "deepseek/deepseek-reasoner": {
+          "alias": "reasoner"
         },
         "groq/llama-3.3-70b-versatile": {
           "alias": "groq"
@@ -178,7 +246,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "zai/glm-5"
+          "primary": "deepseek/deepseek-reasoner"
         },
         "skills": [
           "mcporter",
