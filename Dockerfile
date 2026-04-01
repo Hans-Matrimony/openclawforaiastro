@@ -10,14 +10,14 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm openclaw@latest
 
 WORKDIR /app
 
 RUN npm init -y
 
 # install openclaw locally
-RUN pnpm add openclaw@latest
+RUN pnpm add grammy
 
 # python deps
 RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
