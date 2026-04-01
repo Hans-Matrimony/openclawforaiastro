@@ -84,8 +84,8 @@
         "api": "openai-completions",
         "models": [
           {
-            "id": "grok-3",
-            "name": "Grok 3",
+            "id": "grok-4.20-reasoning",
+            "name": "Grok 4.20 reasoning",
             "reasoning": true,
             "input": ["text", "image"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
@@ -123,13 +123,13 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "xai/grok-3"
+        "primary": "xai/grok-4.20-reasoning"
       },
       "models": {
         "zai/glm-5": {
           "alias": "GLM"
         },
-        "xai/grok-3": {
+        "xai/grok-4.20-reasoning": {
           "alias": "grok"
         },
         "google/gemini-2.5-flash-lite": {
@@ -178,7 +178,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "xai/grok-3"
+          "primary": "xai/grok-4.20-reasoning"
         },
         "skills": [
           "mcporter",
