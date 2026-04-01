@@ -240,9 +240,7 @@
   ],
   "commands": {
     "native": "auto",
-    "nativeSkills": [
-        "python3 /app/.openclaw/skills/mem0/mem0_client.py *"
-    ],
+    "nativeSkills": "auto",
     "restart": true,
     "ownerDisplay": "raw"
   },
