@@ -192,6 +192,23 @@
             },
             "contextWindow": 1048576,
             "maxTokens": 65536
+          },
+          {
+            "id": "gemini-3.1-flash-lite",
+            "name": "Gemini 3.1 Flash Lite",
+            "reasoning": false,
+            "input": [
+              "text",
+              "image"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 1048576,
+            "maxTokens": 65536
           }
         ]
       }
@@ -200,7 +217,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "deepseek/deepseek-chat"
+        "primary": "google/gemini-3.1-flash-lite"
       },
       "models": {
         "zai/glm-5": {
@@ -226,6 +243,9 @@
         },
         "google/gemini-2.5-flash-lite": {
           "alias": "gemini-lite"
+        },
+        "google/gemini-3.1-flash-lite": {
+          "alias": "gemini"
         }
       },
       "contextPruning": {
@@ -270,7 +290,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "google/gemini-2.5-flash"
+          "primary": "google/gemini-3.1-flash-lite"
         },
         "skills": [
           "mcporter",
