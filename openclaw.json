@@ -228,13 +228,52 @@
             "maxTokens": 65536
           }
         ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "qwen/qwen-2.5-72b-instruct",
+            "name": "Qwen 2.5 72B",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0.18,
+              "output": 0.18,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          },
+          {
+            "id": "qwen/qwen-2.5-7b-instruct",
+            "name": "Qwen 2.5 7B",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0.03,
+              "output": 0.03,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          }
+        ]
       }
     }
   },
   "agents": {
     "defaults": {
       "model": {
-        "primary": "google/gemini-2.5-flash"
+        "primary": "openrouter/qwen/qwen-2.5-72b-instruct"
       },
       "models": {
         "zai/glm-5": {
@@ -266,6 +305,12 @@
         },
         "google/gemini-3.1-flash-lite": {
           "alias": "gemini"
+        },
+        "openrouter/qwen/qwen-2.5-72b-instruct": {
+          "alias": "qwen"
+        },
+        "openrouter/qwen/qwen-2.5-7b-instruct": {
+          "alias": "qwen-7b"
         }
       },
       "contextPruning": {
@@ -310,7 +355,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "google/gemini-2.5-flash"
+          "primary": "openrouter/qwen/qwen-2.5-72b-instruct"
         },
         "skills": [
           "mcporter",
