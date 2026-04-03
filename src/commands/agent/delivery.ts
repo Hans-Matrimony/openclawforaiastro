@@ -152,7 +152,10 @@ export async function deliverAgentCommandResult(params: {
   }
 
   if (!payloads || payloads.length === 0) {
-    runtime.log("No reply from agent.");
+    if (opts.lane !== AGENT_LANE_NESTED && !opts.json && result.meta?.stopReason !== "tool_calls") {
+      // Intentionally omit generic "No reply from agent" as it confuses users during tool execution steps
+      // runtime.log("No reply from agent.");
+    }
     return { payloads: [], meta: result.meta };
   }
 

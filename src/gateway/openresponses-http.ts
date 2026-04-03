@@ -529,22 +529,11 @@ export async function handleOpenResponsesHttpRequest(
         deps,
       );
 
-      // BRUTE FORCE DEBUG: Log the entire result object to see what we're actually getting
-      console.error(`[BRUTE_DEBUG] Full result object:`, JSON.stringify(result, null, 2));
-      console.error(`[BRUTE_DEBUG] result keys:`, Object.keys(result ?? {}));
-      console.error(`[BRUTE_DEBUG] result.payloads:`, JSON.stringify((result as any)?.payloads, null, 2));
-
       const payloads = (result as { payloads?: Array<{
         text?: string;
         mediaUrl?: string;
         mediaUrls?: string[];
       }> } | null)?.payloads;
-
-      // DEBUG: Force output to diagnose payload structure - put in content so it definitely appears in webhook
-      const resultType = typeof result;
-      const resultKeys = result ? Object.keys(result) : 'null';
-      const payloadStr = JSON.stringify(payloads);
-      const payloadDebug = `\n\n[PAYLOAD_DEBUG] resultType=${resultType}, resultKeys=${JSON.stringify(resultKeys)}, payloads=${payloadStr}`;
 
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
@@ -579,56 +568,39 @@ export async function handleOpenResponsesHttpRequest(
         return true;
       }
 
-      // CRITICAL: Add deployment marker FIRST so it's impossible to miss
-      const deploymentMarker = `\n\n===DEPLOYMENT_C42C3C469===\n\n`;
-
-      // Build content from payloads, preserving MEDIA: tags for webhook consumers
+      // Build content from payloads
       const contentParts: string[] = [];
 
-      // [PAYLOAD_DEBUG] Log payloads structure
-      console.error(`[PAYLOAD_INSPECT] payloads type: ${typeof payloads}, isArray: ${Array.isArray(payloads)}, length: ${Array.isArray(payloads) ? payloads.length : 'N/A'}`);
       if (Array.isArray(payloads) && payloads.length > 0) {
         for (const p of payloads) {
-          console.error(`[PAYLOAD_INSPECT] payload keys: ${Object.keys(p)}, has_text: ${typeof p.text === "string"}, has_mediaUrl: ${typeof p.mediaUrl === "string"}, has_mediaUrls: ${Array.isArray(p.mediaUrls)}`);
           if (typeof p.text === "string" && p.text) {
-            // Parse MEDIA: tags from text (skills might output them inline)
-            const textLines = p.text.split('\n');
-            let hasInlineMedia = false;
-            for (const line of textLines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('MEDIA:')) {
-                // Extract URL from MEDIA: line
-                const mediaUrl = trimmed.substring(6).trim();
-                console.error(`[PAYLOAD_INSPECT] Found inline MEDIA: tag in text: ${mediaUrl.substring(0, 100)}...`);
-                contentParts.push(`MEDIA: ${mediaUrl}`);
-                hasInlineMedia = true;
-              } else if (trimmed) {
-                contentParts.push(line);
-              }
-            }
-            if (!hasInlineMedia) {
-              contentParts.push(p.text);
-            }
+             const textLines = p.text.split('\n');
+             let hasInlineMedia = false;
+             for (const line of textLines) {
+               const trimmed = line.trim();
+               if (trimmed.startsWith('MEDIA:')) {
+                 const mediaUrl = trimmed.substring(6).trim();
+                 contentParts.push(`MEDIA: ${mediaUrl}`);
+                 hasInlineMedia = true;
+               } else if (trimmed) {
+                 contentParts.push(line);
+               }
+             }
+             if (!hasInlineMedia) {
+               contentParts.push(p.text);
+             }
           }
-          // Append media URLs as MEDIA: tags for webhook compatibility
           if (p.mediaUrl) {
-            console.error(`[PAYLOAD_INSPECT] Found mediaUrl: ${p.mediaUrl.substring(0, 100)}...`);
             contentParts.push(`MEDIA: ${p.mediaUrl}`);
           }
           if (p.mediaUrls && p.mediaUrls.length > 0) {
-            console.error(`[PAYLOAD_INSPECT] Found mediaUrls array: ${p.mediaUrls.length} URLs`);
             for (const url of p.mediaUrls) {
               contentParts.push(`MEDIA: ${url}`);
             }
           }
         }
-      } else {
-        console.error(`[PAYLOAD_INSPECT] WARNING: No payloads array or empty payloads!`);
       }
-      const content = (deploymentMarker + contentParts.join("\n\n") + payloadDebug);
-
-      // ALSO log to stderr which should show up in OpenClaw logs
-      console.error(`[PAYLOAD_DEBUG] content length: ${content.length}, first 200 chars: ${content.substring(0, 200)}`);
+      const content = contentParts.join("\n\n");
 
       const response = createResponseResource({
         id: responseId,
