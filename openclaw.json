@@ -353,7 +353,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/meta-llama/llama-3-8b-instruct"
+        "primary": "openai/gpt-4o-mini"
       },
       "models": {
         "zai/glm-5": {
@@ -386,23 +386,14 @@
         "google/gemini-3.1-flash-lite": {
           "alias": "gemini"
         },
-        "openrouter/qwen/qwen-2.5-72b-instruct": {
-          "alias": "qwen"
-        },
         "openrouter/qwen/qwen-2.5-7b-instruct": {
           "alias": "qwen-7b"
         },
         "openrouter/qwen/qwen-2.5-72b-instruct-turbo": {
           "alias": "qwen-turbo"
         },
-        "openrouter/qwen/qwen3.6-plus-preview": {
-          "alias": "qwen"
-        },
         "openrouter/google/gemma-4-31b-it": {
           "alias": "gemma"
-        },
-        "openrouter/meta-llama/llama-3-8b-instruct": {
-          "alias": "llama"
         },
         "openrouter/meta-llama/llama-3.1-8b-instruct": {
           "alias": "llama31"
@@ -450,7 +441,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openrouter/meta-llama/llama-3-8b-instruct"
+          "primary": "openai/gpt-4o-mini"
         },
         "skills": [
           "mcporter",
