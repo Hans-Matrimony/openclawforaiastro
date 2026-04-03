@@ -234,7 +234,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openai/gpt-4o-mini"
+        "primary": "google/gemini-2.5-flash"
       },
       "models": {
         "zai/glm-5": {
@@ -310,7 +310,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openai/gpt-4o-mini"
+          "primary": "google/gemini-2.5-flash"
         },
         "skills": [
           "mcporter",
