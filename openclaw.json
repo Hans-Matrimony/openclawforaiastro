@@ -283,7 +283,7 @@
             "maxTokens": 8192
           },
           {
-            "id": "qwen/qwen-3.6-plus",
+            "id": "qwen/qwen3.6-plus-preview:free",
             "name": "Qwen 3.6 Plus",
             "reasoning": false,
             "input": [
@@ -305,7 +305,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/qwen/qwen-3.6-plus"
+        "primary": "openrouter/qwen/qwen3.6-plus-preview:free"
       },
       "models": {
         "zai/glm-5": {
@@ -347,7 +347,7 @@
         "openrouter/qwen/qwen-2.5-72b-instruct-turbo": {
           "alias": "qwen-turbo"
         },
-        "openrouter/qwen/qwen-3.6-plus": {
+        "openrouter/qwen/qwen3.6-plus-preview:free": {
           "alias": "qwen"
         }
       },
@@ -393,7 +393,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openrouter/qwen/qwen-3.6-plus"
+          "primary": "openrouter/qwen/qwen3.6-plus-preview:free"
         },
         "skills": [
           "mcporter",
