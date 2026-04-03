@@ -313,6 +313,54 @@
             },
             "contextWindow": 262144,
             "maxTokens": 8192
+          },
+          {
+            "id": "meta-llama/llama-3.1-8b-instruct:free",
+            "name": "Llama 3.1 8B Free",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "google/gemma-2-9b-it:free",
+            "name": "Gemma 2 9B Free",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "mistralai/mistral-7b-instruct:free",
+            "name": "Mistral 7B Free",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
           }
         ]
       }
@@ -321,7 +369,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/google/gemma-4-31b-it"
+        "primary": "openrouter/meta-llama/llama-3.1-8b-instruct:free"
       },
       "models": {
         "zai/glm-5": {
@@ -368,6 +416,15 @@
         },
         "openrouter/google/gemma-4-31b-it": {
           "alias": "gemma"
+        },
+        "openrouter/meta-llama/llama-3.1-8b-instruct:free": {
+          "alias": "llama"
+        },
+        "openrouter/google/gemma-2-9b-it:free": {
+          "alias": "gemma2"
+        },
+        "openrouter/mistralai/mistral-7b-instruct:free": {
+          "alias": "mistral"
         }
       },
       "contextPruning": {
@@ -412,7 +469,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openrouter/google/gemma-4-31b-it"
+          "primary": "openrouter/meta-llama/llama-3.1-8b-instruct:free"
         },
         "skills": [
           "mcporter",
