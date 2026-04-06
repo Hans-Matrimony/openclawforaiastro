@@ -2,9 +2,7 @@
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
-#     "reportlab>=4.0.0",
-#     "pillow>=10.0.0",
-#     "requests"
+#     "reportlab>=4.0.0"
 # ]
 # ///
 """
@@ -24,14 +22,59 @@ import argparse
 import os
 import sys
 import json
-import base64
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from io import BytesIO
 
-# Add kundli directory to path for imports
-kundli_dir = Path(__file__).parent.parent / "kundli"
-sys.path.insert(0, str(kundli_dir))
+
+def calculate_kundli_data(dob: str, tob: str, place: str) -> dict:
+    """Calculate kundli by calling calculate.py as a subprocess."""
+    # Get the path to calculate.py
+    kundli_dir = Path(__file__).parent.parent / "kundli"
+    calculate_script = kundli_dir / "calculate.py"
+
+    if not calculate_script.exists():
+        raise FileNotFoundError(f"Could not find calculate.py at {calculate_script}")
+
+    # Run calculate.py as a subprocess
+    try:
+        result = subprocess.run(
+            [sys.executable, str(calculate_script), "--dob", dob, "--tob", tob, "--place", place],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=True
+        )
+
+        # Parse the JSON output
+        output_lines = result.stdout.strip().split('\n')
+
+        # Find JSON output (usually the last line or contains metadata)
+        json_output = None
+        for line in output_lines:
+            line = line.strip()
+            if line.startswith('{') and line.endswith('}'):
+                try:
+                    json_output = json.loads(line)
+                    break
+                except json.JSONDecodeError:
+                    continue
+
+        if json_output:
+            return json_output
+        else:
+            # If no JSON found, try parsing the entire output
+            try:
+                return json.loads(result.stdout.strip())
+            except json.JSONDecodeError:
+                raise ValueError("Could not parse kundli calculation output")
+
+    except subprocess.TimeoutExpired:
+        raise TimeoutError("Kundli calculation timed out")
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Kundli calculation failed: {e.stderr}")
+
 
 def generate_pdf(dob: str, tob: str, place: str, name: str = "User"):
     """Generate the Kundli PDF report."""
@@ -42,38 +85,23 @@ def generate_pdf(dob: str, tob: str, place: str, name: str = "User"):
         from reportlab.lib.pagesizes import A4
         from reportlab.lib import colors
         from reportlab.lib.units import inch
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.enums import TA_CENTER, TA_LEFT
-        from reportlab.pdfbase import pdfmetrics
-        from reportlab.pdfbase.ttfonts import TTFont
-        from PIL import Image as PILImage
-        import requests
 
         print("Dependencies loaded successfully.", file=sys.stdout)
     except ImportError as e:
         print(f"Installing missing dependencies: {e}", file=sys.stdout)
         import subprocess
         subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "-q",
-                             "reportlab>=4.0.0", "pillow>=10.0.0", "requests"])
+                             "reportlab>=4.0.0"])
         print("Dependencies installed successfully.", file=sys.stdout)
         from reportlab.lib.pagesizes import A4
         from reportlab.lib import colors
         from reportlab.lib.units import inch
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.enums import TA_CENTER, TA_LEFT
-        from reportlab.pdfbase import pdfmetrics
-        from reportlab.pdfbase.ttfonts import TTFont
-        from PIL import Image as PILImage
-        import requests
-
-    # Import kundli calculation
-    try:
-        import calculate
-    except ImportError:
-        print("Error: Could not import kundli calculate module", file=sys.stderr)
-        sys.exit(1)
 
     print(f"Calculating Kundli for {name}...", file=sys.stdout)
     print(f"DOB: {dob}, TOB: {tob}, Place: {place}", file=sys.stdout)
@@ -81,7 +109,7 @@ def generate_pdf(dob: str, tob: str, place: str, name: str = "User"):
 
     # Calculate kundli
     try:
-        kundli_data = calculate.calculate_kundli(dob, tob, place)
+        kundli_data = calculate_kundli_data(dob, tob, place)
         print("Kundli calculated successfully!", file=sys.stdout)
     except Exception as e:
         print(f"Error calculating kundli: {e}", file=sys.stderr)
