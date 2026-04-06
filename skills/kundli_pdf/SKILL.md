@@ -5,7 +5,8 @@ metadata:
   {
     "openclaw":
       {
-        "emoji": "📄"
+        "emoji": "📄",
+        "requires": { "bins": ["python3"] }
       },
   }
 ---
@@ -16,7 +17,9 @@ Generate professional 5-page Kundli PDF reports for users.
 
 ## ⚠️ IMPORTANT: How This Skill Works
 
-This is a **message-based skill** - you do NOT need to execute any scripts or files.
+This is a **message-based skill** - you do NOT need to execute any scripts.
+
+**Note:** There is a `trigger_pdf.py` file in this skill directory, but it's just a placeholder for skill detection. You do NOT need to run it.
 
 **When to use this skill:**
 - User asks for "kundli pdf" or "generate pdf"
