@@ -14,6 +14,25 @@ metadata:
 
 Generate professional 5-page Kundli PDF reports for users.
 
+## ⚠️ CRITICAL: READ THIS FIRST!
+
+**DO NOT generate the PDF yourself!** 
+
+This skill does NOT run generate_pdf.py directly. Instead, you send a `PDF_REQUEST:` message to the backend, which handles everything.
+
+**Your job:**
+1. Check mem0 for birth details
+2. Send `PDF_REQUEST: dob=..., tob=..., place=..., name=...` message
+3. Tell user "PDF is being generated, please wait 2-3 minutes"
+
+**Backend handles:**
+- PDF generation with ReportLab
+- Calculating kundli  
+- Uploading to WhatsApp Media API
+- Sending to user
+
+**If you try to generate the PDF yourself, it will NOT work!** The local file cannot be sent to WhatsApp.
+
 ## Description
 
 This skill triggers the generation of a detailed Janam Kundli PDF that includes:
@@ -62,17 +81,27 @@ If birth details are NOT in mem0, ask the user:
 
 When user provides details, store them in mem0 and proceed.
 
-### Step 3: Trigger PDF generation (via API)
+### Step 3: Trigger PDF generation (via backend API)
 
-**IMPORTANT:** Send a special message to trigger PDF generation in the backend:
+**CRITICAL: DO NOT run generate_pdf.py yourself!**
+
+Send this special message format to trigger PDF generation in the backend:
 
 ```
 PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=City Name, name=User Name
 ```
 
+**IMPORTANT RULES:**
+- ✅ DO: Send "PDF_REQUEST: dob=..., tob=..., place=..." message
+- ❌ DO NOT: Run cd ~/.openclaw/skills/kundli_pdf && python3 generate_pdf.py
+- ❌ DO NOT: Try to generate the PDF yourself
+- ❌ DO NOT: Use the generate_pdf.py script directly
+
+**Why?** The backend has the full PDF generation system with WhatsApp upload capability. Your job is just to trigger it by sending PDF_REQUEST.
+
 **Parameters:**
 - `dob`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
-- `tob`: Time of birth in HH:MM format (e.g., 00:00)
+- `tob`: Time of birth in HH:MM format (e.g., 00:00)  
 - `place`: Place of birth (e.g., Meerut)
 - `name`: User's name (optional, defaults to "User")
 
@@ -81,7 +110,7 @@ PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=City Name, name=User Name
 PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 ```
 
-**Output:** The backend will generate the PDF and send it to the user's WhatsApp.
+**What happens next:** The backend will generate the PDF and send it to the user's WhatsApp. You don't need to do anything else!
 
 ### Step 4: Inform the user
 
@@ -117,7 +146,7 @@ This will include:
 
 Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
 
-(Behind the scenes, AI sends: PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan)
+(Behind the scenes: AI message contains "PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan" which triggers the backend)
 
 ## Notes
 
