@@ -6,7 +6,25 @@
 # ]
 # ///
 """
-Generate Kundli PDF Reports using ReportLab.
+⚠️ WARNING: DO NOT USE THIS SCRIPT DIRECTLY! ⚠️
+
+This script is NOT meant to be called by the AI agent!
+
+Instead, use the kundli_pdf skill which sends a PDF_REQUEST message to the backend.
+The backend (hans-ai-whatsapp service) has the full PDF generation system.
+
+IF YOU ARE THE AI AGENT:
+- DO NOT run this script
+- DO NOT try to generate PDFs locally
+- DO send: "PDF_REQUEST: dob=..., tob=..., place=..., name=..."
+- Let the backend handle everything
+
+IF YOU ARE A DEVELOPER:
+- This script is only for reference/testing
+- The actual PDF generation happens in hans-ai-whatsapp/app/services/kundli_pdf_generator.py
+- That service has ReportLab, WhatsApp upload, and proper integration
+
+Generate Kundli PDF Reports using ReportLab (FOR REFERENCE ONLY).
 
 This script creates detailed 5-page Janam Kundli PDF reports with:
 - Birth Charts (Lagna + Navamsa)
@@ -14,7 +32,7 @@ This script creates detailed 5-page Janam Kundli PDF reports with:
 - Life Predictions
 - Astrological Remedies
 
-Usage:
+Usage (FOR TESTING ONLY):
     python3 generate_pdf.py --dob "2002-02-16" --tob "00:00" --place "Meerut" --name "Vardhan"
 """
 
