@@ -62,26 +62,26 @@ If birth details are NOT in mem0, ask the user:
 
 When user provides details, store them in mem0 and proceed.
 
-### Step 3: Generate PDF (using local script)
+### Step 3: Trigger PDF generation (via API)
 
-**IMPORTANT:** Run the PDF generation script from the kundli_pdf skill directory:
+**IMPORTANT:** Send a special message to trigger PDF generation in the backend:
 
-```bash
-cd ~/.openclaw/skills/kundli_pdf && python3 generate_pdf.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City Name" --name "User Name"
+```
+PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=City Name, name=User Name
 ```
 
 **Parameters:**
-- `--dob`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
-- `--tob`: Time of birth in HH:MM format (e.g., 00:00)
-- `--place`: Place of birth (e.g., Meerut)
-- `--name`: User's name (optional, defaults to "User")
+- `dob`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
+- `tob`: Time of birth in HH:MM format (e.g., 00:00)
+- `place`: Place of birth (e.g., Meerut)
+- `name`: User's name (optional, defaults to "User")
 
 **Example:**
-```bash
-cd ~/.openclaw/skills/kundli_pdf && python3 generate_pdf.py --dob "2002-02-16" --tob "00:00" --place "Meerut" --name "Vardhan"
+```
+PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 ```
 
-**Output:** The script will print the PDF file path which will be automatically sent to the user.
+**Output:** The backend will generate the PDF and send it to the user's WhatsApp.
 
 ### Step 4: Inform the user
 
@@ -115,23 +115,26 @@ This will include:
 • Life Predictions (Career, Marriage, Health, Wealth)
 • Astrological Remedies
 
-Please wait 10-15 seconds... I'll send it to your WhatsApp now! 📄"
+Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
+
+(Behind the scenes, AI sends: PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan)
 
 ## Notes
 
-- The PDF is generated locally using ReportLab
-- The PDF file path is printed and automatically sent to the user
-- Generation takes 5-10 seconds
-- PDF includes 5 pages: Title, Planetary Positions, Life Predictions (2 pages), Remedies
+- The PDF is generated in the backend by hans-ai-whatsapp service
+- Uses ReportLab for professional 5-page PDF generation
+- Includes charts, predictions, and remedies
+- Sent directly to user's WhatsApp as a document
+- Generation takes 2-3 minutes
 
 ## Troubleshooting
 
 If PDF generation fails:
-1. Check if reportlab is installed: `pip list | grep reportlab`
-2. Verify birth details are in correct format
-3. Check if the kundli calculation is working
+1. Check if birth details are correct
+2. Verify the PDF_REQUEST format is correct
+3. Check backend logs for errors
 
 If the user doesn't receive the PDF:
-1. Check if the PDF file was created successfully
-2. Verify the file path was printed correctly
+1. The PDF generation may have failed
+2. Check if WhatsApp API is working
 3. Offer to regenerate the PDF
