@@ -324,7 +324,7 @@ def generate_pdf(dob: str, tob: str, place: str, name: str = "User"):
     pdf_bytes = pdf_buffer.getvalue()
     pdf_buffer.close()
 
-    # Save to file
+    # Save to file in current directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"Kundli_{name.replace(' ', '_')}_{timestamp}.pdf"
     output_path = Path(filename)
@@ -339,8 +339,10 @@ def generate_pdf(dob: str, tob: str, place: str, name: str = "User"):
         print(f"Error saving PDF: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Return the file path (will be converted to URL by the system)
-    print(f"PDF: {output_path.absolute()}", file=sys.stdout)
+    # Return MEDIA URL for the system to upload
+    # Use sandbox: prefix to indicate local file that needs to be uploaded
+    sandbox_path = f"sandbox:{output_path.absolute()}"
+    print(f"MEDIA: {sandbox_path}", file=sys.stdout)
     sys.stdout.flush()
 
     return str(output_path.absolute())
