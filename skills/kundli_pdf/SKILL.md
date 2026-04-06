@@ -5,7 +5,8 @@ metadata:
   {
     "openclaw":
       {
-        "emoji": "📄"
+        "emoji": "📄",
+        "requires": { "bins": ["python3"] }
       },
   }
 ---
@@ -16,17 +17,16 @@ Generate professional 5-page Kundli PDF reports for users.
 
 ## ⚠️ CRITICAL: READ THIS FIRST!
 
-**Local PDF generation has been DISABLED!** 
+**PDF generation happens in the backend!**
 
-The generate_pdf.py script is no longer available. You MUST use the backend approach.
-
-**Your ONLY job:**
+**Your job:**
 1. Check mem0 for birth details
-2. Send `PDF_REQUEST: dob=..., tob=..., place=..., name=...` message  
-3. Tell user "PDF is being generated, please wait 2-3 minutes"
+2. Execute `request_pdf.py` script with birth details
+3. The script will output the PDF_REQUEST message that backend detects
+4. Tell user "PDF is being generated, please wait 2-3 minutes"
 
 **What happens:**
-- Backend detects your `PDF_REQUEST:` message
+- Backend detects the `PDF_REQUEST:` message from the script output
 - Backend generates the PDF with ReportLab
 - Backend uploads to WhatsApp Media API
 - Backend sends the PDF to the user
@@ -39,7 +39,7 @@ The generate_pdf.py script is no longer available. You MUST use the backend appr
 - ❌ Any other approach
 
 **ONLY DO:**
-- ✅ Send `PDF_REQUEST:` message with birth details
+- ✅ Execute `request_pdf.py` with birth details parameters
 
 ## Description
 
@@ -73,56 +73,35 @@ When a user asks for "Kundli PDF", "Generate PDF", "Detailed Report", or similar
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 ```
 
-If birth details are found, extract them and proceed to Step 3.
+If birth details are found, extract them and proceed to Step 2.
 
-### Step 2: Ask for birth details (if not in mem0)
+### Step 2: Trigger PDF generation (execute request_pdf.py)
 
-If birth details are NOT in mem0, ask the user:
+**Execute the request_pdf.py script with birth details:**
 
-" To generate your Kundli PDF, I need your birth details. Please provide:
-
-• Date of Birth (e.g., 16 February 2002)
-• Time of Birth (e.g., 12:00 AM)
-• Place of Birth (e.g., Meerut)
-
-"
-
-When user provides details, store them in mem0 and proceed.
-
-### Step 3: Trigger PDF generation (via backend API)
-
-**CRITICAL: DO NOT run generate_pdf.py yourself!**
-
-Send this special message format to trigger PDF generation in the backend:
-
+```bash
+python3 ~/.openclaw/skills/kundli_pdf/request_pdf.py "<DOB>" "<TOB>" "<PLACE>" "<NAME>"
 ```
-PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=City Name, name=User Name
-```
-
-**IMPORTANT RULES:**
-- ✅ DO: Send "PDF_REQUEST: dob=..., tob=..., place=..." message
-- ❌ DO NOT: Run cd ~/.openclaw/skills/kundli_pdf && python3 generate_pdf.py
-- ❌ DO NOT: Try to generate the PDF yourself
-- ❌ DO NOT: Use the generate_pdf.py script directly
-
-**Why?** The backend has the full PDF generation system with WhatsApp upload capability. Your job is just to trigger it by sending PDF_REQUEST.
 
 **Parameters:**
-- `dob`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
-- `tob`: Time of birth in HH:MM format (e.g., 00:00)  
-- `place`: Place of birth (e.g., Meerut)
-- `name`: User's name (optional, defaults to "User")
+- `DOB`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
+- `TOB`: Time of birth in HH:MM format (e.g., 00:00)
+- `PLACE`: Place of birth (e.g., Meerut)
+- `NAME`: User's name (optional, defaults to "User")
 
 **Example:**
+```bash
+python3 ~/.openclaw/skills/kundli_pdf/request_pdf.py "2002-02-16" "00:00" "Meerut" "Vardhan"
 ```
-PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
-```
 
-**What happens next:** The backend will generate the PDF and send it to the user's WhatsApp. You don't need to do anything else!
+**What happens next:**
+- The script will output a `PDF_REQUEST:` message
+- The backend will detect this message and generate the PDF
+- The PDF will be sent to the user's WhatsApp in 2-3 minutes
 
-### Step 4: Inform the user
+### Step 3: Inform the user
 
-After triggering the PDF, send this confirmation message:
+After executing the script, send this confirmation message:
 
 "Generating your detailed Janam Kundli PDF now! ✨
 
@@ -132,17 +111,22 @@ This will include:
 • Life Predictions (Career, Marriage, Health, Wealth)
 • Astrological Remedies
 
-Please wait 10-15 seconds... Sending to your WhatsApp now! 📄"
+Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
 
 ## Example Flow
 
 **User:** "Generate my Kundli PDF"
 
-**AI:** (checks mem0) (if details found, triggers PDF; if not, asks for details)
+**AI:** (checks mem0) (if details found, proceeds; if not, asks for details)
 
 **User:** "16 feb 2002, 12:00 am, Meerut"
 
-**AI:** (stores in mem0) "Thank you! Let me generate your Kundli PDF." (triggers PDF generation)
+**AI:** (stores in mem0) "Thank you! Let me generate your Kundli PDF."
+
+**AI:** (executes request_pdf.py script)
+```bash
+python3 ~/.openclaw/skills/kundli_pdf/request_pdf.py "2002-02-16" "00:00" "Meerut" "Vardhan"
+```
 
 **AI:** "Great! I'm generating your detailed Janam Kundli PDF. ✨
 
@@ -154,7 +138,7 @@ This will include:
 
 Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
 
-(Behind the scenes: AI message contains "PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan" which triggers the backend)
+(Behind the scenes: Script outputs "PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan" which triggers the backend)
 
 ## Notes
 
@@ -163,12 +147,18 @@ Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
 - Includes charts, predictions, and remedies
 - Sent directly to user's WhatsApp as a document
 - Generation takes 2-3 minutes
+- The request_pdf.py script simply outputs the PDF_REQUEST message that triggers backend processing
 
 ## Troubleshooting
 
+If the script doesn't execute:
+1. Verify the script path: `~/.openclaw/skills/kundli_pdf/request_pdf.py`
+2. Check that all 3 required parameters are provided (dob, tob, place)
+3. Name is optional - will default to "User" if not provided
+
 If PDF generation fails:
 1. Check if birth details are correct
-2. Verify the PDF_REQUEST format is correct
+2. Verify the script output contains "PDF_REQUEST:"
 3. Check backend logs for errors
 
 If the user doesn't receive the PDF:
