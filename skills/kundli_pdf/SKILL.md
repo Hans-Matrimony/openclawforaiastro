@@ -5,8 +5,7 @@ metadata:
   {
     "openclaw":
       {
-        "emoji": "📄",
-        "requires": { "bins": ["curl"] }
+        "emoji": "📄"
       },
   }
 ---
@@ -63,36 +62,32 @@ If birth details are NOT in mem0, ask the user:
 
 When user provides details, store them in mem0 and proceed.
 
-### Step 3: Trigger PDF generation
+### Step 3: Generate PDF (using local script)
 
-**IMPORTANT:** The phone number should NOT have the + prefix.
+**IMPORTANT:** Run the PDF generation script from the kundli_pdf skill directory:
 
 ```bash
-curl -X POST https://hansastro.com/api/generate-kundli-pdf \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone": "91987654321",
-    "user_id": "+91987654321",
-    "dob": "2002-02-16",
-    "tob": "00:00",
-    "place": "Meerut",
-    "name": "User Name"
-  }'
+cd ~/.openclaw/skills/kundli_pdf && python3 generate_pdf.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City Name" --name "User Name"
 ```
 
 **Parameters:**
-- `phone`: User's phone number WITHOUT + (required)
-- `user_id`: User's phone number WITH + (required)
-- `dob`: Date of birth in YYYY-MM-DD format (required)
-- `tob`: Time of birth in HH:MM format (required)
-- `place`: Place of birth - city name (required)
-- `name`: User's name (optional, defaults to "User")
+- `--dob`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
+- `--tob`: Time of birth in HH:MM format (e.g., 00:00)
+- `--place`: Place of birth (e.g., Meerut)
+- `--name`: User's name (optional, defaults to "User")
+
+**Example:**
+```bash
+cd ~/.openclaw/skills/kundli_pdf && python3 generate_pdf.py --dob "2002-02-16" --tob "00:00" --place "Meerut" --name "Vardhan"
+```
+
+**Output:** The script will print the PDF file path which will be automatically sent to the user.
 
 ### Step 4: Inform the user
 
 After triggering the PDF, send this confirmation message:
 
-"Great! I'm generating your detailed Janam Kundli PDF. ✨
+"Generating your detailed Janam Kundli PDF now! ✨
 
 This will include:
 • Birth Charts (Lagna + Navamsa)
@@ -100,7 +95,7 @@ This will include:
 • Life Predictions (Career, Marriage, Health, Wealth)
 • Astrological Remedies
 
-Please wait 2-3 minutes... I'll send it to your WhatsApp shortly! 📄"
+Please wait 10-15 seconds... Sending to your WhatsApp now! 📄"
 
 ## Example Flow
 
@@ -120,23 +115,23 @@ This will include:
 • Life Predictions (Career, Marriage, Health, Wealth)
 • Astrological Remedies
 
-Please wait 2-3 minutes... I'll send it to your WhatsApp shortly! 📄"
+Please wait 10-15 seconds... I'll send it to your WhatsApp now! 📄"
 
 ## Notes
 
-- The PDF is generated in the background by a Celery worker
-- The user will receive the PDF document via WhatsApp within 2-3 minutes
-- The generation process is asynchronous, so you don't need to wait
-- If PDF generation fails, the error will be logged but the user won't be notified (you can offer to retry if they ask)
+- The PDF is generated locally using ReportLab
+- The PDF file path is printed and automatically sent to the user
+- Generation takes 5-10 seconds
+- PDF includes 5 pages: Title, Planetary Positions, Life Predictions (2 pages), Remedies
 
 ## Troubleshooting
 
-If the curl command fails with connection errors:
-1. Check if the hansastro.com service is running
-2. Verify the phone number format (no + in `phone` parameter)
-3. Ensure all required parameters are provided
+If PDF generation fails:
+1. Check if reportlab is installed: `pip list | grep reportlab`
+2. Verify birth details are in correct format
+3. Check if the kundli calculation is working
 
-If the user doesn't receive the PDF after 3 minutes:
-1. The PDF generation may have failed
-2. Offer to regenerate the PDF
-3. Check if birth details are correct
+If the user doesn't receive the PDF:
+1. Check if the PDF file was created successfully
+2. Verify the file path was printed correctly
+3. Offer to regenerate the PDF
