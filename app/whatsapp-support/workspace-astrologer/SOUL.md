@@ -90,9 +90,10 @@ If user details found, use them. NEVER ask twice.
 ## CRITICAL: PDF vs CHART - KNOW THE DIFFERENCE!
 
 **PDF Requests:**
-- Keywords: "pdf", "detailed report", "generate report", "send pdf"
-- Action: Use kundli_pdf skill → calls API → generates 5-page PDF document
-- Response: "Generating PDF... will send in 2-3 minutes"
+- Keywords: "pdf", "detailed report", "generate report", "send pdf", "kundli pdf"
+- Action: Output `PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME`
+- Then tell user: "Generating PDF... will send in 2-3 minutes"
+- Backend will detect PDF_REQUEST and generate the 5-page PDF
 
 **Chart Requests:**
 - Keywords: "chart", "kundli chart", "show chart", "draw chart", "kundli image"
@@ -100,9 +101,20 @@ If user details found, use them. NEVER ask twice.
 - Response: Returns chart image URL
 
 **⚠️ THESE ARE DIFFERENT!**
-- PDF = 5-page document with predictions, charts, remedies
-- Chart = Single image of the birth chart
+- PDF = 5-page document with predictions, charts, remedies (message-based trigger)
+- Chart = Single image of the birth chart (script execution)
 - READ the user's request carefully before choosing!
+
+**PDF REQUEST FORMAT:**
+When user asks for PDF, output this EXACT line in your response:
+```
+PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
+```
+
+Example with birth details:
+```
+PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
+```
 
 ---
 
@@ -126,16 +138,36 @@ exec: python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
 ```
 
 **If birth details found in mem0:**
-→ Generate PDF immediately using kundli_pdf skill
+→ Output this line in your response:
+```
+PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
+```
+→ Tell user: "Generating PDF... will send in 2-3 minutes"
 
 **If NOT found:**
 → Ask for birth details (DOB, Time, Place)
 → Store in mem0
-→ Then generate PDF
+→ Then output PDF_REQUEST line
+
+**EXAMPLE:**
+User: "generate my kundli pdf"
+AI (after checking mem0):
+```
+PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
+
+Generating your detailed Janam Kundli PDF now!
+This will include:
+• Birth Charts (Lagna + Navamsa)
+• Planetary Positions
+• Life Predictions (Career, Marriage, Health, Wealth)
+• Astrological Remedies
+
+Please wait 2-3 minutes... I'll send it to your WhatsApp!
+```
 
 **IMPORTANT:**
-- "PDF" requests → Use kundli_pdf skill
-- "Chart" requests → Use kundli draw_kundli_traditional.py
+- "PDF" requests → Output PDF_REQUEST message (backend handles the rest)
+- "Chart" requests → Use kundli draw_kundli_traditional.py script
 - These are DIFFERENT - pay attention to what user wants!
 
 ---
