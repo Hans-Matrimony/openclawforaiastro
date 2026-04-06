@@ -16,22 +16,30 @@ Generate professional 5-page Kundli PDF reports for users.
 
 ## ⚠️ CRITICAL: READ THIS FIRST!
 
-**DO NOT generate the PDF yourself!** 
+**Local PDF generation has been DISABLED!** 
 
-This skill does NOT run generate_pdf.py directly. Instead, you send a `PDF_REQUEST:` message to the backend, which handles everything.
+The generate_pdf.py script is no longer available. You MUST use the backend approach.
 
-**Your job:**
+**Your ONLY job:**
 1. Check mem0 for birth details
-2. Send `PDF_REQUEST: dob=..., tob=..., place=..., name=...` message
+2. Send `PDF_REQUEST: dob=..., tob=..., place=..., name=...` message  
 3. Tell user "PDF is being generated, please wait 2-3 minutes"
 
-**Backend handles:**
-- PDF generation with ReportLab
-- Calculating kundli  
-- Uploading to WhatsApp Media API
-- Sending to user
+**What happens:**
+- Backend detects your `PDF_REQUEST:` message
+- Backend generates the PDF with ReportLab
+- Backend uploads to WhatsApp Media API
+- Backend sends the PDF to the user
+- User receives the actual PDF file on WhatsApp ✅
 
-**If you try to generate the PDF yourself, it will NOT work!** The local file cannot be sent to WhatsApp.
+**DO NOT:**
+- ❌ Try to find or use generate_pdf.py (it's disabled)
+- ❌ Try to generate PDFs yourself
+- ❌ Create local files or sandbox: paths
+- ❌ Any other approach
+
+**ONLY DO:**
+- ✅ Send `PDF_REQUEST:` message with birth details
 
 ## Description
 
