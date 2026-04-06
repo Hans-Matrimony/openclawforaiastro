@@ -1,12 +1,11 @@
 ---
 name: kundli_pdf
-description: Generate detailed Janam Kundli PDF report with charts, predictions, and remedies.
+description: PDF generation skill for Janam Kundli. Use when user asks for "kundli pdf", "detailed pdf report", "generate pdf", or "send pdf". This generates a 5-page PDF document with charts, predictions, and remedies.
 metadata:
   {
     "openclaw":
       {
-        "emoji": "📄",
-        "requires": { "bins": ["python3"] }
+        "emoji": "📄"
       },
   }
 ---
@@ -15,58 +14,31 @@ metadata:
 
 Generate professional 5-page Kundli PDF reports for users.
 
-## ⚠️ CRITICAL: READ THIS FIRST!
+## ⚠️ IMPORTANT: How This Skill Works
 
-**PDF generation happens in the backend!**
+This is a **message-based skill** - you do NOT need to execute any scripts or files.
 
-**Your job:**
-1. Check mem0 for birth details
-2. Output this EXACT message format: `PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME`
-3. Tell user "PDF is being generated, please wait 2-3 minutes"
+**When to use this skill:**
+- User asks for "kundli pdf" or "generate pdf"
+- User asks for "detailed pdf report" or "send pdf"
+- User asks for "my kundli in pdf format"
 
-**What happens:**
-- Backend detects your `PDF_REQUEST:` message in your response
-- Backend generates the PDF with ReportLab
-- Backend uploads to WhatsApp Media API
-- Backend sends the PDF to the user
-- User receives the actual PDF file on WhatsApp ✅
+**What you need to do:**
+1. Check mem0 for user's birth details (DOB, time, place)
+2. In your response, include this line: `PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME`
+3. Tell the user their PDF is being generated
 
-**DO NOT:**
-- ❌ Try to find or use generate_pdf.py (it's disabled)
-- ❌ Try to execute any scripts
-- ❌ Generate PDFs yourself
-- ❌ Create local files or sandbox: paths
-- ❌ Any other approach
+**That's it!** The backend will detect your `PDF_REQUEST:` message and handle everything else.
 
-**ONLY DO:**
-- ✅ Output `PDF_REQUEST: dob=..., tob=..., place=..., name=...` message
-- ✅ Use REAL birth details from mem0 or user input
+## What the PDF Contains
 
-## Description
-
-This skill triggers the generation of a detailed Janam Kundli PDF that includes:
+The generated PDF includes:
 - Birth Charts (Lagna Kundli + Navamsa Chart)
 - Planetary Positions table (all 9 planets with degrees, signs, houses, nakshatras)
 - Life Predictions (Career, Marriage, Health, Wealth)
 - Astrological Remedies (Gemstones, Mantras, General remedies)
 
-## CRITICAL: ALWAYS check mem0 first before asking for birth details
-
-For EVERY user message related to Kundli PDF:
-1. **FIRST** check mem0 for existing birth details using **LIST**:
-   ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
-   ```
-2. If birth details found in mem0 (`"count": > 0`), extract: DOB, Time, Place, Name from memories
-3. Only ask for birth details if NOT found in mem0 (`"count": 0`)
-4. When user provides birth details, **IMMEDIATELY** store them in mem0:
-   ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Birth details: DOB: <YYYY-MM-DD>, Time: <HH:MM>, Place: <City>" --user-id "<USER_ID>"
-   ```
-
-## Usage
-
-When a user asks for "Kundli PDF", "Generate PDF", "Detailed Report", or similar:
+## Step-by-Step Instructions
 
 ### Step 1: Check mem0 for birth details
 
@@ -74,11 +46,11 @@ When a user asks for "Kundli PDF", "Generate PDF", "Detailed Report", or similar
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 ```
 
-If birth details are found, extract them and proceed to Step 2.
+If birth details are found in mem0, extract them and proceed to Step 2.
 
-### Step 2: Trigger PDF generation (output PDF_REQUEST message)
+### Step 2: Output the PDF_REQUEST message
 
-**Output this EXACT message format in your response:**
+Include this line in your response:
 
 ```
 PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
@@ -95,11 +67,9 @@ PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
 PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 ```
 
-**CRITICAL:** This message MUST be in your response exactly as shown above. The backend will detect it and trigger PDF generation.
+### Step 3: Confirm with the user
 
-### Step 3: Inform the user
-
-After outputting the PDF_REQUEST message, send this confirmation message:
+After the PDF_REQUEST line, tell the user:
 
 "Generating your detailed Janam Kundli PDF now! ✨
 
@@ -113,17 +83,15 @@ Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
 
 ## Example Flow
 
-**User:** "Generate my Kundli PDF"
+**User:** "Generate my kundli pdf"
 
-**AI:** (checks mem0) (if details found, proceeds; if not, asks for details)
+**AI:** (checks mem0, finds birth details)
 
-**User:** "16 feb 2002, 12:00 am, Meerut"
-
-**AI:** (stores in mem0) "Thank you! Let me generate your Kundli PDF.
-
+**AI responds:**
+```
 PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 
-Great! I'm generating your detailed Janam Kundli PDF. ✨
+Generating your detailed Janam Kundli PDF now! ✨
 
 This will include:
 • Birth Charts (Lagna + Navamsa)
@@ -131,27 +99,28 @@ This will include:
 • Life Predictions (Career, Marriage, Health, Wealth)
 • Astrological Remedies
 
-Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
+Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄
+```
 
-(Behind the scenes: Backend detects "PDF_REQUEST:" in the message and triggers PDF generation)
+**What happens:**
+- Backend detects `PDF_REQUEST:` in the AI's response
+- Backend generates the PDF with all details
+- Backend sends PDF to user's WhatsApp
+
+That's it! No scripts, no files to execute - just output the message.
 
 ## Notes
 
+- **No scripts needed** - Just output the PDF_REQUEST message
 - The PDF is generated in the backend by hans-ai-whatsapp service
 - Uses ReportLab for professional 5-page PDF generation
 - Includes charts, predictions, and remedies
 - Sent directly to user's WhatsApp as a document
 - Generation takes 2-3 minutes
-- Simply output "PDF_REQUEST:" message in your response - backend handles the rest
 
 ## Troubleshooting
 
 If PDF generation fails:
-1. Check if birth details are correct
-2. Verify the PDF_REQUEST format is correct
+1. Verify the PDF_REQUEST format is correct: `PDF_REQUEST: dob=..., tob=..., place=..., name=...`
+2. Check that birth details are correct
 3. Check backend logs for errors
-
-If the user doesn't receive the PDF:
-1. The PDF generation may have failed
-2. Check if WhatsApp API is working
-3. Offer to regenerate the PDF
