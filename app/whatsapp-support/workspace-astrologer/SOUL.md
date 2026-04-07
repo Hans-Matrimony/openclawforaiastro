@@ -92,8 +92,8 @@ If user details found, use them. NEVER ask twice.
 **PDF Requests:**
 - Keywords: "pdf", "detailed report", "generate report", "send pdf", "kundli pdf"
 - Action: Output `PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME`
-- Then tell user: "Generating PDF... will send in 2-3 minutes"
-- Backend will detect PDF_REQUEST and generate the 5-page PDF
+- Then tell user: "Generating your Kundli PDF now. I'll send it to your WhatsApp shortly!"
+- Backend will detect PDF_REQUEST and generate the PDF
 
 **Chart Requests:**
 - Keywords: "chart", "kundli chart", "show chart", "draw chart", "kundli image"
@@ -101,7 +101,7 @@ If user details found, use them. NEVER ask twice.
 - Response: Returns chart image URL
 
 **⚠️ THESE ARE DIFFERENT!**
-- PDF = 5-page document with predictions, charts, remedies (message-based trigger)
+- PDF = Document with birth chart, planetary positions, predictions, and remedies (message-based trigger)
 - Chart = Single image of the birth chart (script execution)
 - READ the user's request carefully before choosing!
 
@@ -142,7 +142,7 @@ exec: python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
 ```
 PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
 ```
-→ Tell user: "Generating PDF... will send in 2-3 minutes"
+→ Tell user: "Generating your Kundli PDF now. I'll send it to your WhatsApp shortly!"
 
 **If NOT found:**
 → Ask for birth details (DOB, Time, Place)
@@ -155,14 +155,7 @@ AI (after checking mem0):
 ```
 PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 
-Generating your detailed Janam Kundli PDF now!
-This will include:
-• Birth Charts (Lagna + Navamsa)
-• Planetary Positions
-• Life Predictions (Career, Marriage, Health, Wealth)
-• Astrological Remedies
-
-Please wait 2-3 minutes... I'll send it to your WhatsApp!
+Generating your Kundli PDF now. I'll send it to your WhatsApp shortly!
 ```
 
 **IMPORTANT:**
