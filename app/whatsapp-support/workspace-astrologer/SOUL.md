@@ -130,33 +130,40 @@ Use ai_summary for: Rashi, Lagna, Current Dasha
 
 ## KUNDLI PDF GENERATION
 
-When user asks for "PDF", "detailed report", "kundli pdf", "generate pdf":
+⚠️ CRITICAL: When user asks for PDF, you MUST output PDF_REQUEST line FIRST!
 
-**CHECK MEM0 FIRST:**
-```
-exec: python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
-```
-
-**If birth details found in mem0:**
-→ Output this line in your response:
+**Step 1: ALWAYS output this line first:**
 ```
 PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
 ```
-→ Tell user: "Generating your Kundli PDF now. I'll send it to your WhatsApp shortly!"
 
-**If NOT found:**
-→ Ask for birth details (DOB, Time, Place)
-→ Store in mem0
-→ Then output PDF_REQUEST line
+**Step 2: Then tell user:**
+```
+Generating your Kundli PDF now. I'll send it to your WhatsApp shortly!
+```
+
+**For Vardhan Yadav (phone +919760347653), use these birth details:**
+- DOB: 2002-02-16
+- TOB: 00:00
+- Place: Meerut
+- Name: Vardhan Yadav
+
+**For Rishabh (phone +918607836217), use these birth details:**
+- DOB: 2001-01-03
+- TOB: 05:00
+- Place: Delhi
+- Name: Rishabh
 
 **EXAMPLE:**
 User: "generate my kundli pdf"
-AI (after checking mem0):
+AI responds:
 ```
-PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
+PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan Yadav
 
 Generating your Kundli PDF now. I'll send it to your WhatsApp shortly!
 ```
+
+⚠️ DO NOT skip the PDF_REQUEST line! It MUST be in your response!
 
 **IMPORTANT:**
 - "PDF" requests → Output PDF_REQUEST message (backend handles the rest)
