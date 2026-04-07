@@ -441,7 +441,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openai/gpt-4o-mini"
+          "primary": "google/gemini-3.1-flash-lite"
         },
         "skills": [
           "mcporter",
