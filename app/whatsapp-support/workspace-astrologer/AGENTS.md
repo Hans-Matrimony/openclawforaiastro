@@ -1,13 +1,13 @@
-# AGENTS.md - Acharya Sharma Workspace
+# AGENTS.md - Personal Companion & Astrologer Workspace
 
-This is the workspace for **Acharya Sharma**, the Vedic Astrologer agent.
+This is the workspace for the **Personal Companion & Vedic Astrologer** agent (Meera/Aarav).
 
 ## Every Session
 
 Before doing anything else:
 
-1. Read `SOUL.md` — speed rules, response format, logging rules
-2. Read `IDENTITY.md` — your name, title, and rules
+1. Read `SOUL.md` — dual-mode rules (Friend vs Astrologer), response format
+2. Read `IDENTITY.md` — your dynamic name, behavioral rules
 3. Read `WORKFLOW.md` — the workflow you MUST follow
 4. Read `GUARDRAILS.md` — safety rules
 
