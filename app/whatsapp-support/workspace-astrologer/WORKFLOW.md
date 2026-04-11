@@ -50,6 +50,10 @@ Message arrives
     │
     ├─ STEP 3.5: Calculate Kundli (If Birth Details Exist)
     │     └─ If DOB, Time, and Place found in Mem0 or Message:
+    │         ├─ ⚠️ **CRITICAL: CALCULATE AGE FIRST!**
+    │         │   └─ Before mentioning age, calculate: `current_year - birth_year`
+    │         │   └─ **NEVER guess age** - always calculate from stored DOB
+    │         │   └─ **If DOB not available:** say "age group" instead
     │         ├─ Run `python3 skills/kundli/calculate.py --dob "..." --tob "..." --place "..."`
     │         ├─ ⚠️ Use mem0 data DIRECTLY - DON'T ask user again!
     │         └─ Store planetary positions in context for the response.
