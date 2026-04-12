@@ -1,0 +1,5 @@
+# Audio Analyzer Skill Requirements
+
+# No external dependencies required - uses Python standard library only
+# This skill performs emotion detection and astrology question extraction
+# using regex and keyword matching on transcribed text.

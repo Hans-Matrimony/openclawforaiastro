@@ -1,0 +1,10 @@
+# PDF Analyzer Skill Requirements
+
+# Core PDF processing libraries
+pdfplumber==0.10.3
+PyPDF2==3.0.1
+
+# Optional OCR dependencies (install if image analysis needed)
+pdf2image==1.16.3
+pytesseract==0.3.10
+Pillow==10.1.0
