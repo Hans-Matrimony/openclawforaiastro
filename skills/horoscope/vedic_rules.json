@@ -1,0 +1,198 @@
+{
+  "moon_transit_effects": {
+    "house_1": {
+      "keywords": ["personal growth", "new beginnings", "self-focus", "energy"],
+      "english": "Today favors personal initiatives and new beginnings. Focus on self-care and personal goals. Your energy levels are high - start something important. Physical health and appearance matter now. Good day for self-improvement activities.",
+      "hinglish": "Aapki personal energy aaj high hai. Naye shuru karne ke liye shubh din. Khud pe focus karein, health ka dhyan rakhein. Naye kaam shuru karne ka achcha samay hai."
+    },
+    "house_2": {
+      "keywords": ["finances", "speech", "family", "food"],
+      "english": "Financial matters take center stage today. Good for money-related decisions and investments. Family conversations will be important. Watch your speech and communication. Avoid impulsive spending - think before you buy.",
+      "hinglish": "Aaj financial matters par focus karein. Paisa aur investment ke decisions achche hain. Family se baat important hai. Baat karte waqt dhyan rakhein. Jaldi mat spend karo."
+    },
+    "house_3": {
+      "keywords": ["communication", "siblings", "short travel", "courage"],
+      "english": "Communication is highlighted today. Good for networking, writing, and media-related work. Short travels prove beneficial. Relationship with siblings improves. Your courage and confidence will be high. Share your ideas freely.",
+      "hinglish": "Communication aaj strong hai. Networking aur writing ke liye achcha din. Chhoti travels faydemand hogi. Brothers/sisters se relations theek honge. Confidence high rahega."
+    },
+    "house_4": {
+      "keywords": ["home", "mother", "property", "emotions"],
+      "english": "Focus on home and family matters today. Property-related decisions favored. Emotional comfort comes from familiar surroundings. Good time for home improvements. Mother's health or advice needs attention. Avoid conflicts at home.",
+      "hinglish": "Ghar aur family par dhyan dein. Property ke decisions ke liye achcha din. Ghar par sukh milenga. Home improvements ke liye good time. Mother ki health ka dhyan karein. Ghar par jhagda se bachein."
+    },
+    "house_5": {
+      "keywords": ["creativity", "romance", "children", "speculation"],
+      "english": "Creative energy flows freely today. Romance and relationships flourish. Children bring joy and news. Good for artistic pursuits and entertainment. Avoid risky investments or gambling. Love life gets a boost. Express yourself creatively.",
+      "hinglish": "Creative energy aaj strong hai. Romance aur relationships acche hain. Bachhon se kushi milti hai. Artistic pursuits ke liye achha din. Risky investments se bachke rahiye. Love life boost hoga."
+    },
+    "house_6": {
+      "keywords": ["health", "service", "enemies", "routine"],
+      "english": "Health needs attention today. Focus on daily routines and discipline. Service to others brings satisfaction. Work-related matters improve. Avoid conflicts with competitors. Good for medical checkups. Maintain proper diet and sleep schedule.",
+      "hinglish": "Health ka dhyan karein aaj. Daily routine par focus karein. Duuron ki seva karein, sukh milega. Work matters theek honge. Competitors se jhagda se bachein. Diet aur sleep ka dhyan rakhein."
+    },
+    "house_7": {
+      "keywords": ["partnership", "marriage", "business", "public"],
+      "english": "Partnerships and relationships are in focus today. Business collaborations favored. Marriage discussions go well. Public relations improve. Compromise brings better results. Listen to your partner's perspective. Important meetings scheduled today.",
+      "hinglish": "Partnerships aur relationships important hai aaj. Business collaborations achche hain. Marriage ki baatein achhi hogi. Public relations theek hongi. Compromise karein, behtar result milega. Partner ki baat suniye."
+    },
+    "house_8": {
+      "keywords": ["transformation", "inheritance", "research", "occult"],
+      "english": "Day of transformation and deep changes. Financial matters related to others highlighted. Good for research and investigation. Avoid risky activities. Emotional intensity may run high. Hidden matters come to light. Focus on long-term investments.",
+      "hinglish": "Transformation ka din hai aaj. Dusron ke financial matters important hain. Research aur investigation ke liye achha time. Risky activities se bachein. Emotions intense ho sakte hain. Long-term investments par focus karein."
+    },
+    "house_9": {
+      "keywords": ["luck", "spirituality", "travel", "teacher"],
+      "english": "Fortune favors you today. Spiritual pursuits bring peace. Long-distance travels prove beneficial. Relationship with teachers or mentors improves. Higher education matters progress. Religious activities favorable. Lucky day for important tasks.",
+      "hinglish": "Aaj luck aapke saath hai. Spiritual activities sukh deti hain. Long-distance travels faydemand hongi. Guru ya mentors se acche relations. Higher education achhi hogi. Religious activities ke liye achha din."
+    },
+    "house_10": {
+      "keywords": ["career", "reputation", "authority", "government"],
+      "english": "Career matters take priority today. Recognition at work possible. Authority figures may contact you. Professional growth opportunities arise. Public image matters now. Avoid conflicts with bosses. Important for business advancement.",
+      "hinglish": "Career matters aaj priority hain. Kaam par recognition mil sakti hai. Authority se contact aa sakta hai. Professional growth ke opportunities. Public image important hai. Boss se jhagda se bachein."
+    },
+    "house_11": {
+      "keywords": ["gains", "friends", "network", "wishes"],
+      "english": "Financial gains possible today. Social activities and networking favored. Friends provide support and opportunities. Long-held wishes may manifest. Group activities bring success. New connections formed now. Community involvement rewarded.",
+      "hinglish": "Financial gains ho sakte hain aaj. Social activities aur networking achchi hai. Dost support aur opportunities dete hain. Purane wishes puri ho sakti hain. Group activities successful hongi. Naye connections banenge."
+    },
+    "house_12": {
+      "keywords": ["loss", "foreign", "meditation", "expenses"],
+      "english": "Day for introspection and spiritual growth. Expenses may increase - be cautious. Foreign connections or matters highlighted. Good for charity and spiritual practices. Avoid confrontations. Rest and meditation recommended. Hidden enemies may act.",
+      "hinglish": "Introspection aur spiritual growth ka din hai. Expenses badh sakti hain - saavdhan rahein. Foreign matters important hain. Charity aur meditation ke liye achha din. Confrontations se bachein. Rest aur meditation karein. Hidden enemies dhyaan rakhein."
+    }
+  },
+  "nakshatra_effects": {
+    "Ashwini": { "theme": "initiator", "favorable": "starting new projects, medical matters", "caution": "impulsiveness" },
+    "Bharani": { "theme": "nurturer", "favorable": "creative work, family matters", "caution": "extremes in behavior" },
+    "Krittika": { "theme": "fighter", "favorable": "courageous acts, competition", "caution": "aggression" },
+    "Rohini": { "theme": "creator", "favorable": "artistic pursuits, romance", "caution": "sensuality" },
+    "Mrigashira": { "theme": "seeker", "favorable": "research, travel", "caution": "restlessness" },
+    "Ardra": { "theme": "transformer", "favorable": "change, scientific work", "caution": "emotional outbursts" },
+    "Punarvasu": { "theme": "renewer", "favorable": "new beginnings, learning", "caution": "over-optimism" },
+    "Pushya": { "theme": "nourisher", "favorable": "spiritual work, teaching", "caution": "rigidity" },
+    "Ashlesha": { "theme": "entangler", "favorable": "research, occult", "caution": "manipulation" },
+    "Magha": { "theme": "royal", "favorable": "leadership, tradition", "caution": "arrogance" },
+    "Purva Phalguni": { "theme": "creative", "favorable": "arts, romance", "caution": "laziness" },
+    "Uttara Phalguni": { "theme": "supporter", "favorable": "partnerships, charity", "caution": "pride" },
+    "Hasta": { "theme": "craftsman", "favorable": "skill-based work, business", "caution": "criticism" },
+    "Chitra": { "theme": "designer", "favorable": "architecture, strategy", "caution": "perfectionism" },
+    "Swati": { "theme": "trader", "favorable": "business, communication", "caution": "independence" },
+    "Vishakha": { "theme": "achiever", "favorable": "ambitious goals, competition", "caution": "stubbornness" },
+    "Anuradha": { "theme": "devotee", "favorable": "friendship, cooperation", "caution": "jealousy" },
+    "Jyeshtha": { "theme": "elder", "favorable": "protection, leadership", "caution": "dominance" },
+    "Mula": { "theme": "root", "favorable": "research, transformation", "caution": "destruction" },
+    "Purva Ashadha": { "theme": "invincible", "favorable": "declarations, travel", "caution": "bluntness" },
+    "Uttara Ashadha": { "theme": "universalist", "favorable": "humanitarian work, teaching", "caution": "detachment" },
+    "Shravana": { "theme": "listener", "favorable": "learning, communication", "caution": "skepticism" },
+    "Dhanishta": { "theme": "wealth", "favorable": "music, wealth creation", "caution": "materialism" },
+    "Shatabhisha": { "theme": "healer", "favorable": "healing, technology", "caution": "isolation" },
+    "Purva Bhadrapada": { "theme": "spiritual warrior", "favorable": "spiritual practice, charity", "caution": "escapism" },
+    "Uttara Bhadrapada": { "theme": "wisher", "favorable": "deep study, meditation", "caution": "laziness" },
+    "Revati": { "theme": "prosperous", "favorable": "nurturing, arts", "caution": "worry" }
+  },
+  "dasha_effects": {
+    "Ketu": {
+      "theme": "spiritual detachment",
+      "english": "Ketu Mahadasha: Period of spiritual growth and detachment. Material matters may slow down. Focus on inner development and letting go. Good for meditation and research. Unexpected events possible.",
+      "hinglish": "Ketu Mahadasha: Spiritual growth aur detachment ka samay. Material matters thodi slow hain. Inner development par focus karein. Meditation aur research ke liye achha hai."
+    },
+    "Venus": {
+      "theme": "luxury and relationships",
+      "english": "Venus Mahadasha: Excellent period for relationships, luxury, and comfort. Marriage and partnerships favored. Creative pursuits flourish. Financial gains possible. Enjoy life but avoid excess.",
+      "hinglish": "Venus Mahadasha: Relationships, luxury aur comfort ke liye excellent time. Marriage aur partnerships achche hain. Creative pursuits flourish karte hain. Financial gains ho sakti hain."
+    },
+    "Sun": {
+      "theme": "power and authority",
+      "english": "Sun Mahadasha: Period of recognition and authority. Government or leadership roles possible. Health needs attention. Career advancement favored. Father-related matters important. Maintain confidence without ego.",
+      "hinglish": "Sun Mahadasha: Recognition aur authority ka samay. Government ya leadership roles mil sakte hain. Health ka dhyan karein. Career advancement achha hai. Father ki baatein important hain."
+    },
+    "Moon": {
+      "theme": "emotions and mind",
+      "english": "Moon Mahadasha: Emotional and psychological focus important. Relationship with mother highlighted. Good for nurturing activities and home matters. Mental peace crucial. Avoid mood swings and emotional decisions.",
+      "hinglish": "Moon Mahadasha: Emotional aur mental focus important hai. Mother se relationship strong hota hai. Nurturing activities aur home matters achche hain. Mental shanti zaroori hai. Mood swings se bachein."
+    },
+    "Mars": {
+      "theme": "energy and courage",
+      "english": "Mars Mahadasha: High energy and action period. Good for sports, competition, and courage. Property matters favored. Avoid conflicts and hasty decisions. Physical activities beneficial. Channel energy constructively.",
+      "hinglish": "Mars Mahadasha: High energy aur action ka samay. Sports, competition aur courage ke liye achha. Property matters achche hain. Conflicts aur jaldi decisions se bachein. Physical activities faydemand hain."
+    },
+    "Rahu": {
+      "theme": "transformation and desire",
+      "english": "Rahu Mahadasha: Period of change, ambition, and material growth. Foreign connections important. Sudden events and opportunities. Avoid unethical shortcuts. Spiritual balance needed. Desires run high.",
+      "hinglish": "Rahu Mahadasha: Change, ambition aur material growth ka samay. Foreign connections important hain. Sudden events aur opportunities aate hain. Unethical shortcuts se bachein. Spiritual balance zaroori hai."
+    },
+    "Jupiter": {
+      "theme": "wisdom and expansion",
+      "english": "Jupiter Mahadasha: Excellent period for wisdom, growth, and spirituality. Teaching and learning favored. Children bring joy. Financial prosperity possible. Marriage and family matters improve. Lucky period overall.",
+      "hinglish": "Jupiter Mahadasha: Wisdom, growth aur spirituality ke liye excellent period. Teaching aur learning achche hain. Bachche kushi dete hain. Financial prosperity ho sakti hai. Marriage aur family matters theek honge."
+    },
+    "Saturn": {
+      "theme": "discipline and karma",
+      "english": "Saturn Mahadasha: Period of hard work, discipline, and karmic results. Career requires patience. Health needs attention. Delays and obstacles teach valuable lessons. Spiritual growth through service. Long-term investments favored.",
+      "hinglish": "Saturn Mahadasha: Hard work, discipline aur karmic results ka samay. Career mein patience zaroori hai. Health ka dhyan karein. Delays aur obstacles sikhate hain. Service se spiritual growth milti hai."
+    },
+    "Mercury": {
+      "theme": "intellect and communication",
+      "english": "Mercury Mahadasha: Excellent for communication, learning, and business. Intellect is sharp. Writing, media, and trading favored. Relationships with siblings improve. Good for students and traders. Avoid overthinking.",
+      "hinglish": "Mercury Mahadasha: Communication, learning aur business ke liye excellent. Intellect sharp hota hai. Writing, media aur trading achche hain. Brothers/sisters se acche relations. Students aur traders ke liye achha time."
+    }
+  },
+  "special_yogas": {
+    "budhaditya_yoga": {
+      "condition": "Sun + Mercury conjunction",
+      "effect": "Intelligence, fame, and communication skills enhanced. Good for intellectual pursuits."
+    },
+    "gajakesari_yoga": {
+      "condition": "Jupiter + Moon in kendras",
+      "effect": "Wealth, wisdom, and fame. Very auspicious yoga."
+    },
+    "rahu_ketu_axis": {
+      "condition": "Rahu-Ketu on important houses",
+      "effect": "Karmic challenges and spiritual growth period."
+    }
+  },
+  "lucky_factors": {
+    "colors": {
+      "Aries": "Red, Maroon",
+      "Taurus": "Green, White",
+      "Gemini": "Yellow, Light Green",
+      "Cancer": "White, Cream",
+      "Leo": "Orange, Gold",
+      "Virgo": "Green, Beige",
+      "Libra": "White, Light Blue",
+      "Scorpio": "Red, Black",
+      "Sagittarius": "Yellow, Orange",
+      "Capricorn": "Black, Dark Blue",
+      "Aquarius": "Blue, Electric Blue",
+      "Pisces": "Yellow, White"
+    },
+    "numbers": {
+      "Aries": [9, 1],
+      "Taurus": [2, 6],
+      "Gemini": [5, 3],
+      "Cancer": [2, 7],
+      "Leo": [1, 4],
+      "Virgo": [5, 6],
+      "Libra": [6, 7],
+      "Scorpio": [8, 9],
+      "Sagittarius": [3, 9],
+      "Capricorn": [8, 1],
+      "Aquarius": [4, 7],
+      "Pisces": [3, 7]
+    },
+    "days": {
+      "Aries": "Tuesday, Sunday",
+      "Taurus": "Friday, Monday",
+      "Gemini": "Wednesday, Friday",
+      "Cancer": "Monday, Thursday",
+      "Leo": "Sunday, Tuesday",
+      "Virgo": "Wednesday, Friday",
+      "Libra": "Friday, Saturday",
+      "Scorpio": "Tuesday, Thursday",
+      "Sagittarius": "Thursday, Sunday",
+      "Capricorn": "Saturday, Friday",
+      "Aquarius": "Saturday, Sunday",
+      "Pisces": "Thursday, Monday"
+    }
+  }
+}
