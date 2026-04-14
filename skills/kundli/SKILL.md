@@ -37,20 +37,49 @@ When generating Kundli chart images, you MUST:
 - DO NOT modify, wrap, or reformat the `IMAGE_URL:` line in any way
 - Simply include the full `IMAGE_URL: <url>` line verbatim in your response
 
-**CRITICAL: ALWAYS check mem0 first before asking for birth details**
+**CRITICAL: ALWAYS check MongoDB API FIRST for birth details, Mem0 as reliable fallback**
 
 For EVERY user message related to Kundli:
-1. **FIRST** check mem0 for existing birth details using **LIST**:
+1. **FIRST** check MongoDB API for existing birth details (FAST! 5-20ms):
    ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
+   # Try MongoDB (5 second timeout - don't wait forever if slow)
+   MONGO_DATA=$(curl -s --max-time 5 "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata/<USER_ID>")
+   
+   # Check if MongoDB has birth data
+   DOB=$(echo "$MONGO_DATA" | grep -o '"dateOfBirth":"[^"]*"' | cut -d'"' -f4)
+   TOB=$(echo "$MONGO_DATA" | grep -o '"timeOfBirth":"[^"]*"' | cut -d'"' -f4)
+   PLACE=$(echo "$MONGO_DATA" | grep -o '"birthPlace":"[^"]*"' | cut -d'"' -f4)
+   
+   # If MongoDB has all required data, use it!
+   if [ -n "$DOB" ] && [ -n "$TOB" ] && [ -n "$PLACE" ]; then
+       echo "Found birth data in MongoDB: DOB=$DOB, TOB=$TOB, Place=$PLACE"
    ```
-   > **NOTE:** Use `list` to get all stored memories. Use `search` only when you need semantic matching for a specific topic.
-2. If birth details found in mem0 (`"count": > 0`), extract: DOB, Time, Place from memories
-3. Only ask for birth details if NOT found in mem0 (`"count": 0`)
-4. When user provides birth details, **IMMEDIATELY** store them in mem0:
+2. **FALLBACK** If MongoDB doesn't have complete data, check Mem0 (ALWAYS works!):
    ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Birth details: DOB: <YYYY-MM-DD>, Time: <HH:MM>, Place: <City>" --user-id "<USER_ID>"
+   else
+       echo "MongoDB incomplete or unavailable - checking Mem0..."
+       python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
+   fi
    ```
+3. Only ask for birth details if NOT found in either MongoDB or Mem0
+4. When user provides birth details, **IMMEDIATELY** store them in BOTH MongoDB AND Mem0:
+   ```bash
+   # Save to MongoDB user_metadata (for fast lookup next time)
+   curl -X POST "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata" \
+     -H "Content-Type: application/json" \
+     -d '{"userId": "<USER_ID>", "dateOfBirth": "<DOB>", "timeOfBirth": "<TOB>", "birthPlace": "<PLACE>"}'
+
+   # ALSO save to Mem0 (keeps existing Mem0 functionality working!)
+   python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "birth details" \
+     --content "DOB: <DOB>, TOB: <TOB>, Place: <PLACE>" \
+     --user-id "<USER_ID>" \
+     --metadata '{"source":"kundli_skill"}'
+   ```
+
+> **✅ IMPORTANT:** 
+> - MongoDB user_metadata = Fast lookup layer (NEW optimization)
+> - Mem0 = Continues working as before (NO functionality broken!)
+> - Save to BOTH places = Best of both worlds!
 
 Call this skill whenever a user provides their birth details (Date, Time, and Place of birth).
 

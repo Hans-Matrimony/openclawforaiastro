@@ -11,19 +11,31 @@ metadata:
 
 Use this skill to analyze properties according to Vastu Shastra principles - the ancient Indian science of architecture.
 
-## CRITICAL: ALWAYS Check Mem0 First
+## CRITICAL: ALWAYS Check for Existing Data First
 
 For EVERY user message related to Vastu:
-1. **FIRST** search mem0 for existing property details and preferences:
-   ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py search "vastu property details entrance rooms" --user-id "<USER_ID>"
-   ```
-2. If property details found in mem0, use them directly
-3. Only ask for property details if NOT found in mem0
-4. When user provides property details, **IMMEDIATELY** store them in mem0:
-   ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Vastu property: <TYPE>, entrance: <DIRECTION>, rooms: <ROOMS>" --user-id "<USER_ID>"
-   ```
+
+### Step 1: Check MongoDB for user birth data (if needed for astrological Vastu)
+```bash
+# Try MongoDB FIRST (FAST - 5-20ms)
+MONGO_DATA=$(curl -s --max-time 5 "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata/<USER_ID>")
+```
+
+### Step 2: Check Mem0 for property details (property-specific data stored here)
+```bash
+# Search mem0 for existing property details and preferences
+python3 ~/.openclaw/skills/mem0/mem0_client.py search "vastu property details entrance rooms" --user-id "<USER_ID>"
+```
+
+### Step 3: Use found data or ask for details
+- If property details found in Mem0, use them directly
+- Only ask for property details if NOT found in Mem0
+- When user provides property details, **IMMEDIATELY** store them in Mem0:
+  ```bash
+  python3 ~/.openclaw/skills/mem0/mem0_client.py add "Vastu property: <TYPE>, entrance: <DIRECTION>, rooms: <ROOMS>" --user-id "<USER_ID>"
+  ```
+
+> **✅ SAFE:** MongoDB is for birth data (fast lookup). Mem0 is for property details (not stored in MongoDB). Both systems work independently!
 
 ## Commands
 

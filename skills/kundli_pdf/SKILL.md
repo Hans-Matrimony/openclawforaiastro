@@ -27,7 +27,7 @@ This is a **message-based skill** - you do NOT need to execute any scripts.
 - User asks for "my kundli in pdf format"
 
 **What you need to do:**
-1. Check mem0 for user's birth details (DOB, time, place)
+1. Check MongoDB API FIRST for user's birth details (FAST!), fallback to Mem0 if needed
 2. In your response, include this line: `PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME`
 3. Tell the user their PDF is being generated
 
@@ -43,13 +43,45 @@ The generated PDF includes:
 
 ## Step-by-Step Instructions
 
-### Step 1: Check mem0 for birth details
+### Step 1: Check for birth details (MongoDB FIRST, Mem0 fallback ALWAYS works)
 
 ```bash
-python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
+# Try MongoDB FIRST (FAST - 5-20ms)
+MONGO_DATA=$(curl -s --max-time 5 "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata/<USER_ID>")
+
+# Extract birth data from MongoDB response
+DOB=$(echo "$MONGO_DATA" | grep -o '"dateOfBirth":"[^"]*"' | cut -d'"' -f4)
+TOB=$(echo "$MONGO_DATA" | grep -o '"timeOfBirth":"[^"]*"' | cut -d'"' -f4)
+PLACE=$(echo "$MONGO_DATA" | grep -o '"birthPlace":"[^"]*"' | cut -d'"' -f4)
+NAME=$(echo "$MONGO_DATA" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
+
+# If MongoDB has complete birth data, use it
+if [ -n "$DOB" ] && [ -n "$TOB" ] && [ -n "$PLACE" ]; then
+    echo "Found birth data in MongoDB"
+# FALLBACK: If MongoDB doesn't have data, check Mem0 (ALWAYS works!)
+else
+    echo "MongoDB unavailable or incomplete - checking Mem0..."
+    python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
+fi
 ```
 
-If birth details are found in mem0, extract them and proceed to Step 2.
+If birth details are found (from MongoDB or Mem0), extract them and proceed to Step 2.
+
+> **✅ SAFE:** If MongoDB is down, Mem0 fallback ALWAYS works! Existing functionality preserved.
+
+**NOTE: If you ask user for birth details and they provide them, save to BOTH places:**
+```bash
+# Save to MongoDB user_metadata (for fast lookup next time)
+curl -X POST "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "<USER_ID>", "dateOfBirth": "<DOB>", "timeOfBirth": "<TOB>", "birthPlace": "<PLACE>"}'
+
+# ALSO save to Mem0 (keeps existing Mem0 functionality working!)
+python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "birth details" \
+  --content "DOB: <DOB>, TOB: <TOB>, Place: <PLACE>" \
+  --user-id "<USER_ID>" \
+  --metadata '{"source":"kundli_pdf_skill"}'
+```
 
 ### Step 2: Output the PDF_REQUEST message
 

@@ -51,6 +51,47 @@ python3 ~/.openclaw/skills/horoscope/calculate.py \
 
 ---
 
+## 📋 Get User Birth Details (MongoDB FIRST, Mem0 fallback ALWAYS works)
+
+Before generating horoscope, get user's birth details:
+
+```bash
+# Step 1: Try MongoDB FIRST (FAST - 5-20ms)
+MONGO_DATA=$(curl -s --max-time 5 "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata/<USER_ID>")
+
+# Extract birth data from MongoDB response
+DOB=$(echo "$MONGO_DATA" | grep -o '"dateOfBirth":"[^"]*"' | cut -d'"' -f4)
+TOB=$(echo "$MONGO_DATA" | grep -o '"timeOfBirth":"[^"]*"' | cut -d'"' -f4)
+PLACE=$(echo "$MONGO_DATA" | grep -o '"birthPlace":"[^"]*"' | cut -d'"' -f4)
+
+# If MongoDB has complete birth data, use it
+if [ -n "$DOB" ] && [ -n "$TOB" ] && [ -n "$PLACE" ]; then
+    echo "Found birth data in MongoDB: DOB=$DOB, TOB=$TOB, Place=$PLACE"
+# FALLBACK: If MongoDB doesn't have data, check Mem0 (ALWAYS works!)
+else
+    echo "MongoDB unavailable or incomplete - checking Mem0..."
+    python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
+fi
+```
+
+> **✅ SAFE:** If MongoDB is down, Mem0 fallback ALWAYS works! Existing functionality preserved.
+
+**NOTE: If you ask user for birth details and they provide them, save to BOTH places:**
+```bash
+# Save to MongoDB user_metadata (for fast lookup next time)
+curl -X POST "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata" \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "<USER_ID>", "dateOfBirth": "<DOB>", "timeOfBirth": "<TOB>", "birthPlace": "<PLACE>"}'
+
+# ALSO save to Mem0 (keeps existing Mem0 functionality working!)
+python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "birth details" \
+  --content "DOB: <DOB>, TOB: <TOB>, Place: <PLACE>" \
+  --user-id "<USER_ID>" \
+  --metadata '{"source":"horoscope_skill"}'
+```
+
+---
+
 ## 📅 Subscribe for Daily Horoscopes
 
 ### Subscribe a User
