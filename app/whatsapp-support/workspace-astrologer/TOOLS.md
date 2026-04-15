@@ -69,13 +69,13 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER
 
 ## 💬 MongoDB Conversation History — Recent Context
 
-Your conversation log with each user. Fetch recent messages to understand what was discussed last.
+Your conversation log with each user. **Fetch this EVERY TIME** to understand conversation flow.
 
 ### When to Use
-- **For generic greetings** (hi, hello, hey) without specific astrology questions
-- **When user returns after a gap** — understand what was last discussed
-- **To personalize responses** — reference the last topic naturally
-- **When Mem0 has limited context** — get recent conversation flow
+- **ALWAYS** — for EVERY message (not just greetings!)
+- **For astrology questions** — know what was discussed before to avoid repetition
+- **For follow-up questions** — understand the full context
+- **For greetings** — personalize based on last topic
 
 ### How to Use
 ```bash

@@ -64,46 +64,48 @@ User: "Meri kundli batao"
 
 | Message Type | Mem0 | Qdrant | MongoDB History |
 |--------------|------|--------|-----------------|
-| Generic greeting (hi, hello) | ✅ Search | ❌ Skip | ✅ Fetch (last 40) |
-| Greeting + name | ✅ Search | ❌ Skip | ✅ Fetch (last 40) |
-| Chart request | ✅ Search | ❌ Skip | ❌ Skip |
-| Planet question | ✅ | ✅ | ❌ Skip |
+| ANY message (ALL types!) | ✅ Search | ❌ Skip | ✅ Fetch (last 40) |
+| Generic greeting | ✅ Search | ❌ Skip | ✅ Fetch (last 40) |
+| Chart request | ✅ Search | ❌ Skip | ✅ Fetch (last 40) |
+| Planet question | ✅ | ✅ | ✅ Fetch (last 40) |
 
-### 🆕 MongoDB Conversation History for Greetings
+### 🆕 MongoDB Conversation History (Use for EVERY Message!)
 
-**For generic greetings without specific astrology questions:**
+**⚠️ CRITICAL: Fetch conversation history for EVERY message!**
+
+```
+ANY User Message (greeting, astrology question, follow-up, etc.)
+    |
+    ├─ STEP 1: Search Mem0 (ALWAYS - get user details)
+    ├─ STEP 2: Fetch MongoDB conversation history (ALWAYS - last 40 messages)
+    |         python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limit 40
+    |
+    ├─ STEP 3: Analyze messages
+    |         → What was discussed last?
+    |         → Any predictions given before? (don't contradict!)
+    |         → What's the conversation flow?
+    |
+    └─ STEP 4: Generate response with full context
+```
+
+**Example for astrology questions with history:**
+
+```
+User: "Meri shaadi kab hogi?" (marriage timing question)
+    |
+    ├─ Fetch MongoDB history → "Last 5 messages were about marriage"
+    ├─ Check Mem0 → "Previous prediction: December 2026, 7th house aspect"
+    └─ Response: "Arre [Name]! Jaisa maine pehle bataaya tha, December 2026 mein chances hain. Abhi bhi same prediction hai. Kuch naya update hai?"
+```
+
+**Example for greetings with history:**
 
 ```
 User: "hi" / "hello" / "hey" / "good morning"
     |
-    ├─ STEP 1: Search Mem0 (ALWAYS - get user details)
-    ├─ STEP 2: Fetch MongoDB conversation history
-    |         python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limit 40
-    |
-    ├─ STEP 3: Analyze last messages
-    |         → What was the last topic?
-    |         → How long ago was the conversation?
-    |         → What was the user's last concern?
-    |
-    └─ STEP 4: Respond with context
-              ✅ "Arre [Name]! Pichli baar hum marriage ki baat kar rahe the. Koi update hai?"
-              ✅ "Hey [Name]! Long time no see! Last time we discussed your career. How's it going?"
-              ❌ NEVER generic "Hi! How can I help you today?"
-```
-
-**Example responses with conversation context:**
-
-**Recent conversation (same day):**
-- Hinglish: "Arre [Name]! Kya haal hai? Abhi abhi baat kar rahe the. Kuch aur jaanna hai?"
-- English: "Hey [Name]! How are you doing? We were just talking earlier. Want to continue?"
-
-**Old conversation (days/weeks ago):**
-- Hinglish: "[Name]! Long time no see! Pichli baar hum [last topic] ki baat kar rahe the. Koi update hai life mein?"
-- English: "[Name]! It's been a while! Last time we discussed [last topic]. How have things been since then?"
-
-**First time greeting (no history):**
-- Hinglish: "Namaste! Main [Meera/Aarav] hoon, tumhari dost aur astrologer. Aaj kaisa din guzar raha hai?"
-- English: "Hello! I'm [Meera/Aarav], your friend and astrologer. How's your day going?"
+    ├─ Fetch MongoDB history → "Last topic was career, 2 days ago"
+    ├─ Check Mem0 → "Name: Rahul, DOB: 15 Aug 1990"
+    └─ Response: "Arre Rahul! Kya haal hai? Pichli baar hum career ki baat kar rahe the. Job search kaisa chal raha hai?"
 
 ## Response Flow
 

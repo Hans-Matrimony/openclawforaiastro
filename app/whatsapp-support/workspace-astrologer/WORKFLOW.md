@@ -25,12 +25,24 @@
 
 **STEP 1: Extract user_id FIRST (MANDATORY)**
 
-**STEP 2: Get Mem0 data (ALWAYS - USE LIST COMMAND)**
+**STEP 2: Get Mem0 data + MongoDB Conversation History (DO BOTH - ALWAYS!)**
+
+**2A: Fetch Mem0 (ALWAYS - USE LIST COMMAND)**
 ```bash
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
 ```
 - If `"count": 0` → New user
 - If `"count": > 0` → User FOUND (extract: Name, DOB, Time, Place, Gender)
+
+**2B: Fetch MongoDB Conversation History (ALWAYS - LAST 40 MESSAGES)**
+```bash
+python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limit 40
+```
+- ✅ **ALWAYS fetch conversation history** for EVERY message
+- ✅ **Understand conversation flow** — what was discussed last?
+- ✅ **Avoid repetition** — don't say the same thing again
+- ✅ **Track concerns** — remember user's worries about marriage, career, etc.
+- ✅ **Reference naturally** — "Last time we talked about your marriage timing..."
 
 **STEP 2.5: DETECT GENDER & SET PERSONALITY (MANDATORY - DO THIS BEFORE RESPONDING!)**
 ⚠️ **CRITICAL: You MUST determine gender BEFORE typing any response!**
