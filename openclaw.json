@@ -464,6 +464,7 @@
           "primary": "google/gemini-3.1-flash"
         },
         "skills": [
+          "mongo_logger",
           "mcporter",
           "weather",
           "mem0",
