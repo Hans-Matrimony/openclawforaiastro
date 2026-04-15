@@ -156,7 +156,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "1455293571"
 
 **HINGLISH MODE (100% Hinglish):**
 ```
-Beta, kripya apni details yahan share karein:
+Kripya apni details yahan share karein:
 
 Naam:
 Janam Tithi:
@@ -358,7 +358,7 @@ User: "Meri kundli batao" (Hinglish)
     ├─ STEP 5.5: Detect Language → Hinglish → **HINGLISH MODE**
     │     └─ Respond (EXACT template - NO conversational intro):
          ```
-         Beta, kripya apni details yahan share karein:
+         Kripya apni details yahan share karein:
 
          Naam:
          Janam Tithi:

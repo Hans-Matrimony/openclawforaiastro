@@ -26,7 +26,7 @@ Most users are:
 
    - **HINGLISH TEMPLATE (100% Hinglish - NO English):**
      ```
-     Beta, kripya apni details yahan share karein:
+     Kripya apni details yahan share karein:
 
      Naam:
      Janam Tithi:
