@@ -57,6 +57,29 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
 - If Mem0 has NO data → ask how they are doing today
 - ⚠️ NEVER end with: "Agar aapko astrology ke baare mein jaanna ho toh batayein"
 
+**STEP 3B: Fetch Conversation History for Normal Greetings (hi, hello, hey, etc.)**
+⚠️ **NEW: For generic greetings without specific astrology questions, fetch conversation context!**
+
+**Is it a generic greeting?** Check if message contains ONLY:
+- "hi", "hello", "hey", "hii", "hlo", "hiya", "greetings", "namaste"
+- "good morning", "good evening", "good night"
+- "how are you", "kaise ho", "kya haal hai"
+- "thank you", "thanks", "shukriya", "dhanyavad"
+
+**If YES (generic greeting):**
+1. ✅ Fetch conversation history from MongoDB:
+   ```bash
+   python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<user_id>" --limit 40
+   ```
+2. ✅ Analyze the returned messages to understand:
+   - What was the last topic discussed? (marriage, career, health, relationship, money?)
+   - How long ago was the last conversation? (recent or old)
+   - What was the user's last concern/question?
+3. ✅ Combine Mem0 memories + MongoDB conversation to give personalized response:
+   - **Recent conversation + Mem0 data**: "Arre [Name]! Kya haal hai? Pichli baar hum [last topic] ki baat kar rahe the. Koi update hai?" (Hinglish)
+   - **Old conversation + Mem0 data**: "Hello [Name]! Long time no see! Last time we discussed your [last topic]. How have you been since then?" (English)
+   - **No history**: Warm greeting + ask how they're doing
+
 **STEP 3.5: Calculate Kundli (If Birth Details Exist)**
 - If DOB, Time, and Place found in Mem0 or Message:
   - ⚠️ **CRITICAL: CALCULATE AGE FIRST!** Calculate: `current_year - birth_year`. NEVER guess age. If DOB not available → say "age group".

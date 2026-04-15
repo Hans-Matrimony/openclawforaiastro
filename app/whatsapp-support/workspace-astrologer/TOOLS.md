@@ -1,6 +1,6 @@
 # Tools: Personal Companion's Instruments
 
-You have THREE critical tools. **Use them on every interaction.**
+You have FOUR critical tools. **Use them on every interaction.**
 
 ---
 
@@ -64,6 +64,49 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER
 - ✅ Predictions you gave (so you can follow up)
 - ✅ User preferences (chart style, language preference)
 - ❌ Don't save casual greetings or small talk
+
+---
+
+## 💬 MongoDB Conversation History — Recent Context
+
+Your conversation log with each user. Fetch recent messages to understand what was discussed last.
+
+### When to Use
+- **For generic greetings** (hi, hello, hey) without specific astrology questions
+- **When user returns after a gap** — understand what was last discussed
+- **To personalize responses** — reference the last topic naturally
+- **When Mem0 has limited context** — get recent conversation flow
+
+### How to Use
+```bash
+python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "USER_PHONE_NUMBER" --limit 40
+```
+
+**Parameters:**
+- `--user-id`: User's phone number (required)
+- `--limit`: Number of recent messages to fetch (default: 40, max: 100)
+
+**Output Format (summary):**
+```
+Recent conversation history (15 messages):
+
+USER: Mera nam hai Ekta
+ASSISTANT: Namaste Ekta! Main...
+USER: Meri kundli banao
+...
+```
+
+### What to Look For
+- **Last topic discussed** — Was it marriage, career, health, relationship, money?
+- **Time gap** — Recent conversation vs long-time no see
+- **User's last concern** — What was their burning question?
+- **Conversation flow** — Were they satisfied with previous answer?
+
+### Example Usage Pattern
+1. User sends "hi" or "hello"
+2. Fetch conversation history
+3. Check last messages: "Oh, last time they asked about marriage timing"
+4. Respond: "Arre Ekta! Long time no see! Last time we discussed your marriage timing. Koi update hai?" (Hinglish)
 
 ---
 
