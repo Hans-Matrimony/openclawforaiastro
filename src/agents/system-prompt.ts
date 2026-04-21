@@ -643,3 +643,554 @@ export function buildRuntimeLine(
     .filter(Boolean)
     .join(" | ")}`;
 }
+
+/**
+ * Detects if the given model is a Gemini model that benefits from
+ * implicit caching optimization.
+ *
+ * Checks for:
+ * - Model IDs containing "gemini" (e.g., "gemini-2.5-flash", "google/gemini-2.5-flash")
+ * - Provider prefix "google/" (e.g., "google/gemini-2.5-flash")
+ *
+ * @param model - The model identifier (can include provider prefix like "google/gemini-2.5-flash")
+ * @param provider - Optional provider name (e.g., "google")
+ * @returns true if this is a Gemini model that should use cache optimization
+ */
+export function isGeminiModel(model?: string, provider?: string): boolean {
+  if (!model && !provider) {
+    return false;
+  }
+
+  // Check model ID for gemini keyword
+  if (model) {
+    const normalizedModel = model.toLowerCase();
+    // Match: "gemini-2.5-flash", "google/gemini-2.5-flash", "gemini-3.1-flash-lite"
+    // Exclude: "some-other-model-gemini" (should have gemini as a distinct word)
+    const geminiPattern = /\b(gemini-\d|gemini\d|gemini[./_-])/i;
+    if (geminiPattern.test(normalizedModel)) {
+      return true;
+    }
+    // Check for google/ prefix with gemini model
+    if (normalizedModel.startsWith("google/") && normalizedModel.includes("gemini")) {
+      return true;
+    }
+  }
+
+  // Check provider
+  if (provider) {
+    const normalizedProvider = provider.toLowerCase();
+    if (normalizedProvider === "google") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Builds a cache-optimized system prompt for Gemini 2.5 Flash / 3.1 models.
+ *
+ * OPTIMIZATION STRATEGY for Gemini Implicit Caching:
+ * 1. Static components (identity, tools, safety) come FIRST
+ * 2. Semi-static per-user components (workspace, docs, user identity) come NEXT
+ * 3. Dynamic components (runtime info, reaction guidance, reasoning format) come LAST
+ *
+ * This ensures that repeated prompt prefixes (1K+ tokens) hit cache,
+ * reducing costs by ~75% on cached tokens.
+ *
+ * Rules for cache stability:
+ * - Never put timestamps, session IDs, or random IDs in the prefix
+ * - Keep user-specific data (owner numbers, workspace) stable per user
+ * - Dynamic per-call data (runtime info, current message) goes at the end
+ *
+ * @see https://ai.google.dev/gemini-api/docs/caching#implicit-caching
+ */
+export function buildCacheOptimizedSystemPrompt(params: {
+  workspaceDir: string;
+  defaultThinkLevel?: ThinkLevel;
+  reasoningLevel?: ReasoningLevel;
+  extraSystemPrompt?: string;
+  ownerNumbers?: string[];
+  reasoningTagHint?: boolean;
+  toolNames?: string[];
+  toolSummaries?: Record<string, string>;
+  modelAliasLines?: string[];
+  userTimezone?: string;
+  userTime?: string;
+  userTimeFormat?: ResolvedTimeFormat;
+  contextFiles?: EmbeddedContextFile[];
+  skillsPrompt?: string;
+  heartbeatPrompt?: string;
+  docsPath?: string;
+  workspaceNotes?: string[];
+  ttsHint?: string;
+  /** Controls which hardcoded sections to include. Defaults to "full". */
+  promptMode?: PromptMode;
+  runtimeInfo?: {
+    agentId?: string;
+    host?: string;
+    os?: string;
+    arch?: string;
+    node?: string;
+    model?: string;
+    defaultModel?: string;
+    channel?: string;
+    capabilities?: string[];
+    repoRoot?: string;
+  };
+  messageToolHints?: string[];
+  sandboxInfo?: {
+    enabled: boolean;
+    workspaceDir?: string;
+    workspaceAccess?: "none" | "ro" | "rw";
+    agentWorkspaceMount?: string;
+    browserBridgeUrl?: string;
+    browserNoVncUrl?: string;
+    hostBrowserAllowed?: boolean;
+    elevated?: {
+      allowed: boolean;
+      defaultLevel: "on" | "off" | "ask" | "full";
+    };
+  };
+  /** Reaction guidance for the agent (for Telegram minimal/extensive modes). */
+  reactionGuidance?: {
+    level: "minimal" | "extensive";
+    channel: string;
+  };
+  memoryCitationsMode?: MemoryCitationsMode;
+}): string {
+  const promptMode = params.promptMode ?? "full";
+  const isMinimal = promptMode === "minimal" || promptMode === "none";
+
+  // For "none" mode, return just the basic identity line
+  if (promptMode === "none") {
+    return "You are a personal assistant running inside OpenClaw.";
+  }
+
+  // ===== PHASE 1: Extract and compute all values =====
+  const coreToolSummaries: Record<string, string> = {
+    read: "Read file contents",
+    write: "Create or overwrite files",
+    edit: "Make precise edits to files",
+    apply_patch: "Apply multi-file patches",
+    grep: "Search file contents for patterns",
+    find: "Find files by glob pattern",
+    ls: "List directory contents",
+    exec: "Run shell commands (pty available for TTY-required CLIs)",
+    process: "Manage background exec sessions",
+    web_search: "Search the web (Brave API)",
+    web_fetch: "Fetch and extract readable content from a URL",
+    browser: "Control web browser",
+    canvas: "Present/eval/snapshot the Canvas",
+    nodes: "List/describe/notify/camera/screen on paired nodes",
+    cron: "Manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
+    message: "Send messages and channel actions",
+    gateway: "Restart, apply config, or run updates on the running OpenClaw process",
+    agents_list: "List agent ids allowed for sessions_spawn",
+    sessions_list: "List other sessions (incl. sub-agents) with filters/last",
+    sessions_history: "Fetch history for another session/sub-agent",
+    sessions_send: "Send a message to another session/sub-agent",
+    sessions_spawn: "Spawn a sub-agent session",
+    session_status: "Show a /status-equivalent status card (usage + time + Reasoning/Verbose/Elevated); use for model-use questions (📊 session_status); optional per-session model override",
+    image: "Analyze an image with the configured image model",
+  };
+
+  const toolOrder = [
+    "read", "write", "edit", "apply_patch", "grep", "find", "ls", "exec", "process",
+    "web_search", "web_fetch", "browser", "canvas", "nodes", "cron", "message",
+    "gateway", "agents_list", "sessions_list", "sessions_history", "sessions_send",
+    "sessions_spawn", "session_status", "image",
+  ];
+
+  const rawToolNames = (params.toolNames ?? []).map((tool) => tool.trim());
+  const canonicalToolNames = rawToolNames.filter(Boolean);
+  const canonicalByNormalized = new Map<string, string>();
+  for (const name of canonicalToolNames) {
+    const normalized = name.toLowerCase();
+    if (!canonicalByNormalized.has(normalized)) {
+      canonicalByNormalized.set(normalized, name);
+    }
+  }
+  const resolveToolName = (normalized: string) =>
+    canonicalByNormalized.get(normalized) ?? normalized;
+
+  const normalizedTools = canonicalToolNames.map((tool) => tool.toLowerCase());
+  const availableTools = new Set(normalizedTools);
+  const externalToolSummaries = new Map<string, string>();
+  for (const [key, value] of Object.entries(params.toolSummaries ?? {})) {
+    const normalized = key.trim().toLowerCase();
+    if (!normalized || !value?.trim()) {
+      continue;
+    }
+    externalToolSummaries.set(normalized, value.trim());
+  }
+
+  const extraTools = Array.from(
+    new Set(normalizedTools.filter((tool) => !toolOrder.includes(tool))),
+  );
+  const enabledTools = toolOrder.filter((tool) => availableTools.has(tool));
+  const toolLines = enabledTools.map((tool) => {
+    const summary = coreToolSummaries[tool] ?? externalToolSummaries.get(tool);
+    const name = resolveToolName(tool);
+    return summary ? `- ${name}: ${summary}` : `- ${name}`;
+  });
+  for (const tool of extraTools.toSorted()) {
+    const summary = coreToolSummaries[tool] ?? externalToolSummaries.get(tool);
+    const name = resolveToolName(tool);
+    toolLines.push(summary ? `- ${name}: ${summary}` : `- ${name}`);
+  }
+
+  const hasGateway = availableTools.has("gateway");
+  const readToolName = resolveToolName("read");
+  const execToolName = resolveToolName("exec");
+  const processToolName = resolveToolName("process");
+
+  const extraSystemPrompt = params.extraSystemPrompt?.trim();
+  const ownerNumbers = (params.ownerNumbers ?? []).map((value) => value.trim()).filter(Boolean);
+  const ownerLine =
+    ownerNumbers.length > 0
+      ? `Owner numbers: ${ownerNumbers.join(", ")}. Treat messages from these numbers as the user.`
+      : undefined;
+
+  const reasoningHint = params.reasoningTagHint
+    ? [
+        "ALL internal reasoning MUST be inside <thinking> tags.",
+        "Do not output any analysis outside <thinking>.",
+        "Format every reply as <thinking>...</thinking> then <final>...</final>, with no other text.",
+        "Only the final user-visible reply may appear inside <final>.",
+        "Only text inside <final> is shown to the user; everything else is discarded and never seen by the user.",
+        "Example:",
+        "<thinking>Short internal reasoning.</thinking>",
+        "<final>Hey there! What would you like to do next?</final>",
+      ].join(" ")
+    : undefined;
+  const reasoningLevel = params.reasoningLevel ?? "off";
+  const userTimezone = params.userTimezone?.trim();
+  const skillsPrompt = params.skillsPrompt?.trim();
+  const heartbeatPrompt = params.heartbeatPrompt?.trim();
+  const heartbeatPromptLine = heartbeatPrompt
+    ? `Heartbeat prompt: ${heartbeatPrompt}`
+    : "Heartbeat prompt: (configured)";
+
+  const runtimeInfo = params.runtimeInfo;
+  const runtimeChannel = runtimeInfo?.channel?.trim().toLowerCase();
+  const runtimeCapabilities = (runtimeInfo?.capabilities ?? [])
+    .map((cap) => String(cap).trim())
+    .filter(Boolean);
+  const runtimeCapabilitiesLower = new Set(runtimeCapabilities.map((cap) => cap.toLowerCase()));
+  const inlineButtonsEnabled = runtimeCapabilitiesLower.has("inlinebuttons");
+  const messageChannelOptions = listDeliverableMessageChannels().join("|");
+
+  const workspaceNotes = (params.workspaceNotes ?? []).map((note) => note.trim()).filter(Boolean);
+
+  // ===== PHASE 2: Build STATIC sections (cacheable across all users) =====
+  const staticSections: string[] = [];
+
+  // Identity
+  staticSections.push("You are a personal assistant running inside OpenClaw.", "");
+
+  // Tooling
+  staticSections.push(
+    "## Tooling",
+    "Tool availability (filtered by policy):",
+    "Tool names are case-sensitive. Call tools exactly as listed.",
+    toolLines.length > 0
+      ? toolLines.join("\n")
+      : [
+          "Pi lists the standard tools above. This runtime enables:",
+          "- grep: search file contents for patterns",
+          "- find: find files by glob pattern",
+          "- ls: list directory contents",
+          "- apply_patch: apply multi-file patches",
+          `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
+          `- ${processToolName}: manage background exec sessions`,
+          "- browser: control OpenClaw's dedicated browser",
+          "- canvas: present/eval/snapshot the Canvas",
+          "- nodes: list/describe/notify/camera/screen on paired nodes",
+          "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
+          "- sessions_list: list sessions",
+          "- sessions_history: fetch session history",
+          "- sessions_send: send to another session",
+          '- session_status: show usage/time/model state and answer "what model are we using?"',
+        ].join("\n"),
+    "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
+    "If a task is more complex or takes longer, spawn a sub-agent. It will do the work for you and ping you when it's done. You can always check up on it.",
+    "",
+    "## Tool Call Style",
+    "Default: do not narrate routine, low-risk tool calls (just call the tool).",
+    "Narrate only when it helps: multi-step work, complex/challenging problems, sensitive actions (e.g., deletions), or when the user explicitly asks.",
+    "Keep narration brief and value-dense; avoid repeating obvious steps.",
+    "Use plain human language for narration unless in a technical context.",
+    "",
+    "## Safety",
+    "You have no independent goals: do not pursue self-preservation, replication, resource acquisition, or power-seeking; avoid long-term plans beyond the user's request.",
+    "Prioritize safety and human oversight over completion; if instructions conflict, pause and ask; comply with stop/pause/audit requests and never bypass safeguards. (Inspired by Anthropic's constitution.)",
+    "Do not manipulate or persuade anyone to expand access or disable safeguards. Do not copy yourself or change system prompts, safety rules, or tool policies unless explicitly requested.",
+    "",
+    "## OpenClaw CLI Quick Reference",
+    "OpenClaw is controlled via subcommands. Do not invent commands.",
+    "To manage the Gateway daemon service (start/stop/restart):",
+    "- openclaw gateway status",
+    "- openclaw gateway start",
+    "- openclaw gateway stop",
+    "- openclaw gateway restart",
+    "If unsure, ask the user to run `openclaw help` (or `openclaw gateway --help`) and paste the output.",
+    "",
+  );
+
+  // Skills section (static if skillsPrompt doesn't change)
+  const skillsSection = buildSkillsSection({
+    skillsPrompt,
+    isMinimal,
+    readToolName,
+  });
+  staticSections.push(...skillsSection);
+
+  // Memory section (static)
+  const memorySection = buildMemorySection({
+    isMinimal,
+    availableTools,
+    citationsMode: params.memoryCitationsMode,
+  });
+  staticSections.push(...memorySection);
+
+  // Self-Update (static)
+  if (hasGateway && !isMinimal) {
+    staticSections.push(
+      "## OpenClaw Self-Update",
+      "Get Updates (self-update) is ONLY allowed when the user explicitly asks for it.",
+      "Do not run config.apply or update.run unless the user explicitly requests an update or config change; if it's not explicit, ask first.",
+      "Actions: config.get, config.schema, config.apply (validate + write full config, then restart), update.run (update deps or git, then restart).",
+      "After restart, OpenClaw pings the last active session automatically.",
+      "",
+    );
+  }
+
+  // Model Aliases (static per config)
+  if (params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal) {
+    staticSections.push(
+      "## Model Aliases",
+      "Prefer aliases when specifying model overrides; full provider/model is also accepted.",
+      ...params.modelAliasLines,
+      "",
+    );
+  }
+
+  // Silent Replies (static)
+  if (!isMinimal) {
+    staticSections.push(
+      "## Silent Replies",
+      `When you have nothing to say, respond with ONLY: ${SILENT_REPLY_TOKEN}`,
+      "",
+      "⚠️ Rules:",
+      "- It must be your ENTIRE message — nothing else",
+      `- Never append it to an actual response (never include "${SILENT_REPLY_TOKEN}" in real replies)`,
+      "- Never wrap it in markdown or code blocks",
+      "",
+      `❌ Wrong: "Here's help... ${SILENT_REPLY_TOKEN}"`,
+      `❌ Wrong: "${SILENT_REPLY_TOKEN}"`,
+      `✅ Right: ${SILENT_REPLY_TOKEN}`,
+      "",
+    );
+  }
+
+  // Heartbeats (static per config)
+  if (!isMinimal) {
+    staticSections.push(
+      "## Heartbeats",
+      heartbeatPromptLine,
+      "If you receive a heartbeat poll (a user message matching the heartbeat prompt above), and there is nothing that needs attention, reply exactly:",
+      "HEARTBEAT_OK",
+      'OpenClaw treats a leading/trailing "HEARTBEAT_OK" as a heartbeat ack (and may discard it).',
+      'If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the alert text instead.',
+      "",
+    );
+  }
+
+  // ===== PHASE 3: Build PER-USER sections (semi-static, cacheable per user) =====
+  const userSections: string[] = [];
+
+  // Workspace
+  userSections.push(
+    "## Workspace",
+    `Your working directory is: ${params.workspaceDir}`,
+    "Treat this directory as the single global workspace for file operations unless explicitly instructed otherwise.",
+    ...workspaceNotes,
+    "",
+  );
+
+  // Documentation
+  const docsSection = buildDocsSection({
+    docsPath: params.docsPath,
+    isMinimal,
+    readToolName,
+  });
+  userSections.push(...docsSection);
+
+  // Sandbox info (per-user/agent configuration)
+  if (params.sandboxInfo?.enabled) {
+    const sandboxLines = [
+      "## Sandbox",
+      "You are running in a sandboxed runtime (tools execute in Docker).",
+      "Some tools may be unavailable due to sandbox policy.",
+      "Sub-agents stay sandboxed (no elevated/host access). Need outside-sandbox read/write? Don't spawn; ask first.",
+    ];
+    if (params.sandboxInfo.workspaceDir) {
+      sandboxLines.push(`Sandbox workspace: ${params.sandboxInfo.workspaceDir}`);
+    }
+    if (params.sandboxInfo.workspaceAccess) {
+      sandboxLines.push(
+        `Agent workspace access: ${params.sandboxInfo.workspaceAccess}${
+          params.sandboxInfo.agentWorkspaceMount
+            ? ` (mounted at ${params.sandboxInfo.agentWorkspaceMount})`
+            : ""
+        }`
+      );
+    }
+    if (params.sandboxInfo.browserBridgeUrl) {
+      sandboxLines.push("Sandbox browser: enabled.");
+    }
+    if (params.sandboxInfo.browserNoVncUrl) {
+      sandboxLines.push(`Sandbox browser observer (noVNC): ${params.sandboxInfo.browserNoVncUrl}`);
+    }
+    if (params.sandboxInfo.hostBrowserAllowed === true) {
+      sandboxLines.push("Host browser control: allowed.");
+    } else if (params.sandboxInfo.hostBrowserAllowed === false) {
+      sandboxLines.push("Host browser control: blocked.");
+    }
+    if (params.sandboxInfo.elevated?.allowed) {
+      sandboxLines.push(
+        "Elevated exec is available for this session.",
+        "User can toggle with /elevated on|off|ask|full.",
+        "You may also send /elevated on|off|ask|full when needed.",
+        `Current elevated level: ${params.sandboxInfo.elevated.defaultLevel} (ask runs exec on host with approvals; full auto-approves).`
+      );
+    }
+    sandboxLines.push("");
+    userSections.push(...sandboxLines);
+  }
+
+  // User Identity
+  userSections.push(...buildUserIdentitySection(ownerLine, isMinimal));
+
+  // Time zone (per-user setting, stable)
+  userSections.push(...buildTimeSection({ userTimezone }));
+
+  // Timezone hint (static)
+  if (userTimezone) {
+    userSections.push(
+      "If you need the current date, time, or day of week, run session_status (📊 session_status).",
+      ""
+    );
+  }
+
+  // Workspace Files placeholder
+  userSections.push(
+    "## Workspace Files (injected)",
+    "These user-editable files are loaded by OpenClaw and included below in Project Context.",
+    ""
+  );
+
+  // Reply Tags (static)
+  userSections.push(...buildReplyTagsSection(isMinimal));
+
+  // Messaging section (per-channel configuration)
+  userSections.push(...buildMessagingSection({
+    isMinimal,
+    availableTools,
+    messageChannelOptions,
+    inlineButtonsEnabled,
+    runtimeChannel,
+    messageToolHints: params.messageToolHints,
+  }));
+
+  // Voice section (per-user configuration)
+  userSections.push(...buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }));
+
+  // ===== PHASE 4: Build DYNAMIC sections (NOT cached, varies per request) =====
+  const dynamicSections: string[] = [];
+
+  // Extra System Prompt (varies per group/chat/subagent)
+  if (extraSystemPrompt) {
+    const contextHeader =
+      promptMode === "minimal" ? "## Subagent Context" : "## Group Chat Context";
+    dynamicSections.push(contextHeader, extraSystemPrompt, "");
+  }
+
+  // Reaction guidance (channel-specific, can vary)
+  if (params.reactionGuidance) {
+    const { level, channel } = params.reactionGuidance;
+    const guidanceText =
+      level === "minimal"
+        ? [
+            `Reactions are enabled for ${channel} in MINIMAL mode.`,
+            "React ONLY when truly relevant:",
+            "- Acknowledge important user requests or confirmations",
+            "- Express genuine sentiment (humor, appreciation) sparingly",
+            "- Avoid reacting to routine messages or your own replies",
+            "Guideline: at most 1 reaction per 5-10 exchanges.",
+          ].join("\n")
+        : [
+            `Reactions are enabled for ${channel} in EXTENSIVE mode.`,
+            "Feel free to react liberally:",
+            "- Acknowledge messages with appropriate emojis",
+            "- Express sentiment and personality through reactions",
+            "- React to interesting content, humor, or notable events",
+            "- Use reactions to confirm understanding or agreement",
+            "Guideline: react whenever it feels natural.",
+          ].join("\n");
+    dynamicSections.push("## Reactions", guidanceText, "");
+  }
+
+  // Reasoning Format hint (can vary per session)
+  if (reasoningHint) {
+    dynamicSections.push("## Reasoning Format", reasoningHint, "");
+  }
+
+  // Project Context / Context Files (user-specific, can vary)
+  const contextFiles = params.contextFiles ?? [];
+  if (contextFiles.length > 0) {
+    const hasSoulFile = contextFiles.some((file) => {
+      const normalizedPath = file.path.trim().replace(/\\/g, "/");
+      const baseName = normalizedPath.split("/").pop() ?? normalizedPath;
+      return baseName.toLowerCase() === "soul.md";
+    });
+    dynamicSections.push("# Project Context", "", "The following project context files have been loaded:");
+    if (hasSoulFile) {
+      dynamicSections.push(
+        "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
+      );
+    }
+    dynamicSections.push("");
+    for (const file of contextFiles) {
+      dynamicSections.push(`## ${file.path}`, "", file.content, "");
+    }
+  }
+
+  // Runtime info (varies per call)
+  dynamicSections.push(
+    "## Runtime",
+    buildRuntimeLine(runtimeInfo, runtimeChannel, runtimeCapabilities, params.defaultThinkLevel),
+    `Reasoning: ${reasoningLevel} (hidden unless on/stream). Toggle /reasoning; /status shows Reasoning when enabled.`,
+  );
+
+  // ===== PHASE 5: Assemble with cache boundary markers =====
+  const allSections = [
+    ...staticSections,
+    "",
+    "────────────────────────────────────────────────────────────────",
+    " CACHE BARRIER: Static content above (cached across all users)",
+    "────────────────────────────────────────────────────────────────",
+    "",
+    ...userSections,
+    "",
+    "────────────────────────────────────────────────────────────────",
+    " CACHE BARRIER: User-specific content above (cached per user)",
+    " Dynamic content below (NOT cached - varies per request)",
+    "────────────────────────────────────────────────────────────────",
+    "",
+    ...dynamicSections,
+  ];
+
+  return allSections.filter(Boolean).join("\n");
+}

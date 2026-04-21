@@ -12,7 +12,7 @@ import { runExec } from "../../process/exec.js";
 import { buildTtsSystemPromptHint } from "../../tts/tts.js";
 import { resolveDefaultModelForAgent } from "../model-selection.js";
 import { buildSystemPromptParams } from "../system-prompt-params.js";
-import { buildAgentSystemPrompt } from "../system-prompt.js";
+import { buildAgentSystemPrompt, isGeminiModel, buildCacheOptimizedSystemPrompt } from "../system-prompt.js";
 
 const CLI_RUN_QUEUE = new Map<string, Promise<unknown>>();
 
@@ -229,7 +229,9 @@ export function buildSystemPrompt(params: {
     },
   });
   const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
-  return buildAgentSystemPrompt({
+
+  // Use cache-optimized prompt for Gemini models
+  const buildParams = {
     workspaceDir: params.workspaceDir,
     defaultThinkLevel: params.defaultThinkLevel,
     extraSystemPrompt: params.extraSystemPrompt,
@@ -246,7 +248,16 @@ export function buildSystemPrompt(params: {
     contextFiles: params.contextFiles,
     ttsHint,
     memoryCitationsMode: params.config?.memory?.citations,
-  });
+  };
+
+  // Check if we're using a Gemini model and use cache-optimized version
+  // Extract provider from model string if available (e.g., "google/gemini-2.5-flash")
+  const modelProvider = defaultModelLabel.includes("/") ? defaultModelLabel.split("/")[0] : undefined;
+  if (isGeminiModel(params.modelDisplay, modelProvider)) {
+    return buildCacheOptimizedSystemPrompt(buildParams);
+  }
+
+  return buildAgentSystemPrompt(buildParams);
 }
 
 export function normalizeCliModel(modelId: string, backend: CliBackendConfig): string {

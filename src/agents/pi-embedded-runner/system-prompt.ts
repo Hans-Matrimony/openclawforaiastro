@@ -5,7 +5,7 @@ import type { ResolvedTimeFormat } from "../date-time.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
 import type { EmbeddedSandboxInfo } from "./types.js";
 import type { ReasoningLevel, ThinkLevel } from "./utils.js";
-import { buildAgentSystemPrompt, type PromptMode } from "../system-prompt.js";
+import { buildAgentSystemPrompt, buildCacheOptimizedSystemPrompt, isGeminiModel, type PromptMode } from "../system-prompt.js";
 import { buildToolSummaryMap } from "../tool-summaries.js";
 
 export function buildEmbeddedSystemPrompt(params: {
@@ -49,7 +49,7 @@ export function buildEmbeddedSystemPrompt(params: {
   contextFiles?: EmbeddedContextFile[];
   memoryCitationsMode?: MemoryCitationsMode;
 }): string {
-  return buildAgentSystemPrompt({
+  const buildParams = {
     workspaceDir: params.workspaceDir,
     defaultThinkLevel: params.defaultThinkLevel,
     reasoningLevel: params.reasoningLevel,
@@ -74,7 +74,16 @@ export function buildEmbeddedSystemPrompt(params: {
     userTimeFormat: params.userTimeFormat,
     contextFiles: params.contextFiles,
     memoryCitationsMode: params.memoryCitationsMode,
-  });
+  };
+
+  // Check if we're using a Gemini model and use cache-optimized version
+  const modelId = params.runtimeInfo.model;
+  const providerId = params.runtimeInfo.provider;
+  if (isGeminiModel(modelId, providerId)) {
+    return buildCacheOptimizedSystemPrompt(buildParams);
+  }
+
+  return buildAgentSystemPrompt(buildParams);
 }
 
 export function createSystemPromptOverride(
