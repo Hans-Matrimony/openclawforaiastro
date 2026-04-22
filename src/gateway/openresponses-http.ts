@@ -767,6 +767,20 @@ export async function handleOpenResponsesHttpRequest(
 
     if (evt.stream === "lifecycle") {
       const phase = evt.data?.phase;
+      // If lifecycle "end" arrives before any assistant deltas, DO NOT finalize
+      // with the "No response from OpenClaw." fallback — the async agentCommand
+      // result is still on its way and the post-result fallback path (below)
+      // will populate content from result.payloads. Finalizing here captures
+      // empty text and then closes, causing the fallback to be skipped.
+      if (phase === "end" && !accumulatedText) {
+        console.warn(
+          `[EMPTY_RESPONSE_DEFER] lifecycle="end" with empty accumulatedText; ` +
+            `deferring finalize until agentCommand result. ` +
+            `runId=${responseId} sessionKey=${sessionKey} ` +
+            `evtData=${JSON.stringify(evt.data ?? {})}`,
+        );
+        return;
+      }
       if (phase === "end" || phase === "error") {
         const finalText = accumulatedText || "No response from OpenClaw.";
         const finalStatus = phase === "error" ? "failed" : "completed";
@@ -939,6 +953,14 @@ export async function handleOpenResponsesHttpRequest(
         const content = contentParts.length > 0
           ? contentParts.join("\n\n")
           : "No response from OpenClaw.";
+        if (contentParts.length === 0) {
+          const resultMeta = (result as { meta?: unknown }).meta;
+          console.warn(
+            `[EMPTY_RESPONSE_FINAL] No content from stream OR payloads. ` +
+              `runId=${responseId} sessionKey=${sessionKey} ` +
+              `meta=${JSON.stringify(resultMeta ?? {})}`,
+          );
+        }
 
         accumulatedText = content;
         sawAssistantDelta = true;
