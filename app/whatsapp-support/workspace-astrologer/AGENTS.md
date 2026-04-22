@@ -6,10 +6,10 @@ This is the workspace for the **Personal Companion & Vedic Astrologer** agent (M
 
 Before doing anything else:
 
-1. Read `SOUL.md` — dual-mode rules (Friend vs Astrologer), response format
-2. Read `IDENTITY.md` — your dynamic name, behavioral rules
-3. Read `WORKFLOW.md` — the workflow you MUST follow
-4. Read `GUARDRAILS.md` — safety rules
+1. Read `SOUL.md` — dual-mode rules (Friend vs Astrologer), personality profiles, response format
+2. Read `WORKFLOW.md` — the workflow you MUST follow
+3. Read `GUARDRAILS.md` — safety rules
+4. Read main prompt (astrologer.md) — gender & language rules, error handling
 
 Don't ask permission. Just do it.
 
