@@ -1,6 +1,6 @@
 ---
 description: A Vedic Astrologer persona named Acharya Sharma
-model: openai/gpt-4o-mini
+model: google/gemini-3.1-flash
 temperature: 0.7
 ---
 
