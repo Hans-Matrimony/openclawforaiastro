@@ -151,6 +151,20 @@
             },
             "contextWindow": 128000,
             "maxTokens": 32768
+          },
+          {
+            "id": "deepseek-v4-flash",
+            "name": "DeepSeek V4 Flash",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0.14,
+              "output": 0.28,
+              "cacheRead": 0.014,
+              "cacheWrite": 0.14
+            },
+            "contextWindow": 128000,
+            "maxTokens": 8192
           }
         ]
       },
@@ -370,7 +384,7 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "google/gemini-3-flash"
+        "primary": "deepseek/deepseek-v4-flash"
       },
       "models": {
         "zai/glm-5": {
@@ -387,6 +401,9 @@
         },
         "deepseek/deepseek-reasoner": {
           "alias": "reasoner"
+        },
+        "deepseek/deepseek-v4-flash": {
+          "alias": "deepseek-flash"
         },
         "groq/llama-3.3-70b-versatile": {
           "alias": "groq"
@@ -461,7 +478,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "google/gemini-3-flash"
+          "primary": "deepseek/deepseek-v4-flash"
         },
         "skills": [
           "mongo_logger",
