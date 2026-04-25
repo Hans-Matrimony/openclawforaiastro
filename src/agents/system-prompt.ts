@@ -664,7 +664,7 @@ export function isGeminiModel(model?: string, provider?: string): boolean {
   // Check model ID for gemini keyword
   if (model) {
     const normalizedModel = model.toLowerCase();
-    // Match: "gemini-2.5-flash", "google/gemini-2.5-flash", "gemini-3.1-flash-lite"
+    // Match: "gemini-2.5-flash", "google/gemini-2.5-flash", "gemini-3-flash-lite"
     // Exclude: "some-other-model-gemini" (should have gemini as a distinct word)
     const geminiPattern = /\b(gemini-\d|gemini\d|gemini[./_-])/i;
     if (geminiPattern.test(normalizedModel)) {
