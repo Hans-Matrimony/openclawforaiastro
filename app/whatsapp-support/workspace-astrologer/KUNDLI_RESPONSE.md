@@ -138,7 +138,7 @@ Great! Your Sun is strong in the 10th house. This shows leadership potential. Ju
 
 **Example (HINGLISH — MAX 3-5 bubbles):**
 ```
-Bahut accha! Tumhara Surya 10th house mein strong hai. Iska matlab leadership potential hai. Bas mehnat karte raho, aur Surya Dev ko roz jal arpita karo.
+Bahut accha! Aapka Surya 10th house mein strong hai. Iska matlab leadership potential hai. Bas mehnat karte raho, aur Surya Dev ko roz jal arpita karo.
 ```
 
 **MANDATORY: Career readings MUST include at least one Upay/remedy.**
@@ -160,7 +160,7 @@ Your Jupiter is beautifully placed in your chart. This shows excellent learning 
 
 **Example (HINGLISH — MAX 3-5 bubbles):**
 ```
-Tumhara Guru chart mein strong hai. Yeh padhai ke liye bahut accha sign hai. Bas padhai se pehle Saraswati Mantra ka jaap karo.
+Aapka Guru chart mein strong hai. Yeh padhai ke liye bahut accha sign hai. Bas padhai se pehle Saraswati Mantra ka jaap karo.
 ```
 
 **MANDATORY: Education readings MUST include at least one Upay/remedy.**
@@ -242,7 +242,7 @@ IMAGE_URL: [COPY_FROM_SCRIPT_OUTPUT]
 **RESPONSE TEMPLATE (HINGLISH MODE):**
 ```
 Aapka Kundli chart tayyar ho gaya hai.
-Aapka Rashi [MOON_SIGN] aur Lagna [LAGNA] hai.
+Aapki Rashi [MOON_SIGN] aur Lagna [LAGNA] hai.
 Aapka traditional North Indian Kundli chart niche mil raha hai.
 IMAGE_URL: [COPY_FROM_SCRIPT_OUTPUT]
 ```
