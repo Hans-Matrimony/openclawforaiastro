@@ -59,6 +59,129 @@ function isValidAntigravitySignature(value: unknown): value is string {
   return ANTIGRAVITY_SIGNATURE_RE.test(trimmed);
 }
 
+/**
+ * DeepSeek API requires `reasoning_content` field to be present on assistant messages
+ * that originally had reasoning content, even if the thinking text is empty.
+ *
+ * This function ensures thinking blocks with `thinkingSignature: "reasoning_content"`
+ * always have a valid `thinking` field, preventing the pi-ai library's convertMessages
+ * function from filtering them out with `.filter((b) => b.thinking && b.thinking.trim().length > 0)`.
+ *
+ * NOTE: We use a single space " " as the placeholder for empty thinking content because:
+ * 1. An empty string "" is falsy and fails the `b.thinking` truthy check
+ * 2. A single space passes the truthy check but gets trimmed to empty by the API
+ *
+ * Edge cases handled:
+ * - thinking is undefined/null → converted to " " (space placeholder)
+ * - thinking is whitespace only → trimmed and converted to " " if result is empty
+ * - thinking is non-string type → converted to string or " " if empty
+ * - thinking is empty string "" → converted to " " (fails truthy check)
+ * - thinking is non-empty string → kept as is
+ */
+function sanitizeDeepSeekReasoningContent(messages: AgentMessage[]): AgentMessage[] {
+  let touched = false;
+  const out: AgentMessage[] = [];
+
+  for (const msg of messages) {
+    // Skip non-assistant messages
+    if (!msg || typeof msg !== "object" || msg.role !== "assistant") {
+      out.push(msg);
+      continue;
+    }
+    const assistant = msg;
+    // Skip if content is not an array
+    if (!Array.isArray(assistant.content)) {
+      out.push(msg);
+      continue;
+    }
+
+    type AssistantContentBlock = Extract<AgentMessage, { role: "assistant" }>["content"][number];
+    const nextContent: AssistantContentBlock[] = [];
+    let contentChanged = false;
+
+    for (const block of assistant.content) {
+      // Skip non-thinking blocks
+      if (
+        !block ||
+        typeof block !== "object" ||
+        (block as { type?: unknown }).type !== "thinking"
+      ) {
+        nextContent.push(block);
+        continue;
+      }
+
+      const rec = block as {
+        thinking?: unknown;
+        thinkingSignature?: unknown;
+      };
+
+      // Check if this is a DeepSeek reasoning_content block (strict string match)
+      if (rec.thinkingSignature === "reasoning_content") {
+        const currentThinking = rec.thinking;
+
+        // Determine the normalized thinking value
+        let normalizedThinking: string;
+
+        if (currentThinking === undefined || currentThinking === null) {
+          // Case: undefined or null → use space placeholder
+          normalizedThinking = " ";
+        } else if (typeof currentThinking === "string") {
+          // Case: string value
+          const trimmed = currentThinking.trim();
+          if (trimmed.length === 0) {
+            // Empty or whitespace-only → use space placeholder
+            normalizedThinking = " ";
+          } else {
+            // Non-empty string → keep original (preserve whitespace in original)
+            normalizedThinking = currentThinking;
+          }
+        } else if (typeof currentThinking === "number" || typeof currentThinking === "boolean") {
+          // Case: number or boolean → convert to string
+          normalizedThinking = String(currentThinking);
+        } else {
+          // Case: object, array, or other type → convert to string or use placeholder
+          try {
+            const str = String(currentThinking);
+            normalizedThinking = (str === "[object Object]" || str.trim().length === 0) ? " " : str;
+          } catch {
+            normalizedThinking = " ";
+          }
+        }
+
+        // Only create a new block if thinking changed
+        if (currentThinking !== normalizedThinking) {
+          const nextBlock = {
+            ...(block as unknown as Record<string, unknown>),
+            thinking: normalizedThinking,
+          } as AssistantContentBlock;
+          nextContent.push(nextBlock);
+          contentChanged = true;
+        } else {
+          nextContent.push(block);
+        }
+        continue;
+      }
+
+      // Not a reasoning_content block, keep as is
+      nextContent.push(block);
+    }
+
+    // If content changed, update the message
+    if (contentChanged) {
+      touched = true;
+      // Drop assistant messages with no content blocks
+      if (nextContent.length === 0) {
+        continue;
+      }
+      out.push({ ...assistant, content: nextContent });
+    } else {
+      out.push(msg);
+    }
+  }
+
+  return touched ? out : messages;
+}
+
 function sanitizeAntigravityThinkingBlocks(messages: AgentMessage[]): AgentMessage[] {
   let touched = false;
   const out: AgentMessage[] = [];
@@ -346,9 +469,11 @@ export async function sanitizeSessionHistory(params: {
     preserveSignatures: policy.preserveSignatures,
     sanitizeThoughtSignatures: policy.sanitizeThoughtSignatures,
   });
+  // Fix for DeepSeek: ensure reasoning_content blocks always have thinking field set
+  const sanitizedDeepSeek = sanitizeDeepSeekReasoningContent(sanitizedImages);
   const sanitizedThinking = policy.normalizeAntigravityThinkingBlocks
-    ? sanitizeAntigravityThinkingBlocks(sanitizedImages)
-    : sanitizedImages;
+    ? sanitizeAntigravityThinkingBlocks(sanitizedDeepSeek)
+    : sanitizedDeepSeek;
   const sanitizedToolCalls = sanitizeToolCallInputs(sanitizedThinking);
   const repairedTools = policy.repairToolUseResultPairing
     ? sanitizeToolUseResultPairing(sanitizedToolCalls)
