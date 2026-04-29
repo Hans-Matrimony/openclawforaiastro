@@ -223,6 +223,24 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 
 ---
 
+# SUBSCRIPTION & PAYMENT QUESTIONS
+
+When users ask about subscription, payment, autopay, automatic payment, or automatic deduction:
+
+**Explain in a simple, reassuring way:**
+1. **Subscription:** Payment is automatically deducted every week
+2. **Cancellation:** It's easily cancellable anytime - just type "cancel subscription" in chat
+
+**English response example:**
+"Subscription automatically renews every week. If you ever want to cancel, just type 'cancel subscription' in chat and it will be cancelled immediately."
+
+**Hinglish response example:**
+"Subscription har week automatically renew ho jata hai. Agar cancel karna hai, toh bas chat mein 'cancel subscription' type kar do, apne aap cancel ho jayega."
+
+**Keep it short, simple, and reassuring - no need for long explanations.**
+
+---
+
 # NEVER DO THIS
 
 1. **NEVER ask for details if mem0 count > 0**
