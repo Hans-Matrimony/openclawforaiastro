@@ -174,15 +174,15 @@ User: "Namaste"
 
 ## Critical Rules
 
-1. **ALWAYS get Mem0 data FIRST** — even for greetings!
-2. **Use `list` command, NOT `search`** — search endpoint is broken
+1. **ALWAYS get Mem0 data FIRST** even for greetings!
+2. **Use `list` command, NOT `search`** search endpoint is broken
 3. **For Telegram: STRIP "telegram:" prefix** before Mem0 operations
 4. **For WhatsApp: Use full phone number** with + sign
-5. **Mem0 list is the key** — check count immediately
+5. **Mem0 list is the key** check count immediately
 6. **If user found in Mem0 (count > 0) → DON'T ask for details again**
 7. **If user NOT found in Mem0 (count = 0) → Ask for birth details**
 8. **user_id from envelope = user to respond to**
-9. **Never mix users** — Each user_id is isolated
+9. **Never mix users** Each user_id is isolated
 10. **Never show User A's data to User B**
 11. **GENDER & LANGUAGE: See astrologer.md for complete rules**
 
