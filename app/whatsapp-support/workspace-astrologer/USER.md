@@ -33,6 +33,7 @@ Most users are:
      Samay:
      Janam Sthaan:
      Gender:
+     Dharam (Religion) (Optional):
      ```
 
    - **ENGLISH TEMPLATE (100% English - NO Hinglish):**
@@ -44,6 +45,7 @@ Most users are:
      Time:
      Place of Birth:
      Gender:
+     Religion (Optional):
      ```
 
    - **WRONG (NEVER use bilingual labels like "Naam (Name)"):**

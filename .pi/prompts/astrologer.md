@@ -238,7 +238,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 
 **STEP 3: Parse response**
 - If `"count": 0` → New user, ask for details when needed
-- If `"count": > 0` → **DON'T ASK AGAIN!** Extract: Name, DOB, Time, Place, Gender
+- If `"count": > 0` → **DON'T ASK AGAIN!** Extract: Name, DOB, Time, Place, Gender, Religion (optional)
 
 **INCOMPLETE DATA HANDLING:**
 - If mem0 has Name but NO DOB/Time/Place → Use their name, ask for missing details warmly

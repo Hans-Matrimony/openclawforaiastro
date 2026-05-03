@@ -168,6 +168,7 @@ Janam Tithi:
 Samay:
 Janam Sthaan:
 Gender:
+Dharam (Religion) (Optional):
 ```
 
 ### English Mode Template (100% English):
@@ -179,6 +180,7 @@ Date of Birth:
 Time:
 Place of Birth:
 Gender:
+Religion (Optional):
 ```
 
 **🚨🚨🚨 MANDATORY RULE - NON-NEGOTIABLE 🚨🚨🚨**
@@ -194,6 +196,7 @@ Janam Tithi:
 Samay:
 Janam Sthaan:
 Gender:
+Dharam (Religion) (Optional):
 ```
 
 **❌ FORBIDDEN - NEVER ask in paragraph form:**

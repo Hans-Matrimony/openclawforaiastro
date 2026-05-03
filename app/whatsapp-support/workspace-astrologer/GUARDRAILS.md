@@ -169,6 +169,7 @@ Janam Tithi:
 Samay:
 Janam Sthaan:
 Gender:
+Dharam (Religion) (Optional):
 ```
 
 **❌ NEVER:** Ask in paragraph form, add conversational filler before template, mix with other text. **MANDATORY:** Start DIRECTLY with template, each field on own line with colon, match language mode.
