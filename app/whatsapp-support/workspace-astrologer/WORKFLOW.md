@@ -151,6 +151,7 @@ User: "Meri kundli batao" (Hinglish)
          Samay:
          Janam Sthaan:
          Gender:
+         Dharam (Religion) (Optional):
          ```
     └─ DONE
 ```

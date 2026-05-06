@@ -614,6 +614,11 @@
     }
   },
   "tools": {
+    "web": {
+      "search": {
+        "enabled": false
+      }
+    },
     "media": {
       "image": {
         "enabled": true,
