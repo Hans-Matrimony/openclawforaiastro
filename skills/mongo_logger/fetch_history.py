@@ -51,9 +51,10 @@ def call_api_requests(endpoint, params=None):
 
 def call_api_urllib(endpoint, params=None):
     import time
-    # Convert params to query string
+    from urllib.parse import urlencode
+    # Convert params to properly URL-encoded query string
     if params:
-        query_string = "&".join(f"{k}={v}" for k, v in params.items())
+        query_string = urlencode(params, doseq=True)
         full_url = f"{MONGO_LOGGER_URL}{endpoint}?{query_string}"
     else:
         full_url = f"{MONGO_LOGGER_URL}{endpoint}"
@@ -80,13 +81,13 @@ def call_api(endpoint, params=None):
         return call_api_urllib(endpoint, params)
 
 
-def fetch_conversation_history(user_id, limit=40):
+def fetch_conversation_history(user_id, limit=30):
     """
     Fetch recent conversation history for a user.
 
     Args:
         user_id: User's phone number or ID
-        limit: Number of recent messages to fetch (default: 40)
+        limit: Number of recent messages to fetch (default: 30)
 
     Returns:
         Dictionary with messages array and metadata
@@ -97,34 +98,38 @@ def fetch_conversation_history(user_id, limit=40):
         return {"error": result["error"], "messages": []}
 
     # Extract messages from user sessions
-    users = result.get("users", [])
-    messages = []
+    # API returns {userId, sessions: [...]} structure directly
+    sessions = result.get("sessions", [])
+    all_messages = []
 
-    for user in users:
-        sessions = user.get("sessions", [])
-        for session in sessions:
-            session_messages = session.get("messages", [])
-            for msg in session_messages:
-                messages.append({
-                    "role": msg.get("role", "unknown"),
-                    "text": msg.get("text", ""),
-                    "timestamp": msg.get("timestamp", "")
-                })
+    for session in sessions:
+        session_messages = session.get("messages", [])
+        for msg in session_messages:
+            all_messages.append({
+                "role": msg.get("role", "unknown"),
+                "text": msg.get("text", ""),
+                "timestamp": msg.get("timestamp", "")
+            })
+
+    # Get only the last N messages (most recent)
+    messages = all_messages[-limit:] if len(all_messages) > limit else all_messages
 
     return {
         "user_id": user_id,
+        "total_available": len(all_messages),
         "total_messages": len(messages),
         "messages": messages,
         "fetch_limit": limit
     }
 
 
-def format_conversation_summary(messages):
+def format_conversation_summary(messages, total_available=None):
     """
     Format conversation messages into a readable summary for the AI.
 
     Args:
         messages: Array of message objects
+        total_available: Total messages available in database
 
     Returns:
         Formatted string summary
@@ -133,12 +138,12 @@ def format_conversation_summary(messages):
         return "No previous conversation history found."
 
     summary = []
-    summary.append(f"Recent conversation history ({len(messages)} messages):\n")
+    if total_available and total_available > len(messages):
+        summary.append(f"Recent conversation history ({len(messages)} of {total_available} messages):\n")
+    else:
+        summary.append(f"Recent conversation history ({len(messages)} messages):\n")
 
-    # Get last 40 messages (most recent last)
-    recent_messages = messages[-40:] if len(messages) > 40 else messages
-
-    for msg in recent_messages:
+    for msg in messages:
         role = msg.get("role", "unknown")
         text = msg.get("text", "")
         # Truncate long messages
@@ -161,8 +166,8 @@ def main():
     parser.add_argument(
         "--limit",
         type=int,
-        default=40,
-        help="Number of recent messages to fetch (default: 40)"
+        default=30,
+        help="Number of recent messages to fetch (default: 30)"
     )
     parser.add_argument(
         "--format",
@@ -184,8 +189,12 @@ def main():
             print(f"Error: {result['error']}")
             sys.exit(1)
 
-        print(format_conversation_summary(result.get("messages", [])))
+        print(format_conversation_summary(result.get("messages", []), result.get("total_available")))
 
 
 if __name__ == "__main__":
+    # Fix Windows console encoding for Unicode characters
+    import sys
+    if sys.platform == "win32":
+        sys.stdout.reconfigure(encoding='utf-8')
     main()
