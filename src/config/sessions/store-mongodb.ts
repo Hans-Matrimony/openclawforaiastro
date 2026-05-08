@@ -90,12 +90,21 @@ function getMongoDBConfig(): MongoDBConfig {
 // Connection Management
 // ============================================================================
 
+// Log startup
+const mongoConfig = getMongoDBConfig();
+const sanitizedUri = mongoConfig.uri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+console.log('[MongoDB Session Store] ENABLED');
+console.log('[MongoDB Session Store] URI:', sanitizedUri);
+console.log('[MongoDB Session Store] DB:', mongoConfig.dbName);
+console.log('[MongoDB Session Store] Collection:', mongoConfig.collectionName);
+
 async function ensureConnected(): Promise<void> {
   if (mongoClient && mongoDb && sessionsCollection) {
     return;
   }
 
   const config = getMongoDBConfig();
+  console.log('[MongoDB Session Store] Connecting...');
 
   if (!mongoClient) {
     mongoClient = new MongoClient(config.uri, {
@@ -120,7 +129,12 @@ async function ensureConnected(): Promise<void> {
     await sessionsCollection.createIndex({ createdAt: -1 });
     await sessionsCollection.createIndex({ updatedAt: -1 });
     await sessionsCollection.createIndex({ channel: 1 });
+
+    // Count existing sessions
+    const count = await sessionsCollection.countDocuments();
+    console.log('[MongoDB Session Store] Connected! Existing sessions:', count);
   } catch (error) {
+    console.error('[MongoDB Session Store] Connection failed:', error);
     mongoClient = null;
     mongoDb = null;
     sessionsCollection = null;
@@ -242,8 +256,9 @@ export async function loadSessionStore(
         result[entry.sessionKey] = entry;
       }
     }
+    console.log('[MongoDB Session Store] Loaded all sessions:', Object.keys(result).length, 'entries');
   } catch (error) {
-    console.error("Failed to load sessions from MongoDB:", error);
+    console.error("[MongoDB Session Store] Failed to load sessions:", error);
   }
 
   return result;
@@ -260,8 +275,10 @@ export async function loadSessionEntry(sessionKey: string): Promise<SessionEntry
   if (isSessionStoreCacheEnabled()) {
     const cached = SESSION_STORE_CACHE.get(sessionKey);
     if (cached && isSessionStoreCacheValid(cached)) {
+      console.log('[MongoDB Session Store] Cache HIT for:', sessionKey);
       return cached.store[sessionKey] || null;
     }
+    console.log('[MongoDB Session Store] Cache MISS for:', sessionKey);
   }
 
   try {
@@ -275,9 +292,10 @@ export async function loadSessionEntry(sessionKey: string): Promise<SessionEntry
       });
     }
 
+    console.log('[MongoDB Session Store] Loaded entry:', sessionKey, entry ? 'FOUND' : 'NOT FOUND');
     return entry;
   } catch (error) {
-    console.error(`Failed to load session entry for key ${sessionKey}:`, error);
+    console.error(`[MongoDB Session Store] Failed to load session entry for key ${sessionKey}:`, error);
     return null;
   }
 }
@@ -313,8 +331,9 @@ async function saveSessionEntry(entry: SessionEntry): Promise<void> {
 
     // Invalidate cache for this session
     invalidateSessionStoreCache(entry.sessionKey);
+    console.log('[MongoDB Session Store] Saved entry:', entry.sessionKey);
   } catch (error) {
-    console.error(`Failed to save session entry for key ${entry.sessionKey}:`, error);
+    console.error(`[MongoDB Session Store] Failed to save session entry for key ${entry.sessionKey}:`, error);
     throw error;
   }
 }
@@ -347,9 +366,10 @@ export async function saveSessionStore(
   try {
     if (bulkOps.length > 0) {
       await sessionsCollection.bulkWrite(bulkOps, { ordered: false });
+      console.log('[MongoDB Session Store] Bulk saved:', bulkOps.length, 'entries');
     }
   } catch (error) {
-    console.error("Failed to save session store to MongoDB:", error);
+    console.error("[MongoDB Session Store] Failed to save session store:", error);
     throw error;
   }
 }
