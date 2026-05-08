@@ -7,6 +7,23 @@ import {
   TtsConfigSchema,
 } from "./zod-schema.core.js";
 
+// ============================================================================
+// MongoDB Session Store Schema
+// ============================================================================
+
+const MongoDbStoreConfigSchema = z
+  .object({
+    uri: z.string().optional(),
+    dbName: z.string().optional(),
+    collectionName: z.string().optional(),
+    transcriptsCollectionName: z.string().optional(),
+    maxPoolSize: z.number().int().positive().optional(),
+    minPoolSize: z.number().int().nonnegative().optional(),
+    serverSelectionTimeoutMs: z.number().int().positive().optional(),
+    socketTimeoutMs: z.number().int().positive().optional(),
+  })
+  .strict();
+
 const SessionResetConfigSchema = z
   .object({
     mode: z.union([z.literal("daily"), z.literal("idle")]).optional(),
@@ -65,6 +82,7 @@ export const SessionSchema = z
       .optional(),
     resetByChannel: z.record(z.string(), SessionResetConfigSchema).optional(),
     store: z.string().optional(),
+    mongoDb: MongoDbStoreConfigSchema.optional(),
     typingIntervalSeconds: z.number().int().positive().optional(),
     typingMode: z
       .union([
