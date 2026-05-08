@@ -8,8 +8,7 @@
       "mode": "enforce",
       "pruneAfter": "7d",
       "maxEntries": 100,
-      "maxDiskBytes": "500mb",
-      "maxContextTokens": 128000
+      "maxDiskBytes": "500mb"
     }
   },
   "models": {
