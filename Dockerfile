@@ -51,6 +51,11 @@ RUN chmod 600 /app/.openclaw/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
 
+# MongoDB Session Store
+ENV OPENCLAW_MONGODB_URI=mongodb://root:I03G8hNYTTzu5U548eYHBRhFhYHdjaxYnkt5b8hzme80N8lNZMEEYeUE3yXiu4vE@46.225.78.212:5432/?directConnection=true
+ENV OPENCLAW_MONGODB_DB=openclaw
+ENV OPENCLAW_MONGODB_COLLECTION=sessions
+
 # Health check to ensure the gateway is responsive
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD curl -f http://localhost:8000/ || exit 1
