@@ -645,7 +645,7 @@
   "gateway": {
     "port": 8000,
     "mode": "local",
-    "bind": "0.0.0.0",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,
