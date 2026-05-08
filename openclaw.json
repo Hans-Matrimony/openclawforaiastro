@@ -3,7 +3,14 @@
     "level": "info"
   },
   "session": {
-    "dmScope": "per-channel-peer"
+    "dmScope": "per-channel-peer",
+    "maintenance": {
+      "mode": "enforce",
+      "pruneAfter": "7d",
+      "maxEntries": 100,
+      "maxDiskBytes": "500mb",
+      "maxContextTokens": 128000
+    }
   },
   "models": {
     "mode": "merge",
@@ -669,12 +676,23 @@
     }
   },
   "plugins": {
+    "slots": {
+      "contextEngine": "mongo-context-engine"
+    },
     "entries": {
       "telegram": {
         "enabled": false
       },
       "whatsapp": {
         "enabled": false
+      },
+      "mongo-context-engine": {
+        "enabled": true,
+        "config": {
+          "mongoUri": "${OPENCLAW_MONGODB_URI}",
+          "database": "${OPENCLAW_MONGODB_DB}",
+          "collection": "${OPENCLAW_MONGODB_COLLECTION}"
+        }
       }
     }
   }

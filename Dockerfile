@@ -46,6 +46,10 @@ COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 
+# ★ MongoDB context engine plugin
+COPY extensions/mongo-context-engine/ /app/.openclaw/workspace/mongo-context-engine/
+RUN cd /app/.openclaw/workspace/mongo-context-engine && npm install
+
 RUN chmod 600 /app/.openclaw/openclaw.json
 
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw

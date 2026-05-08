@@ -1,0 +1,46 @@
+{
+  "id": "mongo-context-engine",
+  "name": "MongoDB Context Engine",
+  "kind": "context-engine",
+  "description": "Persists OpenClaw sessions to MongoDB with full context lifecycle — ingest, assemble, compact, and maintain.",
+  "author": "Your Name",
+  "license": "MIT",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "mongoUri": {
+        "type": "string",
+        "description": "MongoDB connection string (e.g. mongodb://localhost:27017)",
+        "uiHints": {
+          "label": "MongoDB URI",
+          "placeholder": "mongodb://localhost:27017",
+          "sensitive": true
+        }
+      },
+      "database": {
+        "type": "string",
+        "default": "openclaw_sessions",
+        "description": "MongoDB database name",
+        "uiHints": {
+          "label": "Database Name",
+          "placeholder": "openclaw_sessions"
+        }
+      },
+      "collection": {
+        "type": "string",
+        "default": "sessions",
+        "description": "MongoDB collection name for session documents",
+        "uiHints": {
+          "label": "Collection Name",
+          "placeholder": "sessions"
+        }
+      },
+      "ownsCompaction": {
+        "type": "boolean",
+        "default": false,
+        "description": "When true, the engine manages its own compaction algorithm in MongoDB instead of delegating to the runtime's file-based compaction."
+      }
+    },
+    "required": ["mongoUri"]
+  }
+}

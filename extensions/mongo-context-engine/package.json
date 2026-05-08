@@ -1,0 +1,14 @@
+{
+  "name": "mongo-context-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MongoDB-backed context engine for OpenClaw sessions",
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "dependencies": {
+    "mongodb": "^6.12.0"
+  }
+}
