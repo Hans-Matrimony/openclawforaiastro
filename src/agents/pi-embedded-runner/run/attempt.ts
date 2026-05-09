@@ -79,6 +79,12 @@ import {
 import { buildEmbeddedSandboxInfo } from "../sandbox-info.js";
 import { prewarmSessionFile, trackSessionManagerAccess } from "../session-manager-cache.js";
 import { prepareSessionManagerForRun } from "../session-manager-init.js";
+import { resolveActiveContextEngine } from "../../context-engine-resolver.js";
+import {
+  afterTurnWithContextEngine,
+  assembleSessionWithContextEngine,
+  bootstrapSessionWithContextEngine,
+} from "../../context-engine-session-adapter.js";
 import {
   applySystemPromptOverrideToSession,
   buildEmbeddedSystemPrompt,
@@ -486,6 +492,28 @@ export async function runEmbeddedAttempt(
         throw new Error("Embedded agent session missing");
       }
       const activeSession = session;
+
+      // Resolve and bootstrap the context engine
+      const contextEngine = await resolveActiveContextEngine(params.config ?? {});
+      try {
+        const bootstrapResult = await bootstrapSessionWithContextEngine({
+          sessionId: params.sessionId,
+          sessionKey: params.sessionKey,
+          sessionFile: params.sessionFile,
+          contextEngine,
+        });
+        if (bootstrapResult.bootstrapped) {
+          log.debug(
+            `[context-engine] bootstrapped session ${params.sessionId}` +
+              (bootstrapResult.importedMessages
+                ? ` (imported ${bootstrapResult.importedMessages} messages)`
+                : ""),
+          );
+        }
+      } catch (err) {
+        log.warn(`[context-engine] bootstrap failed: ${err}`);
+      }
+
       const cacheTrace = createCacheTrace({
         cfg: params.config,
         env: process.env,
@@ -534,7 +562,30 @@ export async function runEmbeddedAttempt(
       }
 
       try {
+        // Assemble messages using the context engine
+        let sessionMessages = activeSession.messages;
+        try {
+          const assembled = await assembleSessionWithContextEngine({
+            sessionId: params.sessionId,
+            sessionKey: params.sessionKey,
+            sessionFile: params.sessionFile,
+            contextEngine,
+            messages: sessionMessages,
+            tokenBudget: ctxInfo.tokens,
+            model: `${params.provider}/${params.modelId}`,
+          });
+          sessionMessages = assembled.messages as any;
+          if (assembled.estimatedTokens > 0) {
+            log.debug(
+              `[context-engine] assembled ${sessionMessages.length} messages (~${assembled.estimatedTokens} tokens)`,
+            );
+          }
+        } catch (err) {
+          log.warn(`[context-engine] assemble failed, using file messages: ${err}`);
+        }
+
         const prior = await sanitizeSessionHistory({
+          messages: sessionMessages,
           messages: activeSession.messages,
           modelApi: params.model.api,
           modelId: params.modelId,
@@ -833,6 +884,21 @@ export async function runEmbeddedAttempt(
           note: promptError ? "prompt error" : undefined,
         });
         anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
+
+        // Call afterTurn on the context engine to sync state
+        try {
+          await afterTurnWithContextEngine({
+            sessionId: params.sessionId,
+            sessionKey: params.sessionKey,
+            sessionFile: params.sessionFile,
+            contextEngine,
+            messages: messagesSnapshot,
+            tokenBudget: ctxInfo.tokens,
+            runtimeContext: { promptError, aborted },
+          });
+        } catch (err) {
+          log.warn(`[context-engine] afterTurn failed: ${err}`);
+        }
 
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await

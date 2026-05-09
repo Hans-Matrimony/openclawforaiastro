@@ -223,6 +223,18 @@ export function validateConfigObjectWithPlugins(raw: unknown):
     });
   }
 
+  const contextEngineSlot = normalizedPlugins.slots.contextEngine;
+  if (typeof contextEngineSlot === "string" && contextEngineSlot.trim()) {
+    const trimmed = contextEngineSlot.trim();
+    // Allow "legacy" and "none" as special values, otherwise check against known plugins
+    if (trimmed !== "legacy" && trimmed !== "none" && !knownIds.has(trimmed)) {
+      issues.push({
+        path: "plugins.slots.contextEngine",
+        message: `plugin not found: ${trimmed}`,
+      });
+    }
+  }
+
   const allowedChannels = new Set<string>(["defaults", ...CHANNEL_IDS]);
   for (const record of registry.plugins) {
     for (const channelId of record.channels) {

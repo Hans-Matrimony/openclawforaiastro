@@ -28,7 +28,9 @@ import type {
   PluginHookName,
   PluginHookHandlerMap,
   PluginHookRegistration as TypedPluginHookRegistration,
+  ContextEngineFactory,
 } from "./types.js";
+import { registerContextEngine as registerGlobalContextEngine } from "../agents/context-engine-registry.js";
 import { registerInternalHook } from "../hooks/internal-hooks.js";
 import { resolveUserPath } from "../utils.js";
 import { registerPluginCommand } from "./commands.js";
@@ -94,6 +96,13 @@ export type PluginCommandRegistration = {
   source: string;
 };
 
+export type PluginContextEngineRegistration = {
+  pluginId: string;
+  id: string;
+  factory: ContextEngineFactory;
+  source: string;
+};
+
 export type PluginRecord = {
   id: string;
   name: string;
@@ -134,6 +143,7 @@ export type PluginRegistry = {
   cliRegistrars: PluginCliRegistration[];
   services: PluginServiceRegistration[];
   commands: PluginCommandRegistration[];
+  contextEngines: PluginContextEngineRegistration[];
   diagnostics: PluginDiagnostic[];
 };
 
@@ -157,6 +167,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     cliRegistrars: [],
     services: [],
     commands: [],
+    contextEngines: [],
     diagnostics: [],
   };
   const coreGatewayMethods = new Set(Object.keys(registryParams.coreGatewayHandlers ?? {}));
@@ -458,6 +469,50 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     } as TypedPluginHookRegistration);
   };
 
+  const registerContextEngine = (
+    record: PluginRecord,
+    id: string,
+    factory: ContextEngineFactory,
+  ) => {
+    const trimmedId = id.trim();
+    if (!trimmedId) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: "context engine registration missing id",
+      });
+      return;
+    }
+    const existing = registry.contextEngines.find((entry) => entry.id === trimmedId);
+    if (existing) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: `context engine already registered: ${trimmedId} (${existing.pluginId})`,
+      });
+      return;
+    }
+    registry.contextEngines.push({
+      pluginId: record.id,
+      id: trimmedId,
+      factory,
+      source: record.source,
+    });
+    // Also register with the global context engine registry for runtime resolution
+    try {
+      registerGlobalContextEngine(trimmedId, factory);
+    } catch (err) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: `failed to register context engine globally: ${err}`,
+      });
+    }
+  };
+
   const normalizeLogger = (logger: PluginLogger): PluginLogger => ({
     info: logger.info,
     warn: logger.warn,
@@ -493,6 +548,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       registerCli: (registrar, opts) => registerCli(record, registrar, opts),
       registerService: (service) => registerService(record, service),
       registerCommand: (command) => registerCommand(record, command),
+      registerContextEngine: (id, factory) => registerContextEngine(record, id, factory),
       resolvePath: (input: string) => resolveUserPath(input),
       on: (hookName, handler, opts) => registerTypedHook(record, hookName, handler, opts),
     };
@@ -511,5 +567,6 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registerCommand,
     registerHook,
     registerTypedHook,
+    registerContextEngine,
   };
 }

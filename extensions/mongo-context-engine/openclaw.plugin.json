@@ -3,7 +3,7 @@
   "name": "MongoDB Context Engine",
   "kind": "context-engine",
   "description": "Persists OpenClaw sessions to MongoDB with full context lifecycle — ingest, assemble, compact, and maintain.",
-  "author": "Your Name",
+  "author": "OpenClaw Community",
   "license": "MIT",
   "configSchema": {
     "type": "object",

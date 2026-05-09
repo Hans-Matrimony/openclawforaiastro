@@ -33,7 +33,7 @@ export type PluginConfigUiHint = {
   placeholder?: string;
 };
 
-export type PluginKind = "memory";
+export type PluginKind = "memory" | "context-engine";
 
 export type PluginConfigValidation =
   | { ok: true; value?: unknown }
@@ -268,6 +268,14 @@ export type OpenClawPluginApi = {
     hookName: K,
     handler: PluginHookHandlerMap[K],
     opts?: { priority?: number },
+  ) => void;
+  /**
+   * Register a context engine for session management.
+   * Context engines control how sessions are bootstrapped, ingested, assembled, and compacted.
+   */
+  registerContextEngine: (
+    id: string,
+    factory: ContextEngineFactory,
   ) => void;
 };
 
@@ -524,3 +532,117 @@ export type PluginHookRegistration<K extends PluginHookName = PluginHookName> = 
   priority?: number;
   source: string;
 };
+
+// ============================================================================
+// Context Engine Plugin Types
+// ============================================================================
+
+export type ContextEngineInfo = {
+  id: string;
+  name: string;
+  version?: string;
+  ownsCompaction: boolean;
+};
+
+export type ContextEngineBootstrapParams = {
+  sessionId: string;
+  sessionKey?: string;
+  sessionFile: string;
+};
+
+export type ContextEngineBootstrapResult = {
+  bootstrapped: boolean;
+  reason?: string;
+  importedMessages?: number;
+};
+
+export type ContextEngineIngestParams = {
+  sessionId: string;
+  sessionKey?: string;
+  message: unknown;
+};
+
+export type ContextEngineIngestResult = {
+  ingested: boolean;
+};
+
+export type ContextEngineIngestBatchParams = {
+  sessionId: string;
+  sessionKey?: string;
+  messages: unknown[];
+};
+
+export type ContextEngineIngestBatchResult = {
+  ingestedCount: number;
+};
+
+export type ContextEngineAssembleParams = {
+  sessionId: string;
+  sessionKey?: string;
+  messages: unknown[];
+  tokenBudget?: number;
+  model?: string;
+  prompt?: string;
+};
+
+export type ContextEngineAssembleResult = {
+  messages: unknown[];
+  estimatedTokens: number;
+};
+
+export type ContextEngineAfterTurnParams = {
+  sessionId: string;
+  sessionKey?: string;
+  sessionFile: string;
+  messages?: unknown[];
+  tokenBudget?: number;
+  runtimeContext?: unknown;
+};
+
+export type ContextEngineCompactParams = {
+  sessionId: string;
+  sessionKey?: string;
+  sessionFile: string;
+  tokenBudget?: number;
+  force?: boolean;
+  currentTokenCount?: number;
+  runtimeContext?: unknown;
+};
+
+export type ContextEngineCompactResult = {
+  ok: boolean;
+  compacted: boolean;
+  reason?: string;
+  result?: {
+    tokensBefore?: number;
+    tokensAfter?: number;
+    summary?: string;
+  };
+};
+
+export type ContextEngineMaintainParams = {
+  sessionId: string;
+  sessionKey?: string;
+  sessionFile: string;
+  runtimeContext?: unknown;
+};
+
+export type ContextEngineMaintainResult = {
+  changed: boolean;
+  bytesFreed: number;
+  rewrittenEntries: number;
+};
+
+export type ContextEngine = {
+  get info(): ContextEngineInfo;
+  bootstrap?(params: ContextEngineBootstrapParams): Promise<ContextEngineBootstrapResult>;
+  ingest?(params: ContextEngineIngestParams): Promise<ContextEngineIngestResult>;
+  ingestBatch?(params: ContextEngineIngestBatchParams): Promise<ContextEngineIngestBatchResult>;
+  assemble(params: ContextEngineAssembleParams): Promise<ContextEngineAssembleResult>;
+  afterTurn?(params: ContextEngineAfterTurnParams): Promise<void>;
+  compact?(params: ContextEngineCompactParams): Promise<ContextEngineCompactResult>;
+  maintain?(params: ContextEngineMaintainParams): Promise<ContextEngineMaintainResult>;
+  dispose?(): Promise<void> | void;
+};
+
+export type ContextEngineFactory = () => ContextEngine;

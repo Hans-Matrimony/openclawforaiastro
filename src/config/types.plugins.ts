@@ -6,6 +6,8 @@ export type PluginEntryConfig = {
 export type PluginSlotsConfig = {
   /** Select which plugin owns the memory slot ("none" disables memory plugins). */
   memory?: string;
+  /** Select which context engine plugin to use for session management. */
+  contextEngine?: string;
 };
 
 export type PluginsLoadConfig = {
