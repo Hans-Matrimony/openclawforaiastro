@@ -39,6 +39,24 @@
         "type": "boolean",
         "default": false,
         "description": "When true, the engine manages its own compaction algorithm in MongoDB instead of delegating to the runtime's file-based compaction."
+      },
+      "cacheSize": {
+        "type": "number",
+        "default": 50,
+        "description": "Maximum number of sessions to cache in memory. Higher = faster but more RAM usage.",
+        "uiHints": {
+          "label": "Cache Size",
+          "placeholder": "50"
+        }
+      },
+      "maintainEveryNTurns": {
+        "type": "number",
+        "default": 3,
+        "description": "Only sync to MongoDB every N turns. Higher = less frequent writes but more data loss risk on crash.",
+        "uiHints": {
+          "label": "Sync Frequency",
+          "placeholder": "3"
+        }
       }
     },
     "required": ["mongoUri"]

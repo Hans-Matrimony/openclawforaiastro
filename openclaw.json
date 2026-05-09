@@ -693,7 +693,9 @@
         "config": {
           "mongoUri": "${OPENCLAW_MONGODB_URI}",
           "database": "${OPENCLAW_MONGODB_DB}",
-          "collection": "${OPENCLAW_MONGODB_COLLECTION}"
+          "collection": "${OPENCLAW_MONGODB_COLLECTION}",
+          "cacheSize": 100,
+          "maintainEveryNTurns": 5
         }
       }
     }
