@@ -115,10 +115,11 @@ export default definePluginEntry({
       async bootstrap({ sessionId, sessionKey, sessionFile }: any) {
         const { col: c } = await ensureConnected();
         registerShutdown();
-        log.info(`[mongo-ce] bootstrap session=${sessionId}`);
+        log.info(`[mongo-ce] bootstrap called: sessionId=${sessionId}, sessionKey=${sessionKey}, sessionFile=${sessionFile}`);
 
         const existing = await c.findOne({ _id: sessionId });
         if (existing) {
+          log.info(`[mongo-ce] bootstrap: session already exists in Mongo, skipping`);
           return { bootstrapped: false, reason: "already exists in Mongo" };
         }
 
@@ -192,8 +193,9 @@ export default definePluginEntry({
         return { ingestedCount: messages.length };
       },
 
-      async afterTurn({ sessionId, sessionKey }: any) {
+      async afterTurn({ sessionId, sessionKey, messages }: any) {
         const { col: c } = await ensureConnected();
+        log.info(`[mongo-ce] afterTurn called: sessionId=${sessionId}, sessionKey=${sessionKey}, messages=${messages?.length}`);
         await c.updateOne(
           { _id: sessionId },
           {
@@ -202,8 +204,11 @@ export default definePluginEntry({
               "meta.lastTurnAt": new Date().toISOString(),
               ...(sessionKey ? { sessionKey } : {}),
             },
+            $setOnInsert: { createdAt: new Date(), meta: {}, messages: messages ?? [] },
           },
+          { upsert: true },
         );
+        log.info(`[mongo-ce] afterTurn: completed MongoDB upsert`);
       },
 
       async assemble({ sessionId, messages }: any) {
@@ -298,18 +303,24 @@ export default definePluginEntry({
 
       async maintain({ sessionId, sessionKey, sessionFile }: any) {
         const { col: c } = await ensureConnected();
+        log.info(`[mongo-ce] maintain called: sessionId=${sessionId}, sessionFile=${sessionFile}`);
         const fileMessages: ChatMessage[] = [];
         try {
           const data = readFileSync(sessionFile, "utf-8").trim();
+          log.info(`[mongo-ce] maintain: file data length=${data?.length ?? 0}`);
           if (data) {
             fileMessages.push(
               ...data.split("\n").filter(Boolean).map((l) => JSON.parse(l) as ChatMessage),
             );
           }
-        } catch {}
+          log.info(`[mongo-ce] maintain: parsed ${fileMessages.length} messages from file`);
+        } catch (err: unknown) {
+          log.warn(`[mongo-ce] maintain: read error: ${err}`);
+        }
 
         if (fileMessages.length > 0) {
-          await c.updateOne(
+          log.info(`[mongo-ce] maintain: updating MongoDB with ${fileMessages.length} messages`);
+          const result = await c.updateOne(
             { _id: sessionId },
             {
               $set: {
@@ -319,6 +330,9 @@ export default definePluginEntry({
               },
             },
           );
+          log.info(`[mongo-ce] maintain: update result matched=${result.matchedCount} modified=${result.modifiedCount} upserted=${result.upsertedCount}`);
+        } else {
+          log.info(`[mongo-ce] maintain: no messages in file, skipping MongoDB update`);
         }
         return { changed: true, bytesFreed: 0, rewrittenEntries: 0 };
       },
