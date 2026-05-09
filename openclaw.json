@@ -675,6 +675,9 @@
     }
   },
   "plugins": {
+    "allow": [
+      "mongo-context-engine"
+    ],
     "slots": {
       "contextEngine": "mongo-context-engine"
     },
