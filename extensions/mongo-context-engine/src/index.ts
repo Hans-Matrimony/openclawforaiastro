@@ -196,19 +196,39 @@ export default definePluginEntry({
       async afterTurn({ sessionId, sessionKey, messages }: any) {
         const { col: c } = await ensureConnected();
         log.info(`[mongo-ce] afterTurn called: sessionId=${sessionId}, sessionKey=${sessionKey}, messages=${messages?.length}`);
-        await c.updateOne(
-          { _id: sessionId },
-          {
-            $set: {
-              updatedAt: new Date(),
-              "meta.lastTurnAt": new Date().toISOString(),
-              ...(sessionKey ? { sessionKey } : {}),
+
+        // Check if document exists
+        const existing = await c.findOne({ _id: sessionId });
+
+        if (existing) {
+          // Document exists - just update timestamp and lastTurnAt
+          await c.updateOne(
+            { _id: sessionId },
+            {
+              $set: {
+                updatedAt: new Date(),
+                "meta.lastTurnAt": new Date().toISOString(),
+                ...(sessionKey ? { sessionKey } : {}),
+              },
             },
-            $setOnInsert: { createdAt: new Date(), meta: {}, messages: messages ?? [] },
-          },
-          { upsert: true },
-        );
-        log.info(`[mongo-ce] afterTurn: completed MongoDB upsert`);
+          );
+        } else {
+          // Document doesn't exist - create it with messages
+          await c.updateOne(
+            { _id: sessionId },
+            {
+              $set: {
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                "meta.lastTurnAt": new Date().toISOString(),
+                ...(sessionKey ? { sessionKey } : {}),
+                messages: messages ?? [],
+              },
+            },
+            { upsert: true },
+          );
+        }
+        log.info(`[mongo-ce] afterTurn: completed`);
       },
 
       async assemble({ sessionId, messages }: any) {
