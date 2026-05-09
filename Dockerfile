@@ -47,8 +47,12 @@ COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 
 # ★ MongoDB context engine plugin
-COPY extensions/mongo-context-engine/ /app/.openclaw/workspace/mongo-context-engine/
-RUN cd /app/.openclaw/workspace/mongo-context-engine && npm install
+# NOTE: Due to volume mounts, this plugin must also exist on the host at:
+#   ${OPENCLAW_CONFIG_DIR}/extensions/mongo-context-engine/
+# The COPY below ensures it exists in the image, but volume mounts take precedence
+RUN mkdir -p /app/.openclaw/extensions/mongo-context-engine
+COPY extensions/mongo-context-engine/ /app/.openclaw/extensions/mongo-context-engine/
+RUN cd /app/.openclaw/extensions/mongo-context-engine && npm install
 
 RUN chmod 600 /app/.openclaw/openclaw.json
 
