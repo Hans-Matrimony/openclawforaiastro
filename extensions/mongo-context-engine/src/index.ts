@@ -158,7 +158,8 @@ export default definePluginEntry({
 
       async ingest({ sessionId, sessionKey, message }: any) {
         const { col: c } = await ensureConnected();
-        await c.updateOne(
+        log.info(`[mongo-ce] ingest called: sessionId=${sessionId}, sessionKey=${sessionKey}`);
+        const result = await c.updateOne(
           { _id: sessionId },
           {
             $push: { messages: message } as any,
@@ -170,6 +171,7 @@ export default definePluginEntry({
           },
           { upsert: true },
         );
+        log.info(`[mongo-ce] ingest result: matched=${result.matchedCount}, modified=${result.modifiedCount}, upserted=${result.upsertedCount}`);
         return { ingested: true };
       },
 
@@ -206,10 +208,13 @@ export default definePluginEntry({
 
       async assemble({ sessionId, messages }: any) {
         const { col: c } = await ensureConnected();
+        log.info(`[mongo-ce] assemble called: sessionId=${sessionId}, incoming messages=${messages?.length}`);
         const doc = await c.findOne({ _id: sessionId });
+        log.info(`[mongo-ce] assemble: doc found=${!!doc}, doc.messages=${doc?.messages?.length}`);
         const sourceMessages: any =
           doc?.messages?.length ? doc.messages : messages;
         const estimatedTokens = estimateTokens(sourceMessages);
+        log.info(`[mongo-ce] assemble: returning ${sourceMessages?.length} messages, ${estimatedTokens} tokens`);
         return { messages: sourceMessages, estimatedTokens };
       },
 
