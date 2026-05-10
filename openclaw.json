@@ -3,7 +3,13 @@
     "level": "info"
   },
   "session": {
-    "dmScope": "per-channel-peer"
+    "dmScope": "per-channel-peer",
+    "maintenance": {
+      "mode": "enforce",
+      "pruneAfter": "3d",
+      "maxEntries": 50,
+      "maxDiskBytes": "500mb"
+    }
   },
   "models": {
     "mode": "merge",
