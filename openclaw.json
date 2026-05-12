@@ -6,8 +6,8 @@
     "dmScope": "per-channel-peer",
     "maintenance": {
       "mode": "enforce",
-      "pruneAfter": "7d",
-      "maxEntries": 100,
+      "pruneAfter": "3d",
+      "maxEntries": 50,
       "maxDiskBytes": "500mb"
     }
   },
