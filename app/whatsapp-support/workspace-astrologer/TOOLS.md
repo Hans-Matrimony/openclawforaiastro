@@ -159,7 +159,7 @@ Do NOT invent a placeholder. ONLY use the exact HTTPS URL output by the tool.
 
 **Example exact output format (Match Language Mode!):**
 ```
-Rahul ji, aapka Kundli chart tayyar ho gaya hai. (OR: Rahul ji, your Kundli chart is ready.)
+Aapka Kundli chart tayyar ho gaya hai. (OR: Your Kundli chart is ready.)
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai. (OR: Your Rashi is Pisces...)
 

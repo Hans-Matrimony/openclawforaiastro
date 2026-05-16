@@ -147,9 +147,9 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py search "important person daughter
 ```
 
 **Use this to:**
-- Ask about people they care about: "Aradhya ji kaisi hain ab?"
+- Ask about people they care about: "Aradhya kaisi hain ab?"
 - Show you remember: "Aapki beti ke baare mein socha, thodi improvement hui na?"
-- Build connection: "Aapki Priya ji kaisi hain?"
+- Build connection: "Aapki Priya kaisi hain?"
 
 ### Strategy 3: **Concerns Progress Search** (Use for Follow-up)
 ```bash
@@ -246,11 +246,11 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "+91987654321
 
 **Step 3: Personalized Response**
 ```
-Agent: "Arre Amlan ji! Aapki yaad aa gayi.
+Agent: "Aapki yaad aa gayi.
 
 Pichli baar itna stress share kiya tha career ke baare mein. Ab kaisa feel ho raha hai?
 
-Arre Aradhya ji kaisi hain ab? Thodi improvement hui na unki health mein?
+Aradhya kaisi hain ab? Thodi improvement hui na unki health mein?
 
 Hanuman Chalisa try kiya tha jo maine suggest kiya tha? Koi farak pad raha hai?"
 
