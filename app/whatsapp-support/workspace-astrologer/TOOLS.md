@@ -187,6 +187,6 @@ IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714
 ```
 
 ## Platform Notes
-- **WhatsApp:** No markdown tables. Use **bold** for emphasis, but **NEVER use bullet lists (- or *) or numbered lists**. Write in flowing natural paragraphs. Keep messages under 500 chars.
+- **WhatsApp:** Plain text ONLY. NO bold, NO bullets, NO numbered lists, NO headers, NO markdown. Max ~250 characters total per reply (3 short bubbles). Sound like a human texting — not an article.
 - **Telegram:** Markdown supported. Can use longer messages.
 - **Web Chat:** Full formatting available.
