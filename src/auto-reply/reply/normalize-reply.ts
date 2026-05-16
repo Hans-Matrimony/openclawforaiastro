@@ -7,6 +7,7 @@ import {
   resolveResponsePrefixTemplate,
   type ResponsePrefixContext,
 } from "./response-prefix-template.js";
+import { polishCompanionReplyText } from "./companion-text-polish.js";
 
 export type NormalizeReplySkipReason = "empty" | "silent" | "heartbeat";
 
@@ -63,6 +64,7 @@ export function normalizeReplyPayload(
 
   if (text) {
     text = sanitizeUserFacingText(text);
+    text = polishCompanionReplyText(text);
   }
   if (!text?.trim() && !hasMedia && !hasChannelData) {
     opts.onSkip?.("empty");
