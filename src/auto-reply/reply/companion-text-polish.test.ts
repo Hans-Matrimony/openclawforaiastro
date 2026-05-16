@@ -23,4 +23,10 @@ describe("companion-text-polish", () => {
       "jaise chart mein dikhta hai",
     );
   });
+
+  it("replaces phir wahi sawaal", () => {
+    expect(polishCompanionReplyText("Itni raat ko phir wahi sawaal, mann mein kuch")).toContain(
+      "shaadi ka sawaal",
+    );
+  });
 });

@@ -1,4 +1,5 @@
 import type { ReplyPayload } from "../../auto-reply/types.js";
+import { polishCompanionReplyText } from "../../auto-reply/reply/companion-text-polish.js";
 import { parseReplyDirectives } from "../../auto-reply/reply/reply-directives.js";
 import { isRenderablePayload } from "../../auto-reply/reply/reply-payloads.js";
 
@@ -48,9 +49,10 @@ export function normalizeReplyPayloadsForDelivery(payloads: ReplyPayload[]): Rep
     );
     const hasMultipleMedia = (explicitMediaUrls?.length ?? 0) > 1;
     const resolvedMediaUrl = hasMultipleMedia ? undefined : explicitMediaUrl;
+    const polishedText = parsed.text ? polishCompanionReplyText(parsed.text) : "";
     const next: ReplyPayload = {
       ...payload,
-      text: parsed.text ?? "",
+      text: polishedText,
       mediaUrls: mergedMedia.length ? mergedMedia : undefined,
       mediaUrl: resolvedMediaUrl,
       replyToId: payload.replyToId ?? parsed.replyToId,

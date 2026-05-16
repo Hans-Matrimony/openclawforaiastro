@@ -17,6 +17,8 @@ const BANNED_PHRASE_REPLACEMENTS: Array<{ pattern: RegExp; replacement: string }
   { pattern: /\bjaise\s+pehle\s+bataaya\s+tha\b/gi, replacement: "jaise chart mein dikhta hai" },
   { pattern: /\bmaine\s+pehle\s+bataaya\b/gi, replacement: "" },
   { pattern: /\bmain\s+hoon\s+na\b/gi, replacement: "main yahin hoon" },
+  { pattern: /\bphir\s+wahi\s+sawaal\b/gi, replacement: "shaadi ka sawaal" },
+  { pattern: /\bwapas\s+aa\s+gaye\b/gi, replacement: "phir message kiya" },
 ];
 
 export function softenBannedCompanionPhrases(text: string): string {
