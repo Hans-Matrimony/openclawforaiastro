@@ -11,15 +11,8 @@ export async function applySessionHints(params: {
   storePath?: string;
   abortKey?: string;
   messageId?: string;
-  prependHints?: string[];
 }): Promise<string> {
   let prefixedBodyBase = params.baseBody;
-  if (params.prependHints?.length) {
-    const block = params.prependHints.map((h) => h.trim()).filter(Boolean).join("\n\n");
-    if (block) {
-      prefixedBodyBase = `${block}\n\n${prefixedBodyBase}`;
-    }
-  }
   const abortedHint = params.abortedLastRun
     ? "Note: The previous agent run was aborted by the user. Resume carefully or ask for clarification."
     : "";

@@ -93,8 +93,6 @@ export type SessionEntry = {
   lastThreadId?: string | number;
   skillsSnapshot?: SessionSkillSnapshot;
   systemPromptReport?: SessionSystemPromptReport;
-  /** Locked reply language (english, hinglish, telugu, tamil, mirror, etc.). */
-  companionLanguageMode?: string;
 };
 
 export function mergeSessionEntry(
