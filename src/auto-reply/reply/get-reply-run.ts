@@ -38,6 +38,11 @@ import {
 import { SILENT_REPLY_TOKEN } from "../tokens.js";
 import { runReplyAgent } from "./agent-runner.js";
 import { applySessionHints } from "./body.js";
+import { buildCompanionAstroRatioHint, COMPANION_ASTRO_RATIO_AGENT_IDS } from "./companion-astro-ratio.js";
+import {
+  COMPANION_LANGUAGE_LOCK_AGENT_IDS,
+  resolveCompanionLanguageMode,
+} from "./conversation-language.js";
 import { buildGroupIntro } from "./groups.js";
 import { resolveQueueSettings } from "./queue.js";
 import { routeReply } from "./route-reply.js";
@@ -181,8 +186,44 @@ export async function runPreparedReply(
       })
     : "";
   const groupSystemPrompt = sessionCtx.GroupSystemPrompt?.trim() ?? "";
-  const extraSystemPrompt = [groupIntro, groupSystemPrompt].filter(Boolean).join("\n\n");
   const baseBody = sessionCtx.BodyStripped ?? sessionCtx.Body ?? "";
+  const languageSourceText = (sessionCtx.BodyStripped ?? sessionCtx.Body ?? ctx.RawBody ?? "").trim();
+  const runtimeSystemHints: string[] = [];
+  if (COMPANION_ASTRO_RATIO_AGENT_IDS.has(agentId)) {
+    runtimeSystemHints.push(buildCompanionAstroRatioHint());
+  }
+  if (COMPANION_LANGUAGE_LOCK_AGENT_IDS.has(agentId)) {
+    const resolvedLanguage = resolveCompanionLanguageMode({
+      messageText: languageSourceText,
+      sessionEntry,
+    });
+    runtimeSystemHints.push(resolvedLanguage.hint);
+    if (
+      resolvedLanguage.updatedMode &&
+      sessionEntry &&
+      sessionStore &&
+      sessionKey &&
+      storePath
+    ) {
+      sessionEntry.companionLanguageMode = resolvedLanguage.mode;
+      sessionEntry.updatedAt = Date.now();
+      sessionStore[sessionKey] = sessionEntry;
+      await updateSessionStore(storePath, (store) => {
+        const entry = store[sessionKey] ?? sessionEntry;
+        if (!entry) {
+          return;
+        }
+        store[sessionKey] = {
+          ...entry,
+          companionLanguageMode: resolvedLanguage.mode,
+          updatedAt: Date.now(),
+        };
+      });
+    }
+  }
+  const extraSystemPrompt = [groupIntro, groupSystemPrompt, ...runtimeSystemHints]
+    .filter(Boolean)
+    .join("\n\n");
   // Use CommandBody/RawBody for bare reset detection (clean message without structural context).
   const rawBodyTrimmed = (ctx.CommandBody ?? ctx.RawBody ?? ctx.Body ?? "").trim();
   const baseBodyTrimmedRaw = baseBody.trim();
@@ -218,6 +259,7 @@ export async function runPreparedReply(
     storePath,
     abortKey: command.abortKey,
     messageId: sessionCtx.MessageSid,
+    prependHints: runtimeSystemHints.length ? runtimeSystemHints : undefined,
   });
   const isGroupSession = sessionEntry?.chatType === "group" || sessionEntry?.chatType === "channel";
   const isMainSession = !isGroupSession && sessionKey === normalizeMainKey(sessionCfg?.mainKey);
