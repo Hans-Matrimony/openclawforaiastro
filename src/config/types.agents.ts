@@ -75,6 +75,10 @@ export type AgentBinding = {
     channel: string;
     accountId?: string;
     peer?: { kind: "dm" | "group" | "channel"; id: string };
+    /** Route direct-message peers by normalized phone number prefixes, e.g. ["+1", "+44"]. */
+    phonePrefixes?: string[];
+    /** Exclude normalized phone prefixes from a phone route, useful for "all except" routing. */
+    excludePhonePrefixes?: string[];
     guildId?: string;
     teamId?: string;
   };

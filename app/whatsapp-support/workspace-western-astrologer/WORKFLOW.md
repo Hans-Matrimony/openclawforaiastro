@@ -142,6 +142,17 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limi
   - Run `python3 ~/.openclaw/skills/western/natal_chart.py`
   - Use mem0 data DIRECTLY - DON'T ask user again!
   - Store chart positions in context
+  - If warnings are returned, avoid precise Moon/Ascendant/house claims unless the warning is unrelated
+
+**STEP 3.6: Image or PDF Request**
+- If user asks for chart image, wheel, or birth chart visual:
+  - Follow `NATAL_RESPONSE.md`
+  - Run `draw_natal_chart.py`
+  - Send the exact media output line through the platform
+- If user asks for PDF/report:
+  - Follow `NATAL_RESPONSE.md`
+  - Include `WESTERN_PDF_REQUEST: dob=..., tob=..., place=..., name=...`
+  - The backend will generate and send the PDF document
 
 **STEP 4: Is it an astrology question?**
 - YES → **Friend-first flow** (validate emotion → curious question)

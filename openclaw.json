@@ -542,6 +542,41 @@
             "image"
           ]
         }
+      },
+      {
+        "id": "western-astrologer",
+        "name": "Western Astrology Support",
+        "workspace": "/app/.openclaw/workspace-western-astrologer",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash"
+        },
+        "skills": [
+          "mongo_logger",
+          "mcporter",
+          "weather",
+          "mem0",
+          "qdrant",
+          "web_search",
+          "western",
+          "western_pdf",
+          "nano-banana-pro",
+          "openai-image-gen"
+        ],
+        "identity": {
+          "name": "Western Astro Hans",
+          "theme": "Western astrology support via WhatsApp",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "messaging",
+          "alsoAllow": [
+            "exec",
+            "read",
+            "process",
+            "tts",
+            "image"
+          ]
+        }
       }
     ]
   },
@@ -550,6 +585,30 @@
       "agentId": "main",
       "match": {
         "channel": "web"
+      }
+    },
+    {
+      "agentId": "western-astrologer",
+      "match": {
+        "channel": "whatsapp",
+        "phonePrefixes": [
+          "*"
+        ],
+        "excludePhonePrefixes": [
+          "+91",
+          "+92",
+          "+93",
+          "+880",
+          "+94",
+          "+977",
+          "+960",
+          "+975",
+          "+95",
+          "+230",
+          "+679",
+          "+592",
+          "+597"
+        ]
       }
     },
     {

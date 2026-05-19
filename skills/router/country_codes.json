@@ -1,5 +1,5 @@
 {
-  "vedic_astrolology_countries": {
+  "vedic_astrology_countries": {
     "description": "Countries that route to Vedic Astrologer (South Asian region)",
     "countries": [
       {
@@ -75,7 +75,7 @@
     ],
     "notes": "These countries have strong Vedic astrology traditions and large populations familiar with Kundli, Nakshatras, Dasha systems."
   },
-  "western_astrolology_default": {
+  "western_astrology_default": {
     "description": "All other countries route to Western Astrologer (default)",
     "notes": "Western astrology uses Sun signs, tropical zodiac, Placidus houses, and aspect-based interpretations."
   }
