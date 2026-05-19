@@ -27,6 +27,8 @@ export const BindingsSchema = z
               })
               .strict()
               .optional(),
+            phonePrefixes: z.array(z.string()).optional(),
+            excludePhonePrefixes: z.array(z.string()).optional(),
             guildId: z.string().optional(),
             teamId: z.string().optional(),
           })

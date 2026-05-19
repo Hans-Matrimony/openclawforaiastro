@@ -40,6 +40,7 @@ export type ResolvedAgentRoute = {
   matchedBy:
     | "binding.peer"
     | "binding.peer.parent"
+    | "binding.phone"
     | "binding.guild"
     | "binding.team"
     | "binding.account"
@@ -145,6 +146,70 @@ function matchesPeer(
   return kind === peer.kind && id === peer.id;
 }
 
+function normalizePhoneLike(value: string | undefined | null): string {
+  const raw = normalizeId(value);
+  if (!raw) {
+    return "";
+  }
+  const withoutProvider = raw.replace(/^[a-z]+:/i, "");
+  const cleaned = withoutProvider.replace(/[^\d+]/g, "");
+  if (!cleaned) {
+    return "";
+  }
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+}
+
+function normalizePhonePrefix(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed === "*") {
+    return trimmed;
+  }
+  const cleaned = trimmed.replace(/[^\d+]/g, "");
+  if (!cleaned) {
+    return "";
+  }
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+}
+
+function matchesPhonePrefixList(prefixes: string[] | undefined, phone: string): boolean {
+  if (!prefixes?.length || !phone) {
+    return false;
+  }
+  return prefixes.some((prefix) => {
+    const normalized = normalizePhonePrefix(prefix);
+    return normalized === "*" || (!!normalized && phone.startsWith(normalized));
+  });
+}
+
+function matchesPhoneRoute(
+  match:
+    | {
+        phonePrefixes?: string[] | undefined;
+        excludePhonePrefixes?: string[] | undefined;
+      }
+    | undefined,
+  peer: RoutePeer,
+): boolean {
+  if (peer.kind !== "dm") {
+    return false;
+  }
+  const hasPhoneRule = !!match?.phonePrefixes?.length || !!match?.excludePhonePrefixes?.length;
+  if (!hasPhoneRule) {
+    return false;
+  }
+  const phone = normalizePhoneLike(peer.id);
+  if (!phone) {
+    return false;
+  }
+  if (matchesPhonePrefixList(match?.excludePhonePrefixes, phone)) {
+    return false;
+  }
+  if (!match?.phonePrefixes?.length) {
+    return true;
+  }
+  return matchesPhonePrefixList(match.phonePrefixes, phone);
+}
+
 function matchesGuild(
   match: { guildId?: string | undefined } | undefined,
   guildId: string,
@@ -213,6 +278,11 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
     if (peerMatch) {
       return choose(peerMatch.agentId, "binding.peer");
     }
+
+    const phoneMatch = bindings.find((b) => matchesPhoneRoute(b.match, peer));
+    if (phoneMatch) {
+      return choose(phoneMatch.agentId, "binding.phone");
+    }
   }
 
   // Thread parent inheritance: if peer (thread) didn't match, check parent peer binding
@@ -242,7 +312,12 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
 
   const accountMatch = bindings.find(
     (b) =>
-      b.match?.accountId?.trim() !== "*" && !b.match?.peer && !b.match?.guildId && !b.match?.teamId,
+      b.match?.accountId?.trim() !== "*" &&
+      !b.match?.peer &&
+      !b.match?.phonePrefixes &&
+      !b.match?.excludePhonePrefixes &&
+      !b.match?.guildId &&
+      !b.match?.teamId,
   );
   if (accountMatch) {
     return choose(accountMatch.agentId, "binding.account");
@@ -250,7 +325,12 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
 
   const anyAccountMatch = bindings.find(
     (b) =>
-      b.match?.accountId?.trim() === "*" && !b.match?.peer && !b.match?.guildId && !b.match?.teamId,
+      b.match?.accountId?.trim() === "*" &&
+      !b.match?.peer &&
+      !b.match?.phonePrefixes &&
+      !b.match?.excludePhonePrefixes &&
+      !b.match?.guildId &&
+      !b.match?.teamId,
   );
   if (anyAccountMatch) {
     return choose(anyAccountMatch.agentId, "binding.channel");

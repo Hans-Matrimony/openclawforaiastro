@@ -12,8 +12,24 @@ import os
 import sys
 import json
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import floor
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    ZoneInfo = None
+
+try:
+    from timezonefinder import TimezoneFinder
+    _TIMEZONE_FINDER = TimezoneFinder()
+except ImportError:
+    _TIMEZONE_FINDER = None
+
+try:
+    from geopy.geocoders import Nominatim
+except ImportError:
+    Nominatim = None
 
 # Script directory
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -221,7 +237,37 @@ def calculate_houses(julian_day: float, lat: float, lon: float) -> dict:
             }
         }
     except Exception as e:
-        return {"error": str(e)}
+        try:
+            # Placidus can fail at extreme latitudes; Whole Sign is a stable fallback.
+            cusps, asmc = swe.houses(julian_day, lat, lon, b'W')
+            houses = {}
+            for i in range(12):
+                cusp_long = cusps[i] % 360
+                sign, position = degree_to_sign(cusp_long)
+                houses[i + 1] = {
+                    "cusp": round(cusp_long, 2),
+                    "sign": sign,
+                    "position_in_sign": round(position, 2)
+                }
+            ascendant = degree_to_sign(asmc[0] % 360)
+            midheaven = degree_to_sign(asmc[1] % 360)
+            return {
+                "houses": houses,
+                "house_system": "Whole Sign fallback",
+                "fallback_reason": str(e),
+                "ascendant": {
+                    "longitude": round(asmc[0] % 360, 2),
+                    "sign": ascendant[0],
+                    "position_in_sign": round(ascendant[1], 2)
+                },
+                "midheaven": {
+                    "longitude": round(asmc[1] % 360, 2),
+                    "sign": midheaven[0],
+                    "position_in_sign": round(midheaven[1], 2)
+                }
+            }
+        except Exception as fallback_error:
+            return {"error": str(fallback_error), "fallback_reason": str(e)}
 
 
 def calculate_aspects(positions: dict) -> list:
@@ -274,61 +320,189 @@ def calculate_aspects(positions: dict) -> list:
 # GEOCODING
 # ============================================================================
 
-def geocode_place(place_name: str) -> tuple:
+CITY_DATA = {
+    "new york": (40.7128, -74.0060, "America/New_York"),
+    "london": (51.5074, -0.1278, "Europe/London"),
+    "los angeles": (34.0522, -118.2437, "America/Los_Angeles"),
+    "chicago": (41.8781, -87.6298, "America/Chicago"),
+    "houston": (29.7604, -95.3698, "America/Chicago"),
+    "phoenix": (33.4484, -112.0740, "America/Phoenix"),
+    "miami": (25.7617, -80.1918, "America/New_York"),
+    "atlanta": (33.7490, -84.3880, "America/New_York"),
+    "dallas": (32.7767, -96.7970, "America/Chicago"),
+    "denver": (39.7392, -104.9903, "America/Denver"),
+    "seattle": (47.6062, -122.3321, "America/Los_Angeles"),
+    "san francisco": (37.7749, -122.4194, "America/Los_Angeles"),
+    "boston": (42.3601, -71.0589, "America/New_York"),
+    "washington dc": (38.9072, -77.0369, "America/New_York"),
+    "toronto": (43.6532, -79.3832, "America/Toronto"),
+    "vancouver": (49.2827, -123.1207, "America/Vancouver"),
+    "sydney": (-33.8688, 151.2093, "Australia/Sydney"),
+    "melbourne": (-37.8136, 144.9631, "Australia/Melbourne"),
+    "dubai": (25.2048, 55.2708, "Asia/Dubai"),
+    "abu dhabi": (24.4539, 54.3773, "Asia/Dubai"),
+    "doha": (25.2854, 51.5310, "Asia/Qatar"),
+    "riyadh": (24.7136, 46.6753, "Asia/Riyadh"),
+    "jeddah": (21.5433, 39.1728, "Asia/Riyadh"),
+    "paris": (48.8566, 2.3522, "Europe/Paris"),
+    "berlin": (52.5200, 13.4050, "Europe/Berlin"),
+    "rome": (41.9028, 12.4964, "Europe/Rome"),
+    "madrid": (40.4168, -3.7038, "Europe/Madrid"),
+    "amsterdam": (52.3676, 4.9041, "Europe/Amsterdam"),
+    "brussels": (50.8503, 4.3517, "Europe/Brussels"),
+    "zurich": (47.3769, 8.5417, "Europe/Zurich"),
+    "vienna": (48.2082, 16.3738, "Europe/Vienna"),
+    "stockholm": (59.3293, 18.0686, "Europe/Stockholm"),
+    "oslo": (59.9139, 10.7522, "Europe/Oslo"),
+    "copenhagen": (55.6761, 12.5683, "Europe/Copenhagen"),
+    "helsinki": (60.1695, 24.9354, "Europe/Helsinki"),
+    "munich": (48.1351, 11.5820, "Europe/Berlin"),
+    "frankfurt": (50.1109, 8.6821, "Europe/Berlin"),
+    "barcelona": (41.3851, 2.1734, "Europe/Madrid"),
+    "lisbon": (38.7223, -9.1393, "Europe/Lisbon"),
+}
+
+
+def geocode_place_details(place_name: str) -> tuple:
     """
-    Simple geocoding - returns lat, lon for common cities
+    Return latitude, longitude, timezone name, and source for a place.
 
-    Args:
-        place_name: Name of place
-
-    Returns:
-        (lat, lon) or (None, None)
+    The local city map keeps common Western markets deterministic. If geopy is
+    installed, it is used as a fallback for less common cities.
     """
-    # Common cities database
-    cities = {
-        "new york": (40.7128, -74.0060),
-        "london": (51.5074, -0.1278),
-        "los angeles": (34.0522, -118.2437),
-        "chicago": (41.8781, -87.6298),
-        "houston": (29.7604, -95.3698),
-        "phoenix": (33.4484, -112.0740),
-        "miami": (25.7617, -80.1918),
-        "atlanta": (33.7490, -84.3880),
-        "dallas": (32.7767, -96.7970),
-        "denver": (39.7392, -104.9903),
-        "seattle": (47.6062, -122.3321),
-        "san francisco": (37.7749, -122.4194),
-        "boston": (42.3601, -71.0589),
-        "washington dc": (38.9072, -77.0369),
-        "toronto": (43.6532, -79.3832),
-        "vancouver": (49.2827, -123.1207),
-        "sydney": (-33.8688, 151.2093),
-        "melbourne": (-37.8136, 144.9631),
-        "dubai": (25.2048, 55.2708),
-        "abu dhabi": (24.4539, 54.3773),
-        "doha": (25.2854, 51.5310),
-        "riyadh": (24.7136, 46.6753),
-        "jeddah": (21.5433, 39.1728),
-        "paris": (48.8566, 2.3522),
-        "berlin": (52.5200, 13.4050),
-        "rome": (41.9028, 12.4964),
-        "madrid": (40.4168, -3.7038),
-        "amsterdam": (52.3676, 4.9041),
-        "brussels": (50.8503, 4.3517),
-        "zurich": (47.3769, 8.5417),
-        "vienna": (48.2082, 16.3738),
-        "stockholm": (59.3293, 18.0686),
-        "oslo": (59.9139, 10.7522),
-        "copenhagen": (55.6761, 12.5683),
-        "helsinki": (60.1695, 24.9354),
-        "munich": (48.1351, 11.5820),
-        "frankfurt": (50.1109, 8.6821),
-        "barcelona": (41.3851, 2.1734),
-        "lisbon": (38.7223, -9.1393),
-    }
-
     place_lower = place_name.lower().strip()
-    return cities.get(place_lower, (None, None))
+    if place_lower in CITY_DATA:
+        lat, lon, tz_name = CITY_DATA[place_lower]
+        return lat, lon, tz_name, "local"
+
+    if Nominatim is not None:
+        try:
+            geolocator = Nominatim(user_agent="openclaw-western-astrology")
+            location = geolocator.geocode(place_name, timeout=5)
+            if location:
+                tz_name = None
+                if _TIMEZONE_FINDER is not None:
+                    tz_name = _TIMEZONE_FINDER.timezone_at(
+                        lat=location.latitude,
+                        lng=location.longitude,
+                    )
+                return location.latitude, location.longitude, tz_name, "geopy"
+        except Exception:
+            pass
+
+    return None, None, None, "missing"
+
+
+def geocode_place(place_name: str) -> tuple:
+    """Backwards-compatible lat/lon lookup."""
+    lat, lon, _tz_name, _source = geocode_place_details(place_name)
+    return lat, lon
+
+
+def get_timezone_name(lat: float, lon: float, fallback_tz_name: str = None) -> str:
+    if fallback_tz_name:
+        return fallback_tz_name
+    if _TIMEZONE_FINDER is None:
+        return None
+    try:
+        return _TIMEZONE_FINDER.timezone_at(lat=lat, lng=lon)
+    except Exception:
+        return None
+
+
+def nth_weekday(year: int, month: int, weekday: int, n: int) -> datetime:
+    day = datetime(year, month, 1)
+    offset = (weekday - day.weekday()) % 7
+    return day + timedelta(days=offset + (n - 1) * 7)
+
+
+def last_weekday(year: int, month: int, weekday: int) -> datetime:
+    if month == 12:
+        day = datetime(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        day = datetime(year, month + 1, 1) - timedelta(days=1)
+    return day - timedelta(days=(day.weekday() - weekday) % 7)
+
+
+def is_us_dst(local_dt: datetime) -> bool:
+    start = nth_weekday(local_dt.year, 3, 6, 2).replace(hour=2)
+    end = nth_weekday(local_dt.year, 11, 6, 1).replace(hour=2)
+    return start <= local_dt < end
+
+
+def is_eu_dst(local_dt: datetime) -> bool:
+    start = last_weekday(local_dt.year, 3, 6).replace(hour=1)
+    end = last_weekday(local_dt.year, 10, 6).replace(hour=1)
+    return start <= local_dt < end
+
+
+def is_aus_dst(local_dt: datetime) -> bool:
+    start = nth_weekday(local_dt.year, 10, 6, 1).replace(hour=2)
+    end = nth_weekday(local_dt.year, 4, 6, 1).replace(hour=3)
+    return local_dt >= start or local_dt < end
+
+
+def fallback_timezone_offset_hours(local_dt: datetime, tz_name: str) -> float:
+    fixed_offsets = {
+        "America/Phoenix": -7,
+        "Asia/Dubai": 4,
+        "Asia/Qatar": 3,
+        "Asia/Riyadh": 3,
+    }
+    if tz_name in fixed_offsets:
+        return float(fixed_offsets[tz_name])
+
+    us_offsets = {
+        "America/New_York": -5,
+        "America/Toronto": -5,
+        "America/Chicago": -6,
+        "America/Denver": -7,
+        "America/Los_Angeles": -8,
+        "America/Vancouver": -8,
+    }
+    if tz_name in us_offsets:
+        return float(us_offsets[tz_name] + (1 if is_us_dst(local_dt) else 0))
+
+    eu_offsets = {
+        "Europe/London": 0,
+        "Europe/Paris": 1,
+        "Europe/Berlin": 1,
+        "Europe/Rome": 1,
+        "Europe/Madrid": 1,
+        "Europe/Amsterdam": 1,
+        "Europe/Brussels": 1,
+        "Europe/Zurich": 1,
+        "Europe/Vienna": 1,
+        "Europe/Stockholm": 1,
+        "Europe/Oslo": 1,
+        "Europe/Copenhagen": 1,
+        "Europe/Helsinki": 2,
+        "Europe/Lisbon": 0,
+    }
+    if tz_name in eu_offsets:
+        return float(eu_offsets[tz_name] + (1 if is_eu_dst(local_dt) else 0))
+
+    aus_offsets = {
+        "Australia/Sydney": 10,
+        "Australia/Melbourne": 10,
+    }
+    if tz_name in aus_offsets:
+        return float(aus_offsets[tz_name] + (1 if is_aus_dst(local_dt) else 0))
+
+    return 0.0
+
+
+def get_timezone_offset_hours(local_dt: datetime, tz_name: str) -> float:
+    if not tz_name or ZoneInfo is None:
+        return fallback_timezone_offset_hours(local_dt, tz_name)
+    try:
+        aware_dt = local_dt.replace(tzinfo=ZoneInfo(tz_name))
+        offset = aware_dt.utcoffset()
+        if offset is None:
+            return fallback_timezone_offset_hours(local_dt, tz_name)
+        return offset.total_seconds() / 3600.0
+    except Exception:
+        return fallback_timezone_offset_hours(local_dt, tz_name)
 
 
 # ============================================================================
@@ -353,16 +527,28 @@ def calculate_natal_chart(dob: str, tob: str, place: str) -> dict:
     except ValueError:
         return {"error": "Invalid date/time format. Use YYYY-MM-DD and HH:MM"}
 
-    # Get coordinates
-    lat, lon = geocode_place(place)
+    warnings = []
+
+    # Get coordinates and timezone
+    lat, lon, tz_name, geocode_source = geocode_place_details(place)
     if lat is None:
         return {"error": f"Place '{place}' not found. Try a major city."}
 
-    # Convert to Julian day
+    tz_name = get_timezone_name(lat, lon, tz_name)
+    timezone_offset = get_timezone_offset_hours(dt, tz_name)
+    if not tz_name:
+        warnings.append("Timezone not detected; chart used UTC fallback for planetary calculations.")
+    utc_dt = dt - timedelta(hours=timezone_offset)
+
+    # Convert local birth time to UTC before Julian day, matching Vedic calculator behavior.
     try:
         if _PYSWISSEPH_AVAILABLE:
-            julian_day = swe.julday(dt.year, dt.month, dt.day,
-                                    dt.hour + dt.minute / 60.0)
+            julian_day = swe.julday(
+                utc_dt.year,
+                utc_dt.month,
+                utc_dt.day,
+                utc_dt.hour + utc_dt.minute / 60.0
+            )
         else:
             julian_day = None
     except Exception as e:
@@ -374,8 +560,13 @@ def calculate_natal_chart(dob: str, tob: str, place: str) -> dict:
             "date": dob,
             "time": tob,
             "place": place,
-            "coordinates": {"lat": lat, "lon": lon}
-        }
+            "coordinates": {"lat": lat, "lon": lon},
+            "timezone": tz_name,
+            "timezone_offset_hours": timezone_offset,
+            "utc_datetime": utc_dt.isoformat(timespec="minutes"),
+            "geocode_source": geocode_source
+        },
+        "warnings": warnings
     }
 
     # Simple Sun sign (always available)
@@ -394,6 +585,10 @@ def calculate_natal_chart(dob: str, tob: str, place: str) -> dict:
         # Houses
         houses_data = calculate_houses(julian_day, lat, lon)
         result["houses"] = houses_data
+        if "fallback_reason" in houses_data:
+            warnings.append("Placidus houses failed; Whole Sign fallback was used.")
+        if "error" in houses_data:
+            warnings.append(f"House calculation failed: {houses_data['error']}")
 
         # Aspects
         aspects = calculate_aspects(positions)
@@ -408,6 +603,11 @@ def calculate_natal_chart(dob: str, tob: str, place: str) -> dict:
             result["ascendant"] = houses_data["ascendant"]["sign"]
     else:
         result["note"] = "Limited chart - Swiss Ephemeris not available"
+        result["confidence"] = "low"
+        warnings.append("Swiss Ephemeris not available; only simple Sun sign is reliable.")
+
+    if "confidence" not in result:
+        result["confidence"] = "high" if not warnings else "medium"
 
     return result
 

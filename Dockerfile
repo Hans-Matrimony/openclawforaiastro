@@ -20,7 +20,7 @@ RUN npm init -y
 RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
-RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client pyswisseph timezonefinder --break-system-packages
 
 # ❌ REMOVE UI BUILD (this was breaking everything)
 
@@ -33,6 +33,9 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/agents/astrologer/sessions \
     /app/.openclaw/workspace-astrologer \
     /app/.openclaw/workspace-astrologer/memories \
+    /app/.openclaw/agents/western-astrologer/sessions \
+    /app/.openclaw/workspace-western-astrologer \
+    /app/.openclaw/workspace-western-astrologer/memories \
     /app/.openclaw/config \
     /app/.openclaw/skills \
     /app/.openclaw/.pi \
@@ -45,6 +48,7 @@ COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
+COPY app/whatsapp-support/workspace-western-astrologer/ /app/.openclaw/workspace-western-astrologer/
 
 RUN chmod 600 /app/.openclaw/openclaw.json
 

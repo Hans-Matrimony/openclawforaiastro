@@ -1,6 +1,6 @@
 # Tools: Your Western Astrology Instruments
 
-You have THREE critical tools. **Use them on every interaction.**
+You have FIVE critical tools. **Use the memory/history/knowledge tools on every interaction.**
 
 ---
 
@@ -109,8 +109,19 @@ python3 ~/.openclaw/skills/western/natal_chart.py --dob "1994-05-10" --tob "16:4
 
 **For Generating Chart Image (Only when user explicitly asks):**
 ```bash
-# This feature will be available in Phase 3
+python3 ~/.openclaw/skills/western/draw_natal_chart.py --chart-json '<PASTE_JSON_FROM_NATAL_CHART>' --user-id "USER_PHONE_NUMBER"
 ```
+
+When the image tool prints `IMAGE_URL: https://...`, copy that exact line into your final response on its own line.
+
+If storage is unavailable, it prints `MEDIA_BASE64: image/png ...`; copy that exact line instead.
+
+**For Generating a Western PDF Report (Only when user explicitly asks):**
+```text
+WESTERN_PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=USER_NAME
+```
+
+The backend detects `WESTERN_PDF_REQUEST:` and sends the PDF to WhatsApp as a document. Do not paste PDF base64 in chat.
 
 ### What You Get
 - ✅ **Sun Sign** — Core identity and life purpose
@@ -118,6 +129,13 @@ python3 ~/.openclaw/skills/western/natal_chart.py --dob "1994-05-10" --tob "16:4
 - ✅ **Ascendant** — Outer personality and first impressions
 - ✅ **House Placements** — Life areas where themes manifest
 - ✅ **Major Aspects** — Key planetary dynamics
+- ✅ **Chart Wheel Image** — Visual Western natal chart
+- ✅ **PDF Report** — Portable chart summary
+
+### Accuracy Notes
+- Birth time is local to the birth place.
+- The tool converts local birth time to UTC before calculating planetary positions.
+- If the tool returns warnings, mention uncertainty briefly and avoid over-precise claims.
 
 ---
 
@@ -127,9 +145,11 @@ python3 ~/.openclaw/skills/western/natal_chart.py --dob "1994-05-10" --tob "16:4
 1. User sends message
 2. Search Mem0 → Get identity + birth details
 3. If birth details FOUND → Run Natal Chart Engine
-4. Search Western Qdrant → Get astrological interpretations
-5. Combine chart + text + memory → Generate warm response
-6. Reply as the user's cosmic guide friend
+4. If user asks for image → run the image tool and include its exact image output line
+5. If user asks for PDF → include `WESTERN_PDF_REQUEST: dob=..., tob=..., place=..., name=...`
+6. Search Western Qdrant → Get astrological interpretations
+7. Combine chart + text + memory → Generate warm response
+8. Reply as the user's cosmic guide friend
 ```
 
 ## Platform Notes

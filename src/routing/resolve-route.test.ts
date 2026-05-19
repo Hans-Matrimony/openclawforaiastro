@@ -107,6 +107,96 @@ describe("resolveAgentRoute", () => {
     expect(route.matchedBy).toBe("binding.peer");
   });
 
+  test("phone prefix binding routes international WhatsApp DMs before channel fallback", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "astrologer" },
+          { id: "western-astrologer" },
+        ],
+      },
+      bindings: [
+        {
+          agentId: "western-astrologer",
+          match: {
+            channel: "whatsapp",
+            phonePrefixes: ["+1", "+44"],
+          },
+        },
+        {
+          agentId: "astrologer",
+          match: { channel: "whatsapp" },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      peer: { kind: "dm", id: "+12025551234" },
+    });
+    expect(route.agentId).toBe("western-astrologer");
+    expect(route.matchedBy).toBe("binding.phone");
+  });
+
+  test("phone prefix exclusions keep South Asian WhatsApp DMs on Vedic fallback", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "astrologer" },
+          { id: "western-astrologer" },
+        ],
+      },
+      bindings: [
+        {
+          agentId: "western-astrologer",
+          match: {
+            channel: "whatsapp",
+            phonePrefixes: ["*"],
+            excludePhonePrefixes: ["+91", "+92", "+880", "+94", "+977"],
+          },
+        },
+        {
+          agentId: "astrologer",
+          match: { channel: "whatsapp" },
+        },
+      ],
+    };
+
+    const vedicRoute = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      peer: { kind: "dm", id: "+919876543210" },
+    });
+    expect(vedicRoute.agentId).toBe("astrologer");
+    expect(vedicRoute.matchedBy).toBe("binding.account");
+
+    const westernRoute = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      peer: { kind: "dm", id: "+447700900123" },
+    });
+    expect(westernRoute.agentId).toBe("western-astrologer");
+    expect(westernRoute.matchedBy).toBe("binding.phone");
+  });
+
+  test("phone prefix matching normalizes separators and provider prefixes", () => {
+    const cfg: OpenClawConfig = {
+      bindings: [
+        {
+          agentId: "western",
+          match: { channel: "whatsapp", phonePrefixes: ["+1-868"] },
+        },
+      ],
+    };
+    const route = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      peer: { kind: "dm", id: "whatsapp:+1 (868) 555-0101" },
+    });
+    expect(route.agentId).toBe("western");
+    expect(route.matchedBy).toBe("binding.phone");
+  });
+
   test("discord channel peer binding wins over guild binding", () => {
     const cfg: OpenClawConfig = {
       bindings: [
@@ -255,7 +345,7 @@ test("dmScope=per-account-channel-peer uses default accountId when not provided"
 
 describe("parentPeer binding inheritance (thread support)", () => {
   test("thread inherits binding from parent channel when no direct match", () => {
-    const cfg: MoltbotConfig = {
+    const cfg: OpenClawConfig = {
       bindings: [
         {
           agentId: "adecco",
@@ -277,7 +367,7 @@ describe("parentPeer binding inheritance (thread support)", () => {
   });
 
   test("direct peer binding wins over parent peer binding", () => {
-    const cfg: MoltbotConfig = {
+    const cfg: OpenClawConfig = {
       bindings: [
         {
           agentId: "thread-agent",
@@ -306,7 +396,7 @@ describe("parentPeer binding inheritance (thread support)", () => {
   });
 
   test("parent peer binding wins over guild binding", () => {
-    const cfg: MoltbotConfig = {
+    const cfg: OpenClawConfig = {
       bindings: [
         {
           agentId: "parent-agent",
@@ -336,7 +426,7 @@ describe("parentPeer binding inheritance (thread support)", () => {
   });
 
   test("falls back to guild binding when no parent peer match", () => {
-    const cfg: MoltbotConfig = {
+    const cfg: OpenClawConfig = {
       bindings: [
         {
           agentId: "other-parent-agent",
@@ -366,7 +456,7 @@ describe("parentPeer binding inheritance (thread support)", () => {
   });
 
   test("parentPeer with empty id is ignored", () => {
-    const cfg: MoltbotConfig = {
+    const cfg: OpenClawConfig = {
       bindings: [
         {
           agentId: "parent-agent",
@@ -388,7 +478,7 @@ describe("parentPeer binding inheritance (thread support)", () => {
   });
 
   test("null parentPeer is handled gracefully", () => {
-    const cfg: MoltbotConfig = {
+    const cfg: OpenClawConfig = {
       bindings: [
         {
           agentId: "parent-agent",
