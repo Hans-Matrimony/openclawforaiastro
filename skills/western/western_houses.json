@@ -1,0 +1,228 @@
+{
+  "astrological_houses": {
+    "first_house": {
+      "number": 1,
+      "name": "House of Self",
+      "alternative_names": ["Ascendant", "Rising Sign House"],
+      "ruling_sign": "Aries",
+      "ruling_planet": "Mars",
+      "life_areas": ["identity", "appearance", "personality", "vitality", "first impressions", "self-image", "body", "character"],
+      "keywords": ["I am", "self", "identity", "appearance", "beginnings", "personality"],
+      "description": "The 1st House, also known as your ascendant or rising sign, is determined by the sign on the eastern horizon when you were born. It represents your life, body, and vitality. Your personality features some qualities of your rising sign and any planets or points that dwell here.",
+      "with_planets": "Planets in the 1st House form part of your character and sense of self. You might relate to these planets as special guides.",
+      "empty_house": "Focus on the planet that rules this sign (your chart ruler). The sign and house placement of this planet will inform your identity and purpose.",
+      "transit_effects": "When a planet transits the 1st House, it may feel up close and personal. Venus brings a sweet lift in self-confidence, while Saturn's visit brings reality checks and initiations into adulthood.",
+      "career_indicators": ["personal branding", "leadership", "entrepreneurship", "self-employment", "public face"],
+      "body_parts": ["head", "face", "brain", "eyes"]
+    },
+    "second_house": {
+      "number": 2,
+      "name": "House of Value",
+      "alternative_names": ["House of Possessions", "House of Money"],
+      "ruling_sign": "Taurus",
+      "ruling_planet": "Venus",
+      "life_areas": ["money", "possessions", "material resources", "self-worth", "income", "savings", "values", "talents"],
+      "keywords": ["I have", "money", "possessions", "resources", "values", "self-worth"],
+      "description": "The 2nd House is your piggy bank and treasure chest. It signifies all the ways you earn your livelihood. It's the place of money - specifically your money and how you make it. It's also your collection of inner resources and your vast repertoire of talents.",
+      "with_planets": "Planets here will inform your relationship with money, possessions, and material security. Jupiter brings generosity and extravagance, while Saturn makes you more frugal and careful.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with money and material security.",
+      "transit_effects": "A Uranus transit could lead to unexpected windfalls or shifts in your circumstances, such as an urge to break free from your current job.",
+      "career_indicators": ["finance", "banking", "real estate", "art", "music", " luxury goods"],
+      "body_parts": ["throat", "neck", "thyroid", "vocal cords"]
+    },
+    "third_house": {
+      "number": 3,
+      "name": "House of Communication",
+      "alternative_names": ["House of Learning", "House of Local Environment"],
+      "ruling_sign": "Gemini",
+      "ruling_planet": "Mercury",
+      "life_areas": ["communication", "thinking", "learning", "siblings", "extended family", "local travel", "neighbors", "early education", "technology"],
+      "keywords": ["I think", "communication", "learning", "siblings", "local community"],
+      "description": "The 3rd House is all about your local haunts - the folks in your immediate orbit like siblings, cousins, kindred friends, and extended family. It's the realm of conversation and communication technology, where we transmit and receive all kinds of messages.",
+      "with_planets": "Planets here reflect your communication style, your relationships with siblings and extended family, and the neighborhoods you frequent. Venus brings diplomatic and artful verbal expression.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your communication style and relationships.",
+      "transit_effects": "When Mars passes through this area, you might notice more commotion on your block or more heated exchanges with neighbors.",
+      "career_indicators": ["writing", "journalism", "teaching", "media", "communications", "transportation", "local business"],
+      "body_parts": ["arms", "hands", "shoulders", "lungs", "nervous system"]
+    },
+    "fourth_house": {
+      "number": 4,
+      "name": "House of Home and Family",
+      "alternative_names": ["House of Foundations", "Imum Coeli"],
+      "ruling_sign": "Cancer",
+      "ruling_planet": "Moon",
+      "life_areas": ["home", "family", "parents", "mother", "foundations", "roots", "private life", "ancestry", "childhood", "emotional security"],
+      "keywords": ["I feel", "home", "family", "foundations", "roots", "privacy"],
+      "description": "The 4th House is the midnight of your chart, signifying your home, family, and root system. It represents your lineage, your upbringing, and the life you lead behind closed doors. It's your abode - the place that looks, sounds, smells, and tastes like home.",
+      "with_planets": "Planets here could reflect your upbringing, your caregivers, or your idea of home. Venus may move you to adorn your dwelling with colorful flowers, while Saturn inspires a more minimalist aesthetic.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with home, family, and ancestors.",
+      "transit_effects": "A visit from Jupiter could expand your sense of family or home; you might decide to move into a bigger apartment or grow your family.",
+      "career_indicators": ["real estate", "interior design", "family business", "childcare", "hospitality", "agriculture"],
+      "body_parts": ["chest", "breasts", "stomach", "digestive system", "diaphragm"]
+    },
+    "fifth_house": {
+      "number": 5,
+      "name": "House of Pleasure",
+      "alternative_names": ["House of Creativity", "House of Romance"],
+      "ruling_sign": "Leo",
+      "ruling_planet": "Sun",
+      "life_areas": ["creativity", "romance", "children", "pleasure", "fun", "self-expression", "love affairs", "arts", "entertainment", "gambling"],
+      "keywords": ["I create", "pleasure", "creativity", "romance", "children", "self-expression"],
+      "description": "The 5th House is Venus' boudoir and the site of all sensual pleasures. It's the most generative house - traditionally the place of children, but also the fruits of your artistic or intellectual labors. It's the place of getting creative and simply having fun.",
+      "with_planets": "Planets here might inform how you create and have fun. Saturn may make it difficult to enjoy a pastime that doesn't feel productive to you.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with creativity, pleasure, and children.",
+      "transit_effects": "A Uranus transit will interrupt your regularly scheduled programming with new and unusual forms of fun and spontaneity.",
+      "career_indicators": ["arts", "entertainment", "creative fields", "education", "children's products", "sports", "gambling industry"],
+      "body_parts": ["heart", "back", "spine", "solar plexus"]
+    },
+    "sixth_house": {
+      "number": 6,
+      "name": "House of Health",
+      "alternative_names": ["House of Work", "House of Service"],
+      "ruling_sign": "Virgo",
+      "ruling_planet": "Mercury",
+      "life_areas": ["work", "health", "daily routines", "service", "employees", "pets", "wellness", "diet", "exercise", "healing"],
+      "keywords": ["I serve", "work", "health", "routine", "service", "wellness"],
+      "description": "The 6th House can denote illness, but it's also related to healers, village midwives, witches, and medicine people. This is the place of practical magic - the humble, essential preparation before a great rite of passage. It's about your daily toil and how you serve others.",
+      "with_planets": "Planets here will play a role in your relationship with work and wellness. Mercury could mean you work with words, communication, or data in some way.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with work, health, and wellness.",
+      "transit_effects": "A Mars transit here could bring a flurry of activity and momentum to your workday, but you'll have to pace yourself to avoid burnout.",
+      "career_indicators": ["healthcare", "service industry", "administration", "wellness", "veterinary medicine", "fitness", "nutrition"],
+      "body_parts": ["intestines", "digestive system", "spleen", "nervous system"]
+    },
+    "seventh_house": {
+      "number": 7,
+      "name": "House of Partnership",
+      "alternative_names": ["House of Relationships", "Descendant"],
+      "ruling_sign": "Libra",
+      "ruling_planet": "Venus",
+      "life_areas": ["partnerships", "marriage", "relationships", "business partners", "contracts", "commitment", "open enemies", "public relations"],
+      "keywords": ["I relate", "partnership", "relationships", "marriage", "balance", "commitment"],
+      "description": "While the 1st House represents the self, the 7th House is about other people. It symbolizes those who face you: your beloveds, best friends, and business partners as well as therapists or clients. This is the space of twoness, of companionship and commitment.",
+      "with_planets": "Planets here may represent your relationship habits, the types of people you feel attracted to, and the people you tend to attract. Saturn here may make you feel drawn to older people or those who feel reliable.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with love, partnership, and commitment.",
+      "transit_effects": "Venus' annual visit will sweeten your existing ties to other people and possibly magnetize new folks to your sphere.",
+      "career_indicators": ["law", "counseling", "consulting", "public relations", "partnerships", "mediation"],
+      "body_parts": ["kidneys", "lower back", "skin", "buttocks"]
+    },
+    "eighth_house": {
+      "number": 8,
+      "name": "House of Transformation",
+      "alternative_names": ["House of Death", "House of Shared Resources"],
+      "ruling_sign": "Scorpio",
+      "ruling_planets": ["Mars", "Pluto"],
+      "life_areas": ["death", "rebirth", "transformation", "shared resources", "other people's money", "sex", "intimacy", "inheritance", "debts", "taxes", "mental health", "occult"],
+      "keywords": ["I transform", "death", "rebirth", "shared resources", "intimacy", "transformation"],
+      "description": "Classically described as the 'Gate of Hades,' the 8th House is the domain of all that is deeply buried. This is the threshold between life and death. Folks with significant placements here may gravitate toward grief work or therapy. It also represents material assets threading to and from outside sources.",
+      "with_planets": "Planets here will hint at your collaborations, shared resources, and grief processes. The Sun or Moon here may make you a guide for other people's journeys through mourning or psychological healing.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with grief, loss, shared wealth, and joint ventures.",
+      "transit_effects": "When Jupiter blesses this area, you may find yourself able to soothe or release an old sorrow. You could also receive wealth from an outside source such as a grant, scholarship, or loan.",
+      "career_indicators": ["psychology", "psychiatry", "finance", "investments", "insurance", "inheritance law", "research", "detective work", "sexual health"],
+      "body_parts": ["reproductive organs", "excretory system", "elimination"]
+    },
+    "ninth_house": {
+      "number": 9,
+      "name": "House of Philosophy",
+      "alternative_names": ["House of Higher Learning", "House of Travel"],
+      "ruling_sign": "Sagittarius",
+      "ruling_planet": "Jupiter",
+      "life_areas": ["higher education", "travel", "philosophy", "religion", "spirituality", "publishing", "foreign lands", "wisdom", "ethics", "beliefs"],
+      "keywords": ["I understand", "expansion", "wisdom", "travel", "philosophy", "higher learning"],
+      "description": "In the 9th House, we enter the halls of higher learning - colleges, universities, wisdom traditions. While this house can denote distant journeys, it also rules the roaming of the mind and spirit. It's the home of the wanderer, the philosopher, the priest, and the astrologer.",
+      "with_planets": "Planets here reflect your desire for adventure or your hunger for wisdom and ideas. If you have the Moon here, that could indicate you feel nurtured by exploring and exposing yourself to new experiences.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with higher learning, travel, spirituality, and adventure.",
+      "transit_effects": "Uranus passing through this area could shake up received ideas you previously took for granted; this could present as a crisis of faith or a welcome system update.",
+      "career_indicators": ["higher education", "publishing", "travel industry", "philosophy", "religion", "law", "international business", "teaching"],
+      "body_parts": ["hips", "thighs", "liver", "sacral region"]
+    },
+    "tenth_house": {
+      "number": 10,
+      "name": "House of Career",
+      "alternative_names": ["House of Public Status", "Midheaven", "Medium Coeli"],
+      "ruling_sign": "Capricorn",
+      "ruling_planet": "Saturn",
+      "life_areas": ["career", "public image", "reputation", "achievement", "authority", "fame", "status", "ambition", "profession", "public life"],
+      "keywords": ["I achieve", "career", "public image", "reputation", "achievement", "authority"],
+      "description": "The 10th House is one of the most prominent perches for a planetary actor. It has to do with your career or calling - your life's work, the path that gives you a sense of accomplishment and meaning. This house also relates to your public life and your online platform.",
+      "with_planets": "Planets here will inform your career ambitions, your public roles, and the paths you ultimately feel drawn toward in this life. The Sun in this area could tug you toward leadership positions.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your career, vocation, public roles, and life path.",
+      "transit_effects": "Jupiter's rare visit may bring abundance, accolades, praise, and good press to your career.",
+      "career_indicators": ["leadership", "politics", "business", "public office", "celebrity", "management", "executive positions"],
+      "body_parts": ["knees", "skin", "bones", "skeleton"]
+    },
+    "eleventh_house": {
+      "number": 11,
+      "name": "House of Community",
+      "alternative_names": ["House of Friends", "House of Hopes and Dreams"],
+      "ruling_sign": "Aquarius",
+      "ruling_planets": ["Saturn", "Uranus"],
+      "life_areas": ["friends", "groups", "community", "social networks", "hopes", "dreams", "aspirations", "humanitarian causes", "technology", "innovation", "future goals"],
+      "keywords": ["I hope", "friendship", "community", "hopes", "dreams", "aspirations"],
+      "description": "The 11th House is the clubhouse where all your comrades gather. It's the place where everybody knows your name. This house tells you about the folks in your social sphere and the networks where you circulate. It also relates to the hopes, dreams, and aspirations you share with your collective.",
+      "with_planets": "Planets here may represent your friendships or communal involvements. Jupiter here could create a profusion of acquaintances and social ties.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with friends, social dynamics, and collectives.",
+      "transit_effects": "When Mars passes through this area, you might have to navigate a conflict within a friendship or collective.",
+      "career_indicators": ["technology", "social media", "networking", "community organizing", "humanitarian work", "innovation", "science", "activism"],
+      "body_parts": ["ankles", "calves", "circulatory system"]
+    },
+    "twelfth_house": {
+      "number": 12,
+      "name": "House of Unconscious",
+      "alternative_names": ["House of Secrets", "House of Self-Undoing", "House of Endings"],
+      "ruling_sign": "Pisces",
+      "ruling_planets": ["Jupiter", "Neptune"],
+      "life_areas": ["subconscious", "hidden things", "secrets", "solitude", "spirituality", "dreams", "intuition", "endings", "surrender", "institutions", "charity", "compassion", "self-undoing"],
+      "keywords": ["I surrender", "unconscious", "hidden", "spirituality", "dreams", "endings"],
+      "description": "The 12th House has a complicated reputation. It can represent a limbo between worlds - the threshold between existence and nonexistence. It's associated with secluded spaces and behind-the-scenes activities. If you have significant placements here, you may feel drawn to helping folks on the fringes of society.",
+      "with_planets": "Planets here may reveal sides of you that you find difficult to access. Someone with the Sun here may feel more comfortable behind the scenes.",
+      "empty_house": "Consider the ruler of this house. This planet's sign and house placement will factor into your relationship with solitude, sanctuary, self-limiting habits, and behind-the-scenes activities.",
+      "transit_effects": "A visit from Jupiter could soften your negative self-talk or enlarge your self-compassion; it could also bring the most magnificent rest you've experienced in a long time.",
+      "career_indicators": ["healing", "arts", "spiritual work", "charity work", "institutions", "research", "behind-the-scenes work", "psychology"],
+      "body_parts": ["feet", "toes", "lymphatic system", "pineal gland"]
+    }
+  },
+  "house_systems": {
+    "whole_sign": {
+      "description": "Each house occupies an entire sign (30°). The 1st house starts at the rising sign degree and each subsequent house begins at 0° of the next sign. One of the oldest house systems, commonly used in Hellenistic astrology.",
+      "usage": "Traditional astrology, Hellenistic astrology, many modern practitioners prefer this system"
+    },
+    "placidus": {
+      "description": "Houses vary in size based on the time of day and location. Most commonly used house system in modern Western astrology, especially for natal charts in northern latitudes.",
+      "usage": "Modern Western astrology, most popular system for natal charts"
+    },
+    "koch": {
+      "description": "Similar to Placidus but uses a different calculation method. Popular with psychological astrologers.",
+      "usage": "Psychological astrology, common in Europe"
+    },
+    "campanus": {
+      "description": "Houses are calculated by dividing the prime vertical into 12 equal parts. Often used for location-based astrology.",
+      "usage": "Mundane astrology, locational astrology"
+    },
+    "equal_house": {
+      "description": "Each house is exactly 30°, starting with the ascendant degree as the cusp of the 1st house. Simple and straightforward.",
+      "usage": "Beginner astrology, some Hellenistic approaches"
+    }
+  },
+  "house_quadrants": {
+    "first_quadrant": {
+      "houses": [1, 2, 3],
+      "theme": "Personal Identity and Self-Discovery",
+      "description": "The first quadrant deals with personal identity, how you perceive yourself, your immediate environment, and how you communicate with the world around you."
+    },
+    "second_quadrant": {
+      "houses": [4, 5, 6],
+      "theme": "Personal Expression and Creativity",
+      "description": "The second quadrant focuses on how you express yourself creatively, your home and family life, romantic pursuits, and your daily work and service to others."
+    },
+    "third_quadrant": {
+      "houses": [7, 8, 9],
+      "theme": "Relationships and Expansion",
+      "description": "The third quadrant is about one-on-one partnerships, deep transformations through relationships, and your quest for higher knowledge and meaning."
+    },
+    "fourth_quadrant": {
+      "houses": [10, 11, 12],
+      "theme": "Social Contribution and Spirituality",
+      "description": "The fourth quadrant deals with your contribution to society, your career and public image, your place in the community, and your spiritual evolution and connection to the collective unconscious."
+    }
+  }
+}
