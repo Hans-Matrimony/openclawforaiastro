@@ -46,6 +46,21 @@ PLANET_ABBR = {
     "Neptune": "Nep", "Pluto": "Plu",
 }
 
+PLANET_ORDER = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
+
+ASPECT_COLORS = {
+    "conjunction": "#f8fafc",
+    "Conjunction": "#f8fafc",
+    "sextile": "#22c55e",
+    "Sextile": "#22c55e",
+    "square": "#ef4444",
+    "Square": "#ef4444",
+    "trine": "#38bdf8",
+    "Trine": "#38bdf8",
+    "opposition": "#f97316",
+    "Opposition": "#f97316",
+}
+
 FONT_5X7 = {
     "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
     "B": ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
@@ -294,6 +309,43 @@ def normalize_sign(sign):
     return sign if sign in SIGNS else None
 
 
+def wheel_point(center, radius, longitude):
+    angle = math.radians(180 - (float(longitude) % 360))
+    return center + radius * math.cos(angle), center - radius * math.sin(angle)
+
+
+def normalize_houses(raw_houses):
+    if not isinstance(raw_houses, dict):
+        return {}
+    house_map = raw_houses.get("houses") if isinstance(raw_houses.get("houses"), dict) else raw_houses
+    houses = {}
+    for index in range(1, 13):
+        data = house_map.get(index) or house_map.get(str(index))
+        if not isinstance(data, dict):
+            continue
+        sign = normalize_sign(data.get("sign"))
+        cusp = data.get("cusp")
+        if sign is None or not isinstance(cusp, (int, float)):
+            continue
+        houses[index] = {
+            "cusp": float(cusp),
+            "sign": sign,
+            "position_in_sign": data.get("position_in_sign"),
+        }
+    return houses
+
+
+def extract_angle_marker(chart, key, longitude_key):
+    value = chart.get(longitude_key)
+    if isinstance(value, (int, float)):
+        return float(value)
+    houses = chart.get("houses") or {}
+    marker = houses.get(key)
+    if isinstance(marker, dict) and isinstance(marker.get("longitude"), (int, float)):
+        return float(marker["longitude"])
+    return None
+
+
 def chart_from_args(args):
     chart = {}
     if args.chart_json:
@@ -308,6 +360,7 @@ def chart_from_args(args):
                     "planet": planet,
                     "sign": data.get("sign"),
                     "position_in_sign": data.get("position_in_sign"),
+                    "longitude": data.get("longitude"),
                 })
 
     if args.planets:
@@ -346,7 +399,11 @@ def chart_from_args(args):
         "sun_sign": sun,
         "moon_sign": moon,
         "ascendant": ascendant,
+        "ascendant_longitude": extract_angle_marker(chart, "ascendant", "ascendant_longitude"),
+        "midheaven_longitude": extract_angle_marker(chart, "midheaven", "midheaven_longitude"),
         "planets": planets,
+        "houses": normalize_houses(chart.get("houses") or {}),
+        "aspects": chart.get("aspects") or [],
         "birth_data": chart.get("birth_data") or {},
     }
 
@@ -358,7 +415,10 @@ def draw_chart(chart):
     size = 900
     center = size // 2
     outer = 390
-    middle = 305
+    sign_ring = 310
+    house_ring = 276
+    planet_ring = 238
+    aspect_ring = 122
     inner = 145
 
     bg = "#0f172a"
@@ -372,51 +432,95 @@ def draw_chart(chart):
     img = Image.new("RGB", (size, size), bg)
     draw = ImageDraw.Draw(img)
 
-    font_title = load_font(34, bold=True)
+    font_title = load_font(28, bold=True)
     font_label = load_font(22, bold=True)
-    font_small = load_font(18)
+    font_marker = load_font(18, bold=True)
+    font_small = load_font(16)
     font_tiny = load_font(15)
-    font_planet = load_font(17, bold=True)
+    font_planet = load_font(14, bold=True)
 
     draw.ellipse([center - outer, center - outer, center + outer, center + outer], outline=line, width=3)
-    draw.ellipse([center - middle, center - middle, center + middle, center + middle], outline="#475569", width=2)
+    draw.ellipse([center - sign_ring, center - sign_ring, center + sign_ring, center + sign_ring], outline="#64748b", width=2)
+    draw.ellipse([center - house_ring, center - house_ring, center + house_ring, center + house_ring], outline="#475569", width=1)
     draw.ellipse([center - inner, center - inner, center + inner, center + inner], fill=panel, outline=accent, width=3)
 
     for index, sign in enumerate(SIGNS):
-        start_angle = -90 + index * 30
-        mid_angle = start_angle + 15
-        rad = math.radians(start_angle)
-        x = center + outer * math.cos(rad)
-        y = center + outer * math.sin(rad)
-        draw.line([center, center, x, y], fill="#334155", width=1)
+        inner_x, inner_y = wheel_point(center, sign_ring, index * 30)
+        outer_x, outer_y = wheel_point(center, outer, index * 30)
+        draw.line([inner_x, inner_y, outer_x, outer_y], fill="#334155", width=1)
 
-        label_rad = math.radians(mid_angle)
-        lx = center + 350 * math.cos(label_rad)
-        ly = center + 350 * math.sin(label_rad)
+        lx, ly = wheel_point(center, 350, index * 30 + 15)
         text_center(draw, (lx, ly), SIGN_ABBR[sign], font_label, text)
 
-    grouped = {sign: [] for sign in SIGNS}
+    for house_num in range(1, 13):
+        house = (chart.get("houses") or {}).get(house_num)
+        if not house:
+            continue
+        cusp = float(house["cusp"])
+        inner_x, inner_y = wheel_point(center, inner, cusp)
+        outer_x, outer_y = wheel_point(center, sign_ring, cusp)
+        draw.line([inner_x, inner_y, outer_x, outer_y], fill="#a78bfa", width=1)
+        label_x, label_y = wheel_point(center, house_ring, cusp + 15)
+        text_center(draw, (label_x, label_y), str(house_num), font_tiny, "#c4b5fd")
+
+    planet_items = []
     for item in chart.get("planets", []):
         planet = item.get("planet") or item.get("name")
         sign = normalize_sign(item.get("sign"))
         if not planet or not sign:
             continue
-        grouped.setdefault(sign, []).append(PLANET_ABBR.get(planet, planet[:4]))
+        longitude = item.get("longitude")
+        if not isinstance(longitude, (int, float)):
+            longitude = SIGNS.index(sign) * 30 + float(item.get("position_in_sign") or 15)
+        planet_items.append({
+            "planet": planet,
+            "longitude": float(longitude) % 360,
+            "position_in_sign": float(item.get("position_in_sign") or (float(longitude) % 30)),
+        })
 
-    for index, sign in enumerate(SIGNS):
-        planets = grouped.get(sign) or []
-        if not planets:
+    planet_points = {}
+    for index, item in enumerate(sorted(planet_items, key=lambda value: value["longitude"])):
+        planet = item["planet"]
+        longitude = item["longitude"]
+        label_radius = planet_ring - (index % 3) * 22
+        dot_x, dot_y = wheel_point(center, sign_ring - 18, longitude)
+        label_x, label_y = wheel_point(center, label_radius, longitude)
+        planet_points[planet] = wheel_point(center, aspect_ring, longitude)
+        draw.line([dot_x, dot_y, label_x, label_y], fill="#1e293b", width=1)
+        draw.ellipse([dot_x - 4, dot_y - 4, dot_x + 4, dot_y + 4], fill=planet_color, outline=text)
+        text_center(
+            draw,
+            (label_x, label_y),
+            f"{PLANET_ABBR.get(planet, planet[:4])} {item['position_in_sign']:.1f}",
+            font_planet,
+            planet_color,
+        )
+
+    for aspect in chart.get("aspects") or []:
+        planet1 = aspect.get("planet1")
+        planet2 = aspect.get("planet2")
+        if planet1 not in planet_points or planet2 not in planet_points:
             continue
-        mid_angle = -90 + index * 30 + 15
-        label_rad = math.radians(mid_angle)
-        px = center + 245 * math.cos(label_rad)
-        py = center + 245 * math.sin(label_rad)
-        visible = planets[:4]
-        for offset, name in enumerate(visible):
-            text_center(draw, (px, py + offset * 20 - (len(visible) - 1) * 10), name, font_planet, planet_color)
+        draw.line(
+            [planet_points[planet1], planet_points[planet2]],
+            fill=ASPECT_COLORS.get(aspect.get("aspect"), "#64748b"),
+            width=1,
+        )
 
-    text_center(draw, (center, center - 58), "Western", font_title, text)
-    text_center(draw, (center, center - 20), "Natal Chart", font_title, text)
+    for label, longitude, color in (
+        ("AC", chart.get("ascendant_longitude"), "#f59e0b"),
+        ("MC", chart.get("midheaven_longitude"), "#fb7185"),
+    ):
+        if not isinstance(longitude, (int, float)):
+            continue
+        inner_x, inner_y = wheel_point(center, inner - 8, longitude)
+        outer_x, outer_y = wheel_point(center, outer + 6, longitude)
+        label_x, label_y = wheel_point(center, outer + 28, longitude)
+        draw.line([inner_x, inner_y, outer_x, outer_y], fill=color, width=3)
+        text_center(draw, (label_x, label_y), label, font_marker, color)
+
+    text_center(draw, (center, center - 66), "Western", font_title, text)
+    text_center(draw, (center, center - 34), "Natal Chart", font_title, text)
 
     summary_lines = [
         f"Sun: {chart.get('sun_sign') or 'Unknown'}",
@@ -424,7 +528,7 @@ def draw_chart(chart):
         f"Rising: {chart.get('ascendant') or 'Unknown'}",
     ]
     for i, line_text in enumerate(summary_lines):
-        text_center(draw, (center, center + 30 + i * 26), line_text, font_small, muted)
+        text_center(draw, (center, center + 12 + i * 22), line_text, font_small, muted)
 
     birth_data = chart.get("birth_data") or {}
     footer_bits = []
