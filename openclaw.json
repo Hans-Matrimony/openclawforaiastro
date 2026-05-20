@@ -631,7 +631,7 @@
       "mediaMaxMb": 50,
       "actions": {
         "reactions": true,
-        "sendMessage": true,
+        "sendMessage": false,
         "polls": true
       }
     },

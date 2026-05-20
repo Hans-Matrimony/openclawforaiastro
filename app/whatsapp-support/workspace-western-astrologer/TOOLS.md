@@ -116,12 +116,16 @@ When the image tool prints `IMAGE_URL: https://...`, copy that exact line into y
 
 If storage is unavailable, it prints `MEDIA_BASE64: image/png ...`; copy that exact line instead.
 
+Do not use WhatsApp/message/send actions yourself. The hans-ai-whatsapp backend reads the `IMAGE_URL:` or `MEDIA_BASE64:` line and sends the image.
+Do not report internal send-action failures to the user.
+
 **For Generating a Western PDF Report (Only when user explicitly asks):**
 ```text
 WESTERN_PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=USER_NAME
 ```
 
 The backend detects `WESTERN_PDF_REQUEST:` and sends the PDF to WhatsApp as a document. Do not paste PDF base64 in chat.
+Do not use WhatsApp/message/send actions for PDFs.
 
 ### What You Get
 - ✅ **Sun Sign** — Core identity and life purpose
@@ -145,7 +149,7 @@ The backend detects `WESTERN_PDF_REQUEST:` and sends the PDF to WhatsApp as a do
 1. User sends message
 2. Search Mem0 → Get identity + birth details
 3. If birth details FOUND → Run Natal Chart Engine
-4. If user asks for image → run the image tool and include its exact image output line
+4. If user asks for image → run the image tool and include its exact image output line; do not use send actions
 5. If user asks for PDF → include `WESTERN_PDF_REQUEST: dob=..., tob=..., place=..., name=...`
 6. Search Western Qdrant → Get astrological interpretations
 7. Combine chart + text + memory → Generate warm response
