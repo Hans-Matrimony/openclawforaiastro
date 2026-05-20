@@ -588,30 +588,6 @@
       }
     },
     {
-      "agentId": "western-astrologer",
-      "match": {
-        "channel": "whatsapp",
-        "phonePrefixes": [
-          "*"
-        ],
-        "excludePhonePrefixes": [
-          "+91",
-          "+92",
-          "+93",
-          "+880",
-          "+94",
-          "+977",
-          "+960",
-          "+975",
-          "+95",
-          "+230",
-          "+679",
-          "+592",
-          "+597"
-        ]
-      }
-    },
-    {
       "agentId": "astrologer",
       "match": {
         "channel": "whatsapp"
