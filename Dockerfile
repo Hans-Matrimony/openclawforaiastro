@@ -30,9 +30,6 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/id_keys \
     /app/.openclaw/workspace \
     /app/.openclaw/workspace/memories \
-    /app/.openclaw/agents/astrologer/sessions \
-    /app/.openclaw/workspace-astrologer \
-    /app/.openclaw/workspace-astrologer/memories \
     /app/.openclaw/agents/western-astrologer/sessions \
     /app/.openclaw/workspace-western-astrologer \
     /app/.openclaw/workspace-western-astrologer/memories \
@@ -47,7 +44,6 @@ COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
-COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 COPY app/whatsapp-support/workspace-western-astrologer/ /app/.openclaw/workspace-western-astrologer/
 
 RUN chmod 600 /app/.openclaw/openclaw.json

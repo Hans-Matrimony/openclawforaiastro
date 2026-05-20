@@ -9,7 +9,7 @@ metadata:
 
 # Skill: Western Natal Chart PDF
 
-This is a message-based skill, matching the Vedic `kundli_pdf` flow.
+This is a message-based skill for the Western-only WhatsApp backend.
 
 Do not generate or paste base64 PDFs from OpenClaw for production WhatsApp delivery. The backend detects a request line, generates the PDF, uploads it to WhatsApp Media API, and sends it as a document.
 

@@ -509,41 +509,6 @@
         }
       },
       {
-        "id": "astrologer",
-        "name": "WhatsApp Support",
-        "workspace": "/app/.openclaw/workspace-astrologer",
-        "model": {
-          "primary": "deepseek/deepseek-v4-flash"
-        },
-        "skills": [
-          "mongo_logger",
-          "mcporter",
-          "weather",
-          "mem0",
-          "qdrant",
-          "web_search",
-          "kundli",
-          "vastu",
-          "nano-banana-pro",
-          "openai-image-gen"
-        ],
-        "identity": {
-          "name": "Astro Hans",
-          "theme": "Customer support via WhatsApp",
-          "emoji": ""
-        },
-        "tools": {
-          "profile": "messaging",
-          "alsoAllow": [
-            "exec",
-            "read",
-            "process",
-            "tts",
-            "image"
-          ]
-        }
-      },
-      {
         "id": "western-astrologer",
         "name": "Western Astrology Support",
         "workspace": "/app/.openclaw/workspace-western-astrologer",
@@ -588,13 +553,13 @@
       }
     },
     {
-      "agentId": "astrologer",
+      "agentId": "western-astrologer",
       "match": {
         "channel": "whatsapp"
       }
     },
     {
-      "agentId": "astrologer",
+      "agentId": "western-astrologer",
       "match": {
         "channel": "telegram"
       }
