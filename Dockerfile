@@ -20,7 +20,7 @@ RUN npm init -y
 RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
-RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client pyswisseph timezonefinder --break-system-packages
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client pyswisseph timezonefinder pillow --break-system-packages
 
 # ❌ REMOVE UI BUILD (this was breaking everything)
 

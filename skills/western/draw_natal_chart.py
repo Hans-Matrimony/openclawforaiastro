@@ -24,9 +24,22 @@ from io import BytesIO
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
-    Image = None
-    ImageDraw = None
-    ImageFont = None
+    try:
+        import subprocess
+
+        subprocess.check_call([
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--break-system-packages",
+            "pillow",
+        ])
+        from PIL import Image, ImageDraw, ImageFont
+    except Exception:
+        Image = None
+        ImageDraw = None
+        ImageFont = None
 
 
 SIGNS = [
