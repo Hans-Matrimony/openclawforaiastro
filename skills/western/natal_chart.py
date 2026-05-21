@@ -540,7 +540,7 @@ def calculate_natal_chart(dob: str, tob: str, place: str) -> dict:
         warnings.append("Timezone not detected; chart used UTC fallback for planetary calculations.")
     utc_dt = dt - timedelta(hours=timezone_offset)
 
-    # Convert local birth time to UTC before Julian day, matching Vedic calculator behavior.
+    # Convert local birth time to UTC before Julian day.
     try:
         if _PYSWISSEPH_AVAILABLE:
             julian_day = swe.julday(

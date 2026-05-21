@@ -29,7 +29,7 @@ Send the generated image output exactly through the platform media path.
 
 ## PDF Report
 
-Use the backend PDF request flow, matching the Vedic PDF system:
+Use the backend Western PDF request flow:
 
 ```text
 WESTERN_PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME

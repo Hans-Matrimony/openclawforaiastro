@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
 Audio Analyzer Client
-Advanced audio analysis including emotion detection, astrology question extraction, and remedy suggestions.
+Advanced audio analysis including emotion detection and Western astrology question extraction.
 """
 
 import json
 import sys
 import re
-from typing import Dict, List, Tuple
+from typing import Dict
 
 
-# Emotion keywords for analysis (English and Hinglish)
 EMOTION_KEYWORDS = {
     "stressed": [
         "tension", "stress", "stressed", "worried", "worry", "panic", "scared", "afraid",
-        "dar", "bhay", "tension", "pareshan", "pareshani", "ghabra", "ghabrana"
+        "dar", "bhay", "pareshan", "pareshani", "ghabra", "ghabrana"
     ],
     "sad": [
         "sad", "unhappy", "depressed", "upset", "feeling down", "low",
-        "dukhi", "udas", " negativity", "dard", "pain"
+        "dukhi", "udas", "negativity", "dard", "pain"
     ],
     "angry": [
         "angry", "furious", "mad", "frustrated", "annoyed", "irritated",
@@ -26,232 +25,155 @@ EMOTION_KEYWORDS = {
     ],
     "happy": [
         "happy", "glad", "excited", "great", "wonderful", "fantastic",
-        "khush", "prasann", "acha", "accha", "good", "great"
+        "khush", "prasann", "acha", "accha", "good"
     ],
     "confused": [
         "confused", "don't understand", "not clear", "uncertain", "unsure",
-        "confused", "samajh nahi", "samajh nahi aa raha", "clear nahi"
-    ]
+        "samajh nahi", "samajh nahi aa raha", "clear nahi"
+    ],
 }
 
-# Astrology question patterns (English and Hinglish)
+
 ASTROLOGY_PATTERNS = [
-    r"(?:meri|mera)\s+(?:kundli|chart|rashi|lagna)",
+    r"(?:my|meri|mera)\s+(?:birth\s+chart|natal\s+chart|chart|zodiac)",
     r"(?:shaadi|marriage)\s+kab",
     r"(?:career|job|naukri)\s+kaisa",
     r"(?:education|padhai)\s+kaisi",
-    r"(?:what|how|when)\s+(?:will|is|are).*(?:astrology|kundli|chart|rashi)",
-    r"(?:remedy|upay|solution)\s+(?:kya|hai)",
-    r"(?:graha|planet).*(?:effect|asar|prabhav)",
-    r"(?:dasha|mahadasha|antar)", r"(?:gochar|transit)",
-    r"(?:yog|yoga)\s+(?:hai|is)",
-    r"tell.*about.*(?:kundli|chart|rashi)",
+    r"(?:what|how|when)\s+(?:will|is|are).*(?:astrology|natal\s+chart|birth\s+chart|zodiac)",
+    r"(?:remedy|solution|affirmation)\s+(?:kya|hai)",
+    r"(?:planet).*(?:effect|asar|prabhav)",
+    r"(?:transit|retrograde|aspect)",
+    r"tell.*about.*(?:natal\s+chart|birth\s+chart|chart|zodiac)",
     r"predict.*(?:future|bhavishya)",
-    r"when.*marriage.*(?:hoga|happens)"
+    r"when.*marriage.*(?:hoga|happens)",
 ]
 
-# Common astrology terms
+
 ASTROLOGY_TERMS = [
-    "kundli", "rashi", "lagna", "graha", "dasha", "mahadasha", "antar",
-    "gochar", "transit", "yog", "yoga", "upay", "remedy", "shaadi", "marriage",
-    "career", "naukri", "job", "padhai", "education", "bhavishya", "future",
-    "prediction", "predict", "horoscope", "janam patri", "birth chart"
+    "natal chart", "birth chart", "zodiac", "sun sign", "moon sign", "rising sign",
+    "ascendant", "transit", "retrograde", "aspect", "remedy", "affirmation",
+    "shaadi", "marriage", "career", "naukri", "job", "padhai", "education",
+    "bhavishya", "future", "prediction", "predict", "horoscope",
 ]
 
-# Audio remedies (mantras and prayers)
-REMEDIES_AUDIO = {
+
+WELLNESS_PROMPTS = {
     "stress_relief": {
-        "mantra": "Om Shanti Shanti Shanti",
-        "hinglish_mantra": "ॐ शान्ति शान्ति शान्ति",
-        "description": "Peace mantra for stress relief and mental calm",
-        "hinglish_description": "Shanti mantra for stress relief aur mental calm ke liye",
+        "mantra": "I breathe in calm and breathe out pressure.",
+        "hinglish_mantra": "Main calm inhale karta/karti hoon aur pressure release karta/karti hoon.",
+        "description": "Grounding affirmation for stress relief and mental calm",
+        "hinglish_description": "Stress relief aur mental calm ke liye grounding affirmation",
         "duration_seconds": 30,
-        "benefits": "Reduces anxiety, brings inner peace, calms the mind"
+        "benefits": "Reduces anxiety, brings inner peace, calms the mind",
     },
     "marriage_delay": {
-        "mantra": "Om Namah Bhagvate Vasudevaya",
-        "hinglish_mantra": "ॐ नमो भगवते वासुदेवाय",
-        "description": "Vishnu mantra for removing marriage obstacles",
-        "hinglish_description": "Vishnu mantra marriage ki rukawat door karne ke liye",
+        "mantra": "I am open to love that feels steady, honest, and mutual.",
+        "hinglish_mantra": "Main steady, honest aur mutual love ke liye open hoon.",
+        "description": "Relationship affirmation for patience and openness",
+        "hinglish_description": "Relationship patience aur openness ke liye affirmation",
         "duration_seconds": 60,
-        "benefits": "Removes obstacles in marriage, brings favorable partner"
+        "benefits": "Builds emotional clarity, patience, and openness in relationships",
     },
     "career_issues": {
-        "mantra": "Om Dum Durgayei Namaha",
-        "hinglish_mantra": "ॐ दुं दुर्गायै नमः",
-        "description": "Durga mantra for career success and professional growth",
-        "hinglish_description": "Durga mantra career success aur professional growth ke liye",
+        "mantra": "I choose one clear next step and trust my growth.",
+        "hinglish_mantra": "Main ek clear next step choose karta/karti hoon aur apni growth par trust karta/karti hoon.",
+        "description": "Career affirmation for confidence and professional growth",
+        "hinglish_description": "Career confidence aur professional growth ke liye affirmation",
         "duration_seconds": 45,
-        "benefits": "Brings success in career, removes professional obstacles"
+        "benefits": "Supports confidence, focus, and steady professional progress",
     },
     "health_issues": {
-        "mantra": "Om Trayambakam Yajamahe Sugandhim Pushti Vardhanam",
-        "hinglish_mantra": "ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टि वर्धनम्",
-        "description": "Maha Mrityunjaya mantra for health and longevity",
-        "hinglish_description": "Maha Mrityunjaya mantra health aur longevity ke liye",
+        "mantra": "I listen to my body and choose care today.",
+        "hinglish_mantra": "Main apne body ko listen karta/karti hoon aur aaj care choose karta/karti hoon.",
+        "description": "Wellness affirmation for care and steadiness",
+        "hinglish_description": "Care aur steadiness ke liye wellness affirmation",
         "duration_seconds": 60,
-        "benefits": "Improves health, removes diseases, brings longevity"
+        "benefits": "Encourages steadiness, self-care, and calm attention",
     },
     "general_wellbeing": {
-        "mantra": "Om Sarve Bhavantu Sukhinah",
-        "hinglish_mantra": "ॐ सर्वे भवन्तु सुखिनः",
-        "description": "Universal peace mantra for overall wellbeing",
-        "hinglish_description": "Universal peace mantra overall wellbeing ke liye",
+        "mantra": "I return to myself with kindness and clarity.",
+        "hinglish_mantra": "Main kindness aur clarity ke saath apne aap par wapas aata/aati hoon.",
+        "description": "Simple affirmation for overall wellbeing",
+        "hinglish_description": "Overall wellbeing ke liye simple affirmation",
         "duration_seconds": 30,
-        "benefits": "Brings peace, prosperity, and happiness to all"
-    }
+        "benefits": "Brings calm, clarity, and emotional steadiness",
+    },
 }
 
 
 def detect_emotion(text: str) -> str:
-    """
-    Detect emotional state from transcribed text.
-
-    Args:
-        text: Transcribed audio text
-
-    Returns:
-        Detected emotion: stressed, sad, angry, happy, confused, or neutral
-    """
+    """Detect emotional state from transcribed text."""
     text_lower = text.lower()
-    emotions_found = []
 
-    # Check each emotion category
     for emotion, keywords in EMOTION_KEYWORDS.items():
-        for keyword in keywords:
-            if keyword in text_lower:
-                emotions_found.append(emotion)
-                break  # Found this emotion, move to next
-
-    # Return first detected emotion or neutral
-    return emotions_found[0] if emotions_found else "neutral"
+        if any(keyword in text_lower for keyword in keywords):
+            return emotion
+    return "neutral"
 
 
 def extract_astrology_question(text: str) -> bool:
-    """
-    Check if text contains an astrology-related question.
-
-    Args:
-        text: Transcribed audio text
-
-    Returns:
-        True if astrology question detected, False otherwise
-    """
+    """Check if text contains a Western astrology-related question."""
     text_lower = text.lower()
 
-    # Check regex patterns
-    for pattern in ASTROLOGY_PATTERNS:
-        if re.search(pattern, text_lower, re.IGNORECASE):
-            return True
-
-    # Check for astrology terms (must have at least one)
-    for term in ASTROLOGY_TERMS:
-        if term in text_lower:
-            return True
-
-    return False
+    if any(re.search(pattern, text_lower, re.IGNORECASE) for pattern in ASTROLOGY_PATTERNS):
+        return True
+    return any(term in text_lower for term in ASTROLOGY_TERMS)
 
 
 def detect_language(text: str) -> str:
-    """
-    Detect if text is English or Hinglish.
-
-    Args:
-        text: Transcribed audio text
-
-    Returns:
-        "english" or "hinglish"
-    """
-    # Check for Hindi/Devanagari characters or common Hinglish words
+    """Detect if text is English or Hinglish."""
     hinglish_indicators = [
         "hai", "hain", "kya", "kaise", "kab", "kah", "kar", "ke", "ka",
-        "ko", "ki", "hai", "hoga", "hogi", "karein", "karo", "batao",
-        "batana", "dekho", "suno", "arere", "yaar", "main", "mera", "meri",
-        "tumhara", "tumhari", "hum", "hamara", "apna", "apni"
+        "ko", "ki", "hoga", "hogi", "karein", "karo", "batao",
+        "batana", "dekho", "suno", "yaar", "main", "mera", "meri",
+        "tumhara", "tumhari", "hum", "hamara", "apna", "apni",
     ]
 
     text_lower = text.lower()
-
-    # Check for Devanagari Unicode range
-    has_devanagari = any('\u0900' <= c <= '\u097F' for c in text)
-
-    # Check for Hinglish words
+    has_devanagari = any("\u0900" <= c <= "\u097F" for c in text)
     hinglish_word_count = sum(1 for word in hinglish_indicators if word in text_lower.split())
 
-    if has_devanagari or hinglish_word_count >= 3:
-        return "hinglish"
-    else:
-        return "english"
+    return "hinglish" if has_devanagari or hinglish_word_count >= 3 else "english"
 
 
 def analyze_audio(transcript_text: str) -> Dict:
-    """
-    Perform complete audio analysis.
-
-    Args:
-        transcript_text: Transcribed audio text
-
-    Returns:
-        Analysis result with emotion, astrology detection, and language
-    """
-    result = {
+    """Perform complete audio analysis."""
+    return {
         "transcript": transcript_text,
         "emotion": detect_emotion(transcript_text),
         "is_astrology_question": extract_astrology_question(transcript_text),
-        "language": detect_language(transcript_text)
+        "language": detect_language(transcript_text),
     }
-    return result
 
 
 def get_remedy(category: str, language: str = "english") -> Dict:
-    """
-    Get audio remedy for given category.
-
-    Args:
-        category: Remedy category (stress_relief, marriage_delay, career_issues, etc.)
-        language: Response language (english or hinglish)
-
-    Returns:
-        Remedy details with mantra, description, duration, and benefits
-    """
-    remedy = REMEDIES_AUDIO.get(category, REMEDIES_AUDIO["general_wellbeing"])
+    """Return a supportive audio affirmation for the given category."""
+    prompt = WELLNESS_PROMPTS.get(category, WELLNESS_PROMPTS["general_wellbeing"])
 
     if language == "hinglish":
         return {
-            "mantra": remedy.get("hinglish_mantra", remedy["mantra"]),
-            "description": remedy.get("hinglish_description", remedy["description"]),
-            "duration_seconds": remedy["duration_seconds"],
-            "benefits": remedy["benefits"]
+            "mantra": prompt.get("hinglish_mantra", prompt["mantra"]),
+            "description": prompt.get("hinglish_description", prompt["description"]),
+            "duration_seconds": prompt["duration_seconds"],
+            "benefits": prompt["benefits"],
         }
-    else:
-        return {
-            "mantra": remedy["mantra"],
-            "description": remedy["description"],
-            "duration_seconds": remedy["duration_seconds"],
-            "benefits": remedy["benefits"]
-        }
+    return {
+        "mantra": prompt["mantra"],
+        "description": prompt["description"],
+        "duration_seconds": prompt["duration_seconds"],
+        "benefits": prompt["benefits"],
+    }
 
 
 def suggest_remedy(emotion: str, is_astrology_question: bool, language: str = "english") -> str:
-    """
-    Suggest appropriate remedy based on emotion and context.
-
-    Args:
-        emotion: Detected emotion
-        is_astrology_question: Whether user asked astrology question
-        language: Response language
-
-    Returns:
-        Suggested remedy category
-    """
+    """Suggest an affirmation category based on emotion and context."""
     if emotion == "stressed":
         return "stress_relief"
-    elif emotion == "sad":
+    if emotion == "sad":
         return "general_wellbeing"
-    elif is_astrology_question:
-        return "general_wellbeing"  # General mantra for astrology seekers
-    else:
+    if is_astrology_question:
         return "general_wellbeing"
+    return "general_wellbeing"
 
 
 def main():
@@ -268,47 +190,35 @@ def main():
                 print(json.dumps({"error": "Transcript text required for analyze command"}))
                 sys.exit(1)
 
-            transcript = sys.argv[2]
-            result = analyze_audio(transcript)
-
-            # Suggest remedy based on analysis
-            remedy_category = suggest_remedy(
+            result = analyze_audio(sys.argv[2])
+            result["suggested_remedy"] = suggest_remedy(
                 result["emotion"],
                 result["is_astrology_question"],
-                result["language"]
+                result["language"],
             )
-            result["suggested_remedy"] = remedy_category
-
             print(json.dumps(result, indent=2, ensure_ascii=False))
+            return
 
-        elif command == "remedy":
+        if command == "remedy":
             if len(sys.argv) < 3:
                 print(json.dumps({"error": "Category required for remedy command"}))
                 sys.exit(1)
 
-            category = sys.argv[2]
             language = "english"
-
-            # Parse optional --language flag
             if "--language" in sys.argv:
-                try:
-                    idx = sys.argv.index("--language")
-                    if idx + 1 < len(sys.argv):
-                        language = sys.argv[idx + 1].lower()
-                except (ValueError, IndexError):
-                    pass
+                idx = sys.argv.index("--language")
+                if idx + 1 < len(sys.argv):
+                    language = sys.argv[idx + 1].lower()
 
-            result = get_remedy(category, language)
-            result["category"] = category
-
+            result = get_remedy(sys.argv[2], language)
+            result["category"] = sys.argv[2]
             print(json.dumps(result, indent=2, ensure_ascii=False))
+            return
 
-        else:
-            print(json.dumps({
-                "error": f"Unknown command: {command}",
-                "available_commands": ["analyze <transcript_text>", "remedy <category> [--language]"]
-            }))
-            sys.exit(1)
+        print(json.dumps({
+            "error": f"Unknown command: {command}",
+            "available_commands": ["analyze <transcript_text>", "remedy <category> [--language]"],
+        }))
 
     except Exception as e:
         print(json.dumps({"error": str(e)}))

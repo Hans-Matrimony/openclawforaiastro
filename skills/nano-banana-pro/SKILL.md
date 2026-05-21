@@ -34,19 +34,19 @@ This skill is configured to generate **ONLY astrology-related images** for the a
 For EVERY image generation request:
 1. **FIRST** search mem0 for user's birth details and preferences:
    ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details kundli preferences" --user-id "<USER_ID>"
+   python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details natal chart preferences" --user-id "<USER_ID>"
    ```
-2. Use birth details from mem0 (Lagna, Moon Sign, Nakshatra) for chart generation
+2. Use birth details from mem0 (Sun sign, Moon sign, Rising sign) for chart generation
 3. Only ask for details if NOT found in mem0
 4. After generating image, store reference in mem0:
    ```bash
-   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Kundli chart generated: <FILENAME> for <LAGNA> lagna" --user-id "<USER_ID>"
+   python3 ~/.openclaw/skills/mem0/mem0_client.py add "Western natal chart generated: <FILENAME>" --user-id "<USER_ID>"
    ```
-- Kundli charts, birth charts, horoscope diagrams
+- Western natal charts, birth charts, horoscope diagrams
 - Zodiac sign illustrations
 - Planetary position diagrams
-- Vedic astrology visual representations
-- Nakshatra symbol images
+- Western astrology visual representations
+- Zodiac sign symbol images
 
 **Do NOT use this skill for any other image generation purposes.**
 

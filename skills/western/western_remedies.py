@@ -5,7 +5,7 @@ Western Astrology Remedies Helper
 Provides crystals, colors, and affirmations for each sign
 
 Western remedies focus on crystals, colors, and affirmations
-rather than mantras and gemstones (Vedic approach).
+rather than ritual or gemstone-based prescriptions.
 """
 
 import json

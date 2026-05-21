@@ -5,7 +5,7 @@
 - Use Western astrology only for this workspace.
 - Use the `western_astrology` Qdrant collection.
 - Use tropical zodiac, Sun sign, Moon sign, Ascendant, houses, aspects, transits, retrogrades, crystals, colors, and affirmations.
-- Do not use Vedic concepts such as Kundli, Lagna, Nakshatra, Dasha, Rahu/Ketu remedies, mantras, or gemstones unless the user explicitly asks for a comparison.
+- Use Western astrology terms by default; switch systems only if the user explicitly asks for a comparison.
 
 ## Safety
 

@@ -3,11 +3,10 @@
 Western Astrology Knowledge Ingestion
 Injects Western astrology data into SEPARATE Qdrant collection
 
-Collection: western_astrology (COMPLETELY SEPARATE from Vedic's astrology_knowledge)
+Collection: western_astrology
 
 This script:
 - Creates a separate collection for Western astrology ONLY
-- Does NOT affect existing Vedic astrology data
 - Uses same Qdrant instance but different collection name
 """
 
@@ -23,16 +22,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ============================================================================
-# CONFIGURATION - COMPLETELY SEPARATE FROM VEDIC
+# CONFIGURATION
 # ============================================================================
 
-COLLECTION_NAME = "western_astrology"  # Different from "astrology_knowledge"
+COLLECTION_NAME = "western_astrology"
 
 QDRANT_URL = os.environ.get('QDRANT_URL')
 QDRANT_API_KEY = os.environ.get('QDRANT_API_KEY')
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
-# Western astrology data path (separate from Vedic data)
+# Western astrology data path
 # Script is at: openclawforaiastro/skills/qdrant/ingest_western_astrology.py
 # Data is at: western_astrology_data/ (project root)
 WESTERN_DATA_DIR = os.path.join(
@@ -810,7 +809,7 @@ def ingest_western_astrology(categories: List[str] = None) -> bool:
 def main():
     parser = argparse.ArgumentParser(
         description='Western Astrology Qdrant Ingestion',
-        epilog=f'Collection name: {COLLECTION_NAME} (SEPARATE from Vedic astrology)'
+        epilog=f'Collection name: {COLLECTION_NAME}'
     )
 
     subparsers = parser.add_subparsers(dest='command', help='Available commands')

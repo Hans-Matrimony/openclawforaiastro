@@ -49,7 +49,7 @@ python3 ~/.openclaw/skills/western/western_remedies.py remedies Leo
 - `natal_chart.py` converts local birth time to UTC before Swiss Ephemeris calculations.
 - If Swiss Ephemeris is unavailable, only the simple Sun sign fallback is reliable.
 - If timezone cannot be detected, the tool emits a warning. Mention the uncertainty briefly.
-- Use tropical zodiac and Western houses. Do not mix Vedic terms like Lagna, Nakshatra, Dasha, Kundli, Rahu, or Ketu unless the user explicitly asks for a comparison.
+- Use tropical zodiac and Western houses. Keep the reading in Western astrology terms unless the user explicitly asks for a comparison.
 
 ## Media Output Rules
 

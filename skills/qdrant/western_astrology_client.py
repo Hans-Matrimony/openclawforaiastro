@@ -4,7 +4,7 @@
 Western Astrology Knowledge Query Client
 Retrieves Western astrology knowledge from SEPARATE Qdrant collection
 
-Collection: western_astrology (COMPLETELY SEPARATE from Vedic's astrology_knowledge)
+Collection: western_astrology
 """
 
 import os
@@ -24,10 +24,10 @@ if sys.platform == 'win32':
 load_dotenv()
 
 # ============================================================================
-# CONFIGURATION - COMPLETELY SEPARATE FROM VEDIC
+# CONFIGURATION
 # ============================================================================
 
-COLLECTION_NAME = "western_astrology"  # Different from "astrology_knowledge"
+COLLECTION_NAME = "western_astrology"
 
 QDRANT_URL = os.environ.get('QDRANT_URL')
 QDRANT_API_KEY = os.environ.get('QDRANT_API_KEY')
@@ -213,7 +213,7 @@ def get_collection_info() -> Dict[str, Any]:
 def main():
     parser = argparse.ArgumentParser(
         description='Search Western Astrology Knowledge Base',
-        epilog=f'Collection: {COLLECTION_NAME} (separate from Vedic astrology)'
+        epilog=f'Collection: {COLLECTION_NAME}'
     )
 
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
