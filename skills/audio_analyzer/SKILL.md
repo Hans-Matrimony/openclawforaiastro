@@ -29,7 +29,7 @@ Remedy categories:
 - **transcript**: Original transcribed text
 - **emotion**: Detected emotional state (stressed, sad, angry, happy, neutral)
 - **is_astrology_question**: Boolean indicating if text contains astrology question
-- **language**: Detected language (english or hinglish)
+- **language**: Detected language (english, hinglish, or portuguese_brazil)
 
 **Remedy output (JSON):**
 - **mantra**: The mantra text
@@ -47,5 +47,5 @@ Remedy categories:
 
 1. **Emotion Detection**: Identifies emotional state from transcribed text
 2. **Question Extraction**: Detects astrology-related questions
-3. **Language Detection**: Automatically detects English vs Hinglish
+3. **Language Detection**: Automatically detects English, Hinglish, and Brazilian Portuguese
 4. **Remedy Suggestions**: Provides appropriate mantras based on context

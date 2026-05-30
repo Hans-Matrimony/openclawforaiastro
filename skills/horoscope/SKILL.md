@@ -1,6 +1,6 @@
 ---
 name: horoscope
-description: 100% Accurate Vedic Daily Horoscope with English/Hinglish support
+description: 100% Accurate Vedic Daily Horoscope with English/Hinglish/Brazilian Portuguese support
 metadata:
   {
     "openclaw": { "emoji": "🔮", "requires": { "bins": ["python3"], "py": ["pyswisseph"] } },
@@ -9,14 +9,14 @@ metadata:
 
 # Vedic Horoscope Skill (100% Accurate)
 
-Provides **authentic Vedic astrology-based daily horoscopes** using Swiss Ephemeris (pyswisseph) for professional-grade accuracy. Supports both English and Hinglish output.
+Provides **authentic Vedic astrology-based daily horoscopes** using Swiss Ephemeris (pyswisseph) for professional-grade accuracy. Supports English, Hinglish, and Brazilian Portuguese output.
 
 ## ✨ Key Features
 
 - ✅ **100% Accurate**: Uses Swiss Ephemeris (NASA-grade precision)
 - ✅ **Vedic Astrology**: Based on Moon sign (Rashi), not Sun sign
 - ✅ **Personalized**: Uses user's birth chart for predictions
-- ✅ **Bilingual**: English or Hinglish (auto-detected)
+- ✅ **Multilingual**: English, Hinglish, or Brazilian Portuguese (auto-detected)
 - ✅ **Unlimited**: No API limits, completely offline calculation
 - ✅ **Proactive Delivery**: Daily horoscope subscriptions via WhatsApp
 
@@ -47,6 +47,13 @@ python3 ~/.openclaw/skills/horoscope/calculate.py \
   --tob "10:30 AM" \
   --place "Mumbai" \
   --language hinglish
+
+# Explicit Brazilian Portuguese
+python3 ~/.openclaw/skills/horoscope/calculate.py \
+  --dob "1990-05-15" \
+  --tob "10:30 AM" \
+  --place "Mumbai" \
+  --language pt-br
 ```
 
 ---
@@ -111,7 +118,7 @@ python3 ~/.openclaw/skills/horoscope/scheduler.py subscribe \
 - `--dob`: Date of birth
 - `--tob`: Time of birth
 - `--place`: Birth place
-- `--language`: `english`, `hinglish`, or `auto` (default)
+- `--language`: `english`, `hinglish`, `portuguese_brazil`/`pt-br`, or `auto` (default)
 - `--time`: Preferred delivery time (default: 08:00)
 
 ### Unsubscribe a User
@@ -184,7 +191,7 @@ python3 ~/.openclaw/skills/horoscope/scheduler.py test \
 
 ### Step 4: Prediction Generation
 - Combines all factors
-- Language detection (English/Hinglish)
+- Language detection (English/Hinglish/Brazilian Portuguese)
 - Personalized lucky factors
 
 ---
@@ -249,10 +256,16 @@ The system auto-detects user language preference:
 - "aaj ka din kaisa hai"
 - "career kaise rahega"
 
+**Brazilian Portuguese user input:**
+- "quero saber meu horoscopo"
+- "como vai ser meu dia hoje"
+- "quero saber sobre minha carreira"
+
 **Manual override:**
 ```bash
 --language english  # Force English
 --language hinglish  # Force Hinglish
+--language pt-br     # Force Brazilian Portuguese
 --language auto      # Auto-detect (default)
 ```
 

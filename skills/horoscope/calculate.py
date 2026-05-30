@@ -2,7 +2,7 @@
 """
 100% Accurate Vedic Horoscope Engine
 Uses Swiss Ephemeris (pyswisseph) for authentic planetary calculations
-Generates daily horoscope predictions in English and Hinglish
+Generates daily horoscope predictions in English, Hinglish, and Brazilian Portuguese
 """
 
 import sys
@@ -61,6 +61,58 @@ HINDI_RASHI = {
     "Leo": "Singh", "Virgo": "Kanya", "Libra": "Tula", "Scorpio": "Vrishchik",
     "Sagittarius": "Dhanu", "Capricorn": "Makar", "Aquarius": "Kumbh", "Pisces": "Meen"
 }
+
+PT_BR_RASHI = {
+    "Aries": "Aries", "Taurus": "Touro", "Gemini": "Gemeos", "Cancer": "Cancer",
+    "Leo": "Leao", "Virgo": "Virgem", "Libra": "Libra", "Scorpio": "Escorpiao",
+    "Sagittarius": "Sagitario", "Capricorn": "Capricornio", "Aquarius": "Aquario", "Pisces": "Peixes"
+}
+
+PORTUGUESE_LANGUAGE_ALIASES = {
+    "portuguese", "portuguese_brazil", "brazilian_portuguese", "pt", "pt-br", "pt_br", "br", "brazil"
+}
+
+PT_BR_MOON_EFFECTS = {
+    1: "Hoje favorece iniciativas pessoais e novos comecos. Cuide de voce, da saude e dos seus objetivos. Sua energia esta mais alta, entao comece algo importante com calma.",
+    2: "Assuntos financeiros ficam em destaque hoje. E um bom dia para pensar em dinheiro, investimentos e conversas familiares. Fale com cuidado e evite gastos por impulso.",
+    3: "A comunicacao fica forte hoje. Networking, escrita e conversas importantes podem fluir melhor. Viagens curtas ajudam. Sua coragem aumenta, entao compartilhe suas ideias.",
+    4: "Casa e familia pedem atencao hoje. Decisoes sobre imovel ou ambiente familiar podem andar melhor. Busque conforto emocional e evite conflitos dentro de casa.",
+    5: "A energia criativa esta favoravel hoje. Romance, filhos e assuntos do coracao ganham leveza. Bom para arte e lazer, mas evite apostas ou riscos financeiros.",
+    6: "A saude e a rotina precisam de cuidado hoje. Disciplina, alimentacao e sono ajudam muito. O trabalho tende a melhorar, mas evite brigas com competidores.",
+    7: "Parcerias e relacionamentos entram em foco hoje. Conversas de casamento ou negocios podem fluir bem. Ouvir o outro e buscar acordo traz resultado melhor.",
+    8: "Hoje pede transformacao e profundidade. Pesquisas, assuntos ocultos e dinheiro compartilhado ganham destaque. Evite riscos e observe melhor o que esta por tras das situacoes.",
+    9: "A sorte favorece voce hoje. Espiritualidade, estudos e viagens longas podem trazer paz e crescimento. Mentores ou professores podem ajudar. Bom dia para tarefas importantes.",
+    10: "Carreira e reputacao ficam em primeiro plano hoje. Pode haver reconhecimento ou contato com autoridades. Crescimento profissional aparece, mas evite atritos com chefes.",
+    11: "Ganhos e contatos sociais ficam favorecidos hoje. Amigos podem trazer apoio ou oportunidades. Networking, grupos e novas conexoes ajudam a aproximar desejos antigos.",
+    12: "Hoje combina mais com introspeccao e descanso. Gastos podem aumentar, entao aja com cautela. Espiritualidade, caridade e meditacao ajudam a manter equilibrio.",
+}
+
+PT_BR_DASHA_EFFECTS = {
+    "Ketu": "Ketu Mahadasha: periodo de crescimento espiritual e desapego. Assuntos materiais podem desacelerar. Foque no desenvolvimento interior, meditacao e pesquisa.",
+    "Venus": "Venus Mahadasha: excelente fase para relacionamentos, conforto e criatividade. Casamento e parcerias ficam favorecidos. Ganhos financeiros podem surgir, mas evite excessos.",
+    "Sun": "Sol Mahadasha: periodo de reconhecimento e autoridade. Lideranca e carreira ficam favorecidas. Cuide da saude e mantenha confianca sem ego.",
+    "Moon": "Lua Mahadasha: emocoes e paz mental ficam importantes. Assuntos de casa e relacao com a mae ganham destaque. Evite decisoes muito emocionais.",
+    "Mars": "Marte Mahadasha: fase de energia, acao e coragem. Bom para competir e resolver pendencias. Evite conflitos e decisoes apressadas.",
+    "Rahu": "Rahu Mahadasha: periodo de mudanca, ambicao e crescimento material. Conexoes estrangeiras podem importar. Evite atalhos errados e mantenha equilibrio espiritual.",
+    "Jupiter": "Jupiter Mahadasha: excelente periodo para sabedoria, crescimento e espiritualidade. Ensino, estudos, familia e casamento podem melhorar. Sorte geral fica mais forte.",
+    "Saturn": "Saturno Mahadasha: fase de trabalho duro, disciplina e resultados karmicos. Carreira pede paciencia. Atrasos ensinam licoes importantes e favorecem planos de longo prazo.",
+    "Mercury": "Mercurio Mahadasha: excelente para comunicacao, estudos e negocios. Escrita, midia e comercio ficam favorecidos. Bom para estudantes, mas evite pensar demais.",
+}
+
+
+def normalize_language(language: Optional[str]) -> Optional[str]:
+    """Normalize accepted language aliases to internal keys."""
+    if not language:
+        return None
+
+    normalized = language.strip().lower().replace(" ", "_")
+    if normalized == "auto":
+        return None
+    if normalized in PORTUGUESE_LANGUAGE_ALIASES:
+        return "portuguese_brazil"
+    if normalized in {"english", "hinglish"}:
+        return normalized
+    return normalized
 
 
 def get_house_from_sign(transit_sign: str, birth_sign: str) -> int:
@@ -167,8 +219,8 @@ def get_current_dasha_info(birth_dt: datetime) -> Dict:
 
 def detect_language(text: str) -> str:
     """
-    Detect if user prefers English or Hinglish.
-    Returns: 'english' or 'hinglish'
+    Detect if user prefers English, Hinglish, or Brazilian Portuguese.
+    Returns: 'english', 'hinglish', or 'portuguese_brazil'
     """
     # Common Hindi/Hinglish words
     hindi_words = [
@@ -180,8 +232,23 @@ def detect_language(text: str) -> str:
         'ana', 'aao', 'rakhna', 'rakho', 'lena', 'lelo', 'dena', 'do',
         'paisa', 'paisa', 'rupaye', 'kaam', 'kaam', 'ghar', 'ghar'
     ]
+    portuguese_words = [
+        'voce', 'você', 'minha', 'meu', 'meus', 'minhas', 'quero', 'saber',
+        'sobre', 'casamento', 'carreira', 'saude', 'saúde', 'familia', 'família',
+        'trabalho', 'dinheiro', 'amor', 'relacionamento', 'mapa', 'signo',
+        'quando', 'como', 'posso', 'pode', 'previsao', 'previsão', 'hoje',
+        'obrigado', 'obrigada', 'por favor', 'gratis', 'grátis', 'preco', 'preço'
+    ]
 
     text_lower = text.lower()
+
+    if any(alias in text_lower for alias in ["pt-br", "pt_br", "brazilian portuguese", "portuguese brazil"]):
+        return 'portuguese_brazil'
+
+    portuguese_count = sum(1 for word in portuguese_words if word in text_lower)
+    if portuguese_count >= 2:
+        return 'portuguese_brazil'
+
     hindi_count = sum(1 for word in hindi_words if word in text_lower)
 
     # If more than 2 Hindi words detected, it's Hinglish
@@ -206,13 +273,15 @@ def generate_daily_horoscope(
         tob: Time of birth
         place: Place of birth
         date: Date for horoscope (default: today)
-        language: 'english' or 'hinglish' (auto-detected if not provided)
+        language: 'english', 'hinglish', or 'portuguese_brazil' (auto-detected if not provided)
         user_input: User's recent message for language detection
 
     Returns:
         Dictionary with horoscope prediction
     """
     rules = load_rules()
+
+    language = normalize_language(language)
 
     # Auto-detect language if not provided
     if language is None and user_input:
@@ -321,7 +390,20 @@ def generate_daily_horoscope(
         lucky_day = rules.get("lucky_factors", {}).get("days", {}).get(birth_moon_sign, "Monday")
 
         # Generate prediction based on language
-        if language == 'hinglish':
+        if language == 'portuguese_brazil':
+            prediction = moon_effect.get("portuguese_brazil", PT_BR_MOON_EFFECTS.get(transit_house, moon_effect.get("english", "")))
+
+            # Add Nakshatra influence in Brazilian Portuguese
+            if nakshatra_info:
+                prediction += f"\n\nA Nakshatra de hoje e {transit_nakshatra}, ligada ao tema {nakshatra_info.get('theme', '')}. "
+                if nakshatra_info.get("favorable"):
+                    prediction += f"Favoravel para: {nakshatra_info['favorable']}. "
+
+            # Add Dasha influence in Brazilian Portuguese
+            if dasha_effect:
+                prediction += f"\n\n{dasha_effect.get('portuguese_brazil', PT_BR_DASHA_EFFECTS.get(dasha_info.get('mahadasha', ''), dasha_effect.get('english', '')))}"
+
+        elif language == 'hinglish':
             prediction = moon_effect.get("hinglish", moon_effect.get("english", ""))
 
             # Add Nakshatra influence in Hinglish
@@ -348,11 +430,13 @@ def generate_daily_horoscope(
 
         # Prepare output
         hindi_sign = HINDI_RASHI.get(birth_moon_sign, birth_moon_sign)
+        pt_br_sign = PT_BR_RASHI.get(birth_moon_sign, birth_moon_sign)
 
         result = {
             "date": date or datetime.now().strftime("%Y-%m-%d"),
             "birth_moon_sign": birth_moon_sign,
             "birth_moon_sign_hindi": hindi_sign,
+            "birth_moon_sign_pt_br": pt_br_sign,
             "birth_nakshatra": birth_nakshatra,
             "lagna": lagna,
             "transit_moon_sign": transit_moon_sign,
@@ -429,7 +513,7 @@ if __name__ == "__main__":
     parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM or HH:MM AM/PM)')
     parser.add_argument('--place', required=True, help='Place of Birth')
     parser.add_argument('--date', help='Date for horoscope (YYYY-MM-DD, default: today)')
-    parser.add_argument('--language', choices=['english', 'hinglish', 'auto'], default='auto',
+    parser.add_argument('--language', choices=['english', 'hinglish', 'portuguese_brazil', 'pt-br', 'pt_br', 'auto'], default='auto',
                         help='Output language (default: auto-detect)')
     parser.add_argument('--user-input', help='User message for language detection')
 

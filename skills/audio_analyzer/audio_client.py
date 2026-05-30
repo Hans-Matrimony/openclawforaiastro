@@ -10,31 +10,36 @@ import re
 from typing import Dict, List, Tuple
 
 
-# Emotion keywords for analysis (English and Hinglish)
+# Emotion keywords for analysis (English, Hinglish, and Brazilian Portuguese)
 EMOTION_KEYWORDS = {
     "stressed": [
         "tension", "stress", "stressed", "worried", "worry", "panic", "scared", "afraid",
-        "dar", "bhay", "tension", "pareshan", "pareshani", "ghabra", "ghabrana"
+        "dar", "bhay", "tension", "pareshan", "pareshani", "ghabra", "ghabrana",
+        "estresse", "estressado", "estressada", "preocupado", "preocupada", "ansioso", "ansiosa", "medo"
     ],
     "sad": [
         "sad", "unhappy", "depressed", "upset", "feeling down", "low",
-        "dukhi", "udas", " negativity", "dard", "pain"
+        "dukhi", "udas", " negativity", "dard", "pain",
+        "triste", "chateado", "chateada", "deprimido", "deprimida", "mal"
     ],
     "angry": [
         "angry", "furious", "mad", "frustrated", "annoyed", "irritated",
-        "gussa", "krodh", "naraz", "naraaz", "aggressive"
+        "gussa", "krodh", "naraz", "naraaz", "aggressive",
+        "bravo", "brava", "irritado", "irritada", "raiva", "frustrado", "frustrada"
     ],
     "happy": [
         "happy", "glad", "excited", "great", "wonderful", "fantastic",
-        "khush", "prasann", "acha", "accha", "good", "great"
+        "khush", "prasann", "acha", "accha", "good", "great",
+        "feliz", "animado", "animada", "otimo", "otima", "maravilhoso", "maravilhosa"
     ],
     "confused": [
         "confused", "don't understand", "not clear", "uncertain", "unsure",
-        "confused", "samajh nahi", "samajh nahi aa raha", "clear nahi"
+        "confused", "samajh nahi", "samajh nahi aa raha", "clear nahi",
+        "confuso", "confusa", "nao entendo", "nao esta claro", "duvida"
     ]
 }
 
-# Astrology question patterns (English and Hinglish)
+# Astrology question patterns (English, Hinglish, and Brazilian Portuguese)
 ASTROLOGY_PATTERNS = [
     r"(?:meri|mera)\s+(?:kundli|chart|rashi|lagna)",
     r"(?:shaadi|marriage)\s+kab",
@@ -47,7 +52,11 @@ ASTROLOGY_PATTERNS = [
     r"(?:yog|yoga)\s+(?:hai|is)",
     r"tell.*about.*(?:kundli|chart|rashi)",
     r"predict.*(?:future|bhavishya)",
-    r"when.*marriage.*(?:hoga|happens)"
+    r"when.*marriage.*(?:hoga|happens)",
+    r"(?:meu|minha)\s+(?:mapa|kundli|signo|rashi|lagna)",
+    r"(?:casamento|carreira|trabalho|amor)\s+(?:quando|como)",
+    r"(?:previsao|previsão).*(?:futuro|astrologia|mapa)",
+    r"(?:remedio|remédio|solucao|solução)\s+(?:para|astrologico|astrológico)"
 ]
 
 # Common astrology terms
@@ -55,7 +64,9 @@ ASTROLOGY_TERMS = [
     "kundli", "rashi", "lagna", "graha", "dasha", "mahadasha", "antar",
     "gochar", "transit", "yog", "yoga", "upay", "remedy", "shaadi", "marriage",
     "career", "naukri", "job", "padhai", "education", "bhavishya", "future",
-    "prediction", "predict", "horoscope", "janam patri", "birth chart"
+    "prediction", "predict", "horoscope", "janam patri", "birth chart",
+    "mapa", "signo", "previsao", "previsão", "casamento", "carreira",
+    "trabalho", "amor", "futuro", "astrologia", "remedio", "remédio"
 ]
 
 # Audio remedies (mantras and prayers)
@@ -100,6 +111,14 @@ REMEDIES_AUDIO = {
         "duration_seconds": 30,
         "benefits": "Brings peace, prosperity, and happiness to all"
     }
+}
+
+PT_BR_REMEDY_DESCRIPTIONS = {
+    "stress_relief": "Mantra de paz para aliviar o estresse e acalmar a mente",
+    "marriage_delay": "Mantra de Vishnu para remover obstaculos no casamento",
+    "career_issues": "Mantra de Durga para sucesso na carreira e crescimento profissional",
+    "health_issues": "Maha Mrityunjaya mantra para saude e longevidade",
+    "general_wellbeing": "Mantra universal de paz para bem-estar geral",
 }
 
 
@@ -154,13 +173,13 @@ def extract_astrology_question(text: str) -> bool:
 
 def detect_language(text: str) -> str:
     """
-    Detect if text is English or Hinglish.
+    Detect if text is English, Hinglish, or Brazilian Portuguese.
 
     Args:
         text: Transcribed audio text
 
     Returns:
-        "english" or "hinglish"
+        "english", "hinglish", or "portuguese_brazil"
     """
     # Check for Hindi/Devanagari characters or common Hinglish words
     hinglish_indicators = [
@@ -168,6 +187,12 @@ def detect_language(text: str) -> str:
         "ko", "ki", "hai", "hoga", "hogi", "karein", "karo", "batao",
         "batana", "dekho", "suno", "arere", "yaar", "main", "mera", "meri",
         "tumhara", "tumhari", "hum", "hamara", "apna", "apni"
+    ]
+    portuguese_indicators = [
+        "voce", "você", "minha", "meu", "quero", "saber", "sobre", "casamento",
+        "carreira", "saude", "saúde", "familia", "família", "trabalho", "amor",
+        "relacionamento", "mapa", "signo", "quando", "como", "previsao",
+        "previsão", "obrigado", "obrigada", "gratis", "grátis", "preco", "preço"
     ]
 
     text_lower = text.lower()
@@ -177,6 +202,13 @@ def detect_language(text: str) -> str:
 
     # Check for Hinglish words
     hinglish_word_count = sum(1 for word in hinglish_indicators if word in text_lower.split())
+    portuguese_count = sum(1 for word in portuguese_indicators if word in text_lower.split())
+
+    if any(alias in text_lower for alias in ["pt-br", "pt_br", "brazilian portuguese", "portuguese brazil"]):
+        return "portuguese_brazil"
+
+    if portuguese_count >= 2:
+        return "portuguese_brazil"
 
     if has_devanagari or hinglish_word_count >= 3:
         return "hinglish"
@@ -209,14 +241,24 @@ def get_remedy(category: str, language: str = "english") -> Dict:
 
     Args:
         category: Remedy category (stress_relief, marriage_delay, career_issues, etc.)
-        language: Response language (english or hinglish)
+        language: Response language (english, hinglish, or portuguese_brazil)
 
     Returns:
         Remedy details with mantra, description, duration, and benefits
     """
     remedy = REMEDIES_AUDIO.get(category, REMEDIES_AUDIO["general_wellbeing"])
 
-    if language == "hinglish":
+    normalized_language = language.lower().replace("-", "_")
+
+    if normalized_language in {"portuguese_brazil", "brazilian_portuguese", "pt_br", "pt"}:
+        return {
+            "mantra": remedy["mantra"],
+            "description": PT_BR_REMEDY_DESCRIPTIONS.get(category, remedy["description"]),
+            "duration_seconds": remedy["duration_seconds"],
+            "benefits": remedy["benefits"]
+        }
+
+    if normalized_language == "hinglish":
         return {
             "mantra": remedy.get("hinglish_mantra", remedy["mantra"]),
             "description": remedy.get("hinglish_description", remedy["description"]),
@@ -257,7 +299,7 @@ def suggest_remedy(emotion: str, is_astrology_question: bool, language: str = "e
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "Usage: audio_client.py <command> <argument>"}))
-        print("Commands: analyze <transcript_text>, remedy <category> [--language english|hinglish]")
+        print("Commands: analyze <transcript_text>, remedy <category> [--language english|hinglish|portuguese_brazil]")
         sys.exit(1)
 
     command = sys.argv[1]

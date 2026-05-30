@@ -143,7 +143,7 @@ Sun Mahadasha active hai: Recognition aur authority ka samay.
 | **100% Accuracy** | ✅ | Swiss Ephemeris (pyswisseph) |
 | **Vedic Astrology** | ✅ | Moon sign based (not Sun sign) |
 | **Personalized** | ✅ | Uses user's birth chart |
-| **Bilingual** | ✅ | English + Hinglish with auto-detect |
+| **Multilingual** | ✅ | English + Hinglish + Brazilian Portuguese with auto-detect |
 | **Unlimited** | ✅ | No API limits, offline calculation |
 | **Proactive Delivery** | ✅ | Daily subscription + cron job |
 | **Subscription System** | ✅ | Subscribe/Unsubscribe/List |
@@ -211,6 +211,9 @@ python skills/horoscope/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM AM/PM" --pl
 # Generate horoscope (Hinglish)
 python skills/horoscope/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM AM/PM" --place "City" --language hinglish
 
+# Generate horoscope (Brazilian Portuguese)
+python skills/horoscope/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM AM/PM" --place "City" --language pt-br
+
 # Subscribe user
 python skills/horoscope/scheduler.py subscribe --user-id "+91XXXXXXXXXX" --dob "YYYY-MM-DD" --tob "HH:MM AM/PM" --place "City"
 
@@ -232,7 +235,7 @@ python skills/horoscope/scheduler.py send
 ## 🎊 Success Metrics
 
 ✅ **Accuracy**: 100% (Swiss Ephemeris)
-✅ **Languages**: 2 (English, Hinglish)
+✅ **Languages**: 3 (English, Hinglish, Brazilian Portuguese)
 ✅ **Prediction Types**: Daily horoscope with Moon transit + Nakshatra + Dasha
 ✅ **Delivery**: Proactive daily via WhatsApp
 ✅ **Scalability**: Unlimited users (no API costs)

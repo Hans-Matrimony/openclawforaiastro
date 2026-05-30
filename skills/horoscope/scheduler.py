@@ -60,7 +60,7 @@ def subscribe_user(
         dob: Date of birth
         tob: Time of birth
         place: Place of birth
-        language: 'english', 'hinglish', or 'auto'
+        language: 'english', 'hinglish', 'portuguese_brazil', or 'auto'
         preferred_time: Time to send horoscope (HH:MM format)
         channel: Delivery channel (whatsapp, email, etc.)
 
@@ -154,6 +154,31 @@ def send_whatsapp_message(phone_number: str, message: str):
 
 def format_horoscope_message(horoscope_data: Dict, user_name: str = None) -> str:
     """Format horoscope data into a readable message."""
+    language = str(horoscope_data.get('language', 'english')).lower().replace('-', '_')
+
+    if language in {'portuguese_brazil', 'pt_br', 'pt'}:
+        greeting = f"Oi {user_name}!" if user_name else "Oi!"
+        sign = horoscope_data.get('birth_moon_sign_pt_br') or horoscope_data.get('birth_moon_sign', '')
+        date = horoscope_data.get('date', datetime.now().strftime("%Y-%m-%d"))
+
+        return f"""{greeting}
+
+*Seu horoscopo diario - {date}*
+
+*Signo lunar:* {sign}
+*Nakshatra:* {horoscope_data.get('birth_nakshatra', '')}
+*Transito lunar de hoje:* Casa {horoscope_data.get('transit_moon_house', '')}
+
+*Previsao:*
+{horoscope_data.get('prediction', '')}
+
+*Cor da sorte:* {horoscope_data.get('lucky_color', '')}
+*Numeros da sorte:* {', '.join(map(str, horoscope_data.get('lucky_numbers', [])))}
+*Dia da sorte:* {horoscope_data.get('lucky_day', '')}
+
+---
+*100% preciso* - Calculado com Swiss Ephemeris
+"""
     greeting = f"Namaste {user_name}! 🙏" if user_name else "Namaste! 🙏"
 
     sign = horoscope_data.get('birth_moon_sign', '')
@@ -263,7 +288,7 @@ if __name__ == "__main__":
     subscribe_parser.add_argument('--dob', required=True, help='Date of Birth')
     subscribe_parser.add_argument('--tob', required=True, help='Time of Birth')
     subscribe_parser.add_argument('--place', required=True, help='Place of Birth')
-    subscribe_parser.add_argument('--language', default='auto', choices=['english', 'hinglish', 'auto'])
+    subscribe_parser.add_argument('--language', default='auto', choices=['english', 'hinglish', 'portuguese_brazil', 'pt-br', 'pt_br', 'auto'])
     subscribe_parser.add_argument('--time', default='08:00', help='Preferred time (HH:MM)')
     subscribe_parser.add_argument('--name', help='User name (optional)')
 
@@ -283,7 +308,7 @@ if __name__ == "__main__":
     test_parser.add_argument('--dob', required=True, help='Date of Birth')
     test_parser.add_argument('--tob', required=True, help='Time of Birth')
     test_parser.add_argument('--place', required=True, help='Place of Birth')
-    test_parser.add_argument('--language', default='english', choices=['english', 'hinglish'])
+    test_parser.add_argument('--language', default='english', choices=['english', 'hinglish', 'portuguese_brazil', 'pt-br', 'pt_br'])
 
     args = parser.parse_args()
 
