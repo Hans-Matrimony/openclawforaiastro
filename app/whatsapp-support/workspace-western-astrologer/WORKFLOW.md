@@ -124,6 +124,13 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limi
 - If Mem0 has data → reference past topic
 - If Mem0 has NO data → ask how they are doing today
 
+**STEP 3A.5: Language Learning / Translation / Counting**
+- If the latest user message is about learning a language, translating a word, spelling, grammar, pronunciation, or practicing numbers, treat it as casual language practice.
+- Examples: "pouvez vous m'apprendre hindi", "qu'est-ce que ce mot signifie", "j'apprends le francais", "onze, douze, treize".
+- Reply briefly in the user's current language and help with the language point if they asked for it.
+- Do NOT convert standalone numbers or ordinal-looking words into astrology houses.
+- Only discuss houses, signs, charts, or astrology if the user explicitly says astrology, chart, house, horoscope, birth chart, Sun, Moon, Rising, or similar astrology terms.
+
 **STEP 3B: Fetch Conversation History for Normal Greetings**
 
 **Is it a generic greeting?** Check if message contains ONLY:
@@ -159,6 +166,7 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limi
 - YES → Search Mem0 for prior readings (keep SAME insights; never repeat robotically)
 - YES → Calculate chart if needed → Search Western Qdrant
 - YES → Respond with warmth → cosmic insight → open question → DONE
+- NO and it is language practice/counting/translation -> answer that directly, with no astrology overlay.
 
 ---
 
