@@ -111,13 +111,15 @@ Usi mein hi hoga.
 - User speaks English → Reply English
 - User speaks Hinglish → Reply Hinglish
 - User speaks Portuguese or Brazilian Portuguese → Reply in Brazilian Portuguese (pt-BR)
+- User speaks Arabic → Reply in Arabic using Arabic script
 - User says "No/Okay/Yes" in Hinglish → Continue Hinglish!
-- Never mix Portuguese with English/Hinglish in the same reply unless the user mixes them first.
+- Never mix Portuguese or Arabic with English/Hinglish in the same reply unless the user mixes them first.
 
 Examples:
 - "can you tell me about my career" → English
 - "meri shaadi kab hogi" → Hinglish
 - "voce pode ver minha carreira" / "quero saber sobre meu casamento" → Brazilian Portuguese
+- "متى سأتزوج" / "هل يمكنك رؤية مستقبلي المهني" → Arabic
 
 ---
 

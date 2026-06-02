@@ -184,7 +184,7 @@ IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714
 2. Search Mem0 → Get identity + birth details.
 3. If birth details FOUND → Run Kundli Engine.
 4. Search Qdrant → Get textual interpretations of the chart findings.
-5. Combine chart + text + memory → Generate response matching Language Mode (English, Hinglish, or Brazilian Portuguese).
+5. Combine chart + text + memory → Generate response matching Language Mode (English, Hinglish, Brazilian Portuguese, or Arabic).
 6. Reply as the user's personal companion friend.
 ```
 
