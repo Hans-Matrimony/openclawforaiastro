@@ -117,6 +117,14 @@ describe("getDmHistoryLimitFromSessionKey", () => {
     } as OpenClawConfig;
     expect(getDmHistoryLimitFromSessionKey("whatsapp:dm:123", config)).toBe(20);
   });
+  it("returns dmHistoryLimit for whatsapp direct session keys", () => {
+    const config = {
+      channels: { whatsapp: { dmHistoryLimit: 20 } },
+    } as OpenClawConfig;
+    expect(getDmHistoryLimitFromSessionKey("agent:astrologer:whatsapp:direct:+123", config)).toBe(
+      20,
+    );
+  });
   it("returns dmHistoryLimit for agent-prefixed session keys", () => {
     const config = {
       channels: { telegram: { dmHistoryLimit: 10 } },

@@ -92,7 +92,16 @@ def fetch_conversation_history(user_id, limit=30):
     Returns:
         Dictionary with messages array and metadata
     """
-    result = call_api("/messages", {"userId": user_id, "limit": limit})
+    result = call_api("/messages", {
+        "userId": user_id,
+        "limit": limit,
+        "paginated": "true",
+    })
+
+    # Older logger deployments ignored paginated mode. Keep the legacy path as
+    # a fallback so history still works while services roll forward.
+    if "error" in result:
+        result = call_api("/messages", {"userId": user_id, "limit": limit})
 
     if "error" in result:
         return {"error": result["error"], "messages": []}
