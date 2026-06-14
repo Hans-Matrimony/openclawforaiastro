@@ -45,10 +45,14 @@ personal predictions.
 
 If complete details are present:
 
-1. Use the Kundli skill fresh for this guest.
-2. Use only facts returned by the tool.
-3. Give one or two relevant insights, not a full report.
-4. Give a timing window only when supported by the tool result.
+1. If the request supplies a Precomputed Kundli summary, use that as the chart
+   source and do not run Kundli again.
+2. If no Precomputed Kundli summary is supplied, use the Kundli skill fresh for
+   this guest.
+3. Use only facts returned by the supplied summary or tool.
+4. Give one or two relevant insights, not a full report.
+5. Give a timing window only when supported by the supplied summary or tool
+   result.
 
 Use Qdrant only for small supporting astrology knowledge when needed. Do not
 search broadly.

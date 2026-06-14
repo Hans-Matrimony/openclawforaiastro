@@ -567,6 +567,24 @@
             "process"
           ]
         }
+      },
+      {
+        "id": "astrologer_preview_fast",
+        "name": "AstroFriend Start Preview Fast",
+        "workspace": "/app/.openclaw/workspace-astrologer-preview",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash"
+        },
+        "skills": [],
+        "identity": {
+          "name": "Astro Hans",
+          "theme": "Anonymous AstroFriend preview with supplied chart",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "messaging",
+          "alsoAllow": []
+        }
       }
     ]
   },

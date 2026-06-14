@@ -32,6 +32,7 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/workspace/memories \
     /app/.openclaw/agents/astrologer/sessions \
     /app/.openclaw/agents/astrologer_preview/sessions \
+    /app/.openclaw/agents/astrologer_preview_fast/sessions \
     /app/.openclaw/workspace-astrologer \
     /app/.openclaw/workspace-astrologer/memories \
     /app/.openclaw/workspace-astrologer-preview \
