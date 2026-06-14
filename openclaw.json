@@ -573,7 +573,7 @@
         "name": "AstroFriend Start Preview Fast",
         "workspace": "/app/.openclaw/workspace-astrologer-preview",
         "model": {
-          "primary": "deepseek/deepseek-v4-flash"
+          "primary": "google/gemini-3-flash-lite"
         },
         "skills": [],
         "identity": {
