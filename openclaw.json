@@ -542,6 +542,31 @@
             "image"
           ]
         }
+      },
+      {
+        "id": "astrologer_preview",
+        "name": "AstroFriend Start Preview",
+        "workspace": "/app/.openclaw/workspace-astrologer-preview",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash"
+        },
+        "skills": [
+          "qdrant",
+          "kundli"
+        ],
+        "identity": {
+          "name": "Astro Hans",
+          "theme": "Anonymous AstroFriend preview",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "messaging",
+          "alsoAllow": [
+            "exec",
+            "read",
+            "process"
+          ]
+        }
       }
     ]
   },
