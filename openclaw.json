@@ -1,6 +1,7 @@
 {
   "logging": {
-    "level": "info"
+    "level": "debug",
+    "consoleLevel": "debug"
   },
   "session": {
     "dmScope": "per-channel-peer",
