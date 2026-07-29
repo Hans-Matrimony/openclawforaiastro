@@ -420,7 +420,13 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "deepseek/deepseek-v4-flash"
+        "primary": "deepseek/deepseek-v4-flash",
+        "fallbacks": [
+          "groq/llama-3.3-70b-versatile",
+          "google/gemini-2.5-flash",
+          "openai/gpt-4o-mini",
+          "zai/glm-5"
+        ]
       },
       "models": {
         "zai/glm-5": {
@@ -514,7 +520,13 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "deepseek/deepseek-v4-flash"
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
         },
         "skills": [
           "mongo_logger",
@@ -549,7 +561,13 @@
         "name": "AstroFriend Start Preview",
         "workspace": "/app/.openclaw/workspace-astrologer-preview",
         "model": {
-          "primary": "deepseek/deepseek-v4-flash"
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
         },
         "skills": [
           "qdrant",
@@ -574,7 +592,13 @@
         "name": "AstroFriend Start Preview Fast",
         "workspace": "/app/.openclaw/workspace-astrologer-preview",
         "model": {
-          "primary": "deepseek/deepseek-v4-flash"
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
         },
         "skills": [],
         "identity": {
