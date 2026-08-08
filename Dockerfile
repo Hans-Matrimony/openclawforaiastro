@@ -31,10 +31,13 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/workspace \
     /app/.openclaw/workspace/memories \
     /app/.openclaw/agents/astrologer/sessions \
+    /app/.openclaw/agents/tarot_reader/sessions \
     /app/.openclaw/agents/astrologer_preview/sessions \
     /app/.openclaw/agents/astrologer_preview_fast/sessions \
     /app/.openclaw/workspace-astrologer \
     /app/.openclaw/workspace-astrologer/memories \
+    /app/.openclaw/workspace-tarot-reader \
+    /app/.openclaw/workspace-tarot-reader/memories \
     /app/.openclaw/workspace-astrologer-preview \
     /app/.openclaw/workspace-astrologer-preview/memories \
     /app/.openclaw/config \
@@ -49,6 +52,7 @@ COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
+COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
 
 RUN chmod 600 /app/.openclaw/openclaw.json

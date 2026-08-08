@@ -557,6 +557,35 @@
         }
       },
       {
+        "id": "tarot_reader",
+        "name": "Tarot Reader Test",
+        "workspace": "/app/.openclaw/workspace-tarot-reader",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
+        },
+        "skills": [
+          "mem0",
+          "tarot"
+        ],
+        "identity": {
+          "name": "Tara",
+          "theme": "Test-only Tarot card reader",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "messaging",
+          "alsoAllow": [
+            "exec"
+          ]
+        }
+      },
+      {
         "id": "astrologer_preview",
         "name": "AstroFriend Start Preview",
         "workspace": "/app/.openclaw/workspace-astrologer-preview",
@@ -618,6 +647,17 @@
       "agentId": "main",
       "match": {
         "channel": "web"
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "dm",
+          "id": "+919760347653"
+        }
       }
     },
     {
