@@ -163,7 +163,7 @@ Rahul ji, aapka Kundli chart tayyar ho gaya hai. (OR: Rahul ji, your Kundli char
 
 Aapka Rashi Meen (Pisces) aur Lagna Vrishabh (Taurus) hai. (OR: Your Rashi is Pisces...)
 
-IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+919760347653_1714567890.png
+IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+911234567890_1714567890.png
 ```
 
 ### What's Inside
