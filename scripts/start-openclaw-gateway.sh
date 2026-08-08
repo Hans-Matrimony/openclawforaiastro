@@ -11,8 +11,19 @@ export OPENCLAW_CONFIG_DIR="${OPENCLAW_CONFIG_DIR:-$STATE_DIR}"
 export OPENCLAW_CONFIG_PATH="$CONFIG_SOURCE"
 
 mkdir -p "$OPENCLAW_STATE_DIR" \
+  "$OPENCLAW_STATE_DIR/logs" \
   "$OPENCLAW_STATE_DIR/agents/tarot_reader/sessions" \
   "$OPENCLAW_STATE_DIR/workspace-tarot-reader/memories"
+
+STARTUP_LOG="$OPENCLAW_STATE_DIR/logs/tarot-startup.log"
+
+log_startup() {
+  printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*" | tee -a "$STARTUP_LOG"
+}
+
+log_startup "[startup] HOME=$HOME"
+log_startup "[startup] OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
+log_startup "[startup] OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
 
 if [ -f "$CONFIG_SOURCE" ]; then
   cp "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json"

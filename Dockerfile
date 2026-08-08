@@ -43,6 +43,7 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/config \
     /app/.openclaw/skills \
     /app/.openclaw/.pi \
+    /app/bin \
     /app/workspace
 
 RUN chmod -R 700 /app/.openclaw
@@ -57,14 +58,18 @@ COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
 COPY scripts/start-openclaw-gateway.sh /app/start-openclaw-gateway.sh
+COPY scripts/openclaw-docker-wrapper.sh /app/bin/openclaw
 
 RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json \
-    && chmod +x /app/start-openclaw-gateway.sh
+    && chmod +x /app/start-openclaw-gateway.sh /app/bin/openclaw \
+    && mkdir -p /app/node_modules/.bin \
+    && ln -sf /app/bin/openclaw /app/node_modules/.bin/openclaw
 
 ENV OPENCLAW_STATE_DIR=/app/.openclaw
 ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
+ENV PATH=/app/bin:$PATH
 
 # Health check to ensure the gateway is responsive
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
