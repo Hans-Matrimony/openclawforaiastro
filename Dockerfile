@@ -69,4 +69,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 EXPOSE 8000
 
-CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]
+CMD ["sh", "-lc", "set -e; cp /app/openclaw.json /app/.openclaw/openclaw.json; chmod 600 /app/.openclaw/openclaw.json; export OPENCLAW_STATE_DIR=/app/.openclaw OPENCLAW_CONFIG_PATH=/app/openclaw.json HOME=/app; exec pnpm exec openclaw gateway --port 8000 --bind lan"]

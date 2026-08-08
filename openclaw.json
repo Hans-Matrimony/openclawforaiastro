@@ -692,6 +692,90 @@
       }
     },
     {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "919760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "dm",
+          "id": "919760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "direct",
+          "id": "919760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "dm",
+          "id": "919760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "9760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "dm",
+          "id": "9760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "direct",
+          "id": "9760347653"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "dm",
+          "id": "9760347653"
+        }
+      }
+    },
+    {
       "agentId": "astrologer",
       "match": {
         "channel": "whatsapp"
