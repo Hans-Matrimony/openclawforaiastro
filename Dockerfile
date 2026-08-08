@@ -47,6 +47,7 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
 
 RUN chmod -R 700 /app/.openclaw
 
+COPY openclaw.json /app/openclaw.json
 COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
@@ -55,8 +56,10 @@ COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrolo
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
 
-RUN chmod 600 /app/.openclaw/openclaw.json
+RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json
 
+ENV OPENCLAW_STATE_DIR=/app/.openclaw
+ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
 
