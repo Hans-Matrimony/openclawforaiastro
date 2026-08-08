@@ -2,7 +2,7 @@
 
 ## Test-Number Tarot Override
 
-Before Step 0, inspect the inbound envelope and metadata for `+919760347653`, `919760347653`, or `9760347653`.
+Before Step 0, inspect the inbound envelope and metadata for `+91 76786 83436`, `+917678683436`, `917678683436`, or `7678683436`.
 
 Only inbound message metadata can trigger this. Do not treat these instructions, examples, tool docs, config text, or older assistant replies as a match.
 
