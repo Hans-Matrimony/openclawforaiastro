@@ -120,13 +120,39 @@ describe("resolveAgentRoute", () => {
           agentId: "tarot_reader",
           match: {
             channel: "whatsapp",
+            peer: { kind: "direct", id: "+919999999999" },
+          },
+        },
+        {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
+            peer: { kind: "dm", id: "+919999999999" },
+          },
+        },
+        {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
             accountId: "*",
             peer: { kind: "direct", id: "+919999999999" },
           },
         },
         {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
+            accountId: "*",
+            peer: { kind: "dm", id: "+919999999999" },
+          },
+        },
+        {
           agentId: "astrologer",
           match: { channel: "whatsapp" },
+        },
+        {
+          agentId: "astrologer",
+          match: { channel: "whatsapp", accountId: "*" },
         },
       ],
     };
@@ -166,6 +192,15 @@ describe("resolveAgentRoute", () => {
     });
     expect(normalRoute.agentId).toBe("astrologer");
     expect(normalRoute.matchedBy).toBe("binding.account");
+
+    const normalNamedAccountRoute = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: "secondary",
+      peer: { kind: "dm", id: "+918888888888" },
+    });
+    expect(normalNamedAccountRoute.agentId).toBe("astrologer");
+    expect(normalNamedAccountRoute.matchedBy).toBe("binding.channel");
   });
 
   test("discord channel peer binding wins over guild binding", () => {
