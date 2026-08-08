@@ -655,7 +655,7 @@
         "channel": "whatsapp",
         "accountId": "*",
         "peer": {
-          "kind": "dm",
+          "kind": "direct",
           "id": "+919760347653"
         }
       }
@@ -718,7 +718,6 @@
       ],
       "groupPolicy": "allowlist",
       "dms": {},
-      "streamMode": "partial",
       "actions": {
         "reactions": true,
         "sendMessage": true,
@@ -752,7 +751,7 @@
   "gateway": {
     "port": 8000,
     "mode": "local",
-    "bind": "0.0.0.0",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,

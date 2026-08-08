@@ -121,7 +121,7 @@ describe("resolveAgentRoute", () => {
           match: {
             channel: "whatsapp",
             accountId: "*",
-            peer: { kind: "dm", id: "+919999999999" },
+            peer: { kind: "direct", id: "+919999999999" },
           },
         },
         {
@@ -139,6 +139,15 @@ describe("resolveAgentRoute", () => {
     });
     expect(tarotRoute.agentId).toBe("tarot_reader");
     expect(tarotRoute.matchedBy).toBe("binding.peer");
+
+    const tarotRouteFromDirectPeer = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: undefined,
+      peer: { kind: "direct", id: "+919999999999" },
+    });
+    expect(tarotRouteFromDirectPeer.agentId).toBe("tarot_reader");
+    expect(tarotRouteFromDirectPeer.matchedBy).toBe("binding.peer");
 
     const tarotRouteFromNamedAccount = resolveAgentRoute({
       cfg,

@@ -1,5 +1,6 @@
 import type { OpenClawConfig } from "../config/config.js";
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
+import { normalizeChatType } from "../channels/chat-type.js";
 import { listBindings } from "./bindings.js";
 import {
   buildAgentMainSessionKey,
@@ -10,7 +11,7 @@ import {
   sanitizeAgentId,
 } from "./session-key.js";
 
-export type RoutePeerKind = "dm" | "group" | "channel";
+export type RoutePeerKind = "direct" | "dm" | "group" | "channel";
 
 export type RoutePeer = {
   kind: RoutePeerKind;
@@ -55,6 +56,10 @@ function normalizeToken(value: string | undefined | null): string {
 
 function normalizeId(value: string | undefined | null): string {
   return (value ?? "").trim();
+}
+
+function normalizePeerKind(value: string | undefined | null): string {
+  return normalizeChatType(value ?? undefined) ?? normalizeToken(value);
 }
 
 function normalizeAccountId(value: string | undefined | null): string {
@@ -137,12 +142,12 @@ function matchesPeer(
   if (!m) {
     return false;
   }
-  const kind = normalizeToken(m.kind);
+  const kind = normalizePeerKind(m.kind);
   const id = normalizeId(m.id);
   if (!kind || !id) {
     return false;
   }
-  return kind === peer.kind && id === peer.id;
+  return kind === normalizePeerKind(peer.kind) && id === peer.id;
 }
 
 function matchesGuild(
