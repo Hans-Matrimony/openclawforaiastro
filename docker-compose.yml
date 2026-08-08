@@ -2,7 +2,10 @@ services:
   openclaw-gateway:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     environment:
-      HOME: /home/node
+      HOME: /app
+      OPENCLAW_STATE_DIR: /app/.openclaw
+      OPENCLAW_CONFIG_PATH: /app/openclaw.json
+      OPENCLAW_CONFIG_DIR: /app/.openclaw
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
@@ -25,8 +28,9 @@ services:
     restart: unless-stopped
     command:
       [
-        "node",
-        "dist/index.js",
+        "pnpm",
+        "exec",
+        "openclaw",
         "gateway",
         "--bind",
         "${OPENCLAW_GATEWAY_BIND:-lan}",
@@ -37,7 +41,10 @@ services:
   openclaw-cli:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     environment:
-      HOME: /home/node
+      HOME: /app
+      OPENCLAW_STATE_DIR: /app/.openclaw
+      OPENCLAW_CONFIG_PATH: /app/openclaw.json
+      OPENCLAW_CONFIG_DIR: /app/.openclaw
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       BROWSER: echo
@@ -55,7 +62,7 @@ services:
     networks:
       - hans-ai-network
     init: true
-    entrypoint: ["node", "dist/index.js"]
+    entrypoint: ["pnpm", "exec", "openclaw"]
 
 networks:
   hans-ai-network:

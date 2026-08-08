@@ -54,9 +54,12 @@ COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
+COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
+COPY scripts/start-openclaw-gateway.sh /app/start-openclaw-gateway.sh
 
-RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json
+RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json \
+    && chmod +x /app/start-openclaw-gateway.sh
 
 ENV OPENCLAW_STATE_DIR=/app/.openclaw
 ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
@@ -69,4 +72,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 EXPOSE 8000
 
-CMD ["sh", "-lc", "set -e; cp /app/openclaw.json /app/.openclaw/openclaw.json; chmod 600 /app/.openclaw/openclaw.json; export OPENCLAW_STATE_DIR=/app/.openclaw OPENCLAW_CONFIG_PATH=/app/openclaw.json HOME=/app; exec pnpm exec openclaw gateway --port 8000 --bind lan"]
+ENTRYPOINT ["/app/start-openclaw-gateway.sh"]
+CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]
