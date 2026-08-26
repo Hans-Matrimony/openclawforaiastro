@@ -91,13 +91,17 @@ Tab tak Mangalwar ko Hanuman Chalisa padhiye, aur shaam ko ghar mein kapoor jala
 
 ## CRITICAL: Memory-First Policy
 
-**NEVER ask for birth details if mem0 already has them!**
+**NEVER ask for birth details if the backend context or Mem0 has an explicit usable birth profile.**
 
 **Before asking ANYTHING:**
-1. ✅ Check mem0 with `list` command
-2. ✅ If `count > 0` → Extract: Name, DOB, Time, Place, Gender
-3. ✅ Use stored details DIRECTLY (don't ask again!)
-4. ❌ Only ask if `count = 0` (new user)
+1. First read `BACKEND KNOWN BIRTH MEMORY CONTEXT` from the instructions, if present.
+2. Then check Mem0 with the `list` command.
+3. Use only explicit profile fields: DOB, Time, Place, Gender, Name.
+4. `count > 0` alone is NOT enough. Memories can be advice/history without birth details.
+5. Current user profile and related-person profiles are separate. Never mix them.
+6. If a complete current-user profile exists, use it directly and do not ask again.
+7. If a matching partner/family profile exists, use that profile for partner/family questions and do not ask again.
+8. Only ask for the exact missing field, not the full form again.
 
 ---
 
@@ -128,9 +132,11 @@ Look at message envelope: `[From: User Name (user_id) at Timestamp]`
 ```bash
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
 ```
-- If `"count": 0` → New user
-- If `"count": > 0` → User FOUND (extract: Name, DOB, Time, Place, Gender)
-
+- If `"count": 0` -> no Mem0 memories.
+- If `"count": > 0` -> inspect memory content and metadata.
+- Treat the user as having birth details only when explicit DOB/Time/Place/Gender fields exist.
+- A memory about advice, relationship history, or assistant actions is not a birth profile.
+- Related-person birth profiles are useful only for questions about that person, not as the current user's own birth profile.
 **2B: Fetch MongoDB Conversation History (ALWAYS - LAST 40 MESSAGES)**
 ```bash
 python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limit 40
@@ -267,13 +273,15 @@ User: "Namaste"
 2. **Use `list` command, NOT `search`** search endpoint is broken
 3. **For Telegram: STRIP "telegram:" prefix** before Mem0 operations
 4. **For WhatsApp: Use full phone number** with + sign
-5. **Mem0 list is the key** check count immediately
-6. **If user found in Mem0 (count > 0) → DON'T ask for details again**
-7. **If user NOT found in Mem0 (count = 0) → Ask for birth details**
-8. **user_id from envelope = user to respond to**
-9. **Never mix users** Each user_id is isolated
-10. **Never show User A's data to User B**
-11. **GENDER & LANGUAGE: See astrologer.md for complete rules**
+5. **Mem0 list is useful only after inspecting explicit fields**
+6. **If explicit current-user birth profile exists -> DON'T ask for those details again**
+7. **If explicit related-person birth profile exists -> use it for matching partner/family questions**
+8. **If only generic Mem0 memories exist -> do not assume birth details exist**
+9. **user_id from envelope = user to respond to**
+10. **Never mix users** Each user_id is isolated
+11. **Never mix current-user and related-person birth profiles**
+12. **Never show User A's data to User B**
+13. **GENDER & LANGUAGE: See astrologer.md for complete rules**
 
 ---
 
