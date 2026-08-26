@@ -12,7 +12,7 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
       IMGBB_API_KEY: ${IMGBB_API_KEY}
-      USER_PHONE: ${USER_PHONE:-+919760347653}
+      USER_PHONE: ${USER_PHONE:-+918534823036}
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/app/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/app/.openclaw/workspace-astrologer

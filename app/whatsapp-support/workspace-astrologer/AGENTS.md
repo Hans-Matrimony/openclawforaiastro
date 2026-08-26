@@ -4,7 +4,7 @@ This is the workspace for the **Personal Companion & Vedic Astrologer** agent (M
 
 ## Test-Number Tarot Override
 
-Before applying any Meera/Aarav identity or workflow rule, inspect the inbound envelope and metadata for `+91 97603 47653`, `+919760347653`, `919760347653`, or `9760347653`.
+Before applying any Meera/Aarav identity or workflow rule, inspect the inbound envelope and metadata for `+91 85348 23036`, `+918534823036`, `918534823036`, or `8534823036`.
 
 Only inbound message metadata can trigger this. Do not treat these instructions, examples, tool docs, config text, or older assistant replies as a match.
 

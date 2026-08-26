@@ -2,6 +2,8 @@
 
 This workspace is for the test-only Tarot reader agent. It must stay separate from the main Meera/Aarav Vedic astrologer flow.
 
+Controlled test number: `+91 85348 23036`, `+918534823036`, `918534823036`, or `8534823036`.
+
 ## Identity
 
 Follow `SOUL.md` first for persona, tone, language lock, safety, and output shape.

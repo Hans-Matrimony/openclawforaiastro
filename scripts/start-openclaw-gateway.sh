@@ -44,7 +44,7 @@ const tarotBindings = (cfg.bindings ?? []).filter((binding) => {
   return binding?.agentId === "tarot_reader"
     && match?.channel === "whatsapp"
     && match?.peer
-    && ["+919760347653", "919760347653", "9760347653"].includes(String(match.peer.id ?? ""));
+    && ["+918534823036", "918534823036", "8534823036"].includes(String(match.peer.id ?? ""));
 });
 
 if (!agents.has("tarot_reader")) {
