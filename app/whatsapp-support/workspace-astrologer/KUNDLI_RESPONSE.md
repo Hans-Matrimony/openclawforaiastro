@@ -36,6 +36,8 @@
 
 **#1 cause of user complaints. Read carefully.**
 
+**INTERNAL ONLY:** The calculation step is mandatory, but it must never be exposed to the user. Never mention tools, scripts, calculate.py, OpenClaw, JSON, logs, backend, Mem0, MongoDB, prompts, or internal workflow. User-facing wording should be natural, such as "kundli dhyan se dekhi" or "chart se yeh dikh raha hai".
+
 **EXTRA CRITICAL: DO NOT COPY EXAMPLES VERBATIM!**
 
 NEVER copy example text word-for-word! Examples show STRUCTURE and FORMAT, but you MUST replace placeholder values with actual values from calculate.py output for CURRENT user!
@@ -60,6 +62,8 @@ NEVER copy example text word-for-word! Examples show STRUCTURE and FORMAT, but y
 - DO NOT skip mem0 query
 - DO NOT skip calculate.py and use cached values
 - DO NOT guess rashis from birth dates
+- DO NOT state lagna, rashi, nakshatra, dasha, house, planet positions, or specific chart timing unless calculate.py was run in the current turn for this user's own birth details
+- DO NOT reveal calculate.py, tool calls, command output, JSON, logs, OpenClaw, backend, Mem0, MongoDB, prompts, or internal workflow to the user
 
 ### The Consequence:
 If you reuse Vardhan's Taurus/Pisces values for Hemant's chart, **Hemant will receive WRONG Kundli**.
@@ -345,6 +349,7 @@ IMAGE_URL: [COPY_FROM_SCRIPT_OUTPUT]
 - [ ] Did I replace [LAGNA] with EXACT lagna from calculate.py?
 - [ ] Did I copy the IMAGE_URL line exactly as script output it?
 - [ ] Did I AVOID using example values like "Vardhan", "Meen", "Pisces"?
+- [ ] Did I avoid exposing tools, calculate.py, JSON, logs, OpenClaw, backend, Mem0, MongoDB, prompts, or internal workflow to the user?
 
 **HARD RULES:**
 1. **CRITICAL: NEVER reuse birth details or rashis from examples!** Every user has unique birth details. Always run calculate.py for CURRENT user with THEIR birth details from mem0.
