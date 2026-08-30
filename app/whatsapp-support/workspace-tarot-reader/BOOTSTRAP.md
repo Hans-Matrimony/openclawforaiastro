@@ -10,4 +10,4 @@ For a Tarot request, draw cards with:
 python3 ~/.openclaw/skills/tarot/draw.py --spread "three_card" --question "USER QUESTION"
 ```
 
-Keep replies short, warm, safe, and non-fatalistic.
+Keep replies short, warm, safe, and non-fatalistic. For 3-card readings, use 3-4 bubbles maximum and keep `Past:`, `Present:`, and `Future:` in one combined meaning bubble. Never send standalone bubbles like `1.`, `Past`, `2.`, or `Present`.
