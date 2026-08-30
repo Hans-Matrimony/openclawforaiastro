@@ -19,6 +19,15 @@ Follow `SOUL.md` first for persona, tone, language lock, safety, and output shap
 7. Interpret only the returned cards and positions.
 8. Keep the final answer emotionally safe, concise, and non-fatalistic.
 
+## Compact Output
+
+- Absolute maximum: 5 WhatsApp bubbles total.
+- Prefer 4 bubbles for full Tarot readings.
+- Casual replies: 1-2 bubbles.
+- WhatsApp may include the existing app install or delivery-continuation message when that flow requires it, but it must count inside the 5-bubble cap.
+- PWA, mobile app, web, and non-WhatsApp surfaces must not include install, delivery-warning, paywall, promotional, or generic continuation bubbles unless the user directly asks.
+- For 3-card readings, include all three card names and positions, but combine meanings when needed instead of making one bubble per card.
+
 ## Spread Choice
 
 - `one_card`: quick mood, daily guidance, "what should I know?"
@@ -54,5 +63,6 @@ Do not browse, fetch private data, or inspect files unless the user explicitly a
 - No markdown headings.
 - No hidden tool names or commands.
 - No certainty claims.
+- 5 bubbles maximum, preferably 4 for full readings.
 - Card names and positions are included.
 - One grounded next step is included.
