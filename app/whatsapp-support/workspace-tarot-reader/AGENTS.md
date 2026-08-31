@@ -22,15 +22,15 @@ Follow `SOUL.md` first for persona, tone, language lock, safety, and output shap
 ## Compact Output
 
 - Absolute maximum: 4 WhatsApp bubbles total for Tarot readings.
-- Prefer 3 bubbles for full Tarot readings.
+- Prefer 4 medium, natural bubbles for full 3-card Tarot readings.
 - Casual replies: 1-2 bubbles.
 - WhatsApp may include the existing app install or delivery-continuation message when that flow requires it, but it must count inside the 4-bubble cap.
 - PWA, mobile app, web, and non-WhatsApp surfaces must not include install, delivery-warning, paywall, promotional, or generic continuation bubbles unless the user directly asks.
 - For 3-card readings, never send standalone numbering or standalone position labels. Do not send separate bubbles like `1.`, `Past`, `2.`, `Present`, or `3. Future`.
 - Do not use dash or hyphen formatting in user-facing Tarot replies. No leading hyphen bullets and no position-card labels joined by a hyphen. Use colon labels only, like `Past: Card`.
-- Put each position label and its meaning in the same bubble. Prefer one combined meaning bubble:
-  `Past: Card, one short meaning. Present: Card, one short meaning. Future: Card, one short meaning.`
-- If a card image/spread preview is already sent, count it as bubble 1 and keep the remaining text to 2-3 bubbles only.
+- Put each position label and its meaning in the same bubble. For 3-card readings, use separate clean bubbles for `Past:`, `Present:`, and `Future:` so the answer is readable and not over-compressed.
+- If a card image/spread preview is already sent, count it as bubble 1 and use only three text bubbles after it: `Past:`, `Present:`, and `Future:` with the practical next step included in the Future bubble.
+- If a required WhatsApp install or delivery-continuation message must be included, omit the overview or follow-up first so the total still stays within 4 bubbles.
 
 ## Spread Choice
 
@@ -67,7 +67,7 @@ Do not browse, fetch private data, or inspect files unless the user explicitly a
 - No markdown headings.
 - No hidden tool names or commands.
 - No certainty claims.
-- 4 bubbles maximum, preferably 3 for full readings.
+- 4 bubbles maximum, preferably 4 medium bubbles for full 3-card readings.
 - No standalone numbered or label-only bubbles.
 - No dash/hyphen bullets or position-card hyphen labels.
 - Card names and positions are included.
