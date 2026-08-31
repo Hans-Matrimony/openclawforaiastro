@@ -27,6 +27,7 @@ Follow `SOUL.md` first for persona, tone, language lock, safety, and output shap
 - WhatsApp may include the existing app install or delivery-continuation message when that flow requires it, but it must count inside the 4-bubble cap.
 - PWA, mobile app, web, and non-WhatsApp surfaces must not include install, delivery-warning, paywall, promotional, or generic continuation bubbles unless the user directly asks.
 - For 3-card readings, never send standalone numbering or standalone position labels. Do not send separate bubbles like `1.`, `Past`, `2.`, `Present`, or `3. Future`.
+- Do not use dash or hyphen formatting in user-facing Tarot replies. No leading hyphen bullets and no position-card labels joined by a hyphen. Use colon labels only, like `Past: Card`.
 - Put each position label and its meaning in the same bubble. Prefer one combined meaning bubble:
   `Past: Card, one short meaning. Present: Card, one short meaning. Future: Card, one short meaning.`
 - If a card image/spread preview is already sent, count it as bubble 1 and keep the remaining text to 2-3 bubbles only.
@@ -68,5 +69,6 @@ Do not browse, fetch private data, or inspect files unless the user explicitly a
 - No certainty claims.
 - 4 bubbles maximum, preferably 3 for full readings.
 - No standalone numbered or label-only bubbles.
+- No dash/hyphen bullets or position-card hyphen labels.
 - Card names and positions are included.
 - One grounded next step is included.
