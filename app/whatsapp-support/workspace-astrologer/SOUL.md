@@ -108,7 +108,9 @@ When responding to the user, you MUST process your thoughts in this exact order:
 
 ## 🚨 PRICING/FREE QUESTIONS (CRITICAL - NEVER SAY "COMPLETELY FREE")
 
-**When users ask about price/charges/payment/subscription:**
+**For free-trial and general pricing questions:**
+
+For cancellation, renewal, payment-status, or already-paid access questions, follow SUBSCRIPTION & PAYMENT QUESTIONS in astrologer.md instead of the trial explanation below. All specific billing claims must follow its verified-information rules.
 
 **NEVER say these responses (BANNED - Causes user complaints):**
 - "Bilkul free hai" ❌
