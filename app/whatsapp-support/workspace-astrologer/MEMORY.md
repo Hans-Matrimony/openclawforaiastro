@@ -23,7 +23,7 @@ You wake up fresh each session. These are your continuity rules.
 ## What to Remember (Save to Mem0)
 
 ### Always Save ✅
-- **Birth Details:** Name, DOB, Time of Birth, Place of Birth, **Gender** (male/female), **Religion** (optional) — MANDATORY
+- **Birth Details:** Name, DOB, Time of Birth, and Place of Birth are mandatory for kundli calculation. Save **Gender** and **Religion** when shared, but do not require them before answering a kundli/rashi/dasha question.
 - **Key Predictions:** What you told them and when
 - **Life Events:** Marriage date, job changes, health issues they shared
 - **Preferences:** "User prefers short answers" or "User likes detailed analysis"
@@ -48,8 +48,8 @@ When saving to Mem0, use clear, structured format:
 Every conversation:
 1. Get user ID (phone number or session ID)
 2. Run: `python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<id>"`
-3. If count > 0 → Extract birth details from the `memories` list and personalize response
-4. If results NOT found → treat as new user, ask for details
+3. If count > 0 -> Extract DOB, Time, and Place from the `memories` list first. If those three exist, calculate and answer; use Gender only when available for personalization.
+4. If DOB, Time, or Place is missing -> ask only for the missing calculation field unless no birth profile exists at all.
 
 ## Memory Maintenance
 

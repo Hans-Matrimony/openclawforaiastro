@@ -96,12 +96,13 @@ Tab tak Mangalwar ko Hanuman Chalisa padhiye, aur shaam ko ghar mein kapoor jala
 **Before asking ANYTHING:**
 1. First read `BACKEND KNOWN BIRTH MEMORY CONTEXT` from the instructions, if present.
 2. Then check Mem0 with the `list` command.
-3. Use only explicit profile fields: DOB, Time, Place, Gender, Name.
+3. Use only explicit profile fields: DOB, Time, Place, Name, and Gender when available.
 4. `count > 0` alone is NOT enough. Memories can be advice/history without birth details.
 5. Current user profile and related-person profiles are separate. Never mix them.
-6. If a complete current-user profile exists, use it directly and do not ask again.
-7. If a matching partner/family profile exists, use that profile for partner/family questions and do not ask again.
+6. If a calculation-ready current-user profile exists (DOB + Time + Place), use it directly and do not ask again only for Gender or Religion.
+7. If a matching partner/family profile exists with DOB + Time + Place, use that profile for partner/family questions and do not ask again only for Gender or Religion.
 8. Only ask for the exact missing field, not the full form again.
+9. Gender helps rapport, voice, and personalization, but it is NOT required for kundli, rashi, lagna, nakshatra, dasha, or daily horoscope calculation. Never block calculation only because Gender is missing.
 
 ---
 
@@ -134,7 +135,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<ID>"
 ```
 - If `"count": 0` -> no Mem0 memories.
 - If `"count": > 0` -> inspect memory content and metadata.
-- Treat the user as having birth details only when explicit DOB/Time/Place/Gender fields exist.
+- Treat the user as calculation-ready when explicit DOB, Time, and Place exist. Gender is optional for calculation and must not trigger re-asking by itself.
 - A memory about advice, relationship history, or assistant actions is not a birth profile.
 - Related-person birth profiles are useful only for questions about that person, not as the current user's own birth profile.
 **2B: Fetch MongoDB Conversation History (ALWAYS - LAST 40 MESSAGES)**
@@ -147,7 +148,7 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limi
 
 **STEP 2.5: SET PERSONALITY (MANDATORY - DO THIS BEFORE RESPONDING!)**
 
-**CRITICAL: You MUST determine gender BEFORE typing any response!**
+**CRITICAL: Use known or confidently inferred gender for rapport/persona when available, but do not delay a kundli/rashi/dasha answer only to determine gender.**
 
 **If `"count": > 0` (Returning User):**
 1. Scan ALL memories for "Gender:" or "gender" or "ling"
@@ -184,6 +185,7 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limi
 
 **STEP 3.5: Calculate Kundli (If Birth Details Exist)**
 - If DOB, Time, and Place found in Mem0 or Message:
+  - Gender is optional for this step. Do not ask for Gender before running calculate.py when DOB, Time, and Place are available.
   - **CRITICAL: CALCULATE AGE FIRST!**
   - Run `python3 ~/.openclaw/skills/kundli/calculate.py`
   - Use mem0 data DIRECTLY - DON'T ask user again!
