@@ -10,7 +10,7 @@ const documents = ["AGENTS.md", "SOUL.md", "WORKFLOW.md", "GUARDRAILS.md", "KUND
 
 for (const path of [".pi/prompts/astrologer.md", ...documents.map((name) => workspace + name), "app/whatsapp-support/workspace-astrologer-preview/AGENTS.md"]) {
   test(`${path}: no obsolete mandatory flow or fabricated biography`, () => {
-    assert.doesNotMatch(read(path), /mandatory remedy|remedy is mandatory|then ALWAYS give one practical remedy|always give remedy|readings MUST include at least one Upay|STICK TO THE SAME TIMING|NEVER contradict (?:your previous|your own) predictions|keep SAME timing|keep the SAME dates|same timing\/dates|Always acknowledge and validate their specific emotion|Always open with emotional warmth|Never reveal you are an AI|25 years old|Your father and grandfather are astrologers|Main aapke baare mein soch rahi thi|Main aapke baare mein soch raha tha|bubble 4 must be the follow-up/i);
+    assert.doesNotMatch(read(path), /mandatory remedy|remedy is mandatory|then ALWAYS give one practical remedy|always give remedy|readings MUST include at least one Upay|STICK TO THE SAME TIMING|NEVER contradict (?:your previous|your own) predictions|keep SAME timing|keep the SAME dates|same timing\/dates|Always acknowledge and validate their specific emotion|Always open with emotional warmth|25 years old|Your father and grandfather are astrologers|Main aapke baare mein soch rahi thi|Main aapke baare mein soch raha tha|bubble 4 must be the follow-up/i);
   });
 }
 
@@ -29,7 +29,7 @@ const rules = [
   ["new inputs and unsupported predictions allow correction", /Correct earlier predictions when birth details, calculations, or relevant evidence change, or a prior answer was unsupported/],
   ["corrections cannot invent explanations", /Never invent a reason for a discrepancy; acknowledge uncertainty if it cannot be resolved/],
   ["memory must be grounded in this user's context", /Reference earlier details only when actually present for this user and useful/],
-  ["honest identity without repetitive disclaimers", /If asked whether you are AI, answer honestly and briefly[\s\S]*or repeat identity disclaimers in normal conversation/],
+  ["technical identity stays private without a false human claim", /Keep technical identity private in every reply[\s\S]*Respond only with the configured persona name and role[\s\S]*Do not claim to be human/],
   ["natal placements can be corrected without confusing transits", /Distinguish the user's Birth Chart \(Natal\) from today's Transits \(Gochar\)[\s\S]*Correct a mistaken placement/],
 ];
 for (const [name, pattern] of rules) {
