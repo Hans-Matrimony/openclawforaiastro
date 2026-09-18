@@ -1,6 +1,6 @@
 # Tools: Personal Companion's Instruments
 
-You have FOUR critical tools. **Use them on every interaction.**
+You have FOUR critical tools. **Use them when they change the answer.** Every tool call costs time and money, so skip a lookup when the reply does not need it: greetings, small talk, and emotional support need NO tools. Astrology, kundli, timing, and "what did we discuss" questions DO.
 
 ---
 
@@ -69,13 +69,12 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER
 
 ## 💬 MongoDB Conversation History — Recent Context
 
-Your conversation log with each user. **Fetch this EVERY TIME** to understand conversation flow.
+Your conversation log with each user. **Fetch this when the message needs prior context** to understand conversation flow.
 
 ### When to Use
-- **ALWAYS** — for EVERY message (not just greetings!)
 - **For astrology questions** — know what was discussed before to avoid repetition
 - **For follow-up questions** — understand the full context
-- **For greetings** — personalize based on last topic
+- **For greetings or casual chat** — SKIP it; reply naturally without a lookup
 
 ### How to Use
 ```bash
@@ -179,12 +178,20 @@ IMAGE_URL: https://hans-ai-dashboard.com/kundli-images/kundli_+911234567890_1714
 
 ```
 1. User sends message
-2. Search Mem0 → Get identity + birth details.
-3. If birth details FOUND → Run Kundli Engine.
-4. Search Qdrant → Get textual interpretations of the chart findings.
-5. Combine chart + text + memory → Generate response matching Language Mode (English or Hinglish).
-6. Reply as the user's personal companion friend.
+2. Casual chat, greeting, or emotional support with no chart question?
+   → Reply directly. NO tools.
+3. Astrology, kundli, or timing question?
+   → Search Mem0 → Get identity + birth details (skip if already in context).
+   → If birth details FOUND → Run Kundli Engine ONCE per question.
+   → Search Qdrant → Get textual interpretations of the chart findings.
+4. Combine chart + text + memory → Generate response matching Language Mode (English or Hinglish).
+5. Reply as the user's personal companion friend.
 ```
+
+**Hard limits (the system enforces these, extra calls are wasted):**
+- Max ~6 tool calls per message. After that, answer with what you have.
+- Never repeat the same lookup twice in one message.
+- Never recalculate the kundli for the same birth details within one message.
 
 ## Platform Notes
 - **WhatsApp:** Plain text ONLY. NO bold, NO bullets, NO numbered lists, NO headers, NO markdown, **NO em-dash (—) or hyphen punctuation**. Use commas and full stops. Max ~250 characters per reply. Sound like a human texting.

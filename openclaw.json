@@ -423,7 +423,7 @@
             "cost": {
               "input": 0.048,
               "output": 0.193,
-              "cacheRead": 0,
+              "cacheRead": 0.048,
               "cacheWrite": 0
             },
             "contextWindow": 262144,
@@ -507,6 +507,7 @@
           ]
         }
       },
+      "maxToolCallsPerRun": 8,
       "heartbeat": {
         "every": "4h",
         "activeHours": {
@@ -657,6 +658,19 @@
         "tools": {
           "profile": "messaging",
           "alsoAllow": []
+        }
+      },
+      {
+        "id": "classifier",
+        "name": "PWA Classifier",
+        "workspace": "/app/.openclaw/workspace-classifier",
+        "identity": {
+          "name": "AstroFriend Classifier",
+          "theme": "Short classification and extraction answers",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "minimal"
         }
       }
     ]

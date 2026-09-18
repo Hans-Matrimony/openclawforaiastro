@@ -128,6 +128,11 @@ export type AgentDefaultsConfig = {
   cliBackends?: Record<string, CliBackendConfig>;
   /** Opt-in: prune old tool results from the LLM context to reduce token usage. */
   contextPruning?: AgentContextPruningConfig;
+  /**
+   * Max tool executions per agent run (default: 12). Guards against runaway
+   * tool loops that re-bill the full model context on every round trip.
+   */
+  maxToolCallsPerRun?: number;
   /** Compaction tuning and pre-compaction memory flush behavior. */
   compaction?: AgentCompactionConfig;
   /** Vector memory search configuration (per-agent overrides supported). */

@@ -12,6 +12,11 @@ def ensure_pyswisseph():
     """
     Attempt to install pyswisseph if not available.
     Returns True if successful (already installed or just installed), False otherwise.
+
+    Only ONE install attempt is ever made per machine: the result is recorded in
+    a marker file so repeated tool calls don't pay the pip-install round trip
+    every time (each attempt can take tens of seconds and fails in offline or
+    restricted containers).
     """
     global _PYSWISSEPH_AVAILABLE
 
@@ -22,6 +27,14 @@ def ensure_pyswisseph():
         return True
     except ImportError:
         pass
+
+    # Skip the install attempt entirely if a previous attempt already failed.
+    marker_path = os.path.join(
+        os.path.expanduser("~"), ".openclaw", ".pyswisseph_install_attempted"
+    )
+    if os.path.exists(marker_path):
+        print("⚠️ pyswisseph unavailable (previous install attempt failed); using jyotishganit fallback (~80% accuracy)", file=sys.stderr)
+        return False
 
     # Not available, try to install
     print("🔧 pyswisseph not found. Attempting to install...", file=sys.stderr)
@@ -41,10 +54,59 @@ def ensure_pyswisseph():
     except subprocess.CalledProcessError as e:
         print(f"⚠️ Failed to install pyswisseph: {e}", file=sys.stderr)
         print("⚠️ Will use jyotishganit fallback (~80% accuracy)", file=sys.stderr)
+        _record_install_attempt(marker_path)
         return False
     except Exception as e:
         print(f"⚠️ Error installing pyswisseph: {e}", file=sys.stderr)
+        _record_install_attempt(marker_path)
         return False
+
+
+def _record_install_attempt(marker_path):
+    """Persist that a pyswisseph install attempt already happened (best effort)."""
+    try:
+        os.makedirs(os.path.dirname(marker_path), exist_ok=True)
+        with open(marker_path, "w", encoding="utf-8") as fh:
+            fh.write("attempted\n")
+    except Exception:
+        pass
+
+
+_GEOCODE_CACHE_PATH = os.path.join(
+    os.path.expanduser("~"), ".openclaw", ".geocode_cache.json"
+)
+
+
+def _geocode_cache_get(key):
+    """Return cached (lat, lon) for a place, or None. Best effort, never raises."""
+    try:
+        import json
+        with open(_GEOCODE_CACHE_PATH, "r", encoding="utf-8") as fh:
+            cache = json.load(fh)
+        value = cache.get(key)
+        if isinstance(value, list) and len(value) == 2:
+            return float(value[0]), float(value[1])
+    except Exception:
+        pass
+    return None
+
+
+def _geocode_cache_put(key, lat, lon):
+    """Cache (lat, lon) for a place. Best effort, never raises."""
+    try:
+        import json
+        cache = {}
+        try:
+            with open(_GEOCODE_CACHE_PATH, "r", encoding="utf-8") as fh:
+                cache = json.load(fh)
+        except Exception:
+            cache = {}
+        cache[key] = [lat, lon]
+        os.makedirs(os.path.dirname(_GEOCODE_CACHE_PATH), exist_ok=True)
+        with open(_GEOCODE_CACHE_PATH, "w", encoding="utf-8") as fh:
+            json.dump(cache, fh)
+    except Exception:
+        pass
 
 # Try to ensure pyswisseph is available on import
 ensure_pyswisseph()
@@ -388,11 +450,16 @@ def get_coordinates(place):
     except:
         pass
 
-    # Try live geocoding
+    # Try live geocoding (with a disk cache so repeat lookups skip the network)
+    cache_key = place.strip().lower()
+    cached = _geocode_cache_get(cache_key)
+    if cached is not None:
+        return cached
     try:
         geolocator = Nominatim(user_agent="acharya_sharma_astro")
         location = geolocator.geocode(place + ", India")
         if location:
+            _geocode_cache_put(cache_key, location.latitude, location.longitude)
             return location.latitude, location.longitude
     except:
         pass
