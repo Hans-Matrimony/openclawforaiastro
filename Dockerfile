@@ -40,6 +40,7 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/workspace-tarot-reader/memories \
     /app/.openclaw/workspace-astrologer-preview \
     /app/.openclaw/workspace-astrologer-preview/memories \
+    /app/.openclaw/workspace-classifier \
     /app/.openclaw/config \
     /app/.openclaw/skills \
     /app/.openclaw/.pi \

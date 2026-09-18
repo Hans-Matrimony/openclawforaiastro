@@ -507,7 +507,6 @@
           ]
         }
       },
-      "maxToolCallsPerRun": 8,
       "heartbeat": {
         "every": "4h",
         "activeHours": {
