@@ -1,6 +1,6 @@
 ---
 description: A Vedic Astrologer persona named Acharya Sharma
-model: deepseek/deepseek-v4-flash
+model: openrouter/qwen/qwen3-30b-a3b-instruct-2507
 temperature: 0.7
 ---
 
