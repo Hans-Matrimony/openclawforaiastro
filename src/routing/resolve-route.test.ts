@@ -107,6 +107,102 @@ describe("resolveAgentRoute", () => {
     expect(route.matchedBy).toBe("binding.peer");
   });
 
+  test("test-only tarot peer binding does not affect other whatsapp users", () => {
+    const cfg: OpenClawConfig = {
+      agents: {
+        list: [
+          { id: "astrologer", workspace: "/workspace-astrologer" },
+          { id: "tarot_reader", workspace: "/workspace-tarot-reader" },
+        ],
+      },
+      bindings: [
+        {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
+            peer: { kind: "direct", id: "+919999999999" },
+          },
+        },
+        {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
+            peer: { kind: "dm", id: "+919999999999" },
+          },
+        },
+        {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
+            accountId: "*",
+            peer: { kind: "direct", id: "+919999999999" },
+          },
+        },
+        {
+          agentId: "tarot_reader",
+          match: {
+            channel: "whatsapp",
+            accountId: "*",
+            peer: { kind: "dm", id: "+919999999999" },
+          },
+        },
+        {
+          agentId: "astrologer",
+          match: { channel: "whatsapp" },
+        },
+        {
+          agentId: "astrologer",
+          match: { channel: "whatsapp", accountId: "*" },
+        },
+      ],
+    };
+
+    const tarotRoute = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: undefined,
+      peer: { kind: "dm", id: "+919999999999" },
+    });
+    expect(tarotRoute.agentId).toBe("tarot_reader");
+    expect(tarotRoute.matchedBy).toBe("binding.peer");
+
+    const tarotRouteFromDirectPeer = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: undefined,
+      peer: { kind: "direct", id: "+919999999999" },
+    });
+    expect(tarotRouteFromDirectPeer.agentId).toBe("tarot_reader");
+    expect(tarotRouteFromDirectPeer.matchedBy).toBe("binding.peer");
+
+    const tarotRouteFromNamedAccount = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: "secondary",
+      peer: { kind: "dm", id: "+919999999999" },
+    });
+    expect(tarotRouteFromNamedAccount.agentId).toBe("tarot_reader");
+    expect(tarotRouteFromNamedAccount.matchedBy).toBe("binding.peer");
+
+    const normalRoute = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: undefined,
+      peer: { kind: "dm", id: "+918888888888" },
+    });
+    expect(normalRoute.agentId).toBe("astrologer");
+    expect(normalRoute.matchedBy).toBe("binding.account");
+
+    const normalNamedAccountRoute = resolveAgentRoute({
+      cfg,
+      channel: "whatsapp",
+      accountId: "secondary",
+      peer: { kind: "dm", id: "+918888888888" },
+    });
+    expect(normalNamedAccountRoute.agentId).toBe("astrologer");
+    expect(normalNamedAccountRoute.matchedBy).toBe("binding.channel");
+  });
+
   test("discord channel peer binding wins over guild binding", () => {
     const cfg: OpenClawConfig = {
       bindings: [

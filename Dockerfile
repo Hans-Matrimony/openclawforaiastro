@@ -31,30 +31,45 @@ RUN mkdir -p /app/.openclaw/agents/main/sessions \
     /app/.openclaw/workspace \
     /app/.openclaw/workspace/memories \
     /app/.openclaw/agents/astrologer/sessions \
+    /app/.openclaw/agents/tarot_reader/sessions \
     /app/.openclaw/agents/astrologer_preview/sessions \
     /app/.openclaw/agents/astrologer_preview_fast/sessions \
     /app/.openclaw/workspace-astrologer \
     /app/.openclaw/workspace-astrologer/memories \
+    /app/.openclaw/workspace-tarot-reader \
+    /app/.openclaw/workspace-tarot-reader/memories \
     /app/.openclaw/workspace-astrologer-preview \
     /app/.openclaw/workspace-astrologer-preview/memories \
     /app/.openclaw/config \
     /app/.openclaw/skills \
     /app/.openclaw/.pi \
+    /app/bin \
     /app/workspace
 
 RUN chmod -R 700 /app/.openclaw
 
+COPY openclaw.json /app/openclaw.json
 COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
+COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
+COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
+COPY scripts/start-openclaw-gateway.sh /app/start-openclaw-gateway.sh
+COPY scripts/openclaw-docker-wrapper.sh /app/bin/openclaw
 
-RUN chmod 600 /app/.openclaw/openclaw.json
+RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json \
+    && chmod +x /app/start-openclaw-gateway.sh /app/bin/openclaw \
+    && mkdir -p /app/node_modules/.bin \
+    && ln -sf /app/bin/openclaw /app/node_modules/.bin/openclaw
 
+ENV OPENCLAW_STATE_DIR=/app/.openclaw
+ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app
+ENV PATH=/app/bin:$PATH
 
 # Health check to ensure the gateway is responsive
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
@@ -62,4 +77,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 EXPOSE 8000
 
+ENTRYPOINT ["/app/start-openclaw-gateway.sh"]
 CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]

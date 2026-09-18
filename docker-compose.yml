@@ -2,17 +2,22 @@ services:
   openclaw-gateway:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     environment:
-      HOME: /home/node
+      HOME: /app
+      OPENCLAW_STATE_DIR: /app/.openclaw
+      OPENCLAW_CONFIG_PATH: /app/openclaw.json
+      OPENCLAW_CONFIG_DIR: /app/.openclaw
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
       IMGBB_API_KEY: ${IMGBB_API_KEY}
-      USER_PHONE: ${USER_PHONE:-+919760347653}
+      USER_PHONE: ${USER_PHONE:-+918534823036}
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/app/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/app/.openclaw/workspace-astrologer
+      - ${OPENCLAW_TAROT_WORKSPACE_DIR:-./app/whatsapp-support/workspace-tarot-reader}:/app/.openclaw/workspace-tarot-reader
+      - ./skills/tarot:/app/.openclaw/skills/tarot:ro
       - ${OPENCLAW_PREVIEW_WORKSPACE_DIR:-./app/whatsapp-support/workspace-astrologer-preview}:/app/.openclaw/workspace-astrologer-preview
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
@@ -23,8 +28,9 @@ services:
     restart: unless-stopped
     command:
       [
-        "node",
-        "dist/index.js",
+        "pnpm",
+        "exec",
+        "openclaw",
         "gateway",
         "--bind",
         "${OPENCLAW_GATEWAY_BIND:-lan}",
@@ -35,7 +41,10 @@ services:
   openclaw-cli:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     environment:
-      HOME: /home/node
+      HOME: /app
+      OPENCLAW_STATE_DIR: /app/.openclaw
+      OPENCLAW_CONFIG_PATH: /app/openclaw.json
+      OPENCLAW_CONFIG_DIR: /app/.openclaw
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
       BROWSER: echo
@@ -45,13 +54,15 @@ services:
     volumes:
       - ${OPENCLAW_CONFIG_DIR}:/app/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR}:/app/.openclaw/workspace-astrologer
+      - ${OPENCLAW_TAROT_WORKSPACE_DIR:-./app/whatsapp-support/workspace-tarot-reader}:/app/.openclaw/workspace-tarot-reader
+      - ./skills/tarot:/app/.openclaw/skills/tarot:ro
       - ${OPENCLAW_PREVIEW_WORKSPACE_DIR:-./app/whatsapp-support/workspace-astrologer-preview}:/app/.openclaw/workspace-astrologer-preview
     stdin_open: true
     tty: true
     networks:
       - hans-ai-network
     init: true
-    entrypoint: ["node", "dist/index.js"]
+    entrypoint: ["pnpm", "exec", "openclaw"]
 
 networks:
   hans-ai-network:

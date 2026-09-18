@@ -436,7 +436,13 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507"
+        "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+        "fallbacks": [
+          "groq/llama-3.3-70b-versatile",
+          "google/gemini-2.5-flash",
+          "openai/gpt-4o-mini",
+          "zai/glm-5"
+        ]
       },
       "models": {
         "zai/glm-5": {
@@ -533,7 +539,13 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507"
+          "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
         },
         "skills": [
           "mongo_logger",
@@ -564,11 +576,46 @@
         }
       },
       {
+        "id": "tarot_reader",
+        "name": "Tarot Reader Test",
+        "workspace": "/app/.openclaw/workspace-tarot-reader",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
+        },
+        "skills": [
+          "mem0",
+          "tarot"
+        ],
+        "identity": {
+          "name": "Tara",
+          "theme": "Test-only Tarot card reader",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "messaging",
+          "alsoAllow": [
+            "exec"
+          ]
+        }
+      },
+      {
         "id": "astrologer_preview",
         "name": "AstroFriend Start Preview",
         "workspace": "/app/.openclaw/workspace-astrologer-preview",
         "model": {
-          "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507"
+          "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
         },
         "skills": [
           "qdrant",
@@ -593,7 +640,13 @@
         "name": "AstroFriend Start Preview Fast",
         "workspace": "/app/.openclaw/workspace-astrologer-preview",
         "model": {
-          "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507"
+          "primary": "openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
         },
         "skills": [],
         "identity": {
@@ -616,9 +669,142 @@
       }
     },
     {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "+918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "dm",
+          "id": "+918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "direct",
+          "id": "+918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "dm",
+          "id": "+918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "dm",
+          "id": "918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "direct",
+          "id": "918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "dm",
+          "id": "918534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "8534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "dm",
+          "id": "8534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "direct",
+          "id": "8534823036"
+        }
+      }
+    },
+    {
+      "agentId": "tarot_reader",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*",
+        "peer": {
+          "kind": "dm",
+          "id": "8534823036"
+        }
+      }
+    },
+    {
       "agentId": "astrologer",
       "match": {
         "channel": "whatsapp"
+      }
+    },
+    {
+      "agentId": "astrologer",
+      "match": {
+        "channel": "whatsapp",
+        "accountId": "*"
       }
     },
     {
@@ -673,7 +859,6 @@
       ],
       "groupPolicy": "allowlist",
       "dms": {},
-      "streamMode": "partial",
       "actions": {
         "reactions": true,
         "sendMessage": true,
@@ -707,7 +892,7 @@
   "gateway": {
     "port": 8000,
     "mode": "local",
-    "bind": "0.0.0.0",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": true,
