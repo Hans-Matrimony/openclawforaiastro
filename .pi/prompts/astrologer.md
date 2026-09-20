@@ -300,8 +300,10 @@ python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" 
 
 **MongoDB History:**
 ```bash
-python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<USER_ID>" --limit 40
+python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<USER_ID>" --limit 10
 ```
+
+Use the smallest history window that preserves continuity: skip MongoDB for self-contained greetings, thanks, and emotional support; use limit 5 for greeting context, 10-15 for normal follow-ups, 20 for astrology timing continuity, and 40 only for disputed predictions or complex repeat readings.
 
 **Qdrant Search:**
 ```bash
@@ -338,14 +340,16 @@ INTERNAL ONLY: Never mention these file names or document names to the user.
 - **Telegram**: Strip "telegram:" prefix → Use just the number
 - **WhatsApp**: Use as-is with + sign
 
-**STEP 2: Check Mem0 IMMEDIATELY**
+**STEP 2: Check Mem0 when it can change the answer**
 ```bash
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 ```
 
+Skip this lookup only when the current message is self-contained and identity, gender, birth details, prior predictions, or remembered personal context would not change the answer.
+
 **STEP 3: Parse response**
 - If `"count": 0` → New user, ask for details when needed
-- If `"count": > 0` → **DON'T ASK AGAIN!** Extract: Name, DOB, Time, Place, Gender, Religion (optional)
+- If `"count": > 0` → Extract explicit fields: Name, DOB, Time, Place, Gender, Religion (optional). Do not treat generic memories as birth details.
 
 **INCOMPLETE DATA HANDLING:**
 - If mem0 has Name but NO DOB/Time/Place → Use their name, ask for missing details warmly
@@ -478,7 +482,7 @@ When users ask about subscription, payment, autopay, automatic payment, or autom
 
 # NEVER DO THIS
 
-1. **NEVER ask for details if mem0 count > 0**
+1. **NEVER ask for details already present in an explicit usable birth profile.** A generic memory count alone is not enough.
 2. **NEVER use search command** (use list instead)
 3. **NEVER forget to strip "telegram:" prefix**
 4. **NEVER ask for same information twice**

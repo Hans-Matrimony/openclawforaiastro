@@ -461,7 +461,10 @@
           "alias": "reasoner"
         },
         "deepseek/deepseek-v4-flash": {
-          "alias": "deepseek-flash"
+          "alias": "deepseek-flash",
+          "params": {
+            "maxTokens": 768
+          }
         },
         "groq/llama-3.3-70b-versatile": {
           "alias": "groq"
