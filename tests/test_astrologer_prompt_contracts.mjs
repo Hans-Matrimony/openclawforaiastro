@@ -29,9 +29,9 @@ test("concise defaults remain soft for complete multi-part and multilingual answ
 });
 
 test("factual replies can end without filler while interpretations retain a remedy", () => {
-  assert.match(docs.AGENTS, /For interpretive readings retain one short relevant remedy/);
-  assert.match(docs.AGENTS, /skip it for bare chart facts/);
-  assert.match(docs.AGENTS, /when the user declines remedies/);
+  assert.match(docs.AGENTS, /Remedies are optional: offer one only when requested or clearly useful, safe, and supported/);
+  assert.match(docs.AGENTS, /bare chart facts, detail collection, and media delivery need no remedy/);
+  assert.match(docs.AGENTS, /Respect beliefs and refusal/);
   assert.match(docs.KUNDLI_RESPONSE, /Bare rashi\/lagna\/nakshatra\/dasha\/position answers need no separate opener/);
 });
 
