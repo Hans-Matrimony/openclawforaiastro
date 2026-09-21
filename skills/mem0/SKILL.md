@@ -10,11 +10,21 @@ metadata:
 
 # Mem0 - Long-Term Memory
 
-**PRIORITY SKILL: MUST be checked FIRST for EVERY user message**
+**Priority memory skill. The astrologer-specific workflow below takes precedence for that agent.**
 
 Use this skill to store and retrieve memories for users. This is critical for maintaining context across sessions and understanding user preferences/history.
 
-## Mandatory Workflow for ALL User Messages
+## Astrologer workflow
+
+For the `astrologer` agent only, follow the current workspace's conditional memory rules instead of the default lookup workflow below:
+
+- Reuse explicit current-user context when it already answers the question. Skip redundant retrieval for a self-contained greeting or thanks.
+- If identity, birth details, a prior prediction, or other needed context is missing or conflicting, use `list --user-id "<USER_ID>"`, not `search`. Never infer a birth profile from a nonzero memory count.
+- Save newly shared facts and corrections even when no retrieval is needed. Keep partner/family details attributed to that person under the current user's ID, never as the user's own profile.
+- Use the existing add/update workflow. Verify a write succeeded before claiming it was saved; memory failures must not prevent a helpful response.
+- Other agents retain the default workflow below. Command documentation is a reference, not a requirement to call every command.
+
+## Default lookup workflow for other agents
 
 For EVERY incoming user message, you MUST:
 
@@ -111,5 +121,5 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "user preferences" \
 ## Usage Guidelines
 
 - **Always include `user_id`:** Multi-tenancy depends on accurate user IDs (e.g., phone number).
-- **Search before answering:** Check if the user has shared relevant details previously.
+- **Recall before asking again:** For the astrologer, use current context or the conditional `list` workflow above. Other agents retain the default search workflow.
 - **Store key facts:** If the user provides birth details, preferences, or important life events, store them immediately.
