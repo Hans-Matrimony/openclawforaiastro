@@ -77,7 +77,7 @@ class RealEngineTests(unittest.TestCase):
                 result = pwa.calculate_kundli(dob, tob, place)
                 self.assertIn('error', result)
                 self.assertIsNone(result['fallback_data'])
-        self.assertEqual((ROOT / 'skills/kundli/vimshottari.py').read_bytes(), (backend / 'app/services/kundli/vimshottari.py').read_bytes())
+        self.assertEqual((ROOT / 'skills/kundli/vimshottari.py').read_text(encoding='utf-8'), (backend / 'app/services/kundli/vimshottari.py').read_text(encoding='utf-8'))
 
     def test_legacy_full_is_raw_and_aliases_are_attributed(self):
         if not (self.data_dir / 'jyotishganit' / 'de421.bsp').exists():
