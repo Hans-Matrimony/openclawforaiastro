@@ -26,6 +26,10 @@ Provides **authentic Vedic astrology-based daily horoscopes** using Swiss Epheme
 
 ### Generate Daily Horoscope (On-Demand)
 
+Without `--date`, calculations use the current UTC instant. `--date YYYY-MM-DD` selects a reproducible snapshot at 12:00 UTC on that date, returned as `calculated_at_utc`; this is not a local sunrise forecast. The requested date controls both transits and dasha selection. Current Vimshottari periods include the birth-period balance and elapsed time, using a 365.25-day year. Birth time is converted to UTC using the kundli result's offset.
+
+A reliable Swiss birth chart is required for this flow. Missing calculators, incomplete charts, or unavailable transits return error JSON and a nonzero CLI exit; do not use the result as a prediction. Ephemeris calculations do not guarantee the accuracy of an interpretation.
+
 ```bash
 # English horoscope
 python3 ~/.openclaw/skills/horoscope/calculate.py \

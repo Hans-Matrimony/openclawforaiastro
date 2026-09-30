@@ -1,0 +1,65 @@
+{
+  "Status": "Pass",
+  "Input": {
+    "Ayanamsa": 1
+  },
+  "Payload": {
+    "MatchReport": {
+      "Male": {
+        "BirthTime": {
+          "StdTime": "10:30 01/01/1990 +05:30",
+          "Location": {
+            "Name": "28.6139,77.209",
+            "Longitude": 77.209,
+            "Latitude": 28.6139
+          }
+        }
+      },
+      "Female": {
+        "BirthTime": {
+          "StdTime": "14:15 02/02/1992 +05:30",
+          "Location": {
+            "Name": "19.076,72.8777",
+            "Longitude": 72.8777,
+            "Latitude": 19.076
+          }
+        }
+      },
+      "KutaScore": 45.0,
+      "PredictionList": [
+        {
+          "Name": "Graha Maitram",
+          "Nature": "Good"
+        },
+        {
+          "Name": "Nadi Kuta",
+          "Nature": "Good"
+        },
+        {
+          "Name": "Vasya Kuta",
+          "Nature": "Good"
+        },
+        {
+          "Name": "Dina Kuta",
+          "Nature": "Bad"
+        },
+        {
+          "Name": "Guna Kuta",
+          "Nature": "Good"
+        },
+        {
+          "Name": "Rasi Kuta",
+          "Nature": "Neutral"
+        },
+        {
+          "Name": "Varna",
+          "Nature": "Bad"
+        },
+        {
+          "Name": "Yoni Kuta",
+          "Nature": "Bad"
+        }
+      ]
+    }
+  }
+}

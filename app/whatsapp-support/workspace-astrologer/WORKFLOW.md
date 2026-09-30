@@ -293,3 +293,8 @@ User: "Namaste"
 - [ ] Used the compact reply policy without dropping requested facts, drafts, media markers, or safety guidance
 - [ ] **Using correct gendered verbs**
 - [ ] No internal summaries or status updates in response
+
+
+## Optional two-person kundli matching
+
+For an explicit compatibility/matching request, use the vedastro skill when available. Keep both partners separate; confirm calculation roles and ask only for missing birth details. Use only a successful validated result, label the score as a rounded percentage, and never convert it to points out of 36. If disabled or unavailable, explain that matching is unavailable and continue ordinary chat. Existing kundli, horoscope, image and PDF requests retain their current tools. Follow the skill's input, error and interpretation rules.
