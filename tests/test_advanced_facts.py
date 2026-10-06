@@ -11,6 +11,18 @@ from reading import reading_packet
 
 
 class AdvancedTests(unittest.TestCase):
+    def test_divisional_ascendant_boundary_warns_even_when_planet_is_not_near_one(self):
+        from render_reading import render_reading
+        c = chart(0)
+        venus = next(p for p in c['planet_positions'] if p['name'] == 'Venus')
+        venus['sidereal_degree'] += 4
+        c['lagna_sidereal_degree'] = 20
+        result = render_reading(c, 'marriage')
+        ruler = result['evidence']['advanced']['topic_ruler']
+        self.assertFalse(ruler['near_divisional_boundary'])
+        self.assertTrue(ruler['near_divisional_ascendant_boundary'])
+        self.assertIn('confirm an approximate birth time', result['text'])
+
     def test_uccha_component_peaks_symmetry_and_reference_constants(self):
         independent = (10, 33, 298, 165, 95, 357, 200)
         for planet, peak in zip(('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'), independent):

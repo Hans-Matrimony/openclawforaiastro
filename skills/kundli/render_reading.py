@@ -70,7 +70,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         'Yeh traditional themes hain; poori Shadbala strength, transits aur event timing evaluate nahi hue hain.'
         if hinglish else
         'These are traditional themes; full Shadbala strength, transits and event timing have not been evaluated.')
-    if ruler['near_divisional_boundary']:
+    if ruler['near_divisional_boundary'] or ruler['near_divisional_ascendant_boundary']:
         paragraphs.append('Division ki boundary paas hai; birth time approximate ho toh is detail par bharosa karne se pehle confirm karein.'
                           if hinglish else 'This divisional placement is near a boundary; confirm an approximate birth time before relying on it.')
     if any(isinstance(warning, str) and warning.startswith('Moon is ') and 'boundary' in warning

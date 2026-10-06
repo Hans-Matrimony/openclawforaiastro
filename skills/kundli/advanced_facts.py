@@ -89,6 +89,9 @@ def advanced_facts(chart, asc, positions, topic):
     }
     near = degrees[owner] % (30 / division)
     fact['near_divisional_boundary'] = min(near, 30 / division - near) < 0.05
+    asc_near = asc_longitude % (30 / division) if asc_longitude is not None else None
+    fact['near_divisional_ascendant_boundary'] = (
+        asc_near is not None and min(asc_near, 30 / division - asc_near) < 0.05)
     receiving = []
     for planet in CLASSICAL:
         houses = aspect_houses(planet, positions[planet]['house'])
