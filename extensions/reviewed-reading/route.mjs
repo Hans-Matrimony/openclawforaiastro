@@ -14,7 +14,7 @@ export function validReadingResult(result, value) {
     result.model_calls === 0 &&
     result.model_tokens === 0 &&
     evidence?.schema === "topic-reading-v1" &&
-    evidence.rules_revision === "reviewed-placements-v1" &&
+    ["reviewed-placements-v1", "reviewed-placements-v2"].includes(evidence.rules_revision) &&
     evidence.settings?.ayanamsa === "LAHIRI" &&
     evidence.settings?.house_system === "whole_sign" &&
     evidence.settings?.engine === "pyswisseph" &&

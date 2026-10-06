@@ -369,7 +369,7 @@ def main():
                 format="png"
             )
 
-            if storage_result and storage_result.get("success"):
+            if storage_result and storage_result.get("success") and not os.getenv("MONGO_LOGGER_API_TOKEN"):
                 file_id = storage_result.get("fileId")
                 mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com")
                 stored_url = f"{mongo_logger_url}/kundli-image/{file_id}"

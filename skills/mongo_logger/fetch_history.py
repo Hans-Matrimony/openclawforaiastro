@@ -8,6 +8,7 @@ import sys
 import argparse
 import json
 import os
+from service_auth import logger_headers, logger_url, logger_urlopen
 
 # Try requests first, fall back to urllib
 try:
@@ -30,14 +31,15 @@ RETRY_DELAY = 1
 
 
 def call_api_requests(endpoint, params=None):
-    headers = {"Content-Type": "application/json"}
+    headers = logger_headers()
     for attempt in range(MAX_RETRIES):
         try:
             resp = requests.get(
-                f"{MONGO_LOGGER_URL}{endpoint}",
+                logger_url(MONGO_LOGGER_URL, endpoint),
                 params=params,
                 headers=headers,
                 timeout=DEFAULT_TIMEOUT,
+                allow_redirects=False,
             )
             resp.raise_for_status()
             return resp.json()
@@ -55,17 +57,18 @@ def call_api_urllib(endpoint, params=None):
     # Convert params to properly URL-encoded query string
     if params:
         query_string = urlencode(params, doseq=True)
-        full_url = f"{MONGO_LOGGER_URL}{endpoint}?{query_string}"
+        full_url = f"{logger_url(MONGO_LOGGER_URL, endpoint)}?{query_string}"
     else:
-        full_url = f"{MONGO_LOGGER_URL}{endpoint}"
+        full_url = logger_url(MONGO_LOGGER_URL, endpoint)
 
     for attempt in range(MAX_RETRIES):
         try:
             req = urllib.request.Request(
                 full_url,
+                headers=logger_headers(),
                 method="GET",
             )
-            with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
+            with logger_urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
                 return json.load(resp)
         except Exception as e:
             if attempt < MAX_RETRIES - 1:

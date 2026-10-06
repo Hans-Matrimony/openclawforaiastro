@@ -33,6 +33,7 @@ CAREER = {
     6: 'Service institutions, including legal or healthcare organizations: explore the work environment, not medical ability.',
     7: 'Partnerships, cooperative ventures and diplomatic work: explore collaboration against actual preferences.',
     9: 'Teaching, spiritual service or a family profession: do not assume beliefs or family circumstances.',
+    11: 'Employment and professional networks: compare teamwork, hiring or community-facing roles with actual experience.',
     12: 'Work connected with distant places: explore remote or international options without predicting a move.',
 }
 RULES = [
@@ -51,6 +52,14 @@ RULES = [
      'theme': 'Familiarity and shared history in relationships: consider how two people get to know each other and build trust.'},
     {'id': 'House7LordInHouse4', 'topics': ('marriage',), 'ruler_of': 7, 'house': 4,
      'theme': 'Home and shared domestic comfort: discuss expectations about living together against real circumstances.'},
+    {'id': 'House7LordInHouse10', 'topics': ('marriage',), 'ruler_of': 7, 'house': 10,
+     'theme': 'Partnership connected with work: discuss how each person can support the other\'s career and share responsibilities, without assuming a future partner\'s job or loyalty.'},
+    {'id': 'MercuryInHouse5', 'topics': ('education',), 'planet': 'Mercury', 'house': 5,
+     'theme': 'Learning and explaining ideas: explore written explanations or teaching a concept, without treating the chart as an intelligence test.'},
+    {'id': 'JupiterInHouse5', 'topics': ('education',), 'planet': 'Jupiter', 'house': 5,
+     'theme': 'Logic, law and advisory study: explore reasoned arguments or case-based learning against your real interests and qualifications.'},
+    {'id': 'MoonInHouse5', 'topics': ('education',), 'planet': 'Moon', 'house': 5,
+     'theme': 'Clarity and reflective learning: try organizing study material and reviewing understanding, without predicting exam marks.'},
     {'id': 'MercuryInHouse11', 'topics': ('education', 'career'), 'planet': 'Mercury', 'house': 11,
      'theme': 'Scientific or technical learning and applied engineering: possible directions to explore, not an assigned course or profession.'},
     {'id': 'JupiterInHouse4', 'topics': ('education',), 'planet': 'Jupiter', 'house': 4,
@@ -166,7 +175,7 @@ def reading_packet(chart, topic, *, as_of_utc=None):
                  'timezone_offset': birth['timezone_offset'], 'birth_utc': birth['birth_utc'], 'settings': settings}
     fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
     return {
-        'schema': 'topic-reading-v1', 'rules_revision': 'reviewed-placements-v1',
+        'schema': 'topic-reading-v1', 'rules_revision': 'reviewed-placements-v2',
         'topic': topic, 'input_fingerprint': fingerprint,
         'as_of_utc': as_of.isoformat(), 'settings': settings,
         'chart_facts': {'lagna': chart['lagna'], 'moon_sign': chart['moon_sign'],

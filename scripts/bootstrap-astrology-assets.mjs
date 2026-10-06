@@ -18,6 +18,9 @@ export const ASTROLOGY_ASSETS = [
     "VEDASTRO-MIT.txt",
   ].map((name) => `skills/kundli/${name}`),
   "skills/qdrant/qdrant_client.py",
+  ...["logger_client.py", "fetch_history.py", "service_auth.py"].map(
+    (name) => `skills/mongo_logger/${name}`,
+  ),
   ...["KUNDLI_RESPONSE.md", "WORKFLOW.md", "TOOLS.md", "TOOL_REFERENCE.md"].map(
     (name) => `workspace-astrologer/${name}`,
   ),

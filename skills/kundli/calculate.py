@@ -897,6 +897,8 @@ def store_kundli_image_to_mongodb(
         dict with fileId and filename if successful, None if failed
     """
     import requests
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'mongo_logger'))
+    from service_auth import logger_headers, logger_url
 
     # 🔧 Load .env manually if OpenClaw hasn't passed it into the subprocess
     env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '.env')
@@ -911,7 +913,7 @@ def store_kundli_image_to_mongodb(
 
     # Get mongo logger URL from environment
     mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com")
-    upload_url = f"{mongo_logger_url}/kundli-image"
+    upload_url = logger_url(mongo_logger_url, '/kundli-image')
 
     # Prepare payload
     payload = {
@@ -925,7 +927,8 @@ def store_kundli_image_to_mongodb(
     }
 
     try:
-        response = requests.post(upload_url, json=payload, timeout=30)
+        response = requests.post(upload_url, json=payload, headers=logger_headers(),
+                                 timeout=30, allow_redirects=False)
 
         if response.status_code == 200:
             result = response.json()

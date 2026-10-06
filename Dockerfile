@@ -70,6 +70,8 @@ COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_l
     skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
     /app/bootstrap/skills/kundli/
 COPY skills/qdrant/qdrant_client.py /app/bootstrap/skills/qdrant/qdrant_client.py
+COPY skills/mongo_logger/logger_client.py skills/mongo_logger/fetch_history.py \
+    skills/mongo_logger/service_auth.py /app/bootstrap/skills/mongo_logger/
 COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md \
     app/whatsapp-support/workspace-astrologer/WORKFLOW.md \
     app/whatsapp-support/workspace-astrologer/TOOLS.md \
