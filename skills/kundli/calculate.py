@@ -826,6 +826,7 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
             'node': node_convention, 'dasha_year_days': period['year_days'],
             'engine': 'pyswisseph',
         }
+        final_output['lagna_sidereal_degree'] = SIGNS.index(lagna) * 30 + pyswisseph_data['lagna_degree']
 
     # ✅ NEW: Add helpful note if pyswisseph is not available
     if not _PYSWISSEPH_AVAILABLE:
@@ -885,7 +886,7 @@ def store_kundli_image_to_mongodb(
 
     Args:
         image_base64: Base64-encoded image data (with or without data:image/... prefix)
-        user_id: User's WhatsApp number (e.g., "+919760347653")
+        user_id: User's WhatsApp number (e.g., "+919999999999")
         birth_details: Dict with date, time, place, lat, lon
         kundli_data: Dict with lagna, moon_sign, nakshatra, etc.
         session_id: Optional session ID for linking to conversation

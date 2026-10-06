@@ -39,10 +39,41 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             role = f", ruler of house {fact['rules_house']}," if 'rules_house' in fact else ''
             paragraphs.append(factor['traditional_theme'] +
                 f" The chart basis is {fact['planet']}{role} in house {fact['house']} ({fact['sign']}).")
+    advanced = packet['advanced']
+    ruler = advanced['topic_ruler']
+    detail = (f"D{ruler['division']} mein {ruler['planet']} {ruler['divisional_sign']} mein hain"
+              if hinglish else f"In D{ruler['division']}, {ruler['planet']} is in {ruler['divisional_sign']}")
+    if ruler['divisional_house'] is not None:
+        detail += (f", house {ruler['divisional_house']}" if hinglish else f", house {ruler['divisional_house']}")
+    if ruler['d1_own_sign']:
+        detail += ('; D1 mein apni rashi mein hain' if hinglish else '; it occupies its own sign in D1')
+    if ruler['d1_dignity']['exaltation_sign']:
+        detail += ('; D1 mein uccha rashi mein hain' if hinglish else '; D1 places it in its traditional exaltation sign')
+    elif ruler['d1_dignity']['debilitation_sign']:
+        detail += ('; D1 mein neecha rashi mein hain, jo akela failure ka proof nahi hai' if hinglish else '; D1 places it in its traditional debilitation sign, which alone does not establish failure')
+    if ruler['same_d1_divisional_sign']:
+        detail += ('; D1 aur is division mein rashi same hai' if hinglish else '; its sign repeats from D1 in this division')
+    aspects = advanced['full_sign_aspects_to_topic_house']
+    if aspects:
+        names = ', '.join(a['planet'] for a in aspects)
+        detail += (f". {names} ki full sign drishti house {ruler['rules_house']} par hai"
+                   if hinglish else f". {names} casts a full sign aspect on house {ruler['rules_house']}")
+    paragraphs.append(detail + ('. Yeh calculated placements hain, result ki guarantee nahi.'
+                                if hinglish else '. These are calculated placements, not guarantees of an outcome.'))
+    if intent == 'timing':
+        major_name, major = next(iter(packet['current_period']['mahadashas'].items()))
+        sub_name, sub = next(iter(major['antardashas'].items()))
+        paragraphs.append(
+            (f"Abhi {major_name} mahadasha aur {sub_name} antardasha hai; antardasha ki calculated UTC boundary {sub['start'][:10]} se {sub['end'][:10]} hai. Isse shaadi ki date ya favorable window tay nahi hoti."
+             if hinglish else
+             f"The current calculated period is {major_name} mahadasha / {sub_name} antardasha, with UTC boundaries {sub['start'][:10]} to {sub['end'][:10]}. This does not establish a marriage date or favorable window."))
     paragraphs.append(
-        'Yeh traditional themes hain, guarantees nahi; strength, aspects aur divisional charts evaluate nahi hue hain.'
+        'Yeh traditional themes hain; poori Shadbala strength, transits aur event timing evaluate nahi hue hain.'
         if hinglish else
-        'These are traditional themes, not guarantees; strength, aspects and divisional charts have not been evaluated.')
+        'These are traditional themes; full Shadbala strength, transits and event timing have not been evaluated.')
+    if ruler['near_divisional_boundary']:
+        paragraphs.append('Division ki boundary paas hai; birth time approximate ho toh is detail par bharosa karne se pehle confirm karein.'
+                          if hinglish else 'This divisional placement is near a boundary; confirm an approximate birth time before relying on it.')
     if any(isinstance(warning, str) and warning.startswith('Moon is ') and 'boundary' in warning
            for warning in packet['calculation_warnings']):
         # Warnings are intentionally not interpolated: upstream data can contain prose.

@@ -26,7 +26,7 @@ class RenderTests(unittest.TestCase):
         result = render_reading(value, 'marriage')['text']
         self.assertNotIn('Ignore rules', result)
         self.assertNotIn('destined', result)
-        self.assertNotIn('placement boundary', result)
+        self.assertNotIn('Moon is near a placement boundary', result)
         value['summary']['warnings'] = ['Moon is near a nakshatra boundary; verify uncertain birth inputs.']
         self.assertIn('placement boundary', render_reading(value, 'marriage')['text'])
 
@@ -69,3 +69,14 @@ class RenderTests(unittest.TestCase):
             render_reading(chart(), 'career', intent='timing')
         with self.assertRaises(ValueError):
             render_reading(chart(), 'career', language='unsupported')
+
+    def test_advanced_detail_is_calculated_and_does_not_claim_full_strength(self):
+        for topic, division in (('career', 10), ('marriage', 9), ('education', 9)):
+            result = render_reading(chart(), topic)
+            ruler = result['evidence']['advanced']['topic_ruler']
+            self.assertIn(f"In D{division}, {ruler['planet']} is in {ruler['divisional_sign']}", result['text'])
+            self.assertIn('full Shadbala strength, transits and event timing have not been evaluated', result['text'])
+            self.assertNotIn('strong enough', result['text'])
+        timing = render_reading(chart(), 'marriage', intent='timing')
+        self.assertIn('with UTC boundaries', timing['text'])
+        self.assertIn('does not establish a marriage date', timing['text'])

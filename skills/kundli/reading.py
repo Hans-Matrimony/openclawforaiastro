@@ -9,6 +9,7 @@ import json
 import math
 from datetime import datetime, timezone
 from vimshottari import current_period
+from advanced_facts import advanced_facts
 
 SIGNS = ('Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
          'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces')
@@ -171,6 +172,7 @@ def reading_packet(chart, topic, *, as_of_utc=None):
         'chart_facts': {'lagna': chart['lagna'], 'moon_sign': chart['moon_sign'],
                         'nakshatra': chart['nakshatra']},
         'current_period': active, 'factors': factors[:3],
+        'advanced': advanced_facts(chart, asc, positions, topic),
         'period_interpretation_available': False,
         'calculation_warnings': chart.get('summary', {}).get('warnings', []),
         'sources': {'vedastro_classical': SOURCE, 'local_house_symbolism': 'Reviewed general whole-sign house symbolism'},
@@ -178,5 +180,6 @@ def reading_packet(chart, topic, *, as_of_utc=None):
                    'Personal interpretations are limited to the factors; practical examples are hypothetical options.',
                    'No dasha meaning is supplied; do not infer focus, emotions or aptitude from a period name.',
                    'Period dates are calculated dasha boundaries, not marriage, job or admission forecasts.',
-                   'Aspects, strength, divisional charts and event timing were not evaluated.'],
+                   'Full sign aspects and D9/D10 topic-ruler placements are calculated; no personality or event forecast follows from them.',
+                   'Only sign dignity, repeated-sign placement and uccha bala are evaluated; full Shadbala, transits and event timing are not evaluated.'],
     }
