@@ -49,6 +49,17 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         paragraphs.append('Moon placement ki boundary ke paas hai; birth time uncertain ho toh pehle confirm karein.'
                           if hinglish else 'The Moon is near a placement boundary; confirm an uncertain birth time before relying on it.')
     if intent == 'overview':
+        # Practical decision support, explicitly independent of astrological
+        # claims about aptitude, future events or another person's feelings.
+        practical = {
+            'career': ('Practical taur par, do pasand ke roles ki skills aur daily work compare karein; ek chhota project karke apna interest check kar sakte hain.',
+                       'For a practical next step, compare the skills and daily work of two roles you like; try a small project to explore your interest.'),
+            'education': ('Course choose karte waqt syllabus, fees, apni pasand aur ab tak ke study experience ko saath dekhein; chart se aapki ability ya exam result tay nahi hota.',
+                          'Compare course content, fees, your interests and your study experience; the chart does not establish your abilities or exam results.'),
+            'marriage': ('Practical taur par, partner ke saath communication, family expectations aur future plans par khulkar baat karna useful ho sakta hai.',
+                         'As a practical step, discuss communication, family expectations and future plans with a prospective partner.'),
+        }
+        paragraphs.append(practical[topic][0 if hinglish else 1])
         questions = {'career': 'Aap kaunse work options soch rahe hain?',
                      'education': 'Aap kya padh rahe hain, ya kaunse courses soch rahe hain?',
                      'marriage': 'Saath rehne aur communication ki expectations par baat karna chahenge?'}
