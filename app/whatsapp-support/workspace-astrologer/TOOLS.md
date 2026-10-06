@@ -46,7 +46,7 @@ Your personal diary about each user. This is how you "remember" people across se
 
 **Search (recall):**
 ```bash
-python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details" --user-id "USER_PHONE_NUMBER"
+python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "USER_PHONE_NUMBER"
 ```
 
 **Save (store):**
@@ -121,6 +121,10 @@ Your personal assistant for building birth charts.
 - When a real astrology answer needs the current birth chart or current period (Dasha).
 - Do not run it only because birth details are available. Skip for greetings, thanks, casual emotional support, payment/subscription questions, and non-astrology messages.
 - Re-run fresh for each user's Kundli/rashi/timing/image request. Never reuse another user's chart result.
+- A confirmed current-user profile already supplied by the backend/session needs
+  no duplicate birth lookup. For career/education/marriage interpretation, run
+  once with --reading-topic career/education/marriage and use its checked factors.
+  Skip Qdrant if those factors answer the question; preserve all image workflows.
 
 ### How to Use
 

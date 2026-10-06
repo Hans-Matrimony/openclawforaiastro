@@ -20,7 +20,11 @@ RUN npm init -y
 RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
-RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client \
+    pyswisseph==2.10.3.2 timezonefinder==9.0.0 tzdata==2026.4 --break-system-packages
+
+# Fail the build if numerical or timezone dependencies cannot actually load.
+RUN python3 -c "import swisseph; from timezonefinder import TimezoneFinder; from zoneinfo import ZoneInfo; assert TimezoneFinder().timezone_at(lat=28.6139, lng=77.209); ZoneInfo('Asia/Kolkata'); assert len(swisseph.calc_ut(2451545.0, swisseph.MOON)[0]) == 6"
 
 # ❌ REMOVE UI BUILD (this was breaking everything)
 
@@ -54,7 +58,27 @@ COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
+COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
+COPY extensions/inference-budget/ /app/extensions/inference-budget/
+COPY extensions/inference-budget/transport.mjs extensions/inference-budget/runtime.mjs \
+    extensions/inference-budget/pi-extension.mjs /app/bootstrap/runtime/inference-budget/
+COPY app/whatsapp-support/workspace-astrologer/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer/.pi/extensions/
+COPY app/whatsapp-support/workspace-reply-repair/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-reply-repair/.pi/extensions/
+COPY app/whatsapp-support/workspace-astrologer-preview/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer-preview/.pi/extensions/
+COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_language.py \
+    skills/kundli/render_reading.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
+    skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
+    /app/bootstrap/skills/kundli/
+COPY skills/qdrant/qdrant_client.py /app/bootstrap/skills/qdrant/qdrant_client.py
+COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md \
+    app/whatsapp-support/workspace-astrologer/WORKFLOW.md \
+    app/whatsapp-support/workspace-astrologer/TOOLS.md /app/bootstrap/workspace-astrologer/
+COPY .pi/prompts/astrologer.md /app/bootstrap/.pi/prompts/astrologer.md
+COPY scripts/bootstrap-astrology-assets.mjs /app/bootstrap-astrology-assets.mjs
+COPY scripts/validate-inference-budget.mjs /app/validate-inference-budget.mjs
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
+COPY app/whatsapp-support/workspace-reply-repair/ /app/.openclaw/workspace-reply-repair/
+COPY app/whatsapp-support/workspace-reply-repair/ /app/bootstrap/workspace-reply-repair/
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
@@ -69,6 +93,7 @@ RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json \
 ENV OPENCLAW_STATE_DIR=/app/.openclaw
 ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
+ENV KUNDLI_NATAL_CACHE_PATH=/app/.openclaw/cache/kundli.sqlite3
 ENV HOME=/app
 ENV PATH=/app/bin:$PATH
 

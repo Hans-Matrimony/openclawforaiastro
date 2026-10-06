@@ -538,6 +538,17 @@
         }
       },
       {
+        "id": "reply_repair",
+        "name": "Reply language repair",
+        "workspace": "/app/.openclaw/workspace-reply-repair",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": []
+        },
+        "skills": [],
+        "tools": { "deny": ["*"] }
+      },
+      {
         "id": "astrologer",
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
@@ -570,6 +581,18 @@
         },
         "tools": {
           "profile": "messaging",
+          "loopDetection": {
+            "enabled": true,
+            "historySize": 20,
+            "warningThreshold": 4,
+            "criticalThreshold": 6,
+            "globalCircuitBreakerThreshold": 8,
+            "detectors": {
+              "genericRepeat": true,
+              "knownPollNoProgress": true,
+              "pingPong": true
+            }
+          },
           "alsoAllow": [
             "exec",
             "read",
@@ -940,7 +963,10 @@
     }
   },
   "plugins": {
+    "load": { "paths": ["/app/extensions/reviewed-reading", "/app/extensions/inference-budget"] },
     "entries": {
+      "inference-budget": { "enabled": true },
+      "reviewed-reading": { "enabled": true },
       "telegram": {
         "enabled": false
       },

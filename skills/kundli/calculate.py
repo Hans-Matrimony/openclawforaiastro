@@ -3,23 +3,21 @@ import os
 import json
 import argparse
 import math
+import hashlib
+from pathlib import Path
 from bisect import bisect_right
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from vimshottari import current_period
+from natal_cache import cached_natal
 from geopy.geocoders import Nominatim
 
-# ✅ FREE EPHEMERIS CHECK - pyswisseph (100% FREE, 100% ACCURATE)
+# Dependencies are installed at build time; imports must not mutate the runtime.
 _PYSWISSEPH_AVAILABLE = False
 
 def ensure_pyswisseph():
     """
-    Attempt to install pyswisseph if not available.
-    Returns True if successful (already installed or just installed), False otherwise.
-
-    Only ONE install attempt is ever made per machine: the result is recorded in
-    a marker file so repeated tool calls don't pay the pip-install round trip
-    every time (each attempt can take tens of seconds and fails in offline or
-    restricted containers).
+    Check for the build-time ephemeris dependency without installing packages.
     """
     global _PYSWISSEPH_AVAILABLE
 
@@ -31,85 +29,8 @@ def ensure_pyswisseph():
     except ImportError:
         pass
 
-    # Skip the install attempt entirely if a previous attempt already failed.
-    marker_path = os.path.join(
-        os.path.expanduser("~"), ".openclaw", ".pyswisseph_install_attempted"
-    )
-    if os.path.exists(marker_path):
-        print("⚠️ pyswisseph unavailable (previous install attempt failed); using jyotishganit fallback (~80% accuracy)", file=sys.stderr)
-        return False
-
-    # Not available, try to install
-    print("🔧 pyswisseph not found. Attempting to install...", file=sys.stderr)
-    try:
-        import subprocess
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install",
-            "--break-system-packages", "-q",
-            "pyswisseph"
-        ])
-        print("✅ pyswisseph installed successfully!", file=sys.stderr)
-
-        # Try importing again
-        import swisseph as swe
-        _PYSWISSEPH_AVAILABLE = True
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"⚠️ Failed to install pyswisseph: {e}", file=sys.stderr)
-        print("⚠️ Will use jyotishganit fallback (~80% accuracy)", file=sys.stderr)
-        _record_install_attempt(marker_path)
-        return False
-    except Exception as e:
-        print(f"⚠️ Error installing pyswisseph: {e}", file=sys.stderr)
-        _record_install_attempt(marker_path)
-        return False
-
-
-def _record_install_attempt(marker_path):
-    """Persist that a pyswisseph install attempt already happened (best effort)."""
-    try:
-        os.makedirs(os.path.dirname(marker_path), exist_ok=True)
-        with open(marker_path, "w", encoding="utf-8") as fh:
-            fh.write("attempted\n")
-    except Exception:
-        pass
-
-
-_GEOCODE_CACHE_PATH = os.path.join(
-    os.path.expanduser("~"), ".openclaw", ".geocode_cache.json"
-)
-
-
-def _geocode_cache_get(key):
-    """Return cached (lat, lon) for a place, or None. Best effort, never raises."""
-    try:
-        import json
-        with open(_GEOCODE_CACHE_PATH, "r", encoding="utf-8") as fh:
-            cache = json.load(fh)
-        value = cache.get(key)
-        if isinstance(value, list) and len(value) == 2:
-            return float(value[0]), float(value[1])
-    except Exception:
-        pass
-    return None
-
-
-def _geocode_cache_put(key, lat, lon):
-    """Cache (lat, lon) for a place. Best effort, never raises."""
-    try:
-        import json
-        cache = {}
-        try:
-            with open(_GEOCODE_CACHE_PATH, "r", encoding="utf-8") as fh:
-                cache = json.load(fh)
-        except Exception:
-            cache = {}
-        cache[key] = [lat, lon]
-        os.makedirs(os.path.dirname(_GEOCODE_CACHE_PATH), exist_ok=True)
-        with open(_GEOCODE_CACHE_PATH, "w", encoding="utf-8") as fh:
-            json.dump(cache, fh)
-    except Exception:
-        pass
+    _PYSWISSEPH_AVAILABLE = False
+    return False
 
 # Try to ensure pyswisseph is available on import
 ensure_pyswisseph()
@@ -125,7 +46,6 @@ except ImportError:
 
 try:
     from timezonefinder import TimezoneFinder
-    from zoneinfo import ZoneInfo
     _TZ_FINDER = TimezoneFinder()
 except ImportError:
     _TZ_FINDER = None
@@ -274,7 +194,7 @@ def get_house_from_sign(planet_sign, lagna_sign):
     return house
 
 # ✅ PYSWISSEPH CALCULATION ENGINE (100% FREE, 100% ACCURATE)
-def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
+def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node_convention='true'):
     """
     Calculate Kundli using FREE pyswisseph (Swiss Ephemeris).
     This is 100% FREE and provides professional-grade accuracy.
@@ -283,11 +203,17 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
     """
     if not _PYSWISSEPH_AVAILABLE:
         raise ImportError("pyswisseph is not installed. Run: pip install pyswisseph")
+    if node_convention not in ('true', 'mean'):
+        raise ValueError('Node convention must be true or mean')
+    validate_coordinates(lat, lon)
+    if birth_dt.tzinfo is not None:
+        birth_dt = birth_dt.astimezone(timezone.utc).replace(tzinfo=None)
+    if ayanamsa_name not in PYSWISSEPH_SIDEREAL_MODES:
+        raise ValueError('Unsupported ayanamsa')
 
-    # Set ephemeris path (will auto-download if needed)
+    # Optional local ephemeris files; Swiss Ephemeris itself does not download.
+    # A read-only skill mount is valid, so do not create runtime directories here.
     ephe_path = os.path.join(SCRIPT_DIR, 'ephe')
-    if not os.path.exists(ephe_path):
-        os.makedirs(ephe_path)
     swe.set_ephe_path(ephe_path)
 
     # Convert to Julian Day
@@ -313,11 +239,11 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
         # Old: swe.houses(jd, lat, lon, b'P')
         # New: swe.houses(jd, lat, lon, b'P', optionally more flags)
         try:
-            houses_long = swe.houses(jd, lat, lon, b'P')
+            houses_long = swe.houses(jd, lat, lon, b'W')
         except TypeError as e:
             print(f"⚠️ Trying alternative houses() format: {e}", file=sys.stderr)
             # Try without system byte string
-            houses_long = swe.houses(jd, lat, lon, 'P')
+            houses_long = swe.houses(jd, lat, lon, 'W')
 
         lagna_tropical = houses_long[1][0]  # Ascendant in tropical degrees
 
@@ -330,7 +256,8 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
 
     # Calculate planet positions
     planet_positions = []
-    for planet_name, planet_id in PYSWISSEPH_PLANETS.items():
+    planet_ids = {**PYSWISSEPH_PLANETS, 'Rahu': 11 if node_convention == 'true' else 10}
+    for planet_name, planet_id in planet_ids.items():
         try:
             xx, ret = swe.calc_ut(jd, planet_id)
             tropical_degree = xx[0] % 360
@@ -389,10 +316,20 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
         'lagna_degree': lagna_degree,
         'ayanamsa_used': ayanamsa_name,
         'ayanamsa_degree': ayanamsa,
+        'node_convention': node_convention,
         'ephemeris': 'pyswisseph (FREE Swiss Ephemeris)'
     }
 
+def validate_coordinates(lat, lon):
+    if (type(lat) not in (int, float) or type(lon) not in (int, float)
+            or not math.isfinite(lat) or not math.isfinite(lon)
+            or not -90 < lat < 90 or not -180 <= lon <= 180):
+        raise ValueError('Valid latitude (-90, 90) and longitude [-180, 180] are required')
+
+
 def get_coordinates(place):
+    if not isinstance(place, str) or not place.strip() or len(place) > 200:
+        raise ValueError('A specific birthplace is required')
     # Try local fallback first (case-insensitive)
     try:
         with open(CITIES_FILE, 'r') as f:
@@ -405,23 +342,19 @@ def get_coordinates(place):
     except:
         pass
 
-    # Try live geocoding (with a disk cache so repeat lookups skip the network)
-    cache_key = place.strip().lower()
-    cached = _geocode_cache_get(cache_key)
-    if cached is not None:
-        return cached
+    # Try live geocoding
     try:
         geolocator = Nominatim(user_agent="acharya_sharma_astro")
-        location = geolocator.geocode(place + ", India")
-        if location:
-            _geocode_cache_put(cache_key, location.latitude, location.longitude)
-            return location.latitude, location.longitude
+        locations = geolocator.geocode(place, exactly_one=False, limit=3, timeout=5)
+        if locations and len(locations) == 1:
+            validate_coordinates(locations[0].latitude, locations[0].longitude)
+            return locations[0].latitude, locations[0].longitude
     except:
         pass
 
     # ✅ FIX #3: FAIL LOUDLY instead of silent Delhi fallback
     # Using wrong coordinates completely changes Lagna and Moon positions
-    raise ValueError(f"Could not find coordinates for '{place}'. Please provide a valid city name in India.")
+    raise ValueError('Birthplace not uniquely resolved; provide city, region and country or confirmed coordinates')
 
 
 def get_timezone_offset(lat, lon, birth_dt=None):
@@ -433,29 +366,22 @@ def get_timezone_offset(lat, lon, birth_dt=None):
     Using a fixed reference (2000-06-15) causes incorrect Lagna and Moon calculations.
     """
     if _TZ_FINDER is None:
-        return 5.5  # Fallback to IST if timezonefinder not installed
-
-    try:
-        tz_name = _TZ_FINDER.timezone_at(lat=lat, lng=lon)
-        if tz_name:
-            from datetime import timezone as _tz
-            tz = ZoneInfo(tz_name)
-
-            # ✅ FIX #1: Use actual birth datetime instead of fixed reference
-            # This ensures correct offset accounting for DST, historical changes, etc.
-            if birth_dt:
-                # Use actual birth date/time
-                localized_dt = birth_dt.replace(tzinfo=tz)
-            else:
-                # Fallback to current time if birth_dt not provided (shouldn't happen)
-                localized_dt = datetime.now(tz)
-
-            offset_seconds = localized_dt.utcoffset().total_seconds()
-            return offset_seconds / 3600
-    except Exception:
-        pass
-
-    return 5.5  # Fallback to IST
+        raise ValueError('Timezone resolver unavailable; install timezonefinder at build time')
+    if birth_dt is None:
+        raise ValueError('Birth datetime is required to resolve the historical timezone offset')
+    tz_name = _TZ_FINDER.timezone_at(lat=lat, lng=lon)
+    if not tz_name:
+        raise ValueError('Birth timezone could not be resolved; confirm the birthplace')
+    tz = ZoneInfo(tz_name)
+    candidates = set()
+    for fold in (0, 1):
+        local = birth_dt.replace(tzinfo=tz, fold=fold)
+        utc = local.astimezone(timezone.utc)
+        if utc.astimezone(tz).replace(tzinfo=None) == birth_dt:
+            candidates.add(local.utcoffset().total_seconds())
+    if len(candidates) != 1:
+        raise ValueError('Ambiguous or nonexistent local birth time; confirm the time and UTC offset')
+    return candidates.pop() / 3600
 
 def parse_date(dob_str):
     """Parse date string in various formats."""
@@ -578,10 +504,14 @@ def validate_planet_positions(chart_data):
     return validation_errors
 
 
-def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy_full=False):
+def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy_full=False, node_convention='true',
+                     latitude=None, longitude=None, utc_offset=None):
     # ✅ FIX #3: get_coordinates now raises ValueError if place not found
     # No more silent Delhi fallback
-    lat, lon = get_coordinates(place)
+    if (latitude is None) != (longitude is None):
+        raise ValueError('Both latitude and longitude are required')
+    lat, lon = get_coordinates(place) if latitude is None else (latitude, longitude)
+    validate_coordinates(lat, lon)
 
     # Parse date and time into a single datetime object
     birth_time = parse_time(tob_str)
@@ -590,7 +520,10 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
 
     # ✅ FIX #1: Pass birth_dt to get correct timezone offset
     # Timezone offsets depend on actual birth date (DST, historical changes)
-    tz_offset = get_timezone_offset(lat, lon, birth_dt)
+    if utc_offset is not None and (type(utc_offset) not in (int, float)
+            or not math.isfinite(utc_offset) or not -14 <= utc_offset <= 14):
+        raise ValueError('Confirmed UTC offset must be between -14 and +14 hours')
+    tz_offset = get_timezone_offset(lat, lon, birth_dt) if utc_offset is None else utc_offset
 
     # ✅ FIX #8: Convert local time to UTC for pyswisseph
     # Swiss Ephemeris requires UTC, but we have local time
@@ -599,11 +532,17 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
     utc_dt = birth_dt - timedelta(hours=tz_offset)
 
     if legacy_full:
+        if node_convention != 'true':
+            raise ValueError('Explicit node selection is supported only by the primary chart engine')
         if jyotishganit is None:
             raise ValueError('jyotishganit is required for --legacy-full')
         return jyotishganit.calculate_birth_chart(
             birth_date=birth_dt, latitude=lat, longitude=lon,
             timezone_offset=tz_offset, name='User').to_dict()
+
+    allow_legacy_fallback = os.getenv('KUNDLI_ALLOW_LEGACY_FALLBACK') == '1'
+    if not _PYSWISSEPH_AVAILABLE and not allow_legacy_fallback:
+        raise ValueError('Primary Swiss Ephemeris dependency unavailable; rebuild with pyswisseph installed')
 
     # ✅ NEW: Try pyswisseph first (100% FREE, 100% ACCURATE)
     # Fall back to jyotishganit if pyswisseph unavailable
@@ -615,11 +554,40 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
         try:
             # 🔥 FIX: Pass utc_dt instead of birth_dt to pyswisseph!
             # This ensures planetary positions are calculated for the correct UTC time
-            pyswisseph_data = calculate_kundli_pyswisseph(utc_dt, lat, lon)
+            from reading import verified_positions
+            def validate_natal(value):
+                verified_positions({'calculation_source': 'pyswisseph', **value})
+                moon = next(p for p in value['planet_positions'] if p['name'] == 'Moon')
+                if moon['sidereal_degree'] != value['moon_sidereal_degree']:
+                    raise ValueError('Conflicting cached Moon longitude')
+                for field in ('lagna_degree', 'moon_degree'):
+                    degree = value[field]
+                    if type(degree) not in (int, float) or not math.isfinite(degree) or not 0 <= degree < 30:
+                        raise ValueError('Invalid cached sign degree')
+                if not math.isclose(value['moon_degree'], moon['sidereal_degree'] % 30, abs_tol=1e-9):
+                    raise ValueError('Conflicting cached Moon degree')
+                if (value['node_convention'] != node_convention or value['ayanamsa_used'] != 'LAHIRI'
+                        or type(value['ayanamsa_degree']) not in (int, float)
+                        or not math.isfinite(value['ayanamsa_degree'])):
+                    raise ValueError('Conflicting cached calculation settings')
+                star, start = get_nakshatra_from_degree(moon['sidereal_degree'])
+                if value['moon_nakshatra'] != star or value['moon_pada'] != calculate_pada(moon['sidereal_degree'], start):
+                    raise ValueError('Conflicting cached Moon nakshatra')
+            ephe_dir = Path(SCRIPT_DIR) / 'ephe'
+            ephe_revision = [(p.name, p.stat().st_size, p.stat().st_mtime_ns)
+                             for p in sorted(ephe_dir.glob('*.se1'))] if ephe_dir.exists() else []
+            revision = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+            pyswisseph_data = cached_natal(
+                {'utc': utc_dt.isoformat(), 'lat': lat, 'lon': lon, 'node': node_convention,
+                 'ayanamsa': 'LAHIRI', 'houses': 'whole_sign', 'revision': revision,
+                 'engine': str(getattr(swe, 'version', 'unknown')), 'ephemeris': ephe_revision},
+                lambda: calculate_kundli_pyswisseph(utc_dt, lat, lon, node_convention=node_convention),
+                validate_natal)
             using_pyswisseph = True
             ephemeris_info = "pyswisseph (FREE Swiss Ephemeris) - Primary"
         except Exception as e:
-            # Silently fall back to jyotishganit if pyswisseph fails
+            if not allow_legacy_fallback:
+                raise ValueError('Primary Swiss Ephemeris calculation failed; no chart was substituted') from e
             ephemeris_info = f"jyotishganit (fallback - pyswisseph error: {str(e)[:50]})"
 
     if using_pyswisseph:
@@ -639,6 +607,8 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
             'calculation_source': 'pyswisseph',
         }
     else:
+        if node_convention != 'true':
+            raise ValueError('Legacy fallback cannot honor the requested node convention')
         if jyotishganit is None:
             raise ValueError(f"No working chart engine: {ephemeris_info}; jyotishganit unavailable")
         chart = jyotishganit.calculate_birth_chart(
@@ -716,7 +686,7 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
         else:
             warnings.append(f"Using jyotishganit (fallback) - pyswisseph unavailable or failed")
             if not _PYSWISSEPH_AVAILABLE:
-                warnings.append(f"NOTE: Install pyswisseph for 100% accuracy: pip install pyswisseph")
+                warnings.append('Primary ephemeris unavailable; explicitly enabled legacy fallback uses independent conventions')
 
             # ✅ FIX 1: Validate and correct BOTH nakshatra AND pada based on degree (CRITICAL)
             # Only for jyotishganit (pyswisseph is already 100% accurate)
@@ -728,20 +698,15 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
 
         # Check if Moon is near sign boundary (within 1 degree)
         if moon_degree > 29.0 or moon_degree < 1.0:
-            warnings.append(f"Moon is at {moon_degree:.2f}° in {moon_sign}, very near sign boundary. Small time difference (±2-3 minutes) could change Moon sign.")
+            warnings.append(f"Moon is at {moon_degree:.2f}° in {moon_sign}, near a sign boundary. Verify uncertain birth inputs before relying on this placement.")
             confidence = "medium"
 
-        # Check if Moon is in a nakshatra that spans two signs (transition zones)
-        transition_nakshatras = ["Krittika", "Mrigashira", "Punarvasu", "Pushya", "Ashlesha",
-                                "Uttara Phalguni", "Hasta", "Chitra", "Vishakha", "Anuradha", "Jyeshtha",
-                                "Mula", "Purva Ashadha", "Shravana", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"]
-
-        moon_nakshatra_base = moon_nakshatra.split()[0] if moon_nakshatra else moon_nakshatra
-        if moon_nakshatra_base in transition_nakshatras:
-            if moon_degree > 13.0 or moon_degree < 0.33:
-                warnings.append(f"Moon is in {moon_nakshatra} (a transition nakshatra) near sign edge at {moon_degree:.2f}°. Verification recommended.")
-                if confidence == "high" and not using_pyswisseph:
-                    confidence = "medium"
+        # Derive boundary proximity from longitude, not a hand-written star list.
+        moon_longitude = SIGNS.index(moon_sign) * 30 + moon_degree
+        star_fraction = moon_longitude % (360 / 27)
+        if min(star_fraction, 360 / 27 - star_fraction) < 0.05:
+            warnings.append('Moon is near a nakshatra boundary; verify uncertain birth inputs.')
+            confidence = 'medium'
 
         # ✅ FIX: Validate planet positions (Mercury, Mars, Sun)
         # Skip validation if using pyswisseph (already 100% accurate)
@@ -825,7 +790,7 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
                 "rashi_info": f"Rashi (Moon Sign): {moon_sign} (Hindi: {moon_hindi}). Lagna (Ascendant): {lagna} (Hindi: {lagna_hindi}). Nakshatra: {moon_nakshatra} Pada {moon_pada}.",
                 "dasha_info": dasha_str,
                 "planet_positions": planets_summary,
-                "instructions_for_ai": f"SYSTEM INSTRUCTION: DO NOT GUESS ZODIAC SIGNS! Rashi is {moon_sign} and Lagna is {lagna}. Look at dasha_info for timing predictions. 🚨 HYPER-CRITICAL LANGUAGE LOCK: You MUST analyze the EXACT LANGUAGE of the user's last message. If the user spoke ENGLISH (e.g. 'tell me about my career'), YOU MUST ABANDON HINGLISH ENTIRELY AND REPLY 100% IN PURE ENGLISH right now! Do NOT use Hindi words like 'shaadi', 'kaise ho', or 'beta' in English mode! If the user spoke HINGLISH/HINDI, you MUST reply 100% IN HINGLISH. CRITICAL FOR IMAGE GENERATION: When running draw_kundli_traditional.py, you MUST copy the ENTIRE planet_positions array."
+                "instructions_for_ai": 'Use calculated facts only. Dasha dates are period boundaries, not event forecasts. Image rendering requires all nine planet positions.'
             }
         }
 
@@ -846,6 +811,7 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
 
     # Add metadata
     final_output["user_input"] = {
+        "birth_utc": utc_dt.isoformat() + 'Z',
         "dob": dob_str,
         "tob": tob_str,
         "place": place,
@@ -854,10 +820,16 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
         "ephemeris_used": ephemeris_info,
         "pyswisseph_available": _PYSWISSEPH_AVAILABLE
     }
+    if using_pyswisseph:
+        final_output['calculation_settings'] = {
+            'ayanamsa': 'LAHIRI', 'house_system': 'whole_sign',
+            'node': node_convention, 'dasha_year_days': period['year_days'],
+            'engine': 'pyswisseph',
+        }
 
     # ✅ NEW: Add helpful note if pyswisseph is not available
     if not _PYSWISSEPH_AVAILABLE:
-        final_output["user_input"]["note"] = "Install pyswisseph for 100% accuracy: pip install pyswisseph"
+        final_output["user_input"]["note"] = 'Legacy fallback explicitly enabled; primary Swiss Ephemeris unavailable'
 
     # ✅ FIX #3: No silent fallback warning anymore - we fail loudly instead
     # If we reach here, coordinates are valid
@@ -979,16 +951,41 @@ if __name__ == "__main__":
     parser.add_argument('--full', action='store_true', help='Return full raw data (warning: 7000+ lines)')
     parser.add_argument('--legacy-full', action='store_true',
                         help='Return the complete original jyotishganit raw schema from one engine')
+    parser.add_argument('--reading-topic', choices=['career', 'education', 'marriage'],
+                        help='Return a compact verified topic reading, not raw chart data')
+    parser.add_argument('--render-reading', action='store_true',
+                        help='Render the topic reading from reviewed rules without an LLM')
+    parser.add_argument('--reading-language', choices=['english', 'hinglish'], default='english')
+    parser.add_argument('--reading-intent', choices=['overview', 'timing'], default='overview')
+    parser.add_argument('--node-convention', choices=['true', 'mean'], default='true',
+                        help='Lunar node convention (existing default: true)')
+    parser.add_argument('--latitude', type=float, help='Confirmed birthplace latitude')
+    parser.add_argument('--longitude', type=float, help='Confirmed birthplace longitude')
+    parser.add_argument('--utc-offset', type=float, help='Explicit confirmed birth UTC offset in hours; resolves DST ambiguity')
     
     args = parser.parse_args()
     
     try:
+        if args.render_reading and not args.reading_topic:
+            raise ValueError('--render-reading requires --reading-topic')
+        if args.reading_topic and (args.full or args.legacy_full):
+            raise ValueError('--reading-topic cannot be combined with full output modes')
         output = calculate_kundli(args.dob, args.tob, args.place,
                                  include_supplemental=args.full,
-                                 legacy_full=args.legacy_full)
+                                 legacy_full=args.legacy_full,
+                                 node_convention=args.node_convention, latitude=args.latitude,
+                                 longitude=args.longitude, utc_offset=args.utc_offset)
 
         # If not full mode, trim the output to essentials to prevent LLM confusion
-        if not args.full and not args.legacy_full:
+        if args.reading_topic:
+            if args.render_reading:
+                from render_reading import render_reading
+                output = render_reading(output, args.reading_topic,
+                                        language=args.reading_language, intent=args.reading_intent)
+            else:
+                from reading import reading_packet
+                output = reading_packet(output, args.reading_topic)
+        elif not args.full and not args.legacy_full:
             trimmed = {
                 "summary": output.get("summary"),
                 "ai_summary": output.get("ai_summary"),
@@ -996,11 +993,13 @@ if __name__ == "__main__":
                 "moon_sign": output.get("moon_sign"),
                 "nakshatra": output.get("nakshatra"),
                 "user_input": output.get("user_input"),
+                "calculation_settings": output.get("calculation_settings"),
                 "note": "Raw planet/dasha data hidden. Run with --full if you need specific degrees or full dasha tables."
             }
             output = trimmed
             
-        print(json.dumps(output, indent=2, default=lambda x: str(x)))
+        print(json.dumps(output, **({'separators': (',', ':')} if args.reading_topic else {'indent': 2}),
+                         default=lambda x: str(x)))
     except Exception as e:
         import traceback
         error_info = {

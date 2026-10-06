@@ -276,6 +276,15 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
 python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City"
 ```
 
+For career, education or marriage readings, add the corresponding --reading-topic
+career/education/marriage to this single call. Use its checked topic factors; skip
+Qdrant when they cover the question. Period boundaries alone are not event forecasts.
+Use a complete confirmed backend/session birth profile without a duplicate lookup.
+Friend-only messages keep the existing companion flow and need no chart calculation.
+For topic-reading-v1, interpret only the supplied factors. Period dates have no
+supplied dasha meaning; do not invent effects of Ketu or another period. Practical
+examples are options to explore, not observed habits, preferences or aptitudes.
+
 **MongoDB History:**
 ```bash
 python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<USER_ID>" --limit 10
