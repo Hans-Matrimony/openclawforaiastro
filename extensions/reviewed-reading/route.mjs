@@ -60,7 +60,7 @@ export function calculateReading(value, run = execFile) {
   });
 }
 
-export function createReadingHandler(calculate = calculateReading) {
+export function createReadingHandler(calculate = calculateReading, { validate = validateReadingInput, maxBody = MAX_BODY } = {}) {
   let active = 0;
   return async (req, res) => {
     const send = (status, body) => {
@@ -88,7 +88,7 @@ export function createReadingHandler(calculate = calculateReading) {
       const chunks = [];
       for await (const chunk of req) {
         size += Buffer.byteLength(chunk);
-        if (size > MAX_BODY) {
+        if (size > maxBody) {
           send(413, { error: 'request_too_large' });
           return;
         }
@@ -97,7 +97,7 @@ export function createReadingHandler(calculate = calculateReading) {
       clearTimeout(timer);
       let value;
       try {
-        value = validateReadingInput(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+        value = validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));
       } catch {
         send(400, { error: 'invalid_reading_request' });
         return;
