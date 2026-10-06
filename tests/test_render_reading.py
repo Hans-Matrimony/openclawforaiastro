@@ -80,3 +80,16 @@ class RenderTests(unittest.TestCase):
         timing = render_reading(chart(), 'marriage', intent='timing')
         self.assertIn('with UTC boundaries', timing['text'])
         self.assertIn('does not establish a marriage date', timing['text'])
+
+    def test_readings_remain_compact_with_all_evidence_and_warnings(self):
+        value = chart()
+        value['summary'] = {'warnings': ['Moon is near a nakshatra boundary; verify uncertain birth inputs.']}
+        for topic in ('career', 'education', 'marriage'):
+            for language in ('english', 'hinglish'):
+                result = render_reading(value, topic, language=language)
+                self.assertLessEqual(len(result['text'].split('\n\n')), 3)
+                self.assertIn('boundary', result['text'])
+                self.assertIn('Shadbala', result['text'])
+        result = render_reading(value, 'marriage', intent='timing')
+        self.assertLessEqual(len(result['text'].split('\n\n')), 3)
+        self.assertIn('UTC boundaries', result['text'])

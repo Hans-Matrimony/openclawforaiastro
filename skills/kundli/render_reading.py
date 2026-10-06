@@ -58,8 +58,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         names = ', '.join(a['planet'] for a in aspects)
         detail += (f". {names} ki full sign drishti house {ruler['rules_house']} par hai"
                    if hinglish else f". {names} casts a full sign aspect on house {ruler['rules_house']}")
-    paragraphs.append(detail + ('. Yeh calculated placements hain, result ki guarantee nahi.'
-                                if hinglish else '. These are calculated placements, not guarantees of an outcome.'))
+    paragraphs.append(detail + '.')
     if intent == 'timing':
         major_name, major = next(iter(packet['current_period']['mahadashas'].items()))
         sub_name, sub = next(iter(major['antardashas'].items()))
@@ -95,6 +94,14 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
                      'education': 'Aap kya padh rahe hain, ya kaunse courses soch rahe hain?',
                      'marriage': 'Saath rehne aur communication ki expectations par baat karna chahenge?'}
         paragraphs.append(questions[topic] if hinglish else QUESTIONS[topic])
+    # Keep a normal reading to three bubbles: answer, supporting evidence and
+    # one practical next step. Preserve every fact and boundary warning.
+    answer_count = min(2, len(packet['factors'])) + (1 if intent == 'timing' else 0)
+    answer = ' '.join(paragraphs[:answer_count])
+    if intent == 'overview':
+        paragraphs = [answer, ' '.join(paragraphs[answer_count:-2]), ' '.join(paragraphs[-2:])]
+    else:
+        paragraphs = [answer, ' '.join(paragraphs[answer_count:])]
     return {'schema': 'reviewed-reading-v1', 'text': '\n\n'.join(paragraphs),
             'evidence': packet, 'language': language, 'intent': intent,
             'model_calls': 0, 'model_tokens': 0}
