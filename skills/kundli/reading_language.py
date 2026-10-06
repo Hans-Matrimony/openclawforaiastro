@@ -34,6 +34,6 @@ HINGLISH_HOUSES = {
 
 def hinglish_theme(factor):
     if factor['source'] == 'local_house_symbolism':
-        return ('Iska general house-symbolism se sambandh '
-                + HINGLISH_HOUSES[factor['fact']['house']] + ' se hai; yeh specific VedAstro rule nahi hai.')
+        return ('Is placement ka traditional sambandh '
+                + HINGLISH_HOUSES[factor['fact']['house']] + ' se hai; isse aapki pasand ya future result tay nahi hota.')
     return HINGLISH_THEMES[factor['id']]

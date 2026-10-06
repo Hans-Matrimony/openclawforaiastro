@@ -50,6 +50,13 @@ class RenderTests(unittest.TestCase):
             self.assertIn('Yeh traditional themes hain', result['text'])
             self.assertEqual(result['model_calls'], 0)
 
+    def test_hinglish_symbolism_is_plain_language_without_internal_provenance(self):
+        from reading_language import hinglish_theme
+        text = hinglish_theme({'source': 'local_house_symbolism', 'fact': {'house': 7}})
+        self.assertIn('partnership aur cooperation', text)
+        self.assertIn('future result tay nahi hota', text)
+        self.assertNotIn('VedAstro', text)
+
     def test_marriage_timing_does_not_invent_window_or_default_to_overview(self):
         for language in ('english', 'hinglish'):
             result = render_reading(chart(), 'marriage', language=language, intent='timing')
