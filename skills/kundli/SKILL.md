@@ -143,14 +143,19 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "T
 - `--user-id`: User ID to store the generated chart against and return the correct webhook URL.
 
 ## Output
-The calculate.py tool returns a detailed JSON object containing:
-- **metadata**: Echoes input and provides GPS coordinates.
+The default calculate.py response contains `summary`, `ai_summary`, `lagna`, `moon_sign`, `nakshatra`, and `user_input`:
+- **user_input**: Echoes input, coordinates, timezone offset, and calculation engine.
 - **lagna**: The Ascendant sign.
 - **moon_sign**: The Rashi sign.
 - **nakshatra**: The Moon's birth star (Janma Nakshatra). This is ALWAYS the Moon's Nakshatra. Do NOT use the nakshatra of any other planet (e.g. Saturn in House 1) as the birth Nakshatra.
-- **panchang**: Tithi, Yoga, Karana, Weekday.
-- **planets**: A list of all planets and their positions.
-- **dashas**: Current Vimshottari Mahadasha and Antardasha.
+- **ai_summary.planet_positions**: All nine placements, formatted for the existing image tool.
+- **summary.current_dasha**: Current Vimshottari Mahadasha and Antardasha.
+
+With `--full`, the Swiss Ephemeris path also returns numeric `planet_positions`, date-specific `ayanamsa`, and `dashas.current.mahadashas`. Vimshottari uses the birth Moon position, its remaining period balance, and a 365.25-day year. Period timestamps are UTC.
+
+Extended legacy data, including panchanga, is optional and lives under `supplemental_jyotishganit`. It uses independent calculation conventions: never substitute its signs or dashas for the primary summary or combine the two charts into one reading. If that engine fails, `supplemental_error` explains why the extra data is absent; the primary chart remains usable. On the jyotishganit fallback path, the full raw chart belongs to that engine instead, as indicated by `user_input.ephemeris_used`.
+
+Calculation failures return error JSON and a nonzero process exit. Do not interpret missing fields as zero positions or invent a chart after failure. `12:00` is accepted as noon in 24-hour notation; `00:00` is midnight.
 
 The draw_kundli_traditional.py tool creates and returns a visual Kundli chart image file.
 
@@ -164,3 +169,5 @@ The draw_kundli_traditional.py tool creates and returns a visual Kundli chart im
 - This skill generates **ONLY astrology-related images** (Kundli charts, birth charts, horoscope diagrams)
 - It will NOT generate any other types of images
 - All chart images are generated using Gemini 3 Pro Image (Nano Banana Pro) via GEMINI_API_KEY
+
+Full-output compatibility: `--full` includes legacy raw fields such as `d1Chart` and `panchanga` as aliases, with engine provenance in `field_sources`. These aliases use jyotishganit's conventions; the primary summary, planets and dashas remain Swiss-based. Use `--legacy-full` when a consumer requires only the original jyotishganit raw schema. It fails explicitly if that engine is unavailable.

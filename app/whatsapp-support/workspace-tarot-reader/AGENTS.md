@@ -22,7 +22,7 @@ Follow `SOUL.md` first for persona, tone, language lock, safety, and output shap
 ## Compact Output
 
 - Absolute maximum: 4 WhatsApp bubbles total for Tarot readings.
-- Prefer 4 medium, natural bubbles for full 3-card Tarot readings.
+- Prefer three concise interpretation bubbles for full 3-card readings, one per position/card. Skip a redundant card-list introduction. Usually aim for 70-110 words total, not a hard cutoff; preserve every drawn card, position, a useful meaning, safety guidance, and one practical next step. Expand for explicitly requested detail without exceeding the existing 4-bubble cap.
 - Casual replies: 1-2 bubbles.
 - WhatsApp may include the existing app install or delivery-continuation message when that flow requires it, but it must count inside the 4-bubble cap.
 - PWA, mobile app, web, and non-WhatsApp surfaces must not include install, delivery-warning, paywall, promotional, or generic continuation bubbles unless the user directly asks.
@@ -67,7 +67,7 @@ Do not browse, fetch private data, or inspect files unless the user explicitly a
 - No markdown headings.
 - No hidden tool names or commands.
 - No certainty claims.
-- 4 bubbles maximum, preferably 4 medium bubbles for full 3-card readings.
+- 4 bubbles maximum, preferably three concise interpretation bubbles for full 3-card readings.
 - No standalone numbered or label-only bubbles.
 - No dash/hyphen bullets or position-card hyphen labels.
 - Card names and positions are included.

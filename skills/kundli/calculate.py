@@ -2,7 +2,10 @@ import sys
 import os
 import json
 import argparse
-from datetime import datetime, timedelta
+import math
+from bisect import bisect_right
+from datetime import datetime, timedelta, timezone
+from vimshottari import current_period
 from geopy.geocoders import Nominatim
 
 # ✅ FREE EPHEMERIS CHECK - pyswisseph (100% FREE, 100% ACCURATE)
@@ -115,7 +118,10 @@ if _PYSWISSEPH_AVAILABLE:
     import swisseph as swe
 
 
-import jyotishganit
+try:
+    import jyotishganit
+except ImportError:
+    jyotishganit = None
 
 try:
     from timezonefinder import TimezoneFinder
@@ -167,12 +173,7 @@ PYSWISSEPH_PLANETS = {
     'Mars': 4, 'Jupiter': 5, 'Saturn': 6, 'Rahu': 11
 }
 
-# Ayanamsa values ( Lahiri is most common for Vedic astrology)
-PYSWISSEPH_AYANAMSA = {
-    'LAHIRI': 24.0,      # Official Lahiri value (more precise)
-    'RAMAN': 22.36,
-    'KP': 22.26
-}
+PYSWISSEPH_SIDEREAL_MODES = {'LAHIRI': 1, 'RAMAN': 3, 'KP': 5}
 
 # Sign names
 SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -222,81 +223,32 @@ def calculate_pada(absolute_degree, nakshatra_start):
     Calculate the Pada (quarter) of a nakshatra.
     Each nakshatra (13°20') is divided into 4 padas of 3°20' (3.333°) each.
     """
-    degree_within_nakshatra = absolute_degree - nakshatra_start
-    pada = int(degree_within_nakshatra // 3.333) + 1  # 1-4
-    return min(pada, 4)  # Ensure we don't exceed 4
+    if not math.isfinite(absolute_degree) or not 0 <= absolute_degree < 360:
+        raise ValueError("Invalid sidereal longitude")
+    # Subtracting the star start before division loses precision at boundaries
+    # such as 20 degrees. Compare against global boundaries instead.
+    quarter = bisect_right([i * (360 / 108) for i in range(108)], absolute_degree) - 1
+    return quarter % 4 + 1
 
 # ✅ FIX #6: Helper to validate and correct nakshatra AND pada based on degree
 def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra, moon_pada=None):
-    """
-    Cross-check that the reported nakshatra and pada match the expected values
-    for the given Moon sign and degree. If mismatch found, return the CORRECT values.
+    """Derive the birth star and quarter from a validated Moon position."""
+    if moon_sign not in SIGNS or not math.isfinite(moon_degree) or not 0 <= moon_degree < 30:
+        raise ValueError("Invalid Moon position")
+    longitude = SIGNS.index(moon_sign) * 30 + moon_degree
+    expected, start = get_nakshatra_from_degree(longitude)
+    pada = calculate_pada(longitude, start)
+    return expected, pada, (expected != moon_nakshatra or pada != moon_pada)
 
-    ✅ CRITICAL: Refuses to "correct" if degree is exactly 0.0 (likely missing data)
-    """
-    # ✅ CRITICAL FIX: If degree is exactly 0.0, refuse to "correct"
-    # True 0.0000° alignments are astronomically rare and usually indicate missing data
-    if moon_degree == 0.0 and moon_sign == "Aries":
-        # This is almost certainly a data error, not a real position
-        # Don't override the library's Nakshatra calculation
-        return moon_nakshatra, moon_pada, False
 
-    # Map sign names to indices
-    sign_to_index = {
-        "Aries": 0, "Taurus": 1, "Gemini": 2, "Cancer": 3, "Leo": 4, "Virgo": 5,
-        "Libra": 6, "Scorpio": 7, "Sagittarius": 8, "Capricorn": 9, "Aquarius": 10, "Pisces": 11
-    }
-
-    sign_idx = sign_to_index.get(moon_sign, 0)
-
-    # Calculate absolute zodiac degree (0-360)
-    moon_abs_degree = sign_idx * 30 + moon_degree
-
-    # Find expected nakshatra for this degree
-    expected_nakshatra = None
-    nakshatra_start = None
-    for nakshatra, start, end in NAKSHATRA_RANGES:
-        if start <= moon_abs_degree < end:
-            expected_nakshatra = nakshatra
-            nakshatra_start = start
-            break
-
-    if expected_nakshatra is None:
-        return moon_nakshatra, moon_pada, False  # Can't determine, return as-is
-
-    # ✅ FIX: Calculate CORRECT pada based on absolute degree
-    correct_pada = calculate_pada(moon_abs_degree, nakshatra_start)
-
-    # Normalize nakshatra names (handle variations like "Uttara Ashadha" vs "Uttara Ashadha 1")
-    nakshatra_corrected = False
-    pada_corrected = False
-
-    if moon_nakshatra:
-        moon_nakshatra_base = moon_nakshatra.split()[0] if moon_nakshatra else moon_nakshatra
-        expected_nakshatra_base = expected_nakshatra.split()[0] if expected_nakshatra else expected_nakshatra
-
-        if moon_nakshatra_base != expected_nakshatra_base:
-            nakshatra_corrected = True
-
-    # Check if pada is correct
-    if moon_pada and moon_pada != correct_pada:
-        pada_corrected = True
-
-    # Return corrected values if needed
-    final_nakshatra = expected_nakshatra if nakshatra_corrected else moon_nakshatra
-    final_pada = correct_pada if (pada_corrected or nakshatra_corrected) else moon_pada
-
-    return final_nakshatra, final_pada, (nakshatra_corrected or pada_corrected)
-
-# ✅ PYSWISSEPH HELPER FUNCTIONS
 def get_nakshatra_from_degree(degree):
-    """Calculate nakshatra from zodiac degree (0-360) using NAKSHATRA_RANGES"""
-    for nakshatra, start, end in NAKSHATRA_RANGES:
-        if start <= degree < end:
-            return nakshatra, start
-    return None, 0
+    """Use exact equal divisions rather than rounded boundary constants."""
+    if not math.isfinite(degree) or not 0 <= degree < 360:
+        raise ValueError("Invalid sidereal longitude")
+    index = bisect_right([i * (360 / 27) for i in range(27)], degree) - 1
+    return NAKSHATRA_RANGES[index][0], index * (360 / 27)
 
-def degree_to_sign_degree(degree, ayanamsa=PYSWISSEPH_AYANAMSA['LAHIRI']):
+def degree_to_sign_degree(degree, ayanamsa):
     """Convert tropical degree to sidereal sign and degree"""
     # Apply ayanamsa correction
     sidereal_degree = (degree - ayanamsa) % 360
@@ -351,11 +303,11 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
         # Try timestamp fallback if the version is weird
         jd = swe.julday(birth_dt.timestamp())
 
-    ayanamsa = PYSWISSEPH_AYANAMSA[ayanamsa_name]
+    swe.set_sid_mode(PYSWISSEPH_SIDEREAL_MODES[ayanamsa_name])
+    ayanamsa = swe.get_ayanamsa_ut(jd)
 
     # ✅ Calculate houses (including Lagna/Ascendant)
-    # swe.houses() returns: (house_cusps[], ascendant, MC, ...)
-    # house_cusps[0] is the ascendant (Lagna)
+    # pyswisseph returns (cusps, ascmc); ascmc[0] is the ascendant.
     try:
         # Try different swe.houses() signatures
         # Old: swe.houses(jd, lat, lon, b'P')
@@ -367,7 +319,7 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
             # Try without system byte string
             houses_long = swe.houses(jd, lat, lon, 'P')
 
-        lagna_tropical = houses_long[0][0]  # Ascendant in tropical degrees
+        lagna_tropical = houses_long[1][0]  # Ascendant in tropical degrees
 
         # Convert Lagna to sidereal
         lagna_sign, lagna_degree, lagna_sidereal = degree_to_sign_degree(lagna_tropical, ayanamsa)
@@ -396,8 +348,7 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
                 'house': house
             })
         except Exception as e:
-            # Skip planets that fail to calculate
-            continue
+            raise ValueError(f"Could not calculate {planet_name}") from e
 
     # ✅ Calculate Ketu manually (Always 180 degrees opposite Rahu)
     rahu_data = next((p for p in planet_positions if p['name'] == 'Rahu'), None)
@@ -417,11 +368,13 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
 
     # Extract Moon data
     moon_data = next((p for p in planet_positions if p['name'] == 'Moon'), None)
-    moon_sign = moon_data['sign'] if moon_data else None
-    moon_degree = moon_data['degree_in_sign'] if moon_data else 0
+    if len(planet_positions) != 9 or moon_data is None:
+        raise ValueError("Incomplete chart: all nine planets including Moon are required")
+    moon_sign = moon_data['sign']
+    moon_degree = moon_data['degree_in_sign']
 
     # Calculate Nakshatra and Pada
-    moon_sidereal = moon_data['sidereal_degree'] if moon_data else 0
+    moon_sidereal = moon_data['sidereal_degree']
     moon_nakshatra, nakshatra_start = get_nakshatra_from_degree(moon_sidereal)
     moon_pada = calculate_pada(moon_sidereal, nakshatra_start) if moon_nakshatra else None
 
@@ -431,9 +384,11 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI'):
         'moon_degree': moon_degree,
         'moon_nakshatra': moon_nakshatra,
         'moon_pada': moon_pada,
+        'moon_sidereal_degree': moon_sidereal,
         'lagna': lagna_sign,  # Now properly calculated!
         'lagna_degree': lagna_degree,
         'ayanamsa_used': ayanamsa_name,
+        'ayanamsa_degree': ayanamsa,
         'ephemeris': 'pyswisseph (FREE Swiss Ephemeris)'
     }
 
@@ -534,7 +489,7 @@ def parse_time(tob_str):
 
     # ✅ FIX #7: Handle ambiguous "12" (noon vs midnight)
     # Users often write just "12" without AM/PM, causing confusion
-    if tob_str in ["12", "12:00", "12.00"]:
+    if tob_str in ["12", "12.00"]:
         raise ValueError(
             f"Ambiguous time '{tob_str}'. Could be noon (12:00 PM) or midnight (12:00 AM). "
             f"Please specify AM/PM or use 24-hour format (12:00 for noon, 00:00 for midnight)."
@@ -623,7 +578,7 @@ def validate_planet_positions(chart_data):
     return validation_errors
 
 
-def calculate_kundli(dob_str, tob_str, place):
+def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy_full=False):
     # ✅ FIX #3: get_coordinates now raises ValueError if place not found
     # No more silent Delhi fallback
     lat, lon = get_coordinates(place)
@@ -643,6 +598,13 @@ def calculate_kundli(dob_str, tob_str, place):
     from datetime import timedelta
     utc_dt = birth_dt - timedelta(hours=tz_offset)
 
+    if legacy_full:
+        if jyotishganit is None:
+            raise ValueError('jyotishganit is required for --legacy-full')
+        return jyotishganit.calculate_birth_chart(
+            birth_date=birth_dt, latitude=lat, longitude=lon,
+            timezone_offset=tz_offset, name='User').to_dict()
+
     # ✅ NEW: Try pyswisseph first (100% FREE, 100% ACCURATE)
     # Fall back to jyotishganit if pyswisseph unavailable
     using_pyswisseph = False
@@ -660,23 +622,29 @@ def calculate_kundli(dob_str, tob_str, place):
             # Silently fall back to jyotishganit if pyswisseph fails
             ephemeris_info = f"jyotishganit (fallback - pyswisseph error: {str(e)[:50]})"
 
-    # Use jyotishganit for Lagna and fallback data
-    chart = jyotishganit.calculate_birth_chart(
-        birth_date=birth_dt,
-        latitude=lat,
-        longitude=lon,
-        timezone_offset=tz_offset,
-        name="User"
-    )
-
-    # Extract data using to_dict()
-    chart_data = chart.to_dict()
-    
-    # helper for summary
-    def get_sign(obj):
-        if hasattr(obj, 'to_dict'):
-            return obj.to_dict().get('sign')
-        return None
+    if using_pyswisseph:
+        period = current_period(utc_dt, pyswisseph_data['moon_sidereal_degree'],
+                                datetime.now(timezone.utc).replace(tzinfo=None))
+        # Full and compact output must share one engine. Do not attach raw
+        # jyotishganit placements or dashas to a Swiss Ephemeris summary.
+        chart_data = {
+            'planet_positions': pyswisseph_data['planet_positions'],
+            'ayanamsa': {'name': 'LAHIRI', 'value': pyswisseph_data['ayanamsa_degree']},
+            'dashas': {'year_days': period['year_days'], 'current': {'mahadashas': {
+                period['mahadasha']: {
+                    'start': period['start'], 'end': period['end'],
+                    'antardashas': {period['antardasha']: {
+                        'start': period['antardasha_start'], 'end': period['antardasha_end']}}
+                }}}},
+            'calculation_source': 'pyswisseph',
+        }
+    else:
+        if jyotishganit is None:
+            raise ValueError(f"No working chart engine: {ephemeris_info}; jyotishganit unavailable")
+        chart = jyotishganit.calculate_birth_chart(
+            birth_date=birth_dt, latitude=lat, longitude=lon,
+            timezone_offset=tz_offset, name="User")
+        chart_data = chart.to_dict()
 
     # ADD FLATTENED SUMMARY FOR AI (CRITICAL FOR ACCURACY)
     try:
@@ -723,10 +691,7 @@ def calculate_kundli(dob_str, tob_str, place):
             if moon_degree is None:
                 raise ValueError(f"Moon degree not found in planet data. Available keys: {list(moon_data.keys())}")
 
-            if moon_degree == 0.0:
-                raise ValueError(f"Moon degree is exactly 0.0° - this is likely a data error, not an actual planetary position. Ephemeris calculation failed.")
-
-            if not (0 <= moon_degree <= 30):
+            if not (0 <= moon_degree < 30):
                 raise ValueError(f"Invalid Moon degree: {moon_degree}. Must be between 0-30. Chart calculation may be incorrect.")
 
             moon_sign = moon_data.get('sign')
@@ -738,13 +703,15 @@ def calculate_kundli(dob_str, tob_str, place):
             moon_pada = moon_data.get('pada')
 
         # ✅ FIX 6 & 7: Initialize confidence and warnings BEFORE using them
+        if lagna not in SIGNS or moon_sign not in SIGNS or not moon_nakshatra:
+            raise ValueError('Incomplete chart summary: valid Lagna, Moon sign and nakshatra are required')
         confidence = "high"
         warnings = []
         was_corrected = False  # Initialize to avoid undefined variable
 
         # ✅ NEW: Add ephemeris info to warnings for transparency
         if using_pyswisseph:
-            warnings.append(f"Using pyswisseph (FREE Swiss Ephemeris) - 100% accurate calculations")
+            warnings.append(f"Using pyswisseph with date-specific Lahiri ayanamsa")
             confidence = "high"  # pyswisseph is always high confidence
         else:
             warnings.append(f"Using jyotishganit (fallback) - pyswisseph unavailable or failed")
@@ -820,14 +787,20 @@ def calculate_kundli(dob_str, tob_str, place):
                 # ⚠️ Remove degree symbol to avoid shell syntax errors when AI copies this to command line
                 planets_summary.append(f"{planet_name} is in House {house} ({sign}/{sign_hindi})")
         else:
-            # Fallback to jyotishganit
-            d1 = chart_data.get('d1Chart', {})
+            # Read the complete library planet collection, not a possibly absent
+            # serialized d1Chart.planets field (some versions nest occupants).
             planets_summary = []
             
             # Loop through planets directly instead of relying on jyotishganit's house arrays
-            for p in d1.get('planets', []):
+            fallback_planets = [planet.to_dict() for planet in chart.d1_chart.planets]
+            names = {p.get('celestialBody', '').lower() for p in fallback_planets}
+            if len(fallback_planets) != 9 or names != {name.lower() for name in PYSWISSEPH_PLANETS} | {'ketu'}:
+                raise ValueError('Incomplete fallback chart: all nine planets are required')
+            for p in fallback_planets:
                 p_name = p.get('celestialBody')
                 p_sign = p.get('sign')
+                if p_sign not in SIGNS:
+                    raise ValueError(f'Invalid sign for {p_name}')
 
                 # Force Whole Sign House calculation!
                 h_num = get_house_from_sign(p_sign, lagna)
@@ -869,10 +842,7 @@ def calculate_kundli(dob_str, tob_str, place):
         final_output["nakshatra"] = final_output["summary"]["nakshatra"]  # MOON's Nakshatra explicitly
 
     except Exception as e:
-        final_output = {
-            "summary_error": str(e),
-            "raw_data": chart_data
-        }
+        raise ValueError(f"Could not build chart summary: {e}") from e
 
     # Add metadata
     final_output["user_input"] = {
@@ -892,6 +862,33 @@ def calculate_kundli(dob_str, tob_str, place):
     # ✅ FIX #3: No silent fallback warning anymore - we fail loudly instead
     # If we reach here, coordinates are valid
 
+    if using_pyswisseph and include_supplemental:
+        # Preserve access to legacy extended calculations without presenting
+        # their different conventions as part of the primary chart.
+        final_output['supplemental_note'] = (
+            'Supplemental jyotishganit data uses independent conventions. '
+            'Do not combine its placements or dashas with the primary chart.')
+        try:
+            if jyotishganit is None:
+                raise ValueError('jyotishganit unavailable')
+            supplemental = jyotishganit.calculate_birth_chart(
+                birth_date=birth_dt, latitude=lat, longitude=lon,
+                timezone_offset=tz_offset, name='User')
+            final_output['supplemental_jyotishganit'] = supplemental.to_dict()
+            # Additive compatibility for established raw readers. Primary fields
+            # always win; each legacy alias is explicitly attributed to its engine.
+            legacy_fields = {}
+            for key, value in final_output['supplemental_jyotishganit'].items():
+                if key not in final_output:
+                    final_output[key] = value
+                    legacy_fields[key] = 'jyotishganit'
+            final_output['field_sources'] = {
+                'summary': 'pyswisseph', 'ai_summary': 'pyswisseph',
+                'planet_positions': 'pyswisseph', 'dashas': 'pyswisseph',
+                'ayanamsa': 'pyswisseph', **legacy_fields,
+            }
+        except Exception as e:
+            final_output['supplemental_error'] = str(e)
     return final_output
 
 
@@ -980,14 +977,18 @@ if __name__ == "__main__":
     parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM or HH:MM AM/PM)')
     parser.add_argument('--place', required=True, help='Place of Birth')
     parser.add_argument('--full', action='store_true', help='Return full raw data (warning: 7000+ lines)')
+    parser.add_argument('--legacy-full', action='store_true',
+                        help='Return the complete original jyotishganit raw schema from one engine')
     
     args = parser.parse_args()
     
     try:
-        output = calculate_kundli(args.dob, args.tob, args.place)
-        
+        output = calculate_kundli(args.dob, args.tob, args.place,
+                                 include_supplemental=args.full,
+                                 legacy_full=args.legacy_full)
+
         # If not full mode, trim the output to essentials to prevent LLM confusion
-        if not args.full:
+        if not args.full and not args.legacy_full:
             trimmed = {
                 "summary": output.get("summary"),
                 "ai_summary": output.get("ai_summary"),

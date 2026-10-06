@@ -9,7 +9,7 @@ import sys
 import os
 import json
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
 # Add parent directory to path to import kundli calculator
@@ -19,7 +19,14 @@ sys.path.insert(0, KUNDLI_DIR)
 
 # Import existing Kundli calculator (uses pyswisseph)
 try:
-    from calculate import calculate_kundli, _PYSWISSEPH_AVAILABLE, get_coordinates, parse_date, parse_time
+    # A scheduler can itself be imported as `calculate`; load by path to avoid
+    # resolving this horoscope module as the kundli calculator.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("kundli_calculator", os.path.join(KUNDLI_DIR, "calculate.py"))
+    kundli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kundli)
+    calculate_kundli = kundli.calculate_kundli
+    _PYSWISSEPH_AVAILABLE = kundli._PYSWISSEPH_AVAILABLE
     if _PYSWISSEPH_AVAILABLE:
         import swisseph as swe
 except ImportError as e:
@@ -34,6 +41,8 @@ except ImportError as e:
     except ImportError:
         _PYSWISSEPH_AVAILABLE = False
         calculate_kundli = None
+
+from vimshottari import current_period
 
 # Load Vedic rules
 RULES_FILE = os.path.join(SCRIPT_DIR, 'vedic_rules.json')
@@ -71,7 +80,7 @@ def get_house_from_sign(transit_sign: str, birth_sign: str) -> int:
     return house
 
 
-def get_current_moon_sign() -> tuple:
+def get_current_moon_sign(as_of_utc=None) -> tuple:
     """
     Get current Moon position using pyswisseph.
     Returns: (sign_name, degree_in_sign, nakshatra)
@@ -81,7 +90,7 @@ def get_current_moon_sign() -> tuple:
 
     try:
         # Current UTC time
-        now = datetime.utcnow()
+        now = as_of_utc or datetime.now(timezone.utc).replace(tzinfo=None)
         hour_fractional = now.hour + now.minute/60.0 + now.second/3600.0
 
         # Set ephemeris path
@@ -98,7 +107,8 @@ def get_current_moon_sign() -> tuple:
         tropical_degree = xx[0] % 360
 
         # Apply Lahiri Ayanamsa
-        ayanamsa = swe.get_ayanamsa(jd)
+        swe.set_sid_mode(swe.SIDM_LAHIRI)
+        ayanamsa = swe.get_ayanamsa_ut(jd)
         sidereal_degree = (tropical_degree - ayanamsa) % 360
 
         # Convert to sign
@@ -124,45 +134,17 @@ def get_current_moon_sign() -> tuple:
         return None, 0, None
 
 
-def get_current_dasha_info(birth_dt: datetime) -> Dict:
-    """
-    Get current Vimshottari Mahadasha information.
-    Simplified calculation based on Moon's Nakshatra.
-    """
-    try:
-        # Calculate birth Moon nakshatra
-        hour_fractional = birth_dt.hour + birth_dt.minute/60.0 + birth_dt.second/3600.0
-        ephe_path = os.path.join(SCRIPT_DIR, 'ephe')
-        swe.set_ephe_path(ephe_path)
-        jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day, hour_fractional)
-
-        xx, ret = swe.calc_ut(jd, 1)  # Moon
-        ayanamsa = swe.get_ayanamsa(jd)
-        sidereal_degree = (xx[0] - ayanamsa) % 360
-
-        nakshatra_idx = int(sidereal_degree // (360 / 27))
-
-        # Vimshottari Dasha order and periods (in years)
-        dasha_order = [
-            "Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"
-        ]
-        dasha_periods = {
-            "Ketu": 7, "Venus": 20, "Sun": 6, "Moon": 10, "Mars": 7,
-            "Rahu": 18, "Jupiter": 16, "Saturn": 19, "Mercury": 17
-        }
-
-        # Find starting dasha based on birth nakshatra
-        start_dasha_idx = nakshatra_idx % 9
-        current_dasha = dasha_order[start_dasha_idx]
-
-        # Simplified - for accurate current period, use full Vimshottari calculation
-        # This is a basic approximation
-        return {
-            "mahadasha": current_dasha,
-            "note": "Basic calculation. Use full kundli for precise current period."
-        }
-    except:
-        return {"mahadasha": "Unknown", "note": "Calculation failed"}
+def get_current_dasha_info(birth_dt: datetime, as_of_utc=None) -> Dict:
+    """Birth and evaluation datetimes must be UTC, without tzinfo."""
+    if not _PYSWISSEPH_AVAILABLE:
+        raise ValueError("Swiss Ephemeris is required for dasha calculation")
+    hour = birth_dt.hour + birth_dt.minute / 60 + birth_dt.second / 3600
+    jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day, hour)
+    swe.set_sid_mode(swe.SIDM_LAHIRI)
+    moon, _ = swe.calc_ut(jd, swe.MOON)
+    longitude = (moon[0] - swe.get_ayanamsa_ut(jd)) % 360
+    return current_period(birth_dt, longitude,
+                          as_of_utc or datetime.now(timezone.utc).replace(tzinfo=None))
 
 
 def detect_language(text: str) -> str:
@@ -222,79 +204,25 @@ def generate_daily_horoscope(
 
     # Calculate birth chart (uses pyswisseph)
     try:
-        # Use full kundli calculator if available
-        if calculate_kundli:
-            kundli_data = calculate_kundli(dob, tob, place)
-            birth_moon_sign = kundli_data.get('moon_sign')
-            birth_nakshatra = kundli_data.get('nakshatra')
-            lagna = kundli_data.get('lagna')
-        else:
-            # Fallback: Simple calculation using pyswisseph
-            if not _PYSWISSEPH_AVAILABLE:
-                return {"error": "pyswisseph is required but not available. Install: pip install pyswisseph"}
-
-            # Parse birth datetime
-            birth_date_obj = parse_date_local(dob)
-            birth_time_obj = parse_time_local(tob)
-            from datetime import datetime
-            birth_dt = datetime.combine(birth_date_obj, birth_time_obj)
-
-            # Simple Moon sign calculation
-            try:
-                # Get coordinates (simplified - using major cities only)
-                coords = {
-                    'mumbai': (19.0760, 72.8777),
-                    'delhi': (28.7041, 77.1025),
-                    'bangalore': (12.9716, 77.5946),
-                    'kolkata': (22.5726, 88.3639),
-                    'chennai': (13.0827, 80.2707),
-                    'hyderabad': (17.3850, 78.4867),
-                    'pune': (18.5204, 73.8567),
-                    'jaipur': (26.9124, 75.7873),
-                    'lucknow': (26.8467, 80.9462),
-                }.get(place.lower(), (19.0760, 72.8777))  # Default to Mumbai
-
-                lat, lon = coords
-
-                # Calculate birth Moon
-                ephe_path = os.path.join(SCRIPT_DIR, 'ephe')
-                if not os.path.exists(ephe_path):
-                    os.makedirs(ephe_path)
-                swe.set_ephe_path(ephe_path)
-
-                hour_fractional = birth_dt.hour + birth_dt.minute/60.0 + birth_dt.second/3600.0
-                jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day, hour_fractional)
-
-                xx, ret = swe.calc_ut(jd, 1)  # Moon
-                ayanamsa = swe.get_ayanamsa(jd)
-                sidereal_degree = (xx[0] - ayanamsa) % 360
-
-                sign_idx = int(sidereal_degree // 30)
-                signs = list(SIGN_TO_INDEX.keys())
-                birth_moon_sign = signs[sign_idx]
-
-                nakshatra_idx = int(sidereal_degree // (360 / 27))
-                nakshatras = [
-                    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
-                    "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni",
-                    "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
-                    "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta",
-                    "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"
-                ]
-                birth_nakshatra = nakshatras[nakshatra_idx]
-
-                # Calculate Lagna (simplified)
-                xx_asc, ret = swe.calc_ut(jd, 0)  # Ascendant calculation needs houses
-                lagna = birth_moon_sign  # Simplified for fallback
-
-            except Exception as e:
-                return {"error": f"Fallback calculation failed: {str(e)}"}
+        # Date-only requests use 12:00 UTC as an explicit, reproducible snapshot.
+        # Without a date, evaluate the actual current UTC instant.
+        as_of = (datetime.strptime(date, "%Y-%m-%d").replace(hour=12) if date
+                 else datetime.now(timezone.utc).replace(tzinfo=None))
+        if calculate_kundli is None:
+            raise ValueError("Kundli calculator unavailable; cannot calculate a reliable birth chart")
+        kundli_data = calculate_kundli(dob, tob, place)
+        birth_moon_sign = kundli_data.get('moon_sign')
+        birth_nakshatra = kundli_data.get('nakshatra')
+        lagna = kundli_data.get('lagna')
+        # A fallback chart must not be combined with Swiss transit/dasha values.
+        if kundli_data.get('user_input', {}).get('ephemeris_used', '').startswith('jyotishganit'):
+            raise ValueError("Swiss birth chart unavailable; refusing to mix calculation engines")
 
         if not birth_moon_sign:
             return {"error": "Could not calculate birth Moon sign. Please check birth details."}
 
         # Get current Moon transit
-        transit_moon_sign, transit_degree, transit_nakshatra = get_current_moon_sign()
+        transit_moon_sign, transit_degree, transit_nakshatra = get_current_moon_sign(as_of)
 
         if not transit_moon_sign:
             return {"error": "Could not calculate current Moon position. pyswisseph required."}
@@ -312,7 +240,9 @@ def generate_daily_horoscope(
         # Get Dasha effect (basic)
         from datetime import datetime as dt
         birth_dt = dt.combine(parse_date_local(dob), parse_time_local(tob))
-        dasha_info = get_current_dasha_info(birth_dt)
+        offset = kundli_data['user_input']['timezone_offset']
+        birth_utc = birth_dt - timedelta(hours=offset)
+        dasha_info = get_current_dasha_info(birth_utc, as_of)
         dasha_effect = rules.get("dasha_effects", {}).get(dasha_info.get("mahadasha", ""), {})
 
         # Get lucky factors
@@ -350,7 +280,8 @@ def generate_daily_horoscope(
         hindi_sign = HINDI_RASHI.get(birth_moon_sign, birth_moon_sign)
 
         result = {
-            "date": date or datetime.now().strftime("%Y-%m-%d"),
+            "date": as_of.strftime("%Y-%m-%d"),
+            "calculated_at_utc": as_of.isoformat() + "Z",
             "birth_moon_sign": birth_moon_sign,
             "birth_moon_sign_hindi": hindi_sign,
             "birth_nakshatra": birth_nakshatra,
@@ -364,8 +295,8 @@ def generate_daily_horoscope(
             "lucky_color": lucky_colors,
             "lucky_numbers": lucky_numbers,
             "lucky_day": lucky_day,
-            "accuracy": "100% - Calculated using Swiss Ephemeris (pyswisseph)",
-            "calculation_method": "pyswisseph (Swiss Ephemeris) - Professional grade accuracy"
+            "accuracy": "Depends on birth input precision and calculation conventions",
+            "calculation_method": "pyswisseph, Lahiri, Vimshottari 365.25-day year"
         }
 
         return result
@@ -402,7 +333,7 @@ def parse_time_local(tob_str: str):
     from datetime import datetime as dt
     tob_str = tob_str.strip()
 
-    if tob_str in ["12", "12:00", "12.00"]:
+    if tob_str in ["12", "12.00"]:
         raise ValueError(
             f"Ambiguous time '{tob_str}'. Could be noon (12:00 PM) or midnight (12:00 AM). "
             f"Please specify AM/PM or use 24-hour format."
@@ -446,6 +377,8 @@ if __name__ == "__main__":
         )
 
         print(json.dumps(result, indent=2, ensure_ascii=False))
+        if "error" in result:
+            sys.exit(1)
 
     except Exception as e:
         import traceback
