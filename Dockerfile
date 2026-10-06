@@ -72,10 +72,12 @@ COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_l
 COPY skills/qdrant/qdrant_client.py /app/bootstrap/skills/qdrant/qdrant_client.py
 COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md \
     app/whatsapp-support/workspace-astrologer/WORKFLOW.md \
-    app/whatsapp-support/workspace-astrologer/TOOLS.md /app/bootstrap/workspace-astrologer/
+    app/whatsapp-support/workspace-astrologer/TOOLS.md \
+    app/whatsapp-support/workspace-astrologer/TOOL_REFERENCE.md /app/bootstrap/workspace-astrologer/
 COPY .pi/prompts/astrologer.md /app/bootstrap/.pi/prompts/astrologer.md
 COPY scripts/bootstrap-astrology-assets.mjs /app/bootstrap-astrology-assets.mjs
 COPY scripts/validate-inference-budget.mjs /app/validate-inference-budget.mjs
+COPY scripts/configure-control-ui.mjs /app/configure-control-ui.mjs
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 COPY app/whatsapp-support/workspace-reply-repair/ /app/.openclaw/workspace-reply-repair/
 COPY app/whatsapp-support/workspace-reply-repair/ /app/bootstrap/workspace-reply-repair/

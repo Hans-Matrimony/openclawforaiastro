@@ -1,7 +1,7 @@
 import { ModelBudget, createBudgetTransport } from './transport.mjs';
 
 export const BUDGET_KEY = Symbol.for('astrofriend.inference-budget.v1');
-export const GUARDED_AGENTS = new Set(['astrologer', 'reply_repair', 'astrologer_preview', 'astrologer_preview_fast']);
+export const GUARDED_AGENTS = new Set(['astrologer', 'astrologer_pwa', 'reply_repair', 'astrologer_preview', 'astrologer_preview_fast']);
 const RETENTION_MS = 3600000;
 const CAPACITY = 4096;
 const MESSAGES = {

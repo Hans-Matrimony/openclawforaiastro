@@ -4,7 +4,7 @@ import path from 'node:path';
 import { findPackageJSON } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
-const AGENTS = new Set(['astrologer', 'reply_repair', 'astrologer_preview', 'astrologer_preview_fast']);
+const AGENTS = new Set(['astrologer', 'astrologer_pwa', 'reply_repair', 'astrologer_preview', 'astrologer_preview_fast']);
 
 export function validateBudgetConfig(config) {
   const plugins = config.plugins;

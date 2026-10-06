@@ -9,7 +9,7 @@ export const ASTROLOGY_ASSETS = [
     'natal_cache.py', 'vimshottari.py', 'cities_india.json', 'SKILL.md', 'VEDASTRO-MIT.txt']
     .map(name => `skills/kundli/${name}`),
   'skills/qdrant/qdrant_client.py',
-  ...['KUNDLI_RESPONSE.md', 'WORKFLOW.md', 'TOOLS.md'].map(name => `workspace-astrologer/${name}`),
+  ...['KUNDLI_RESPONSE.md', 'WORKFLOW.md', 'TOOLS.md', 'TOOL_REFERENCE.md'].map(name => `workspace-astrologer/${name}`),
   '.pi/prompts/astrologer.md',
   ...['transport.mjs', 'runtime.mjs', 'pi-extension.mjs'].map(name => `runtime/inference-budget/${name}`),
   ...['workspace-astrologer', 'workspace-reply-repair', 'workspace-astrologer-preview']

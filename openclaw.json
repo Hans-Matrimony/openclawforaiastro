@@ -546,7 +546,11 @@
           "fallbacks": []
         },
         "skills": [],
-        "tools": { "deny": ["*"] }
+        "tools": {
+          "deny": [
+            "*"
+          ]
+        }
       },
       {
         "id": "astrologer",
@@ -697,6 +701,60 @@
         },
         "tools": {
           "profile": "minimal"
+        }
+      },
+      {
+        "id": "astrologer_pwa",
+        "name": "WhatsApp Support",
+        "workspace": "/app/.openclaw/workspace-astrologer",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
+        },
+        "skills": [
+          "mongo_logger",
+          "mcporter",
+          "weather",
+          "mem0",
+          "qdrant",
+          "web_search",
+          "kundli",
+          "vedastro",
+          "vastu",
+          "nano-banana-pro",
+          "openai-image-gen"
+        ],
+        "identity": {
+          "name": "Astro Hans",
+          "theme": "Customer support via WhatsApp",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "minimal",
+          "loopDetection": {
+            "enabled": true,
+            "historySize": 20,
+            "warningThreshold": 4,
+            "criticalThreshold": 6,
+            "globalCircuitBreakerThreshold": 8,
+            "detectors": {
+              "genericRepeat": true,
+              "knownPollNoProgress": true,
+              "pingPong": true
+            }
+          },
+          "alsoAllow": [
+            "exec",
+            "read",
+            "process",
+            "tts",
+            "image"
+          ]
         }
       }
     ]
@@ -935,12 +993,13 @@
     "bind": "lan",
     "controlUi": {
       "enabled": true,
-      "allowInsecureAuth": true,
-      "dangerouslyDisableDeviceAuth": true,
+      "allowInsecureAuth": false,
+      "dangerouslyDisableDeviceAuth": false,
       "allowedOrigins": [
-        "*"
+        "http://localhost:8000",
+        "http://127.0.0.1:8000"
       ],
-      "dangerouslyAllowHostHeaderOriginFallback": true
+      "dangerouslyAllowHostHeaderOriginFallback": false
     },
     "auth": {
       "mode": "token",
@@ -963,10 +1022,19 @@
     }
   },
   "plugins": {
-    "load": { "paths": ["/app/extensions/reviewed-reading", "/app/extensions/inference-budget"] },
+    "load": {
+      "paths": [
+        "/app/extensions/reviewed-reading",
+        "/app/extensions/inference-budget"
+      ]
+    },
     "entries": {
-      "inference-budget": { "enabled": true },
-      "reviewed-reading": { "enabled": true },
+      "inference-budget": {
+        "enabled": true
+      },
+      "reviewed-reading": {
+        "enabled": true
+      },
       "telegram": {
         "enabled": false
       },

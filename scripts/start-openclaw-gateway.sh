@@ -27,6 +27,7 @@ log_startup "[startup] OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
 
 # A state volume can hide files copied into .openclaw during the image build.
 # Refresh release-managed astrology assets before the gateway accepts traffic.
+node "$APP_DIR/configure-control-ui.mjs"
 node "$APP_DIR/bootstrap-astrology-assets.mjs"
 node "$APP_DIR/validate-inference-budget.mjs" "$(npm root -g)/openclaw/package.json"
 
