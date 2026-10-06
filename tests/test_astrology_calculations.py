@@ -107,6 +107,19 @@ class CalculationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             original.get_coordinates('')
 
+    def test_confirmed_indian_place_aliases_work_without_network(self):
+        geocoder = sys.modules['geopy.geocoders'].Nominatim.return_value
+        geocoder.geocode.reset_mock()
+        geocoder.geocode.return_value = None
+        original = load('place_alias_test', KUNDLI / 'calculate.py')
+        for place in ('Delhi, India', '  DELHI ,  India ', 'New Delhi, Delhi, India'):
+            self.assertEqual(original.get_coordinates(place), (28.6139, 77.209))
+        self.assertEqual(original.get_coordinates('Meerut, Uttar Pradesh, India'), (28.9845, 77.7064))
+        geocoder.geocode.assert_not_called()
+        for place in ('Delhi, Canada', 'Delhi, Ontario, Canada', 'Meerut, Unknown Region, India'):
+            with self.assertRaisesRegex(ValueError, 'not uniquely resolved'):
+                original.get_coordinates(place)
+
     def test_ayanamsa_uses_birth_epoch(self):
         old = self.k.calculate_kundli_pyswisseph(datetime(1980, 1, 1), 28, 77)
         new = self.k.calculate_kundli_pyswisseph(datetime(2020, 1, 1), 28, 77)

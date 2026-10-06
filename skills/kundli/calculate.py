@@ -335,7 +335,7 @@ def get_coordinates(place):
         with open(CITIES_FILE, 'r') as f:
             cities = json.load(f)
             # Case-insensitive lookup
-            place_lower = place.strip().lower()
+            place_lower = ', '.join(' '.join(part.split()) for part in place.lower().split(','))
             for city_name, coords in cities.items():
                 if city_name.lower() == place_lower:
                     return coords[0], coords[1]
