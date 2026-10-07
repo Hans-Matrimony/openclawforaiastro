@@ -49,6 +49,9 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
         return chart
     if mode not in ('prefer', 'required'):
         raise ValueError('Invalid reading provider mode')
+    timing_mode = env.get('VEDASTRO_TIMING_CONTEXT_ENABLED', '0')
+    if timing_mode not in ('0', '1'):
+        raise ValueError('Invalid timing context configuration')
     from reading import verified_positions
     verified_positions(chart)
     if chart['calculation_source'] != 'pyswisseph' or chart['calculation_settings']['node'] != 'true':
@@ -147,6 +150,13 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
             'strength': {'planet': owner, 'total_virupas': total, 'total_rupas': total / 60,
                          'components_virupas': parts, 'native_house_system': 'vedastro_bhava',
                          'meets_engine_strength_test': strength['meetsEngineStrengthTest']}}
+        if timing_mode == '1':
+            from timing_context import verified_timing_context
+            current_reference = reference_calculator(when.replace(tzinfo=None), latitude, longitude,
+                                                     sidereal_reference=True)
+            result['reading_provider']['timing_context'] = verified_timing_context(
+                evidence['timingContext'], phase, remote['planets']['Moon']['longitude'],
+                current_reference['planet_positions'], when, finite)
         return result
     except MatchError as error:
         if mode == 'prefer' and error.code in ('provider_timeout', 'provider_unavailable',

@@ -127,6 +127,11 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
                   if (factor['fact']['planet'], factor['fact']['house']) !=
                   (primary['fact']['planet'], primary['fact']['house'])), None)
     second = native_supporting_detail(packet, hi, detailed=style == 'detailed')
+    from timing_context import current_context_text
+    current_context = current_context_text(packet, hi, include_transits=style == 'detailed',
+                                          include_period=intent != 'timing' or style != 'detailed')
+    if current_context and style == 'detailed':
+        second += ' ' + current_context
     final = native_practical(packet, hi)
     if not follow_up or style == 'brief':
         final = final.rsplit('. ', 1)[0] + '.'
@@ -134,6 +139,8 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
         lead = ('Shaadi ka exact saal ya mahina abhi bharose se batana mumkin nahi hai.' if hi else
                 'I cannot give a reliable year or month for your marriage yet.')
         if style != 'detailed':
+            if current_context and style == 'standard':
+                return lead + ' ' + current_context
             return lead + (' Koi tareekh kehna sirf andaza hoga.' if hi else ' Naming a date would be a guess.')
         major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
         sub = next(iter(major_data['antardashas']))

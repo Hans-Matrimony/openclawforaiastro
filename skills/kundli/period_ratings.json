@@ -1,0 +1,413 @@
+{
+  "schema": "vedastro-period-ratings-v1",
+  "source_revision": "40763952742f76369a505d8db2e9e9fa67f75d78",
+  "source_path": "Library/Data/EventDataListStatic.cs",
+  "source_sha256": "3f2c1f78ee4d5fcd7a349deec77fdf99fb9133493f13e68a63f65a67db280887",
+  "rules": {
+    "SunSunPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunMoonPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunMarsPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunRahuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Good"
+    },
+    "SunSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunMercuryPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SunVenusPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonSunPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonMoonPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Good"
+    },
+    "MoonMarsPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonRahuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonMercuryPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "MoonKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MoonVenusPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsSunPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsMoonPD2": {
+      "family": "Neutral",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "MarsMarsPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsRahuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsMercuryPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MarsVenusPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "RahuSunPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Good"
+    },
+    "RahuMoonPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "RahuMarsPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "RahuRahuPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "RahuJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "RahuSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "RahuMercuryPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "RahuKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "RahuVenusPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "JupiterSunPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "JupiterMoonPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "JupiterMarsPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "JupiterRahuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "JupiterJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "JupiterSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "JupiterMercuryPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Good"
+    },
+    "JupiterKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "JupiterVenusPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnSunPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "SaturnMoonPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnMarsPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnRahuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnMercuryPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "SaturnVenusPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "MercurySunPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercuryMoonPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercuryMarsPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercuryRahuPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "MercuryJupiterPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercurySaturnPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercuryMercuryPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercuryKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "MercuryVenusPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "KetuSunPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "KetuMoonPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "KetuMarsPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "KetuRahuPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "KetuJupiterPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Neutral"
+    },
+    "KetuSaturnPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "KetuMercuryPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "KetuKetuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "KetuVenusPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "VenusSunPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "VenusMoonPD2": {
+      "family": "Good",
+      "relationship": "Bad",
+      "study": "Good"
+    },
+    "VenusMarsPD2": {
+      "family": "Neutral",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "VenusRahuPD2": {
+      "family": "Bad",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "VenusJupiterPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    },
+    "VenusSaturnPD2": {
+      "family": "Neutral",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "VenusMercuryPD2": {
+      "family": "Good",
+      "relationship": "Good",
+      "study": "Good"
+    },
+    "VenusKetuPD2": {
+      "family": "Bad",
+      "relationship": "Bad",
+      "study": "Neutral"
+    },
+    "VenusVenusPD2": {
+      "family": "Good",
+      "relationship": "Neutral",
+      "study": "Neutral"
+    }
+  }
+}

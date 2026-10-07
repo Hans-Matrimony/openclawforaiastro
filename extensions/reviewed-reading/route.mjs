@@ -4,6 +4,73 @@ import path from "node:path";
 const MAX_BODY = 4096;
 const MAX_CONCURRENT = 2;
 const VEDASTRO_REVISION = "40763952742f76369a505d8db2e9e9fa67f75d78";
+const SIGNS = [
+  "Aries",
+  "Taurus",
+  "Gemini",
+  "Cancer",
+  "Leo",
+  "Virgo",
+  "Libra",
+  "Scorpio",
+  "Sagittarius",
+  "Capricorn",
+  "Aquarius",
+  "Pisces",
+];
+
+export function validReadingTimingContext(evidence) {
+  const context = evidence?.timing_context;
+  if (context === undefined) {
+    return evidence?.period_interpretation_available === false;
+  }
+  try {
+    const skyMinute = Date.parse(context.as_of_utc);
+    const readingMinute = Date.parse(evidence.as_of_utc);
+    const periods = Object.entries(evidence.current_period.mahadashas);
+    const [major, period] = periods[0];
+    const minorPeriods = Object.keys(period.antardashas);
+    const ratings = context.period_ratings;
+    const moonSign = SIGNS.indexOf(evidence.chart_facts.moon_sign);
+    if (
+      evidence.period_interpretation_available !== true ||
+      evidence.settings.engine !== "VedAstro.Library" ||
+      context.schema !== "reviewed-timing-context-v1" ||
+      context.period_rule_source_revision !== VEDASTRO_REVISION ||
+      context.verified_against !== "pyswisseph" ||
+      context.transit_reference !== "natal_moon_sign" ||
+      context.obstruction_evaluated !== false ||
+      context.event_prediction_available !== false ||
+      !Number.isFinite(skyMinute) ||
+      skyMinute % 60000 !== 0 ||
+      !Number.isFinite(readingMinute) ||
+      Math.floor(readingMinute / 60000) !== skyMinute / 60000 ||
+      periods.length !== 1 ||
+      minorPeriods.length !== 1 ||
+      context.period_rule_id !== major + minorPeriods[0] + "PD2" ||
+      !ratings ||
+      Object.keys(ratings).toSorted().join(",") !== "family,relationship,study" ||
+      Object.values(ratings).some((value) => !["Good", "Neutral", "Bad"].includes(value)) ||
+      JSON.stringify(context) !== JSON.stringify(evidence.provider.timing_context) ||
+      moonSign < 0 ||
+      Object.keys(context.transits).toSorted().join(",") !== "Jupiter,Saturn"
+    ) {
+      return false;
+    }
+    return Object.values(context.transits).every(
+      (row) =>
+        typeof row.longitude === "number" &&
+        Number.isFinite(row.longitude) &&
+        row.longitude >= 0 &&
+        row.longitude < 360 &&
+        row.sign === SIGNS[Math.floor(row.longitude / 30)] &&
+        Number.isInteger(row.house_from_natal_moon) &&
+        row.house_from_natal_moon === ((Math.floor(row.longitude / 30) - moonSign + 12) % 12) + 1,
+    );
+  } catch {
+    return false;
+  }
+}
 
 export function validReadingProvider(evidence) {
   if (evidence?.settings?.engine === "pyswisseph") {
@@ -66,7 +133,7 @@ export function validReadingResult(result, value) {
     evidence.settings?.dasha_year_days === 365.25 &&
     typeof evidence.input_fingerprint === "string" &&
     /^[a-f0-9]{64}$/u.test(evidence.input_fingerprint) &&
-    evidence.period_interpretation_available === false &&
+    validReadingTimingContext(evidence) &&
     Array.isArray(evidence.factors) &&
     evidence.factors.length >= 1 &&
     evidence.factors.length <= 3 &&

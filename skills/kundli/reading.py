@@ -209,6 +209,14 @@ def reading_packet(chart, topic, *, as_of_utc=None):
         packet['advanced']['vedastro_strength'] = provider['strength']
         packet['advanced']['strength_scope'] = 'native VedAstro six-component Shadbala, kept separate from whole-sign placement interpretations'
         packet['limits'][-1] = 'Native VedAstro Shadbala is calculated separately; transits and event timing are not evaluated.'
+        context = provider.get('timing_context')
+        # Current-sky evidence is specific to the provider's calculation minute.
+        # A later rendering can refresh periods, but must not reuse stale transits.
+        if context and context['as_of_utc'] == as_of.replace(second=0, microsecond=0).isoformat():
+            packet['timing_context'] = context
+            packet['period_interpretation_available'] = True
+            packet['limits'][2] = 'Period categories come from the pinned classical source; they do not establish emotions, ability or outcomes.'
+            packet['limits'][-1] = 'Native Shadbala and current Jupiter/Saturn transits are verified; obstruction and personal event forecasts are not evaluated.'
     elif 'reading_provider_fallback' in chart:
         packet['provider_fallback'] = chart['reading_provider_fallback']
     return packet

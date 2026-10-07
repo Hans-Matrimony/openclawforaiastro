@@ -77,6 +77,56 @@ void test("native provider requires pinned provenance, separate houses and check
     evidence: packet,
   };
   assert.ok(validReadingResult(result, valid));
+  const timed = structuredClone(result);
+  timed.evidence.as_of_utc = "2026-10-07T00:00:10+00:00";
+  timed.evidence.chart_facts = { moon_sign: "Pisces" };
+  timed.evidence.current_period = { mahadashas: { Venus: { antardashas: { Moon: {} } } } };
+  timed.evidence.period_interpretation_available = true;
+  const timing = {
+    schema: "reviewed-timing-context-v1",
+    as_of_utc: "2026-10-07T00:00:00+00:00",
+    period_rule_source_revision: revision,
+    period_rule_id: "VenusMoonPD2",
+    verified_against: "pyswisseph",
+    transit_reference: "natal_moon_sign",
+    period_ratings: { family: "Good", relationship: "Bad", study: "Good" },
+    transits: {
+      Jupiter: { longitude: 100, sign: "Cancer", house_from_natal_moon: 5 },
+      Saturn: { longitude: 340, sign: "Pisces", house_from_natal_moon: 1 },
+    },
+    obstruction_evaluated: false,
+    event_prediction_available: false,
+  };
+  timed.evidence.timing_context = timing;
+  timed.evidence.provider.timing_context = timing;
+  assert.ok(validReadingResult(timed, valid));
+  for (const mutate of [
+    (value) => {
+      value.evidence.timing_context.event_prediction_available = true;
+    },
+    (value) => {
+      value.evidence.timing_context.as_of_utc = "2026-10-08T00:00:00+00:00";
+    },
+    (value) => {
+      value.evidence.timing_context.period_ratings.family = "Predict a wedding";
+    },
+    (value) => {
+      value.evidence.timing_context.transits.Jupiter.house_from_natal_moon = true;
+    },
+    (value) => {
+      value.evidence.timing_context.transits.Saturn.longitude = Number.NaN;
+    },
+    (value) => {
+      value.evidence.timing_context.period_rule_id = "SunMoonPD2";
+    },
+    (value) => {
+      value.evidence.provider.timing_context = {};
+    },
+  ]) {
+    const altered = structuredClone(timed);
+    mutate(altered);
+    assert.equal(validReadingResult(altered, valid), false);
+  }
   for (const change of [
     (value) => {
       value.evidence.provider.source_revision = "unknown";

@@ -71,7 +71,8 @@ COPY app/whatsapp-support/workspace-astrologer/.pi/extensions/astrofriend-budget
 COPY app/whatsapp-support/workspace-reply-repair/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-reply-repair/.pi/extensions/
 COPY app/whatsapp-support/workspace-astrologer-preview/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer-preview/.pi/extensions/
 COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_provider.py skills/kundli/reading_language.py \
-    skills/kundli/render_reading.py skills/kundli/advanced_facts.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
+    skills/kundli/render_reading.py skills/kundli/timing_context.py skills/kundli/period_ratings.json \
+    skills/kundli/advanced_facts.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
     skills/kundli/draw_kundli_traditional.py \
     skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
     /app/bootstrap/skills/kundli/
