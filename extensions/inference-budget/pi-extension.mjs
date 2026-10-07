@@ -1,5 +1,5 @@
-import * as sdk from '@mariozechner/pi-ai';
-import { getBudgetRuntime } from './runtime.mjs';
+import * as sdk from "@mariozechner/pi-ai";
+import { getBudgetRuntime } from "./runtime.mjs";
 
 export default function register(pi) {
   const runtime = getBudgetRuntime();
@@ -8,6 +8,9 @@ export default function register(pi) {
     runtime.installSdk(sdk);
     runtime.bindModel(context.model, context.sessionManager.getSessionId());
   };
-  pi.on('input', (event, context) => { bind(event, context); return { action: 'continue' }; });
-  pi.on('session_before_compact', bind);
+  pi.on("input", (event, context) => {
+    bind(event, context);
+    return { action: "continue" };
+  });
+  pi.on("session_before_compact", bind);
 }

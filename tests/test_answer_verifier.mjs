@@ -129,8 +129,11 @@ void test("release disables Jev even when old environment requests shadow or enf
       assert.equal(res.body.text, input.draft);
     }
   } finally {
-    if (previous === undefined) delete process.env.ASTRO_JEV_MODE;
-    else process.env.ASTRO_JEV_MODE = previous;
+    if (previous === undefined) {
+      delete process.env.ASTRO_JEV_MODE;
+    } else {
+      process.env.ASTRO_JEV_MODE = previous;
+    }
   }
 });
 void test("shadow never edits; enforce rejects uncertainty or outage with deterministic fallback", async () => {

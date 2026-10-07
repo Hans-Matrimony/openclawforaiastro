@@ -1,1 +1,1 @@
-export { default } from '../../../runtime/inference-budget/pi-extension.mjs';
+export { default } from "../../../runtime/inference-budget/pi-extension.mjs";
