@@ -52,6 +52,20 @@ def verified_timing_context(value, phase, natal_moon, reference_positions, when,
             'obstruction_evaluated': False, 'event_prediction_available': False}
 
 
+def period_relevance_text(packet, hi):
+    """Connect verified house ownership to the active period, without scoring it."""
+    from reading_language import HINDI_PLANETS
+    ruler = packet['advanced']['topic_ruler']
+    major, data = next(iter(packet['current_period']['mahadashas'].items()))
+    minor = next(iter(data['antardashas']))
+    if ruler['planet'] not in (major, minor):
+        return ''
+    planet = HINDI_PLANETS[ruler['planet']] if hi else ruler['planet']
+    topic = {'marriage': 'relationship', 'career': 'career', 'education': 'study'}[packet['topic']]
+    return (f"{planet} ghar {ruler['rules_house']} ke swami bhi hain, isliye is period ka {topic} reading se seedha sambandh hai; isse result ki guarantee nahi milti." if hi else
+            f"{planet} also rules house {ruler['rules_house']}, connecting this period to the {topic} reading; that connection does not guarantee an outcome.")
+
+
 def current_context_text(packet, hi, *, include_transits=False, include_period=True, include_ratings=True):
     from reading_language import HINDI_PLANETS, HINDI_SIGNS
     value = packet.get('timing_context')
@@ -63,6 +77,10 @@ def current_context_text(packet, hi, *, include_transits=False, include_period=T
             f'You are currently in the {major} major period and {minor} subperiod.')
     if not include_period:
         text = ''
+    if include_ratings:
+        relevance = period_relevance_text(packet, hi)
+        if relevance:
+            text += ' ' + relevance
     ratings = value['period_ratings']
     if include_ratings and packet['topic'] == 'marriage':
         categories = {ratings['family'], ratings['relationship']}

@@ -9,6 +9,11 @@ import {
 } from "../extensions/reviewed-reading/route.mjs";
 
 const valid = { dob: "2002-02-16", tob: "08:19", place: "Delhi", topic: "career" };
+void test("career timing is accepted without accepting unsupported education timing", () => {
+  const value = { ...valid, intent: "timing", style: "detailed", follow_up: false };
+  assert.deepEqual(validateReadingInput(value), value);
+  assert.throws(() => validateReadingInput({ ...value, topic: "education" }));
+});
 const evidence = (topic) => ({
   schema: "topic-reading-v1",
   rules_revision: "reviewed-placements-v1",
@@ -172,7 +177,7 @@ void test("input rejects unknown fields, control characters and unsupported topi
     { ...valid, topic: "health" },
     { ...valid, model: "expensive" },
     { ...valid, language: "unsupported" },
-    { ...valid, intent: "timing" },
+    { ...valid, topic: "education", intent: "timing" },
     { ...valid, style: "unbounded" },
     { ...valid, style: null },
     { ...valid, follow_up: "false" },

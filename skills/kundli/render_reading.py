@@ -65,12 +65,14 @@ def native_supporting_detail(packet, hi, detailed=True):
         detail += (f" {names} ki poori drishti ghar {ruler['rules_house']} par hai." if hi else
                    f" {names} {verb} a full sign aspect on house {ruler['rules_house']}.")
     strength = packet['provider']['strength']
+    # The pinned engine rounds rupas and applies a 1.1 ratio, not just the
+    # textbook minimum. Attribute this classification to that assessment.
     if strength['meets_engine_strength_test']:
-        detail += (f' Shadbala ke traditional strength check mein {planet} supportive threshold ko meet karte hain.' if hi else
-                   f' {planet} meets the traditional Shadbala strength threshold.')
+        detail += (f' VedAstro ke Shadbala assessment mein {planet} ko strong maana gaya hai.' if hi else
+                   f' VedAstro\'s Shadbala assessment classifies {planet} as strong.')
     else:
-        detail += (f' {planet} ka overall Shadbala score supportive threshold se neeche hai; yeh aapki ability ya failure ka faisla nahi hai.' if hi else
-                   f' {planet}\'s overall Shadbala score is below the supportive threshold; it does not establish your ability or predict failure.')
+        detail += (f' VedAstro ke Shadbala assessment mein {planet} strong category mein nahi hain; yeh aapki ability ya failure ka faisla nahi hai.' if hi else
+                   f' VedAstro\'s Shadbala assessment does not classify {planet} as strong; this does not measure your ability or predict failure.')
         if detailed and (ruler['divisional_own_sign'] or ruler['same_d1_divisional_sign'] or dignity['own_sign'] or dignity['exaltation_sign']):
             detail += (' Rashi mein achhi placement aur poori planetary strength alag checks hain.' if hi else
                        ' A favorable sign placement and overall planetary strength are separate checks.')
@@ -136,6 +138,8 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
     if not follow_up or style == 'brief':
         final = final.rsplit('. ', 1)[0] + '.'
     if intent == 'timing':
+        if topic == 'career':
+            return render_career_timing(packet, hi, style, follow_up)
         lead = ('Shaadi ka exact saal ya mahina abhi bharose se batana mumkin nahi hai.' if hi else
                 'I cannot give a reliable year or month for your marriage yet.')
         if style != 'detailed':
@@ -145,7 +149,9 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
                 practical = native_practical(packet, hi).rsplit('. ', 1)[0] + '.'
                 return '\n\n'.join([lead + ' ' + current_context, first + ' ' + second, practical])
             if current_context and style == 'brief':
-                return lead + ' ' + current_context_text(packet, hi, include_ratings=False)
+                text = lead + ' ' + current_context_text(packet, hi, include_ratings=False)
+                warning = boundary_warning(packet, hi)
+                return text + (' ' + warning if warning else '')
             return lead + (' Koi tareekh kehna sirf andaza hoga.' if hi else ' Naming a date would be a guess.')
         if current_context:
             second += ' ' + current_context
@@ -154,7 +160,7 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
         lead += (f" Abhi {HINDI_PLANETS[major]} mahadasha mein {HINDI_PLANETS[sub]} antardasha chal rahi hai, lekin sirf dasha ke naam se shaadi ki window batana andaza hoga." if hi else
                  f" You are in the {major} major period with the {sub} subperiod; these periods alone do not establish a wedding window.")
         ruler = packet['advanced']['topic_ruler']['planet']
-        if ruler in (major, sub):
+        if not current_context and ruler in (major, sub):
             lead += (f" {HINDI_PLANETS[ruler]} shaadi ke ghar 7 ke swami bhi hain, isliye relationship analysis mein relevant hain." if hi else
                      f" {ruler} also rules marriage house 7, so it is relevant to a relationship analysis.")
         return '\n\n'.join([lead, first, second, final])
@@ -170,12 +176,34 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
     return '\n\n'.join([first, second, final])
 
 
+def render_career_timing(packet, hi, style, follow_up):
+    """Answer the job timing question with available evidence, not an offer date."""
+    from timing_context import current_context_text
+    lead = ('Job milne ka exact samay is reading se tay nahi hota.' if hi else
+            'This reading does not establish when you will receive a job offer.')
+    context = current_context_text(packet, hi, include_transits=style == 'detailed',
+                                   include_ratings=style != 'brief')
+    if style == 'brief':
+        warning = boundary_warning(packet, hi)
+        return ' '.join(part for part in (lead, context, warning) if part)
+    basis = native_factor_text(packet['factors'][0], 'career', hi)
+    details = native_supporting_detail(packet, hi, detailed=style == 'detailed')
+    practical = ('Agla step: target role ke job descriptions se apni skills match karein, applications ka record rakhein aur interview feedback par kaam karein.' if hi else
+                 'Next, compare your skills with the requirements of your target role, track your applications and use interview feedback to decide what to improve.')
+    if follow_up and style == 'detailed':
+        practical += (' Aap applications ya interviews mein kis stage par hain?' if hi else
+                      ' Are you applying or already interviewing?')
+    if style == 'detailed':
+        return '\n\n'.join([lead, basis, ' '.join(part for part in (details, context) if part), practical])
+    return '\n\n'.join([' '.join(part for part in (lead, context) if part), basis + ' ' + details, practical])
+
+
 def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='overview', style='standard', follow_up=True):
     if language not in ('english', 'hinglish') or intent not in ('overview', 'timing'):
         raise ValueError('Unsupported reading language or intent')
     if style not in ('brief', 'standard', 'detailed') or type(follow_up) is not bool:
         raise ValueError('Unsupported reading presentation')
-    if intent == 'timing' and topic != 'marriage':
+    if intent == 'timing' and topic not in ('marriage', 'career'):
         raise ValueError('Unsupported timing question')
     packet = reading_packet(chart, topic, as_of_utc=as_of_utc)
     if packet.get('provider', {}).get('name') == 'vedastro-local':
@@ -191,6 +219,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         text = ('Shaadi ka saal ya mahina abhi bharose se batana mumkin nahi hai. Koi tareekh kehna sirf andaza hoga.'
                 if hinglish else
                 'I cannot give a reliable year or month for your marriage yet. Naming a date would be a guess.')
+        if topic == 'career':
+            text = ('Job milne ka exact samay is reading se tay nahi hota. Koi tareekh kehna sirf andaza hoga.' if hinglish else
+                    'This reading does not establish when you will receive a job offer. Naming a date would be a guess.')
         return {'schema': 'reviewed-reading-v1', 'text': text, 'style': style, 'follow_up': follow_up,
                 'evidence': packet, 'language': language, 'intent': intent,
                 'model_calls': 0, 'model_tokens': 0}

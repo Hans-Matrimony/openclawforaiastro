@@ -117,7 +117,11 @@ class TimingContextTests(unittest.TestCase):
                 self.assertNotIn('?', reading['text'])
                 self.assertFalse(reading['evidence']['advanced']['event_timing_available'])
                 if style == 'brief':
-                    self.assertLess(len(reading['text']), 180)
+                    from render_reading import boundary_warning
+                    warning = boundary_warning(reading['evidence'], language == 'hinglish')
+                    # A necessary uncertainty notice is additional to the short answer.
+                    self.assertLess(len(reading['text']) - len(warning), 180)
+                    self.assertNotIn('\n', reading['text'])
                     self.assertIn('period' if language == 'english' else 'dasha', reading['text'])
                 else:
                     self.assertIn('period' if language == 'english' else 'dasha', reading['text'])
@@ -136,6 +140,46 @@ class TimingContextTests(unittest.TestCase):
                 self.assertEqual('?' in reading['text'], follow_up)
                 self.assertEqual((reading['model_calls'], reading['model_tokens']), (0, 0))
                 self.assertLessEqual(len(reading['text'].split('\n\n')), 3)
+
+    def test_active_ruler_connection_is_topic_specific_and_never_a_date(self):
+        from timing_context import period_relevance_text
+        packet = render_reading(self.fixture.call(), 'marriage')['evidence']
+        for topic, house in (('marriage', 7), ('career', 10), ('education', 5)):
+            packet['topic'] = topic
+            packet['advanced']['topic_ruler'].update(planet='Venus', rules_house=house)
+            for major, minor, relevant in (('Venus', 'Moon', True), ('Moon', 'Venus', True),
+                                          ('Venus', 'Venus', True), ('Sun', 'Moon', False)):
+                packet['current_period']['mahadashas'] = {major: {'antardashas': {minor: {}}}}
+                for hi in (False, True):
+                    text = period_relevance_text(packet, hi)
+                    self.assertEqual(bool(text), relevant)
+                    if relevant:
+                        self.assertIn(str(house), text)
+                        self.assertEqual(text.count('Shukra' if hi else 'Venus'), 1)
+                        self.assertIn('guarantee', text)
+                    self.assertNotIn('2027', text)
+                    self.assertNotIn('will happen', text)
+
+    def test_malformed_context_fails_closed_in_prefer_mode(self):
+        self.fixture.env['VEDASTRO_READING_MODE'] = 'prefer'
+        original = deepcopy(self.fixture.data['timingContext'])
+        for field in ('periodRule', 'transits'):
+            for invalid in (None, [], '', True, 3):
+                with self.subTest(field=field, invalid=invalid):
+                    self.fixture.data['timingContext'] = deepcopy(original)
+                    self.fixture.data['timingContext'][field] = invalid
+                    with self.assertRaises(MatchError):
+                        self.fixture.call()
+
+    def test_brief_timing_preserves_birth_time_boundary_warning(self):
+        from render_reading import render_vedastro
+        packet = render_reading(self.fixture.call(), 'marriage')['evidence']
+        packet['advanced']['topic_ruler']['near_divisional_boundary'] = True
+        for language in ('english', 'hinglish'):
+            text = render_vedastro(packet, language, 'timing', 'brief', False)
+            self.assertIn('boundary', text)
+            self.assertIn('birth time', text)
+            self.assertNotIn('?', text)
 
 
 if __name__ == '__main__':

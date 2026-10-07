@@ -26,6 +26,29 @@ def native_chart(asc, topic, house=1):
 
 
 class RenderTests(unittest.TestCase):
+    def test_career_timing_preserves_topic_facts_styles_and_uncertainty(self):
+        for asc in range(12):
+            for house in range(1, 13):
+                for language in ('english', 'hinglish'):
+                    for style in ('brief', 'standard', 'detailed'):
+                        reading = render_reading(native_chart(asc, 'career', house), 'career',
+                                                 language=language, intent='timing', style=style, follow_up=False)
+                        text = reading['text']
+                        self.assertEqual((reading['model_calls'], reading['model_tokens']), (0, 0))
+                        self.assertIn('job offer' if language == 'english' else 'Job milne', text)
+                        self.assertNotIn('marriage', text)
+                        self.assertNotIn('shaadi', text.lower())
+                        self.assertNotIn('?', text)
+                        self.assertNotIn('2027', text)
+                        self.assertFalse(reading['evidence']['advanced']['event_timing_available'])
+                        if style != 'brief':
+                            self.assertIn('Shadbala', text)
+                            self.assertIn('VedAstro', text)
+                            self.assertNotIn('traditional Shadbala strength threshold', text)
+                            self.assertIn('applications', text)
+                        if style == 'detailed':
+                            self.assertIn('D10', text)
+
     def test_native_all_ascendants_topic_houses_and_languages_keep_specific_checked_facts(self):
         for asc in range(12):
             for topic in ('career', 'education', 'marriage'):
@@ -215,7 +238,7 @@ class RenderTests(unittest.TestCase):
         self.assertTrue(render_reading(chart(), 'marriage', intent='timing')['text'].startswith(
             'I cannot give a reliable year or month'))
         with self.assertRaises(ValueError):
-            render_reading(chart(), 'career', intent='timing')
+            render_reading(chart(), 'education', intent='timing')
         with self.assertRaises(ValueError):
             render_reading(chart(), 'career', language='unsupported')
 

@@ -169,7 +169,7 @@ export function validateReadingInput(value) {
     !["overview", "timing"].includes(value.intent ?? "overview") ||
     (value.style !== undefined && !["brief", "standard", "detailed"].includes(value.style)) ||
     (value.follow_up !== undefined && typeof value.follow_up !== "boolean") ||
-    (value.intent === "timing" && value.topic !== "marriage")
+    (value.intent === "timing" && !["marriage", "career"].includes(value.topic))
   ) {
     throw new Error("Invalid request");
   }
