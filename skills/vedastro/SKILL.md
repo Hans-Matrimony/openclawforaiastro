@@ -41,3 +41,24 @@ The client needs Python 3.9+ and IANA timezone data (OS tzdata on Linux, or the 
 `VEDASTRO_PROVIDER_REVISION` can identify a verified deployment revision; otherwise output explicitly says `unverified-hosted`. The public deployment differs from the repository snapshot, so do not label its responses with a GitHub SHA. Pin and validate a self-hosted build before claiming reproducibility.
 
 Disable with `VEDASTRO_MATCH_ENABLED=0`. Existing calculator behavior is independent of this setting. Before production: run synthetic live tests against the chosen deployment, verify timezone data, confirm the mounted skill/config, then test actual agent conversations and latency in staging. Docker already copies the skills directory; no deployment is performed by adding these files.
+
+## Separate local natal adapter
+
+`natal_client.py natal-evidence` provides a small operator/integration client for
+the self-hosted local calculation service. It is independently gated by
+`VEDASTRO_NATAL_ENABLED=1`, `VEDASTRO_NATAL_API_URL` (the chosen HTTPS `/api` root)
+and the runtime secret `VEDASTRO_NATAL_API_TOKEN`. It does not enable matching or
+replace the existing kundli/horoscope chat routes.
+
+Pass a JSON object with one `birth` field through stdin. Its fields are `date`,
+`time`, `latitude`, `longitude`, `timezone` and `time_precision`, using the same
+validation requirements above. The adapter checks the pinned engine revision,
+Lahiri/true-node/365.25-day settings, echoed time/coordinates, all nine planets,
+sign consistency and opposite nodes before returning data. Raw provider prose
+and identifying location labels are omitted. It makes one bounded HTTP request,
+with no hosted fallback, automatic retries, LLM calls or new persistence.
+
+The local service exposes VedAstro bhava house conventions. Keep those rule
+results separate from the existing whole-sign reading; natal longitudes alone
+do not authorize marriage dates or other event predictions. Do not claim that
+installing this adapter establishes website answer-quality parity.

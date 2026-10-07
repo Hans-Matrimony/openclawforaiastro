@@ -18,7 +18,7 @@ export const ASTROLOGY_ASSETS = [
     "SKILL.md",
     "VEDASTRO-MIT.txt",
   ].map((name) => `skills/kundli/${name}`),
-  ...["vedastro_client.py", "SKILL.md"].map((name) => `skills/vedastro/${name}`),
+  ...["vedastro_client.py", "natal_client.py", "SKILL.md"].map((name) => `skills/vedastro/${name}`),
   ...["calculate.py", "scheduler.py", "vedic_rules.json", "SKILL.md"].map(
     (name) => `skills/horoscope/${name}`,
   ),
