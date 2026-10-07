@@ -130,7 +130,7 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
     from timing_context import current_context_text
     current_context = current_context_text(packet, hi, include_transits=style == 'detailed',
                                           include_period=intent != 'timing' or style != 'detailed')
-    if current_context and style == 'detailed':
+    if current_context and style != 'brief' and intent != 'timing':
         second += ' ' + current_context
     final = native_practical(packet, hi)
     if not follow_up or style == 'brief':
@@ -140,8 +140,15 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
                 'I cannot give a reliable year or month for your marriage yet.')
         if style != 'detailed':
             if current_context and style == 'standard':
-                return lead + ' ' + current_context
+                # A normal timing question deserves the available chart basis,
+                # even when the evidence cannot establish a personal date.
+                practical = native_practical(packet, hi).rsplit('. ', 1)[0] + '.'
+                return '\n\n'.join([lead + ' ' + current_context, first + ' ' + second, practical])
+            if current_context and style == 'brief':
+                return lead + ' ' + current_context_text(packet, hi, include_ratings=False)
             return lead + (' Koi tareekh kehna sirf andaza hoga.' if hi else ' Naming a date would be a guess.')
+        if current_context:
+            second += ' ' + current_context
         major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
         sub = next(iter(major_data['antardashas']))
         lead += (f" Abhi {HINDI_PLANETS[major]} mahadasha mein {HINDI_PLANETS[sub]} antardasha chal rahi hai, lekin sirf dasha ke naam se shaadi ki window batana andaza hoga." if hi else

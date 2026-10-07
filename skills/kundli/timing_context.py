@@ -52,7 +52,7 @@ def verified_timing_context(value, phase, natal_moon, reference_positions, when,
             'obstruction_evaluated': False, 'event_prediction_available': False}
 
 
-def current_context_text(packet, hi, *, include_transits=False, include_period=True):
+def current_context_text(packet, hi, *, include_transits=False, include_period=True, include_ratings=True):
     from reading_language import HINDI_PLANETS, HINDI_SIGNS
     value = packet.get('timing_context')
     if not value:
@@ -64,18 +64,18 @@ def current_context_text(packet, hi, *, include_transits=False, include_period=T
     if not include_period:
         text = ''
     ratings = value['period_ratings']
-    if packet['topic'] == 'marriage':
+    if include_ratings and packet['topic'] == 'marriage':
         categories = {ratings['family'], ratings['relationship']}
         if categories == {'Good'}:
             text += (' Is period ki traditional reading mein family aur relationship themes supportive hain; yeh shaadi hone ka vaada nahi hai.' if hi else
                      ' Traditional period rules classify family and relationship themes as supportive; this does not promise a marriage.')
         elif 'Good' in categories and 'Bad' in categories:
-            text += (' Family aur relationship ke traditional period indicators mixed hain; isse jhagda ya divorce tay nahi hota.' if hi else
-                     ' Traditional family and relationship period indicators are mixed; they do not establish conflict or divorce.')
+            text += (' Is period mein family aur relationship ke traditional sanket mixed hain; shaadi ki timing ke liye ek saaf nateeja nahi milta.' if hi else
+                     ' Traditional family and relationship indicators are mixed in this period, so they do not give a clear marriage-timing conclusion.')
         else:
             text += (' Traditional period categories se aapke rishte ka result ya shaadi ki tareekh tay nahi hoti.' if hi else
                      ' Traditional period categories do not establish your relationship outcome or wedding date.')
-    elif packet['topic'] == 'education':
+    elif include_ratings and packet['topic'] == 'education':
         if ratings['study'] == 'Good':
             text += (' Is period ki traditional reading mein study theme supportive hai; exam result aapki preparation par bhi depend karta hai.' if hi else
                      ' Traditional period rules classify the study theme as supportive; exam results also depend on preparation.')
@@ -90,6 +90,13 @@ def current_context_text(packet, hi, *, include_transits=False, include_period=T
             planet, sign = (HINDI_PLANETS[name], HINDI_SIGNS[row['sign']]) if hi else (name, row['sign'])
             descriptions.append(f"{planet}, {sign}, {'ghar' if hi else 'house'} {row['house_from_natal_moon']}")
         text += '; '.join(descriptions) + '.'
-        text += (' Yeh current transit positions hain; inhe shaadi, job ya admission ki tareekh na samjhein.' if hi else
-                 ' These positions do not establish wedding, job or admission dates.')
-    return text
+        limits = {
+            'marriage': ('In positions se akela shaadi ka samay tay nahi hota.',
+                         'These positions alone do not establish a wedding window.'),
+            'career': ('In positions se job milne ya promotion ki tareekh tay nahi hoti.',
+                       'These positions alone do not date a job offer or promotion.'),
+            'education': ('In positions se admission ya exam result tay nahi hota.',
+                          'These positions alone do not determine admission or exam results.'),
+        }
+        text += ' ' + limits[packet['topic']][0 if hi else 1]
+    return text.strip()

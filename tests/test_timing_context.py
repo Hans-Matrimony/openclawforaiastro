@@ -100,6 +100,9 @@ class TimingContextTests(unittest.TestCase):
                     self.assertNotIn('?', text)
                     self.assertNotIn('2027', text)
                     self.assertNotIn('will happen', text)
+                    self.assertNotIn('divorce', text)
+                    if topic != 'marriage':
+                        self.assertNotIn('wedding', text)
                     self.assertLess(len(text), 1000)
         base['topic'] = 'marriage'
         base['timing_context']['period_ratings'] = RATINGS['rules']['VenusMoonPD2']
@@ -115,8 +118,24 @@ class TimingContextTests(unittest.TestCase):
                 self.assertFalse(reading['evidence']['advanced']['event_timing_available'])
                 if style == 'brief':
                     self.assertLess(len(reading['text']), 180)
+                    self.assertIn('period' if language == 'english' else 'dasha', reading['text'])
                 else:
                     self.assertIn('period' if language == 'english' else 'dasha', reading['text'])
+                    self.assertIn('Shadbala', reading['text'])
+                    self.assertIn('house 7' if language == 'english' else 'ghar 7', reading['text'])
+                    self.assertLessEqual(len(reading['text'].split('\n\n')), 4)
+                self.assertNotIn('  ', reading['text'])
+
+    def test_standard_overview_uses_current_context_and_honors_question_preference(self):
+        value = self.fixture.call()
+        for language in ('english', 'hinglish'):
+            for follow_up in (True, False):
+                reading = render_reading(value, 'marriage', language=language,
+                                         style='standard', follow_up=follow_up)
+                self.assertIn('period' if language == 'english' else 'dasha', reading['text'])
+                self.assertEqual('?' in reading['text'], follow_up)
+                self.assertEqual((reading['model_calls'], reading['model_tokens']), (0, 0))
+                self.assertLessEqual(len(reading['text'].split('\n\n')), 3)
 
 
 if __name__ == '__main__':
