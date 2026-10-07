@@ -172,10 +172,10 @@ class MatchingTests(unittest.TestCase):
                 self.assertEqual(m.main(), 1)
                 self.assertEqual(json.loads(output.getvalue())['code'], code)
 
-    def test_registration_is_main_astrologer_only(self):
+    def test_registration_is_limited_to_astrologer_channels(self):
         config = json.loads((ROOT / 'openclaw.json').read_text())
         agents = config['agents']['list']
-        self.assertEqual([a['id'] for a in agents if 'vedastro' in a.get('skills', [])], ['astrologer'])
+        self.assertEqual([a['id'] for a in agents if 'vedastro' in a.get('skills', [])], ['astrologer', 'astrologer_pwa'])
 
     def test_extreme_numeric_and_date_values(self):
         for key, value, code in [('latitude', 10**1000, 'invalid_birth_details'), ('date', '0001-01-01', 'unsupported_birth_date'), ('date', '9999-12-31', 'unsupported_birth_date')]:

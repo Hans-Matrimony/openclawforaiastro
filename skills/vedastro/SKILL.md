@@ -1,7 +1,13 @@
 ---
 name: vedastro
 description: Calculate traditional kundli compatibility for two explicitly identified partners using VedAstro matching.
-metadata: { "openclaw": { "requires": { "bins": ["python3"], "env": ["VEDASTRO_BASE_URL", "VEDASTRO_MATCH_ENABLED"] } } }
+metadata:
+  {
+    "openclaw":
+      {
+        "requires": { "bins": ["python3"], "env": ["VEDASTRO_BASE_URL", "VEDASTRO_MATCH_ENABLED"] },
+      },
+  }
 ---
 
 # Matching only
@@ -28,7 +34,7 @@ On an input error ask for the relevant correction. On `matching_disabled`, confi
 
 ## Local configuration and rollout
 
-The skill is registered only for the main astrologer. It is disabled unless `VEDASTRO_MATCH_ENABLED=1` and `VEDASTRO_BASE_URL` names an explicitly chosen provider API root. For synthetic testing the verified hosted root is `https://api.vedastro.org/api`. A compatible self-hosted deployment can use its own root; HTTP is permitted only on loopback. No hosted fallback is configured. Hosted calls transmit both birth times and coordinates; select the deployment deliberately before enabling real users.
+The skill is registered for the WhatsApp and PWA astrologer agents. Companion, preview and Tarot agents do not receive it. It is disabled unless `VEDASTRO_MATCH_ENABLED=1` and `VEDASTRO_BASE_URL` names an explicitly chosen provider API root. For synthetic testing the verified hosted root is `https://api.vedastro.org/api`. A compatible self-hosted deployment can use its own root; HTTP is permitted only on loopback. No hosted fallback is configured. Hosted calls transmit both birth times and coordinates; select the deployment deliberately before enabling real users.
 
 The client needs Python 3.9+ and IANA timezone data (OS tzdata on Linux, or the Python tzdata package on Windows). It does not import the existing calculators or install dependencies at runtime. Requests have a 10-second response budget, a 128 KiB response limit, no redirects and no automatic retries. No new persistence or cross-user cache is introduced.
 
