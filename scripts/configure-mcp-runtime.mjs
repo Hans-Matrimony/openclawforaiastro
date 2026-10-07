@@ -48,14 +48,18 @@ export function configureMcpRuntime(target, bundled, env = process.env) {
   server.env.QDRANT_API_KEY = "${QDRANT_API_KEY}";
   server.env.QDRANT_URL = "${QDRANT_URL}";
   const body = JSON.stringify(config, null, 2) + "\n";
-  if (existing && fs.readFileSync(target, "utf8") === body) return "unchanged";
+  if (existing && fs.readFileSync(target, "utf8") === body) {
+    return "unchanged";
+  }
   fs.mkdirSync(path.dirname(target), { recursive: true });
   const temporary = path.join(path.dirname(target), `.mcporter-${randomUUID()}.tmp`);
   try {
     fs.writeFileSync(temporary, body, { flag: "wx", mode: 0o600 });
     fs.renameSync(temporary, target);
   } finally {
-    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+    if (fs.existsSync(temporary)) {
+      fs.unlinkSync(temporary);
+    }
   }
   return existing ? "updated" : "created";
 }
