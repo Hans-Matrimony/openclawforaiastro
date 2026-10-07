@@ -3,6 +3,50 @@ import path from "node:path";
 
 const MAX_BODY = 4096;
 const MAX_CONCURRENT = 2;
+const VEDASTRO_REVISION = "40763952742f76369a505d8db2e9e9fa67f75d78";
+
+export function validReadingProvider(evidence) {
+  if (evidence?.settings?.engine === "pyswisseph") {
+    return evidence.provider === undefined;
+  }
+  const provider = evidence?.provider;
+  const strength = provider?.strength;
+  const components = strength?.components_virupas;
+  if (
+    !components ||
+    Object.keys(components).toSorted().join(",") !==
+      "PlanetChestaBala,PlanetDigBala,PlanetDrikBala,PlanetKalaBala,PlanetNaisargikaBala,PlanetSthanaBala" ||
+    Object.values(components).some((part) => typeof part !== "number" || !Number.isFinite(part))
+  ) {
+    return false;
+  }
+  const sum = Object.values(components).reduce((total, part) => total + part, 0);
+  return (
+    evidence?.settings?.engine === "VedAstro.Library" &&
+    evidence.settings.source_revision === VEDASTRO_REVISION &&
+    provider?.name === "vedastro-local" &&
+    provider.source_revision === VEDASTRO_REVISION &&
+    provider.verified_against === "pyswisseph" &&
+    provider.topic === evidence.topic &&
+    provider.native_settings?.engine === "VedAstro.Library" &&
+    provider.native_settings.ayanamsa === "LAHIRI" &&
+    provider.native_settings.house_system === "vedastro_bhava" &&
+    provider.native_settings.node === "true" &&
+    provider.native_settings.dasha_year_days === 365.25 &&
+    Object.keys(provider.native_settings).length === 5 &&
+    provider.strength?.native_house_system === "vedastro_bhava" &&
+    provider.strength.planet === provider.topic_ruler &&
+    typeof provider.strength.total_virupas === "number" &&
+    Number.isFinite(provider.strength.total_virupas) &&
+    provider.strength.total_virupas > 0 &&
+    Math.abs(sum - strength.total_virupas) <= 0.011 &&
+    typeof strength.total_rupas === "number" &&
+    Math.abs(strength.total_rupas - strength.total_virupas / 60) <= 0.000001 &&
+    typeof strength.meets_engine_strength_test === "boolean" &&
+    evidence.advanced?.topic_ruler?.planet === provider.topic_ruler &&
+    evidence.advanced?.event_timing_available === false
+  );
+}
 
 export function validReadingResult(result, value) {
   const evidence = result?.evidence;
@@ -17,7 +61,7 @@ export function validReadingResult(result, value) {
     ["reviewed-placements-v1", "reviewed-placements-v2"].includes(evidence.rules_revision) &&
     evidence.settings?.ayanamsa === "LAHIRI" &&
     evidence.settings?.house_system === "whole_sign" &&
-    evidence.settings?.engine === "pyswisseph" &&
+    validReadingProvider(evidence) &&
     evidence.settings?.node === "true" &&
     evidence.settings?.dasha_year_days === 365.25 &&
     typeof evidence.input_fingerprint === "string" &&

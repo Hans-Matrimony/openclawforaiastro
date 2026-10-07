@@ -57,8 +57,7 @@ def fetch_natal(url, body, token):
         raise MatchError('provider_invalid_response') from None
 
 
-def natal_evidence(payload, env=None, transport=None):
-    env = os.environ if env is None else env
+def configuration(env):
     if env.get('VEDASTRO_NATAL_ENABLED') != '1':
         raise MatchError('natal_provider_disabled')
     base = env.get('VEDASTRO_NATAL_API_URL', '').rstrip('/')
@@ -73,6 +72,12 @@ def natal_evidence(payload, env=None, transport=None):
             or (parsed.scheme == 'http' and parsed.hostname not in ('localhost', '127.0.0.1', '::1'))
             or not isinstance(token, str) or not 32 <= len(token) <= 256 or any(ord(c) < 32 for c in token)):
         raise MatchError('provider_not_configured')
+    return base, token
+
+
+def natal_evidence(payload, env=None, transport=None):
+    env = os.environ if env is None else env
+    base, token = configuration(env)
     if not isinstance(payload, dict) or set(payload) != {'birth'}:
         raise MatchError('invalid_birth_details')
     value = birth(payload['birth'])
@@ -82,6 +87,10 @@ def natal_evidence(payload, env=None, transport=None):
         'Name': 'Confirmed birth coordinates', 'Latitude': value['latitude'], 'Longitude': value['longitude']}},
         'Ayanamsa': 'LAHIRI'}
     raw = (transport or fetch_natal)(base + '/Calculate/NatalEvidence', body, token)
+    return normalize_natal(raw, value)
+
+
+def normalize_natal(raw, value):
     try:
         if (raw['Status'] != 'Pass' or raw['ProviderRevision'] != REVISION
                 or raw['CalculationSettings'] != SETTINGS or type(raw['ModelCalls']) is not int or raw['ModelCalls'] != 0

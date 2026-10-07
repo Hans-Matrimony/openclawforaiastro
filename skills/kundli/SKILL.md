@@ -53,14 +53,21 @@ preferences or abilities. Keep the source theme distinct from observed user fact
 Normal chart, all-position and image requests retain the existing default output,
 all nine positions and IMAGE_URL contract. Do not combine --reading-topic with
 --full or --legacy-full. Emotional-only and casual messages need no calculation.
-The topic packet makes no network or LLM calls of its own. It requires the primary
-Swiss Ephemeris chart; it refuses conflicting or incomplete positions. Dependencies
+Topic rendering makes no LLM calls. `VEDASTRO_READING_MODE=required` enables one
+authenticated `ReadingEvidence` call to the configured local VedAstro service;
+`prefer` permits an explicitly marked Swiss Ephemeris fallback on an outage.
+The default `off` preserves the existing Swiss Ephemeris reading. Both providers
+refuse conflicting or incomplete positions. VedAstro longitudes and ascendant
+must agree with an independent Swiss Ephemeris calculation within 0.002 degrees.
+The packet identifies its actual engine and pinned source revision. Native
+bhava Shadbala stays separate from whole-sign D1 interpretations; never use its
+score as proof of ability, relationship success or an event date. Dependencies
 and timezone data must be installed at image build time; no runtime installation or
 silent IST timezone fallback is used.
 Normal calculations also stop on a missing/failed primary engine rather than
 silently switching conventions. --legacy-full remains an explicit legacy operation;
 KUNDLI_ALLOW_LEGACY_FALLBACK=1 is for deliberate legacy diagnostics, not production
-topic readings. Reviewed topic readings reject that fallback even when enabled.
+topic readings. Reviewed topic readings reject that legacy fallback even when enabled.
 The existing lunar-node default remains true. --node-convention mean is an explicit
 comparison option when the other provider uses mean Rahu/Ketu. The returned settings
 and fingerprint include this choice. Never silently mix either convention into a

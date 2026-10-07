@@ -14,12 +14,66 @@ QUESTIONS = {
 }
 
 
+def render_vedastro(packet, language, intent):
+    """Plain, bounded prose from reviewed themes and validated native facts."""
+    hi = language == 'hinglish'
+    topic = packet['topic']
+    factor = packet['factors'][0]
+    fact = factor['fact']
+    theme = hinglish_theme(factor) if hi else factor['traditional_theme']
+    role = (f", house {fact['rules_house']} ke lord," if hi else f", ruler of house {fact['rules_house']},") if 'rules_house' in fact else ''
+    basis = (f"{fact['planet']}{role} house {fact['house']} mein hain ({fact['sign']})." if hi else
+             f"{fact['planet']}{role} is in house {fact['house']} ({fact['sign']}).")
+    if intent == 'timing':
+        lead = ('Shaadi ka exact saal ya mahina is reading se bharose ke saath tay nahi hota.' if hi else
+                'This reading does not establish a reliable year or month for your marriage.')
+        major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
+        sub = next(iter(major_data['antardashas']))
+        lead += (f" Abhi {major}-{sub} dasha chal rahi hai; dasha ka naam apne aap shaadi ki window nahi banata." if hi else
+                 f" Your current period is {major}-{sub}; the period names alone do not establish a wedding window.")
+        first = lead
+        second = basis + ' ' + theme
+    else:
+        first = theme + ' ' + basis
+        ruler = packet['advanced']['topic_ruler']
+        second = (f"D{ruler['division']} mein {ruler['planet']} {ruler['divisional_sign']} mein hain." if hi else
+                  f"In D{ruler['division']}, {ruler['planet']} is in {ruler['divisional_sign']}.")
+        strength = packet['provider']['strength']
+        if strength['meets_engine_strength_test']:
+            second += (' Shadbala ke traditional test mein is planet ki strength supportive hai.' if hi else
+                       ' This planet meets the traditional Shadbala strength test.')
+        else:
+            second += (' Shadbala score traditional supportive threshold se neeche hai; ise failure ki prediction na maanein.' if hi else
+                       ' Its Shadbala score is below the traditional supportive threshold; this does not predict failure.')
+        second += (' Yeh traditional interpretation hai, future result ki guarantee nahi.' if hi else
+                   ' This is a traditional interpretation, not a guaranteed outcome.')
+    practical = {
+        'career': ('Do pasand ke roles ka daily work compare karke ek chhota project try karein. Aap kaunse options soch rahe hain?',
+                   'Compare the daily work in two roles you like and try a small project. Which options are you considering?'),
+        'education': ('Course ka syllabus, fees aur apne study experience ko saath dekhein. Aap kya padh rahe hain, ya kaunsa course soch rahe hain?',
+                      'Compare course content, fees and your study experience. What are you studying, or which course are you considering?'),
+        'marriage': ('Rishta dekhte waqt communication, family expectations aur saath rehne ke plans par khulkar baat karein. Aapki sabse badi concern kya hai?',
+                     'Discuss communication, family expectations and plans for living together when considering a match. What is your main concern?'),
+    }
+    final = practical[topic][0 if hi else 1]
+    ruler = packet['advanced']['topic_ruler']
+    if (ruler['near_divisional_boundary'] or ruler['near_divisional_ascendant_boundary'] or
+            any(isinstance(w, str) and w.startswith('Moon is ') and 'boundary' in w for w in packet['calculation_warnings'])):
+        second += (' Placement ki boundary paas hai; birth time approximate ho toh pehle confirm karein.' if hi else
+                   ' A placement is near a boundary; confirm an approximate birth time before relying on it.')
+    return '\n\n'.join([first, second, final])
+
+
 def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='overview'):
     if language not in ('english', 'hinglish') or intent not in ('overview', 'timing'):
         raise ValueError('Unsupported reading language or intent')
     if intent == 'timing' and topic != 'marriage':
         raise ValueError('Unsupported timing question')
     packet = reading_packet(chart, topic, as_of_utc=as_of_utc)
+    if packet.get('provider', {}).get('name') == 'vedastro-local':
+        return {'schema': 'reviewed-reading-v1', 'text': render_vedastro(packet, language, intent),
+                'evidence': packet, 'language': language, 'intent': intent,
+                'model_calls': 0, 'model_tokens': 0}
     hinglish = language == 'hinglish'
     if intent == 'timing':
         # The packet has no event-window interpretation. Answer that question

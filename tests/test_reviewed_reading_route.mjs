@@ -29,6 +29,76 @@ function request(body, method = "POST") {
     method,
   });
 }
+
+void test("native provider requires pinned provenance, separate houses and checked strength", () => {
+  const packet = evidence("career");
+  const revision = "40763952742f76369a505d8db2e9e9fa67f75d78";
+  packet.settings.engine = "VedAstro.Library";
+  packet.settings.source_revision = revision;
+  packet.advanced = { event_timing_available: false, topic_ruler: { planet: "Mars" } };
+  packet.provider = {
+    name: "vedastro-local",
+    source_revision: revision,
+    verified_against: "pyswisseph",
+    topic: "career",
+    topic_ruler: "Mars",
+    native_settings: {
+      ayanamsa: "LAHIRI",
+      node: "true",
+      dasha_year_days: 365.25,
+      house_system: "vedastro_bhava",
+      engine: "VedAstro.Library",
+    },
+    strength: {
+      planet: "Mars",
+      native_house_system: "vedastro_bhava",
+      total_virupas: 360,
+      total_rupas: 6,
+      meets_engine_strength_test: true,
+      components_virupas: Object.fromEntries(
+        [
+          "PlanetSthanaBala",
+          "PlanetDigBala",
+          "PlanetKalaBala",
+          "PlanetChestaBala",
+          "PlanetNaisargikaBala",
+          "PlanetDrikBala",
+        ].map((key) => [key, 60]),
+      ),
+    },
+  };
+  const result = {
+    schema: "reviewed-reading-v1",
+    text: "Native reading",
+    model_calls: 0,
+    model_tokens: 0,
+    language: "english",
+    intent: "overview",
+    evidence: packet,
+  };
+  assert.ok(validReadingResult(result, valid));
+  for (const change of [
+    (value) => {
+      value.evidence.provider.source_revision = "unknown";
+    },
+    (value) => {
+      delete value.evidence.provider;
+    },
+    (value) => {
+      value.evidence.provider.strength.total_virupas = 361;
+    },
+    (value) => {
+      value.evidence.provider.strength.total_virupas = true;
+    },
+    (value) => {
+      value.evidence.provider.native_settings.house_system = "whole_sign";
+    },
+  ]) {
+    const bad = structuredClone(result);
+    change(bad);
+    assert.equal(validReadingResult(bad, valid), false);
+  }
+});
 function response() {
   return {
     status: null,

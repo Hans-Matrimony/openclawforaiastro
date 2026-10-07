@@ -79,7 +79,10 @@ prediction. Neither proves ability, spouse traits, wealth or an event date.
 The supplied current_period dates are period boundaries, not marriage/job/admission
 windows. The packet may also supply calculated sign aspects, D9/D10 placements,
 sign dignity and the uccha-bala component. Use only the supplied facts; none alone
-establishes an event window or total Shadbala. Answer a timing question honestly
+establishes an event window. If `provider.name` is `vedastro-local`, the packet
+also contains checked native six-component Shadbala with its separate bhava
+convention and source revision. State only supplied scores; they do not prove
+ability, a future outcome or a wedding window. Answer a timing question honestly
 and briefly when an event interpretation is unavailable.
 
 When a topic-reading-v1 packet is supplied, its factors are the only permitted

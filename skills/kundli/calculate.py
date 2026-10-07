@@ -192,7 +192,8 @@ def get_house_from_sign(planet_sign, lagna_sign):
     return house
 
 # ✅ PYSWISSEPH CALCULATION ENGINE (100% FREE, 100% ACCURATE)
-def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node_convention='true'):
+def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node_convention='true',
+                              sidereal_reference=False):
     """
     Calculate Kundli using FREE pyswisseph (Swiss Ephemeris).
     This is 100% FREE and provides professional-grade accuracy.
@@ -237,7 +238,8 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node
         # Old: swe.houses(jd, lat, lon, b'P')
         # New: swe.houses(jd, lat, lon, b'P', optionally more flags)
         try:
-            houses_long = swe.houses(jd, lat, lon, b'W')
+            houses_long = (swe.houses_ex(jd, lat, lon, b'W', swe.FLG_SIDEREAL)
+                           if sidereal_reference else swe.houses(jd, lat, lon, b'W'))
         except TypeError as e:
             print(f"⚠️ Trying alternative houses() format: {e}", file=sys.stderr)
             # Try without system byte string
@@ -246,7 +248,8 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node
         lagna_tropical = houses_long[1][0]  # Ascendant in tropical degrees
 
         # Convert Lagna to sidereal
-        lagna_sign, lagna_degree, lagna_sidereal = degree_to_sign_degree(lagna_tropical, ayanamsa)
+        lagna_sign, lagna_degree, lagna_sidereal = degree_to_sign_degree(
+            lagna_tropical, 0 if sidereal_reference else ayanamsa)
     except Exception as e:
         # If house calculation fails, we can't proceed
         print(f"⚠️ pyswisseph house calculation failed: {e}", file=sys.stderr)
@@ -257,16 +260,18 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node
     planet_ids = {**PYSWISSEPH_PLANETS, 'Rahu': 11 if node_convention == 'true' else 10}
     for planet_name, planet_id in planet_ids.items():
         try:
-            xx, ret = swe.calc_ut(jd, planet_id)
+            xx, ret = (swe.calc_ut(jd, planet_id, swe.FLG_SWIEPH | swe.FLG_SIDEREAL)
+                       if sidereal_reference else swe.calc_ut(jd, planet_id))
             tropical_degree = xx[0] % 360
-            sign, degree_in_sign, sidereal_degree = degree_to_sign_degree(tropical_degree, ayanamsa)
+            sign, degree_in_sign, sidereal_degree = degree_to_sign_degree(
+                tropical_degree, 0 if sidereal_reference else ayanamsa)
 
             # Calculate which house this planet is in using WHOLE SIGN system
             house = get_house_from_sign(sign, lagna_sign)
 
             planet_positions.append({
                 'name': planet_name,
-                'tropical_degree': tropical_degree,
+                'tropical_degree': None if sidereal_reference else tropical_degree,
                 'sidereal_degree': sidereal_degree,
                 'sign': sign,
                 'degree_in_sign': degree_in_sign,
@@ -278,13 +283,14 @@ def calculate_kundli_pyswisseph(birth_dt, lat, lon, ayanamsa_name='LAHIRI', node
     # ✅ Calculate Ketu manually (Always 180 degrees opposite Rahu)
     rahu_data = next((p for p in planet_positions if p['name'] == 'Rahu'), None)
     if rahu_data:
-        ketu_tropical = (rahu_data['tropical_degree'] + 180) % 360
-        k_sign, k_degree_in_sign, k_sidereal = degree_to_sign_degree(ketu_tropical, ayanamsa)
+        ketu_tropical = ((rahu_data['sidereal_degree'] if sidereal_reference else rahu_data['tropical_degree']) + 180) % 360
+        k_sign, k_degree_in_sign, k_sidereal = degree_to_sign_degree(
+            ketu_tropical, 0 if sidereal_reference else ayanamsa)
         k_house = get_house_from_sign(k_sign, lagna_sign)
 
         planet_positions.append({
             'name': 'Ketu',
-            'tropical_degree': ketu_tropical,
+            'tropical_degree': None if sidereal_reference else ketu_tropical,
             'sidereal_degree': k_sidereal,
             'sign': k_sign,
             'degree_in_sign': k_degree_in_sign,
@@ -980,6 +986,8 @@ if __name__ == "__main__":
 
         # If not full mode, trim the output to essentials to prevent LLM confusion
         if args.reading_topic:
+            from reading_provider import use_reading_provider
+            output = use_reading_provider(output, args.reading_topic)
             if args.render_reading:
                 from render_reading import render_reading
                 output = render_reading(output, args.reading_topic,

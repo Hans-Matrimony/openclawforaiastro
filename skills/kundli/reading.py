@@ -1,7 +1,7 @@
-"""Small, question-specific reading packet; no network or LLM calls.
+"""Small, question-specific reading packet; no LLM calls.
 
 Reviewed paraphrases of VedAstro's classical placement entries. Conditions are
-checked against our own Lahiri whole-sign chart, not an upstream AI summary.
+checked against a verified Lahiri whole-sign chart, not an upstream AI summary.
 See VEDASTRO-MIT.txt. Themes are interpretations, never measured outcomes.
 """
 import hashlib
@@ -80,8 +80,14 @@ HOUSE_SYMBOLS = {
 
 
 def verified_positions(chart):
-    if not isinstance(chart, dict) or chart.get('calculation_source') != 'pyswisseph':
-        raise ValueError('Reviewed readings require the primary Swiss Ephemeris chart')
+    if not isinstance(chart, dict) or chart.get('calculation_source') not in ('pyswisseph', 'vedastro-local'):
+        raise ValueError('Reviewed readings require a verified primary chart')
+    if chart['calculation_source'] == 'vedastro-local':
+        from reading_provider import REVISION, SETTINGS
+        provider = chart.get('reading_provider', {})
+        if (provider.get('name') != 'vedastro-local' or provider.get('source_revision') != REVISION
+                or provider.get('verified_against') != 'pyswisseph' or provider.get('native_settings') != SETTINGS):
+            raise ValueError('Unverified VedAstro chart')
     lagna = chart.get('lagna')
     positions = chart.get('planet_positions')
     if lagna not in SIGNS or not isinstance(positions, list) or len(positions) != 9:
@@ -140,8 +146,10 @@ def reading_packet(chart, topic, *, as_of_utc=None):
     if not isinstance(supplied_settings, dict):
         raise ValueError('Invalid reading settings')
     settings.update(supplied_settings)
+    remote = chart['calculation_source'] == 'vedastro-local'
     if (settings['ayanamsa'] != 'LAHIRI' or settings['house_system'] != 'whole_sign'
-            or settings['node'] not in ('true', 'mean') or settings['engine'] != 'pyswisseph'
+            or settings['node'] not in ('true', 'mean')
+            or settings['engine'] != ('VedAstro.Library' if remote else 'pyswisseph')
             or type(settings['dasha_year_days']) not in (int, float) or settings['dasha_year_days'] != 365.25):
         raise ValueError('Unsupported reading settings')
     birth = chart.get('user_input')
@@ -161,7 +169,11 @@ def reading_packet(chart, topic, *, as_of_utc=None):
         birth_utc = birth_utc.astimezone(timezone.utc).replace(tzinfo=None)
     except (KeyError, AttributeError, TypeError, ValueError) as exc:
         raise ValueError('Invalid UTC birth instant') from exc
-    as_of = as_of_utc or datetime.now(timezone.utc)
+    provider = chart.get('reading_provider') if remote else None
+    if remote and (provider.get('topic') != topic or provider.get('topic_ruler') != owner
+                   or settings.get('source_revision') != provider.get('source_revision') or settings['node'] != 'true'):
+        raise ValueError('Conflicting reading provider')
+    as_of = as_of_utc or (datetime.fromisoformat(provider['as_of_utc']) if remote else datetime.now(timezone.utc))
     if not isinstance(as_of, datetime) or as_of.tzinfo is None:
         raise ValueError('Reading timestamp must be timezone-aware')
     as_of = as_of.astimezone(timezone.utc)
@@ -174,7 +186,7 @@ def reading_packet(chart, topic, *, as_of_utc=None):
     canonical = {'dob': birth['dob'], 'tob': birth['tob'], 'coordinates': birth['coordinates'],
                  'timezone_offset': birth['timezone_offset'], 'birth_utc': birth['birth_utc'], 'settings': settings}
     fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
-    return {
+    packet = {
         'schema': 'topic-reading-v1', 'rules_revision': 'reviewed-placements-v2',
         'topic': topic, 'input_fingerprint': fingerprint,
         'as_of_utc': as_of.isoformat(), 'settings': settings,
@@ -192,3 +204,11 @@ def reading_packet(chart, topic, *, as_of_utc=None):
                    'Full sign aspects and D9/D10 topic-ruler placements are calculated; no personality or event forecast follows from them.',
                    'Only sign dignity, repeated-sign placement and uccha bala are evaluated; full Shadbala, transits and event timing are not evaluated.'],
     }
+    if remote:
+        packet['provider'] = provider
+        packet['advanced']['vedastro_strength'] = provider['strength']
+        packet['advanced']['strength_scope'] = 'native VedAstro six-component Shadbala, kept separate from whole-sign placement interpretations'
+        packet['limits'][-1] = 'Native VedAstro Shadbala is calculated separately; transits and event timing are not evaluated.'
+    elif 'reading_provider_fallback' in chart:
+        packet['provider_fallback'] = chart['reading_provider_fallback']
+    return packet
