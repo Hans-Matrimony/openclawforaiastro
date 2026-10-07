@@ -5,7 +5,96 @@ from test_topic_reading import chart
 from render_reading import render_reading
 
 
+def native_chart(asc, topic, house=1):
+    """Synthetic verified-shape chart; real engine geometry has separate tests."""
+    from reading import LORDS
+    from reading_provider import REVISION, SETTINGS, COMPONENTS
+    target = {'career': 10, 'education': 5, 'marriage': 7}[topic]
+    owner = LORDS[(asc + target - 1) % 12]
+    value = chart(asc, owner, house)
+    value['lagna_sidereal_degree'] = asc * 30 + 10
+    value['calculation_source'] = 'vedastro-local'
+    value['calculation_settings'] = {'ayanamsa': 'LAHIRI', 'house_system': 'whole_sign',
+        'node': 'true', 'engine': 'VedAstro.Library', 'dasha_year_days': 365.25, 'source_revision': REVISION}
+    value['reading_provider'] = {'name': 'vedastro-local', 'source_revision': REVISION,
+        'verified_against': 'pyswisseph', 'native_settings': SETTINGS.copy(), 'topic': topic,
+        'topic_ruler': owner, 'as_of_utc': '2026-10-07T00:00:00+00:00',
+        'strength': {'planet': owner, 'total_virupas': 360, 'total_rupas': 6,
+                     'components_virupas': {key: 60 for key in COMPONENTS},
+                     'native_house_system': 'vedastro_bhava', 'meets_engine_strength_test': False}}
+    return value
+
+
 class RenderTests(unittest.TestCase):
+    def test_native_all_ascendants_topic_houses_and_languages_keep_specific_checked_facts(self):
+        for asc in range(12):
+            for topic in ('career', 'education', 'marriage'):
+                for house in range(1, 13):
+                    for language in ('english', 'hinglish'):
+                        with self.subTest(asc=asc, topic=topic, house=house, language=language):
+                            result = render_reading(native_chart(asc, topic, house), topic, language=language)
+                            text, evidence = result['text'], result['evidence']
+                            self.assertEqual((result['model_calls'], result['model_tokens']), (0, 0))
+                            self.assertEqual(len(text.split('\n\n')), 3)
+                            self.assertEqual(text.count('?'), 1)
+                            self.assertLess(len(text), 2200)
+                            for factor in evidence['factors'][:1]:
+                                self.assertIn(f"house {factor['fact']['house']}", text)
+                                self.assertIn(factor['fact']['sign'], text)
+                            ruler = evidence['advanced']['topic_ruler']
+                            self.assertIn(f"D{ruler['division']}", text)
+                            self.assertIn(ruler['divisional_sign'], text)
+                            self.assertIn('Shadbala', text)
+                            for aspect in evidence['advanced']['full_sign_aspects_to_topic_house']:
+                                self.assertIn(aspect['planet'], text)
+                            if ruler['divisional_own_sign']:
+                                self.assertIn('apni rashi' if language == 'hinglish' else 'its own sign', text)
+                            self.assertNotIn('2027', text)
+                            self.assertNotIn('ProviderRevision', text)
+
+    def test_native_second_factor_is_used_only_with_a_distinct_chart_basis(self):
+        from reading_language import hinglish_theme
+        from render_reading import render_vedastro
+        result = render_reading(native_chart(0, 'career'), 'career')
+        packet = result['evidence']
+        primary = packet['factors'][0]
+        # Controlled reviewed second placement verifies that the native branch
+        # cannot silently discard a relevant factor, as it did previously.
+        extra = {'id': 'MarsInHouse1', 'source': 'vedastro_classical',
+                 'traditional_theme': 'Initiative and practical activity: explore taking responsibility for a real project, without assuming talent.',
+                 'fact': {'planet': 'Mars', 'house': 1, 'sign': 'Aries'}}
+        packet['factors'] = [primary, extra]
+        for language in ('english', 'hinglish'):
+            text = render_vedastro(packet, language, 'overview')
+            self.assertIn(extra['traditional_theme'] if language == 'english' else hinglish_theme(extra), text)
+        extra['fact'] = dict(primary['fact'])
+        self.assertNotIn(extra['traditional_theme'], render_vedastro(packet, 'english', 'overview'))
+
+    def test_native_timing_separates_calculated_period_and_relevant_ruler_from_event_window(self):
+        from render_reading import render_vedastro
+        packet = render_reading(native_chart(0, 'marriage', 4), 'marriage')['evidence']
+        for major, sub, relevant in (('Venus', 'Moon', True), ('Sun', 'Venus', True), ('Sun', 'Moon', False)):
+            packet['current_period'] = {'mahadashas': {major: {'antardashas': {sub: {}}}}}
+            for language in ('english', 'hinglish'):
+                text = render_vedastro(packet, language, 'timing')
+                self.assertIn(f'{major}-{sub}', text)
+                marker = 'relationship analysis' if language == 'hinglish' else 'relevant to a relationship analysis'
+                self.assertEqual(marker in text, relevant)
+                self.assertNotIn('2027', text)
+                self.assertNotIn('after 30', text)
+                self.assertIn('Shadbala', text)
+
+    def test_native_boundary_warning_and_strength_nuance_survive_timing_reading(self):
+        value = native_chart(0, 'marriage', 4)
+        value['summary'] = {'warnings': ['Moon is near a nakshatra boundary; verify uncertain birth inputs.']}
+        for language in ('english', 'hinglish'):
+            result = render_reading(value, 'marriage', language=language, intent='timing')
+            self.assertIn('boundary', result['text'])
+            self.assertIn('failure', result['text'])
+            value['reading_provider']['strength']['meets_engine_strength_test'] = True
+            self.assertIn('supportive threshold', render_reading(value, 'marriage', language=language)['text'])
+            value['reading_provider']['strength']['meets_engine_strength_test'] = False
+
     def test_rendered_claims_are_packet_facts_and_reviewed_themes(self):
         for topic in ('career', 'education', 'marriage'):
             for asc in range(12):

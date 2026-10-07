@@ -14,53 +14,120 @@ QUESTIONS = {
 }
 
 
-def render_vedastro(packet, language, intent):
-    """Plain, bounded prose from reviewed themes and validated native facts."""
-    hi = language == 'hinglish'
-    topic = packet['topic']
-    factor = packet['factors'][0]
+def native_factor_text(factor, hi):
+    """A reviewed interpretation with the exact placement that supports it."""
     fact = factor['fact']
     theme = hinglish_theme(factor) if hi else factor['traditional_theme']
     role = (f", house {fact['rules_house']} ke lord," if hi else f", ruler of house {fact['rules_house']},") if 'rules_house' in fact else ''
     basis = (f"{fact['planet']}{role} house {fact['house']} mein hain ({fact['sign']})." if hi else
              f"{fact['planet']}{role} is in house {fact['house']} ({fact['sign']}).")
-    if intent == 'timing':
-        lead = ('Shaadi ka exact saal ya mahina is reading se bharose ke saath tay nahi hota.' if hi else
-                'This reading does not establish a reliable year or month for your marriage.')
-        major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
-        sub = next(iter(major_data['antardashas']))
-        lead += (f" Abhi {major}-{sub} dasha chal rahi hai; dasha ka naam apne aap shaadi ki window nahi banata." if hi else
-                 f" Your current period is {major}-{sub}; the period names alone do not establish a wedding window.")
-        first = lead
-        second = basis + ' ' + theme
+    return theme + ' ' + basis
+
+
+def native_supporting_detail(packet, hi):
+    """Explain checked divisional, aspect and strength facts without forecasting."""
+    advanced = packet['advanced']
+    ruler = advanced['topic_ruler']
+    detail = (f"D{ruler['division']} mein {ruler['planet']} {ruler['divisional_sign']} mein hain" if hi else
+              f"In D{ruler['division']}, {ruler['planet']} is in {ruler['divisional_sign']}")
+    if ruler['divisional_own_sign']:
+        detail += (' (apni rashi)' if hi else ' (its own sign)')
+    if ruler['same_d1_divisional_sign']:
+        detail += ('; yahi rashi main chart mein bhi hai' if hi else '; this sign also repeats from the main chart')
+    detail += '.'
+    dignity = ruler['d1_dignity']
+    if dignity['own_sign']:
+        detail += (' Main chart mein apni rashi mein hain.' if hi else ' It occupies its own sign in the main chart.')
+    elif dignity['exaltation_sign']:
+        detail += (' Main chart mein traditionally uccha rashi mein hain.' if hi else ' The main chart places it in its traditional exaltation sign.')
+    elif dignity['debilitation_sign']:
+        detail += (' Main chart mein traditionally neecha rashi mein hain; yeh akela failure ka proof nahi hai.' if hi else
+                   ' The main chart places it in its traditional debilitation sign; that alone does not establish failure.')
+    aspects = advanced['full_sign_aspects_to_topic_house']
+    if aspects:
+        names = ', '.join(a['planet'] for a in aspects)
+        verb = 'casts' if len(aspects) == 1 else 'cast'
+        detail += (f" {names} ki full sign drishti house {ruler['rules_house']} par hai." if hi else
+                   f" {names} {verb} a full sign aspect on house {ruler['rules_house']}.")
+    strength = packet['provider']['strength']
+    if strength['meets_engine_strength_test']:
+        detail += (' Shadbala, planet ki strength ka traditional measure, supportive threshold ko meet karta hai.' if hi else
+                   ' Shadbala, a traditional measure of planetary strength, meets the supportive threshold.')
     else:
-        first = theme + ' ' + basis
-        ruler = packet['advanced']['topic_ruler']
-        second = (f"D{ruler['division']} mein {ruler['planet']} {ruler['divisional_sign']} mein hain." if hi else
-                  f"In D{ruler['division']}, {ruler['planet']} is in {ruler['divisional_sign']}.")
-        strength = packet['provider']['strength']
-        if strength['meets_engine_strength_test']:
-            second += (' Shadbala ke traditional test mein is planet ki strength supportive hai.' if hi else
-                       ' This planet meets the traditional Shadbala strength test.')
-        else:
-            second += (' Shadbala score traditional supportive threshold se neeche hai; ise failure ki prediction na maanein.' if hi else
-                       ' Its Shadbala score is below the traditional supportive threshold; this does not predict failure.')
-        second += (' Yeh traditional interpretation hai, future result ki guarantee nahi.' if hi else
-                   ' This is a traditional interpretation, not a guaranteed outcome.')
-    practical = {
-        'career': ('Do pasand ke roles ka daily work compare karke ek chhota project try karein. Aap kaunse options soch rahe hain?',
-                   'Compare the daily work in two roles you like and try a small project. Which options are you considering?'),
-        'education': ('Course ka syllabus, fees aur apne study experience ko saath dekhein. Aap kya padh rahe hain, ya kaunsa course soch rahe hain?',
-                      'Compare course content, fees and your study experience. What are you studying, or which course are you considering?'),
-        'marriage': ('Rishta dekhte waqt communication, family expectations aur saath rehne ke plans par khulkar baat karein. Aapki sabse badi concern kya hai?',
-                     'Discuss communication, family expectations and plans for living together when considering a match. What is your main concern?'),
-    }
-    final = practical[topic][0 if hi else 1]
-    ruler = packet['advanced']['topic_ruler']
+        detail += (' Shadbala ka overall score supportive threshold se neeche hai; rashi placement aur poori strength alag checks hain, aur yeh failure ki prediction nahi hai.' if hi else
+                   ' Its overall Shadbala score is below the supportive threshold: sign placement and overall strength are separate checks, and this does not predict failure.')
     if (ruler['near_divisional_boundary'] or ruler['near_divisional_ascendant_boundary'] or
             any(isinstance(w, str) and w.startswith('Moon is ') and 'boundary' in w for w in packet['calculation_warnings'])):
-        second += (' Placement ki boundary paas hai; birth time approximate ho toh pehle confirm karein.' if hi else
+        detail += (' Placement ki boundary paas hai; birth time approximate ho toh pehle confirm karein.' if hi else
                    ' A placement is near a boundary; confirm an approximate birth time before relying on it.')
+    return detail
+
+
+def native_practical(packet, hi):
+    """Translate a house theme into a concrete optional step, never an aptitude."""
+    topic = packet['topic']
+    house = packet['factors'][0]['fact']['house']
+    if topic == 'marriage':
+        if house == 4:
+            return ('Rishta dekhte waqt kahan rahenge, family ki involvement aur ghar ki zimmedariyan kaise baantenge, in baaton par pehle clarity laayein. Abhi rishta dekh rahe hain ya shaadi ke plans par baat chal rahi hai?' if hi else
+                    'When considering a match, discuss where you would live, family involvement and how you would share household responsibilities. Are you looking for a match or discussing marriage plans?')
+        if house == 10:
+            return ('Ek doosre ke career, work hours aur shared responsibilities par expectations clear karein. Career aur relationship ko saath manage karne mein aapki main concern kya hai?' if hi else
+                    'Discuss expectations about careers, work hours and shared responsibilities. What concerns you most about balancing work and a relationship?')
+        return ('Communication, family expectations aur daily life ke plans par khulkar baat karein. Partner ke saath kaunsi expectation aapke liye sabse zaroori hai?' if hi else
+                'Discuss communication, family expectations and everyday plans openly. Which expectation matters most to you in a partnership?')
+    if topic == 'education':
+        if house in (7, 11):
+            return ('Ek study partner ke saath concept samjhana aur practice questions solve karna try karein; dekhein ki aapko isse help milti hai ya nahi. Aap kya padh rahe hain, ya kaunse courses compare kar rahe hain?' if hi else
+                    'Try explaining a concept to a study partner and solving practice questions together; see whether it helps you learn. What are you studying, or which courses are you comparing?')
+        if house == 9:
+            return ('Higher study ke liye syllabus aur entry requirements compare karein; padha hua concept apne shabdon mein samjha kar understanding check karein. Kaunsa course ya subject soch rahe hain?' if hi else
+                    'For further study, compare course content and entry requirements; explain a concept in your own words to check understanding. Which course or subject are you considering?')
+        return ('Course ka syllabus, fees aur apne study experience ko saath dekhein; ek sample lesson try karke interest check karein. Aap kya padh rahe hain, ya kaunsa course soch rahe hain?' if hi else
+                'Compare course content, fees and your study experience; try a sample lesson to explore your interest. What are you studying, or which course are you considering?')
+    if house == 2:
+        return ('Family business ka option ho toh uska daily work aur earning arrangement kisi employed role se compare karein; chart se salary tay nahi hoti. Aapke paas abhi kaunse work options hain?' if hi else
+                'If a family business is an option, compare its daily work and payment arrangements with an employed role; the chart does not establish a salary. Which work options are available to you?')
+    if house in (3, 4, 7, 11, 12):
+        examples = {3: ('communication', 'communication'), 4: ('education ya property operations', 'education or property operations'),
+                    7: ('collaboration', 'collaboration'), 11: ('teamwork aur professional networking', 'teamwork and professional networking'),
+                    12: ('remote ya international work', 'remote or international work')}
+        option = examples[house][0 if hi else 1]
+        return (f'{option.capitalize()} wale roles ka daily work, skills aur qualifications compare karein; ek chhota project se fit check kar sakte hain. Aap kaunse options soch rahe hain?' if hi else
+                f'Compare daily work, skills and qualifications in roles involving {option}; try a small project to explore fit. Which options are you considering?')
+    return ('Do pasand ke roles ka daily work aur required skills compare karke ek chhota project try karein. Aap kaunse options soch rahe hain?' if hi else
+            'Compare the daily work and required skills in two roles you like, then try a small project. Which options are you considering?')
+
+
+def render_vedastro(packet, language, intent):
+    """Three focused bubbles: interpretation, supporting evidence, useful next step."""
+    hi = language == 'hinglish'
+    primary = packet['factors'][0]
+    first = native_factor_text(primary, hi)
+    # A second reviewed placement adds depth only when its chart basis differs.
+    extra = next((factor for factor in packet['factors'][1:]
+                  if (factor['fact']['planet'], factor['fact']['house']) !=
+                  (primary['fact']['planet'], primary['fact']['house'])), None)
+    if extra:
+        first += ' ' + native_factor_text(extra, hi)
+    second = native_supporting_detail(packet, hi)
+    final = native_practical(packet, hi)
+    if intent == 'timing':
+        lead = ('Shaadi ka exact saal ya mahina abhi bharose se batana mumkin nahi hai.' if hi else
+                'I cannot give a reliable year or month for your marriage yet.')
+        major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
+        sub = next(iter(major_data['antardashas']))
+        lead += (f" Abhi {major}-{sub} dasha chal rahi hai, lekin sirf dasha ke naam se shaadi ki window batana andaza hoga." if hi else
+                 f" Your current period is {major}-{sub}, but its names alone do not establish a wedding window.")
+        ruler = packet['advanced']['topic_ruler']['planet']
+        if ruler in (major, sub):
+            lead += (f" {ruler} shaadi ke house 7 ke lord bhi hain, isliye relationship analysis mein relevant hain." if hi else
+                     f" {ruler} also rules marriage house 7, so it is relevant to a relationship analysis.")
+        second = first + ' ' + second
+        first = lead
+    else:
+        second += (' Yeh traditional interpretation hai, future result ki guarantee nahi.' if hi else
+                   ' This is a traditional interpretation, not a guaranteed outcome.')
     return '\n\n'.join([first, second, final])
 
 
