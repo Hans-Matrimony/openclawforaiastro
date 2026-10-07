@@ -8,7 +8,7 @@ import hashlib
 import json
 import math
 from datetime import datetime, timezone
-from vimshottari import current_period
+from vimshottari import current_period, nakshatra_index
 from advanced_facts import advanced_facts
 
 SIGNS = ('Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -109,7 +109,7 @@ def reading_packet(chart, topic, *, as_of_utc=None):
         raise ValueError('Unsupported reading topic')
     asc, positions = verified_positions(chart)
     degrees = {p['name']: p['sidereal_degree'] for p in chart['planet_positions']}
-    star = NAKSHATRAS[int(degrees['Moon'] / (360 / 27))]
+    star = NAKSHATRAS[nakshatra_index(degrees['Moon'])]
     if chart.get('nakshatra') != star:
         raise ValueError('Conflicting Moon nakshatra')
     if not math.isclose((degrees['Ketu'] - degrees['Rahu']) % 360, 180, abs_tol=1e-8):

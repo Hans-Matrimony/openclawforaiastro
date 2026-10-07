@@ -95,8 +95,6 @@ def get_current_moon_sign(as_of_utc=None) -> tuple:
 
         # Set ephemeris path
         ephe_path = os.path.join(SCRIPT_DIR, 'ephe')
-        if not os.path.exists(ephe_path):
-            os.makedirs(ephe_path)
         swe.set_ephe_path(ephe_path)
 
         # Calculate Julian Day

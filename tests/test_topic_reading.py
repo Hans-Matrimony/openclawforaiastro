@@ -1,5 +1,6 @@
 """Offline contracts for source conditions, chart isolation and compact readings."""
 from copy import deepcopy
+import math
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import sys
@@ -31,6 +32,23 @@ def chart(asc=0, owner=None, house=1):
 
 
 class ReadingTests(unittest.TestCase):
+    def test_moon_star_boundaries_and_neighbors_match_calculator_contract(self):
+        # Independent interval enumeration catches division rounding just below
+        # the Anuradha/Jyeshtha boundary (226.66666666666666 degrees).
+        boundaries = [i * (360 / 27) for i in range(27)]
+        for index in range(1, 27):
+            for degree, expected in ((math.nextafter(boundaries[index], 0), index - 1),
+                                     (boundaries[index], index),
+                                     (math.nextafter(boundaries[index], 360), index)):
+                c = chart()
+                moon = next(p for p in c['planet_positions'] if p['name'] == 'Moon')
+                sign = int(degree // 30)
+                moon.update(sign=reading.SIGNS[sign], house=sign + 1, sidereal_degree=degree)
+                c.update(moon_sign=moon['sign'], nakshatra=reading.NAKSHATRAS[expected])
+                with self.subTest(index=index, degree=degree):
+                    packet = reading.reading_packet(c, 'education')
+                    self.assertEqual(packet['chart_facts']['nakshatra'], reading.NAKSHATRAS[expected])
+
     def test_every_reviewed_condition_matches_independently_for_all_ascendants(self):
         seen = set()
         for rule in reading.RULES:
@@ -129,6 +147,8 @@ class ReadingTests(unittest.TestCase):
 
     def test_reviewed_ids_exist_in_reference_when_checkout_is_available(self):
         reference = ROOT.parent / 'VedAstro/Library/XMLData/HoroscopeDataList.xml'
+        if not reference.exists():
+            reference = ROOT.parent.parent / 'VedAstro/Library/XMLData/HoroscopeDataList.xml'
         if not reference.exists(): self.skipTest('Optional upstream source checkout absent')
         names = {node.text for node in ET.parse(reference).findall('.//Name')}
         self.assertTrue({r['id'] for r in reading.RULES} <= names)

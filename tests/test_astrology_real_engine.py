@@ -10,6 +10,7 @@ import io
 import os
 from pathlib import Path
 import random
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -205,6 +206,79 @@ class RealEngineTests(unittest.TestCase):
         self.assertEqual(png[:8], b'\x89PNG\r\n\x1a\n')
         image = Image.open(io.BytesIO(png))
         image.verify()
+
+    def test_missing_font_is_offline_and_bundled_font_is_independent_of_cwd(self):
+        with patch.object(self.renderer.os.path, 'exists', return_value=False), \
+                patch('socket.socket', side_effect=AssertionError('Unexpected network access')):
+            self.assertIsNone(self.renderer.get_devanagari_font())
+            value = self.k.calculate_kundli('1995-01-14', '12:00', 'Delhi')
+            image = self.renderer.draw_kundli_chart(value['lagna'], value['moon_sign'],
+                                                  value['nakshatra'], value['ai_summary']['planet_positions'])
+            self.assertEqual(image[:8], b'\x89PNG\r\n\x1a\n')
+        expected = str(Path(self.renderer.__file__).resolve().parent / 'NotoSansDevanagari-Regular.ttf')
+        with patch.object(self.renderer.os.path, 'exists', side_effect=lambda path: str(path) == expected):
+            self.assertEqual(self.renderer.get_devanagari_font(), expected)
+
+    def test_image_rejects_incomplete_duplicate_and_conflicting_placements(self):
+        from copy import deepcopy
+        chart = self.k.calculate_kundli('1995-01-14', '12:00', 'Delhi')
+        valid = [{'name': p['name'], 'sign': p['sign'], 'house': p['house']}
+                 for p in chart['planet_positions']]
+        for change in ('missing', 'duplicate', 'house_zero', 'house_thirteen', 'boolean',
+                       'unknown', 'unhashable', 'wrong_sign', 'moon', 'nodes', 'junk'):
+            positions = deepcopy(valid)
+            if change == 'missing': positions.pop()
+            if change == 'duplicate': positions[1] = positions[0]
+            if change == 'house_zero': positions[0]['house'] = 0
+            if change == 'house_thirteen': positions[0]['house'] = 13
+            if change == 'boolean': positions[0]['house'] = True
+            if change == 'unknown': positions[0]['name'] = 'Pluto'
+            if change == 'unhashable': positions[0]['name'] = []
+            if change == 'wrong_sign': positions[0]['sign'] = 'invalid'
+            if change == 'moon':
+                moon = next(p for p in positions if p['name'] == 'Moon')
+                moon['house'] = moon['house'] % 12 + 1
+                moon['sign'] = self.k.SIGNS[(self.k.SIGNS.index(chart['lagna']) + moon['house'] - 1) % 12]
+            if change == 'nodes':
+                rahu = next(p for p in positions if p['name'] == 'Rahu')
+                ketu = next(p for p in positions if p['name'] == 'Ketu')
+                ketu.update(house=rahu['house'], sign=rahu['sign'])
+            if change == 'junk': positions[0] = 7
+            with self.subTest(change=change), patch.object(self.renderer.Image, 'new') as create:
+                with self.assertRaises(ValueError):
+                    self.renderer.draw_kundli_chart(chart['lagna'], chart['moon_sign'], chart['nakshatra'], positions)
+                create.assert_not_called()
+
+    def test_image_preserves_complete_string_dictionary_and_flat_input_forms(self):
+        chart = self.k.calculate_kundli('1995-01-14', '12:00', 'Delhi')
+        values = chart['planet_positions']
+        alternatives = [chart['ai_summary']['planet_positions'], values,
+                        [{'planet': p['name'], 'sign': p['sign']} for p in values],
+                        [{p['name']: p['sign'] for p in values}],
+                        [{'planet': p['name'], 'position': f"in House {p['house']} ({p['sign']})"} for p in values],
+                        [{'name': p['name'], 'house': str(p['house'])} for p in values]]
+        for positions in alternatives:
+            with self.subTest(form=type(positions[0]).__name__), contextlib.redirect_stderr(io.StringIO()):
+                png = self.renderer.draw_kundli_chart(chart['lagna'], chart['moon_sign'], chart['nakshatra'], positions)
+                self.assertEqual(png[:8], b'\x89PNG\r\n\x1a\n')
+
+    def test_horoscope_moon_calculation_does_not_write_to_skill_directory(self):
+        with patch.object(self.h.os, 'makedirs', side_effect=AssertionError('Unexpected skill write')):
+            sign, degree, star = self.h.get_current_moon_sign(datetime(2030, 5, 6, 12))
+            self.assertIn(sign, self.k.SIGNS)
+            self.assertTrue(0 <= degree < 30)
+            self.assertIsInstance(star, str)
+
+    def test_invalid_image_cli_never_outputs_or_stores_an_image(self):
+        for value in ('[', 'true', '{}', '[]', '["Sun is in House 1 (Aries)"]'):
+            result = subprocess.run([sys.executable, '-B', str(ROOT / 'skills/kundli/draw_kundli_traditional.py'),
+                                     '--lagna', 'Aries', '--moon-sign', 'Cancer', '--nakshatra', 'Pushya',
+                                     '--planets', value], capture_output=True, text=True, timeout=10)
+            with self.subTest(value=value):
+                self.assertEqual(result.returncode, 1)
+                self.assertEqual(result.stdout, '')
+                self.assertIn('no image generated', result.stderr)
+                self.assertNotIn('Traceback', result.stderr)
 
     def test_horoscope_and_scheduler_formatting(self):
         for language in ('english', 'hinglish', 'auto'):

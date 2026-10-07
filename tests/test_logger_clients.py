@@ -25,6 +25,12 @@ class LoggerClientTests(unittest.TestCase):
             def log_message(self, *args): pass
             def do_GET(self):
                 cls.seen.append((self.path, self.headers.get('Authorization')))
+                if self.path.startswith('/redirect-json'):
+                    self.send_response(302)
+                    self.send_header('Location', '/should-never-be-called')
+                    self.end_headers()
+                    self.wfile.write(b'{"sessions":[],"status":"received"}')
+                    return
                 if self.path.startswith('/redirect'):
                     self.send_response(302)
                     self.send_header('Location', '/should-never-be-called')
@@ -36,6 +42,12 @@ class LoggerClientTests(unittest.TestCase):
             def do_POST(self):
                 cls.seen.append((self.path, self.headers.get('Authorization')))
                 self.rfile.read(int(self.headers.get('Content-Length', 0)))
+                if self.path.startswith('/redirect-json'):
+                    self.send_response(302)
+                    self.send_header('Location', '/should-never-be-called')
+                    self.end_headers()
+                    self.wfile.write(b'{"status":"received"}')
+                    return
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(b'{"status":"received"}')
@@ -76,6 +88,20 @@ class LoggerClientTests(unittest.TestCase):
                 service_auth.logger_urlopen(request, timeout=2)
         self.assertEqual(len(self.seen), before+1)
         self.assertEqual(self.seen[-1][0], '/redirect')
+
+    @unittest.skipUnless(logger_client.HAS_REQUESTS, 'requests transport is optional')
+    def test_requests_redirect_json_cannot_acknowledge_a_write_or_empty_history(self):
+        methods = [(logger_client, logger_client.call_api_requests, ({'text': 'test'},)),
+                   (fetch_history, fetch_history.call_api_requests, ('/redirect-json', {}))]
+        with patch.dict(os.environ, {'MONGO_LOGGER_API_TOKEN': TOKEN}):
+            for module, method, args in methods:
+                before = len(self.seen)
+                base = self.base + '/redirect-json' if module is logger_client else self.base
+                with patch.object(module, 'MONGO_LOGGER_URL', base):
+                    result = method(*args)
+                self.assertEqual(result.get('status'), 302)
+                self.assertIn('error', result)
+                self.assertEqual(len(self.seen), before + 1, 'redirect must not follow or retry')
 
     def test_bad_config_and_optional_compatibility(self):
         with patch.dict(os.environ, {'MONGO_LOGGER_API_TOKEN':''}):

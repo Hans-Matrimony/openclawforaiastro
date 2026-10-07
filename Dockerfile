@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
     python3-pip \
+    fonts-noto-core \
     build-essential \
     curl \
     git \
@@ -20,11 +21,13 @@ RUN npm init -y
 RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
-RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client \
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client Pillow==12.3.0 \
     pyswisseph==2.10.3.2 timezonefinder==9.0.0 tzdata==2026.4 --break-system-packages
 
 # Fail the build if numerical or timezone dependencies cannot actually load.
 RUN python3 -c "import swisseph; from timezonefinder import TimezoneFinder; from zoneinfo import ZoneInfo; assert TimezoneFinder().timezone_at(lat=28.6139, lng=77.209); ZoneInfo('Asia/Kolkata'); assert len(swisseph.calc_ut(2451545.0, swisseph.MOON)[0]) == 6"
+
+RUN python3 -c "from PIL import Image, ImageFont; Image.new('RGB', (1, 1)); ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf', 16)"
 
 # ❌ REMOVE UI BUILD (this was breaking everything)
 
@@ -67,8 +70,12 @@ COPY app/whatsapp-support/workspace-reply-repair/.pi/extensions/astrofriend-budg
 COPY app/whatsapp-support/workspace-astrologer-preview/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer-preview/.pi/extensions/
 COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_language.py \
     skills/kundli/render_reading.py skills/kundli/advanced_facts.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
+    skills/kundli/draw_kundli_traditional.py \
     skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
     /app/bootstrap/skills/kundli/
+COPY skills/vedastro/vedastro_client.py skills/vedastro/SKILL.md /app/bootstrap/skills/vedastro/
+COPY skills/horoscope/calculate.py skills/horoscope/scheduler.py skills/horoscope/vedic_rules.json \
+    skills/horoscope/SKILL.md /app/bootstrap/skills/horoscope/
 COPY skills/qdrant/qdrant_client.py /app/bootstrap/skills/qdrant/qdrant_client.py
 COPY skills/mongo_logger/logger_client.py skills/mongo_logger/fetch_history.py \
     skills/mongo_logger/service_auth.py /app/bootstrap/skills/mongo_logger/

@@ -8,7 +8,7 @@ from pathlib import Path
 from bisect import bisect_right
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-from vimshottari import current_period
+from vimshottari import current_period, nakshatra_index
 from natal_cache import cached_natal
 from geopy.geocoders import Nominatim
 
@@ -163,9 +163,7 @@ def validate_or_correct_nakshatra(moon_sign, moon_degree, moon_nakshatra, moon_p
 
 def get_nakshatra_from_degree(degree):
     """Use exact equal divisions rather than rounded boundary constants."""
-    if not math.isfinite(degree) or not 0 <= degree < 360:
-        raise ValueError("Invalid sidereal longitude")
-    index = bisect_right([i * (360 / 27) for i in range(27)], degree) - 1
+    index = nakshatra_index(degree)
     return NAKSHATRA_RANGES[index][0], index * (360 / 27)
 
 def degree_to_sign_degree(degree, ayanamsa):

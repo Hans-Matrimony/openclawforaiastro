@@ -13,10 +13,15 @@ export const ASTROLOGY_ASSETS = [
     "advanced_facts.py",
     "natal_cache.py",
     "vimshottari.py",
+    "draw_kundli_traditional.py",
     "cities_india.json",
     "SKILL.md",
     "VEDASTRO-MIT.txt",
   ].map((name) => `skills/kundli/${name}`),
+  ...["vedastro_client.py", "SKILL.md"].map((name) => `skills/vedastro/${name}`),
+  ...["calculate.py", "scheduler.py", "vedic_rules.json", "SKILL.md"].map(
+    (name) => `skills/horoscope/${name}`,
+  ),
   "skills/qdrant/qdrant_client.py",
   ...["logger_client.py", "fetch_history.py", "service_auth.py"].map(
     (name) => `skills/mongo_logger/${name}`,

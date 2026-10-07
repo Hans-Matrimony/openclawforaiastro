@@ -56,8 +56,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
     aspects = advanced['full_sign_aspects_to_topic_house']
     if aspects:
         names = ', '.join(a['planet'] for a in aspects)
+        verb = 'casts' if len(aspects) == 1 else 'cast'
         detail += (f". {names} ki full sign drishti house {ruler['rules_house']} par hai"
-                   if hinglish else f". {names} casts a full sign aspect on house {ruler['rules_house']}")
+                   if hinglish else f". {names} {verb} a full sign aspect on house {ruler['rules_house']}")
     paragraphs.append(detail + '.')
     if intent == 'timing':
         major_name, major = next(iter(packet['current_period']['mahadashas'].items()))
