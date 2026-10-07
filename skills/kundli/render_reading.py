@@ -21,12 +21,17 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         raise ValueError('Unsupported timing question')
     packet = reading_packet(chart, topic, as_of_utc=as_of_utc)
     hinglish = language == 'hinglish'
-    paragraphs = []
     if intent == 'timing':
-        paragraphs.append(
-            'In verified chart factors se shaadi ka saal ya date reliably tay nahi hoti. Dasha ki start/end dates ko shaadi ki prediction nahi maana ja sakta.'
-            if hinglish else
-            'These verified chart factors do not establish when you will marry. Calculated dasha boundaries alone are not evidence of a marriage window.')
+        # The packet has no event-window interpretation. Answer that question
+        # directly rather than padding a limitation with unrelated placements
+        # or exposing internal calculation metadata as conversation.
+        text = ('Shaadi ka saal ya mahina abhi bharose se batana mumkin nahi hai. Koi tareekh kehna sirf andaza hoga.'
+                if hinglish else
+                'I cannot give a reliable year or month for your marriage yet. Naming a date would be a guess.')
+        return {'schema': 'reviewed-reading-v1', 'text': text,
+                'evidence': packet, 'language': language, 'intent': intent,
+                'model_calls': 0, 'model_tokens': 0}
+    paragraphs = []
     # Keep the strongest topic factor and one additional factor; the full packet
     # remains available for traceability. No sign-based personality filler.
     for factor in packet['factors'][:2]:
@@ -60,13 +65,6 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         detail += (f". {names} ki full sign drishti house {ruler['rules_house']} par hai"
                    if hinglish else f". {names} {verb} a full sign aspect on house {ruler['rules_house']}")
     paragraphs.append(detail + '.')
-    if intent == 'timing':
-        major_name, major = next(iter(packet['current_period']['mahadashas'].items()))
-        sub_name, sub = next(iter(major['antardashas'].items()))
-        paragraphs.append(
-            (f"Abhi {major_name} mahadasha aur {sub_name} antardasha hai; antardasha ki calculated UTC boundary {sub['start'][:10]} se {sub['end'][:10]} hai. Isse shaadi ki date ya favorable window tay nahi hoti."
-             if hinglish else
-             f"The current calculated period is {major_name} mahadasha / {sub_name} antardasha, with UTC boundaries {sub['start'][:10]} to {sub['end'][:10]}. This does not establish a marriage date or favorable window."))
     paragraphs.append(
         'Yeh traditional themes hain; poori Shadbala strength, transits aur event timing evaluate nahi hue hain.'
         if hinglish else
@@ -97,12 +95,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         paragraphs.append(questions[topic] if hinglish else QUESTIONS[topic])
     # Keep a normal reading to three bubbles: answer, supporting evidence and
     # one practical next step. Preserve every fact and boundary warning.
-    answer_count = min(2, len(packet['factors'])) + (1 if intent == 'timing' else 0)
+    answer_count = min(2, len(packet['factors']))
     answer = ' '.join(paragraphs[:answer_count])
-    if intent == 'overview':
-        paragraphs = [answer, ' '.join(paragraphs[answer_count:-2]), ' '.join(paragraphs[-2:])]
-    else:
-        paragraphs = [answer, ' '.join(paragraphs[answer_count:])]
+    paragraphs = [answer, ' '.join(paragraphs[answer_count:-2]), ' '.join(paragraphs[-2:])]
     return {'schema': 'reviewed-reading-v1', 'text': '\n\n'.join(paragraphs),
             'evidence': packet, 'language': language, 'intent': intent,
             'model_calls': 0, 'model_tokens': 0}

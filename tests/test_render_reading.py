@@ -64,7 +64,7 @@ class RenderTests(unittest.TestCase):
             self.assertNotIn('2028', result['text'])
             self.assertNotIn('?', result['text'])
         self.assertTrue(render_reading(chart(), 'marriage', intent='timing')['text'].startswith(
-            'These verified chart factors do not establish when you will marry.'))
+            'I cannot give a reliable year or month'))
         with self.assertRaises(ValueError):
             render_reading(chart(), 'career', intent='timing')
         with self.assertRaises(ValueError):
@@ -78,8 +78,10 @@ class RenderTests(unittest.TestCase):
             self.assertIn('full Shadbala strength, transits and event timing have not been evaluated', result['text'])
             self.assertNotIn('strong enough', result['text'])
         timing = render_reading(chart(), 'marriage', intent='timing')
-        self.assertIn('with UTC boundaries', timing['text'])
-        self.assertIn('does not establish a marriage date', timing['text'])
+        self.assertIn('current_period', timing['evidence'])
+        self.assertIn('advanced', timing['evidence'])
+        self.assertFalse(timing['evidence']['period_interpretation_available'])
+        self.assertNotIn('UTC', timing['text'])
 
     def test_readings_remain_compact_with_all_evidence_and_warnings(self):
         value = chart()
@@ -92,4 +94,22 @@ class RenderTests(unittest.TestCase):
                 self.assertIn('Shadbala', result['text'])
         result = render_reading(value, 'marriage', intent='timing')
         self.assertLessEqual(len(result['text'].split('\n\n')), 3)
-        self.assertIn('UTC boundaries', result['text'])
+        self.assertIn('current_period', result['evidence'])
+        self.assertEqual(result['evidence']['calculation_warnings'], value['summary']['warnings'])
+
+    def test_simple_timing_answer_is_short_human_and_does_not_pad_with_other_topics(self):
+        for asc in range(12):
+            for language in ('english', 'hinglish'):
+                with self.subTest(asc=asc, language=language):
+                    result = render_reading(chart(asc), 'marriage', language=language, intent='timing')
+                    text = result['text']
+                    self.assertLess(len(text), 180)
+                    self.assertEqual(len(text.split('\n\n')), 1)
+                    self.assertNotIn('?', text)
+                    self.assertFalse(any(word in text.lower() for word in (
+                        'verified', 'evidence', 'boundary', 'utc', 'evaluate', 'dasha',
+                        'venus', 'house', 'dating', 'communication', 'expectations')))
+                    self.assertFalse(any(char.isdigit() for char in text))
+                    self.assertEqual(result['model_calls'], 0)
+                    self.assertEqual(result['model_tokens'], 0)
+                    self.assertFalse(result['evidence']['period_interpretation_available'])
