@@ -35,6 +35,18 @@ test("factual replies can end without filler while interpretations retain a reme
   assert.match(docs.KUNDLI_RESPONSE, /Bare rashi\/lagna\/nakshatra\/dasha\/position answers need no separate opener/);
 });
 
+test("reading confidence is scoped to astrology and still requires evidence", () => {
+  const policy = prompt.split("**Astrology-only confidence and evidence policy:**")[1]?.split("**Close-friend tone:**")[0];
+  assert.ok(policy);
+  assert.match(policy, /never to friend-only conversation, identity, pricing, payment, media delivery or the test-number Tarot flow/);
+  assert.match(policy, /takes precedence over older Qdrant-only knowledge rules and example predictions/);
+  assert.match(policy, /An earlier assistant answer or style example is not evidence/);
+  assert.match(policy, /not a proven trait or promised event/);
+  assert.match(policy, /No invented dates, probabilities, strength, transits, spouse traits, loyalty or certainty/);
+  assert.match(policy, /Friend behaviour remains unchanged/);
+  assert.match(docs.KUNDLI_RESPONSE, /friend-only flow is unchanged/);
+});
+
 test("memory skill follows the astrologer list-only exception without disabling writes", () => {
   const section = memory.split("## Astrologer workflow")[1]?.split("## Default lookup workflow")[0];
   assert.ok(section);

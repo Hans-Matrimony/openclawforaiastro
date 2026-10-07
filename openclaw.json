@@ -905,7 +905,9 @@
     }
   },
   "plugins": {
+    "load": { "paths": ["/app/extensions/reviewed-reading"] },
     "entries": {
+      "reviewed-reading": { "enabled": true },
       "telegram": {
         "enabled": false
       },

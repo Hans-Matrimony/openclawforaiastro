@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import math
+import os
 from pathlib import Path
 import runpy
 import sys
@@ -60,6 +61,7 @@ class CalculationTests(unittest.TestCase):
         self.k.SCRIPT_DIR = self.tmp.name
         self.h.SCRIPT_DIR = self.tmp.name
         self.k.get_coordinates = Mock(return_value=(28.6, 77.2))
+        self.resolve_timezone = self.k.get_timezone_offset
         self.k.get_timezone_offset = Mock(return_value=5.5)
         self.h.calculate_kundli = self.k.calculate_kundli
 
@@ -72,6 +74,39 @@ class CalculationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 parser("12")
 
+    def test_explicit_coordinates_and_confirmed_dst_offset(self):
+        result = self.k.calculate_kundli('2000-01-01', '09:30', 'Confirmed location',
+                                        latitude=40, longitude=-74, utc_offset=-5)
+        self.k.get_coordinates.assert_not_called()
+        self.k.get_timezone_offset.assert_not_called()
+        self.assertEqual(result['user_input']['coordinates'], {'lat': 40, 'lon': -74})
+        self.assertEqual(result['user_input']['timezone_offset'], -5)
+        for values in ({'latitude': 40}, {'longitude': -74}, {'latitude': 90, 'longitude': 0},
+                       {'latitude': float('nan'), 'longitude': 0}, {'latitude': True, 'longitude': 0},
+                       {'utc_offset': 15}, {'utc_offset': float('inf')}, {'utc_offset': True}):
+            with self.subTest(values=values), self.assertRaises(ValueError):
+                self.k.calculate_kundli('2000-01-01', '09:30', 'Delhi', **values)
+
+    def test_whole_sign_engine_does_not_request_placidus_cusps(self):
+        self.k.calculate_kundli_pyswisseph(datetime(2000, 1, 1), 78, 15)
+        self.assertEqual(self.swe.houses.call_args.args[-1], b'W')
+
+    def test_international_geocoding_rejects_ambiguity_without_india_suffix(self):
+        module = sys.modules['geopy.geocoders']
+        geocoder = module.Nominatim.return_value
+        location = types.SimpleNamespace(latitude=40, longitude=-74)
+        geocoder.geocode.return_value = [location]
+        # setUp replaces the module's public resolver; call the original by reloading.
+        original = load('geocoder_test', KUNDLI / 'calculate.py')
+        self.assertEqual(original.get_coordinates('New York, USA'), (40, -74))
+        self.assertEqual(geocoder.geocode.call_args.args[0], 'New York, USA')
+        self.assertEqual(geocoder.geocode.call_args.kwargs['timeout'], 5)
+        geocoder.geocode.return_value = [location, location]
+        with self.assertRaisesRegex(ValueError, 'not uniquely resolved'):
+            original.get_coordinates('Springfield')
+        with self.assertRaises(ValueError):
+            original.get_coordinates('')
+
     def test_ayanamsa_uses_birth_epoch(self):
         old = self.k.calculate_kundli_pyswisseph(datetime(1980, 1, 1), 28, 77)
         new = self.k.calculate_kundli_pyswisseph(datetime(2020, 1, 1), 28, 77)
@@ -79,6 +114,46 @@ class CalculationTests(unittest.TestCase):
         self.assertEqual(new["ayanamsa_degree"], 24)
         self.assertEqual(old["moon_sidereal_degree"] - new["moon_sidereal_degree"], 1)
         self.swe.set_sid_mode.assert_called_with(1)
+
+    def test_mean_nodes_are_explicit_and_leave_the_default_unchanged(self):
+        when = datetime(2000, 1, 1)
+        default = self.k.calculate_kundli_pyswisseph(when, 28, 77)
+        mean = self.k.calculate_kundli_pyswisseph(when, 28, 77, node_convention='mean')
+        self.assertEqual(default['node_convention'], 'true')
+        self.assertEqual(mean['node_convention'], 'mean')
+        true_rahu = next(p for p in default['planet_positions'] if p['name'] == 'Rahu')
+        mean_rahu = next(p for p in mean['planet_positions'] if p['name'] == 'Rahu')
+        self.assertNotEqual(true_rahu['sidereal_degree'], mean_rahu['sidereal_degree'])
+        ketu = next(p for p in mean['planet_positions'] if p['name'] == 'Ketu')
+        self.assertEqual((ketu['sidereal_degree'] - mean_rahu['sidereal_degree']) % 360, 180)
+        with self.assertRaises(ValueError):
+            self.k.calculate_kundli_pyswisseph(when, 28, 77, node_convention='unknown')
+
+    def test_timezone_resolution_never_silently_substitutes_ist(self):
+        self.k._TZ_FINDER = None
+        with self.assertRaisesRegex(ValueError, 'resolver unavailable'):
+            self.resolve_timezone(40, -74, datetime(2000, 1, 1))
+        self.k._TZ_FINDER = Mock()
+        self.k._TZ_FINDER.timezone_at.return_value = None
+        with self.assertRaisesRegex(ValueError, 'could not be resolved'):
+            self.resolve_timezone(40, -74, datetime(2000, 1, 1))
+        with self.assertRaisesRegex(ValueError, 'Birth datetime is required'):
+            self.resolve_timezone(40, -74)
+
+    def test_dst_overlap_and_gap_are_rejected_and_normal_offset_is_historical(self):
+        self.k._TZ_FINDER = Mock()
+        self.k._TZ_FINDER.timezone_at.return_value = 'America/New_York'
+        for birth in (datetime(2021, 11, 7, 1, 30), datetime(2021, 3, 14, 2, 30)):
+            with self.assertRaisesRegex(ValueError, 'Ambiguous or nonexistent'):
+                self.resolve_timezone(40, -74, birth)
+        self.assertEqual(self.resolve_timezone(40, -74, datetime(2021, 7, 1)), -4)
+        self.assertEqual(self.resolve_timezone(40, -74, datetime(2021, 1, 1)), -5)
+
+    def test_missing_ephemeris_check_does_not_install_packages(self):
+        import subprocess
+        with patch.dict(sys.modules, {'swisseph': None}), patch.object(subprocess, 'check_call') as install:
+            self.assertFalse(self.k.ensure_pyswisseph())
+            install.assert_not_called()
 
     def test_failed_moon_does_not_become_ashwini(self):
         def fail_moon(jd, planet):
@@ -138,8 +213,17 @@ class CalculationTests(unittest.TestCase):
             d1_chart=types.SimpleNamespace(planets=[moon]), to_dict=lambda: {})
         self.jyotish.calculate_birth_chart.side_effect = None
         self.jyotish.calculate_birth_chart.return_value = chart
-        with self.assertRaisesRegex(ValueError, 'Incomplete fallback chart'):
+        with self.assertRaisesRegex(ValueError, 'dependency unavailable'):
             self.k.calculate_kundli('2000-01-01', '12:00', 'Delhi')
+        self.jyotish.calculate_birth_chart.assert_not_called()
+        with patch.dict(os.environ, {'KUNDLI_ALLOW_LEGACY_FALLBACK': '1'}), self.assertRaisesRegex(ValueError, 'Incomplete fallback chart'):
+            self.k.calculate_kundli('2000-01-01', '12:00', 'Delhi')
+
+    def test_primary_engine_failure_does_not_silently_substitute_a_chart(self):
+        with patch.object(self.k, 'calculate_kundli_pyswisseph', side_effect=ValueError('ephemeris failed')):
+            with self.assertRaisesRegex(ValueError, 'no chart was substituted'):
+                self.k.calculate_kundli('2000-01-01', '12:00', 'Delhi')
+        self.jyotish.calculate_birth_chart.assert_not_called()
 
     def test_exact_nakshatra_boundary(self):
         self.assertEqual(self.k.get_nakshatra_from_degree(13.3331)[0], "Ashwini")

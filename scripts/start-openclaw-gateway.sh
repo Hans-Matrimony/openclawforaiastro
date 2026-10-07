@@ -25,6 +25,9 @@ log_startup "[startup] HOME=$HOME"
 log_startup "[startup] OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
 log_startup "[startup] OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
 
+# Refresh reading code hidden by a mounted state volume, preserving friend files.
+node "$APP_DIR/bootstrap-astrology-assets.mjs"
+
 if [ -f "$CONFIG_SOURCE" ]; then
   cp "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json"
   chmod 600 "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json" 2>/dev/null || true
