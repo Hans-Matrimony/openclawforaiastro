@@ -25,6 +25,12 @@ log_startup "[startup] HOME=$HOME"
 log_startup "[startup] OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
 log_startup "[startup] OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
 
+# A state volume can hide files copied into .openclaw during the image build.
+# Refresh release-managed astrology assets before the gateway accepts traffic.
+node "$APP_DIR/configure-control-ui.mjs"
+node "$APP_DIR/bootstrap-astrology-assets.mjs"
+node "$APP_DIR/validate-inference-budget.mjs" "$(npm root -g)/openclaw/package.json"
+
 if [ -f "$CONFIG_SOURCE" ]; then
   cp "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json"
   chmod 600 "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json" 2>/dev/null || true
@@ -32,6 +38,11 @@ fi
 
 if [ -d "$APP_DIR/bootstrap/workspace-tarot-reader" ]; then
   cp -R "$APP_DIR/bootstrap/workspace-tarot-reader/." "$OPENCLAW_STATE_DIR/workspace-tarot-reader/"
+fi
+
+if [ -d "$APP_DIR/bootstrap/workspace-reply-repair" ]; then
+  mkdir -p "$OPENCLAW_STATE_DIR/workspace-reply-repair"
+  cp -R "$APP_DIR/bootstrap/workspace-reply-repair/." "$OPENCLAW_STATE_DIR/workspace-reply-repair/"
 fi
 
 node - "$OPENCLAW_CONFIG_PATH" <<'NODE'

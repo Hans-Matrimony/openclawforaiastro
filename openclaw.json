@@ -23,9 +23,7 @@
             "id": "glm-5",
             "name": "GLM-5",
             "reasoning": true,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -39,9 +37,7 @@
             "id": "glm-4.7",
             "name": "GLM-4.7",
             "reasoning": true,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -55,9 +51,7 @@
             "id": "glm-4.7-flash",
             "name": "GLM-4.7 Flash",
             "reasoning": true,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -71,9 +65,7 @@
             "id": "glm-4.7-flashx",
             "name": "GLM-4.7 FlashX",
             "reasoning": true,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -94,10 +86,7 @@
             "id": "gpt-4o",
             "name": "GPT-4o",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -111,10 +100,7 @@
             "id": "gpt-4o-mini",
             "name": "GPT-4o Mini",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -135,9 +121,7 @@
             "id": "deepseek-chat",
             "name": "DeepSeek V3.2 Chat",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.28,
               "output": 0.42,
@@ -151,9 +135,7 @@
             "id": "deepseek-reasoner",
             "name": "DeepSeek V3.2 Reasoner",
             "reasoning": true,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.28,
               "output": 0.42,
@@ -167,9 +149,7 @@
             "id": "deepseek-v4-flash",
             "name": "DeepSeek V4 Flash",
             "reasoning": true,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.14,
               "output": 0.28,
@@ -190,9 +170,7 @@
             "id": "llama-3.3-70b-versatile",
             "name": "Llama 3.3 70B",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -213,10 +191,7 @@
             "id": "gemini-2.5-pro",
             "name": "Gemini 2.5 Pro",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -230,10 +205,7 @@
             "id": "gemini-2.5-flash",
             "name": "Gemini 2.5 Flash",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -247,10 +219,7 @@
             "id": "gemini-2.5-flash-lite",
             "name": "Gemini 2.5 Flash Lite",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -264,10 +233,7 @@
             "id": "gemini-3-flash-lite",
             "name": "Gemini 3 Flash Lite",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -281,10 +247,7 @@
             "id": "gemini-3-flash",
             "name": "Gemini 3 Flash",
             "reasoning": false,
-            "input": [
-              "text",
-              "image"
-            ],
+            "input": ["text", "image"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -305,9 +268,7 @@
             "id": "qwen/qwen-2.5-72b-instruct",
             "name": "Qwen 2.5 72B",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.18,
               "output": 0.18,
@@ -321,9 +282,7 @@
             "id": "qwen/qwen-2.5-7b-instruct",
             "name": "Qwen 2.5 7B",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.03,
               "output": 0.03,
@@ -337,9 +296,7 @@
             "id": "qwen/qwen-2.5-72b-instruct-turbo",
             "name": "Qwen 2.5 72B Turbo",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.18,
               "output": 0.18,
@@ -353,9 +310,7 @@
             "id": "qwen/qwen3.6-plus-preview",
             "name": "Qwen 3.6 Plus",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -369,9 +324,7 @@
             "id": "google/gemma-4-31b-it",
             "name": "Gemma 4 31B Instruct",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.14,
               "output": 0.4,
@@ -385,9 +338,7 @@
             "id": "meta-llama/llama-3-8b-instruct",
             "name": "Llama 3 8B",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0,
               "output": 0,
@@ -401,9 +352,7 @@
             "id": "meta-llama/llama-3.1-8b-instruct",
             "name": "Llama 3.1 8B",
             "reasoning": false,
-            "input": [
-              "text"
-            ],
+            "input": ["text"],
             "cost": {
               "input": 0.05,
               "output": 0.05,
@@ -412,6 +361,20 @@
             },
             "contextWindow": 128000,
             "maxTokens": 8192
+          },
+          {
+            "id": "qwen/qwen3-30b-a3b-instruct-2507",
+            "name": "Qwen3 30B A3B Instruct 2507",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": {
+              "input": 0.048,
+              "output": 0.193,
+              "cacheRead": 0.048,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 32000
           }
         ]
       }
@@ -445,7 +408,10 @@
           "alias": "reasoner"
         },
         "deepseek/deepseek-v4-flash": {
-          "alias": "deepseek-flash"
+          "alias": "deepseek-flash",
+          "params": {
+            "maxTokens": 768
+          }
         },
         "groq/llama-3.3-70b-versatile": {
           "alias": "groq"
@@ -476,16 +442,14 @@
         },
         "openrouter/meta-llama/llama-3.1-8b-instruct": {
           "alias": "llama31"
+        },
+        "openrouter/qwen/qwen3-30b-a3b-instruct-2507": {
+          "alias": "qwen3-30b"
         }
       },
       "contextPruning": {
         "tools": {
-          "allow": [
-            "memory_search",
-            "memory_get",
-            "web_search",
-            "web_fetch"
-          ]
+          "allow": ["memory_search", "memory_get", "web_search", "web_fetch"]
         }
       },
       "heartbeat": {
@@ -513,6 +477,19 @@
         },
         "tools": {
           "profile": "full"
+        }
+      },
+      {
+        "id": "reply_repair",
+        "name": "Reply language repair",
+        "workspace": "/app/.openclaw/workspace-reply-repair",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": []
+        },
+        "skills": [],
+        "tools": {
+          "deny": ["*"]
         }
       },
       {
@@ -548,13 +525,19 @@
         },
         "tools": {
           "profile": "messaging",
-          "alsoAllow": [
-            "exec",
-            "read",
-            "process",
-            "tts",
-            "image"
-          ]
+          "loopDetection": {
+            "enabled": true,
+            "historySize": 20,
+            "warningThreshold": 4,
+            "criticalThreshold": 6,
+            "globalCircuitBreakerThreshold": 8,
+            "detectors": {
+              "genericRepeat": true,
+              "knownPollNoProgress": true,
+              "pingPong": true
+            }
+          },
+          "alsoAllow": ["exec", "read", "process", "tts", "image"]
         }
       },
       {
@@ -570,10 +553,7 @@
             "zai/glm-5"
           ]
         },
-        "skills": [
-          "mem0",
-          "tarot"
-        ],
+        "skills": ["mem0", "tarot"],
         "identity": {
           "name": "Tara",
           "theme": "Test-only Tarot card reader",
@@ -581,9 +561,7 @@
         },
         "tools": {
           "profile": "messaging",
-          "alsoAllow": [
-            "exec"
-          ]
+          "alsoAllow": ["exec"]
         }
       },
       {
@@ -599,10 +577,7 @@
             "zai/glm-5"
           ]
         },
-        "skills": [
-          "qdrant",
-          "kundli"
-        ],
+        "skills": ["qdrant", "kundli"],
         "identity": {
           "name": "Astro Hans",
           "theme": "Anonymous AstroFriend preview",
@@ -610,11 +585,7 @@
         },
         "tools": {
           "profile": "messaging",
-          "alsoAllow": [
-            "exec",
-            "read",
-            "process"
-          ]
+          "alsoAllow": ["exec", "read", "process"]
         }
       },
       {
@@ -639,6 +610,67 @@
         "tools": {
           "profile": "messaging",
           "alsoAllow": []
+        }
+      },
+      {
+        "id": "classifier",
+        "name": "PWA Classifier",
+        "workspace": "/app/.openclaw/workspace-classifier",
+        "identity": {
+          "name": "AstroFriend Classifier",
+          "theme": "Short classification and extraction answers",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "minimal"
+        }
+      },
+      {
+        "id": "astrologer_pwa",
+        "name": "WhatsApp Support",
+        "workspace": "/app/.openclaw/workspace-astrologer",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash",
+          "fallbacks": [
+            "groq/llama-3.3-70b-versatile",
+            "google/gemini-2.5-flash",
+            "openai/gpt-4o-mini",
+            "zai/glm-5"
+          ]
+        },
+        "skills": [
+          "mongo_logger",
+          "mcporter",
+          "weather",
+          "mem0",
+          "qdrant",
+          "web_search",
+          "kundli",
+          "vedastro",
+          "vastu",
+          "nano-banana-pro",
+          "openai-image-gen"
+        ],
+        "identity": {
+          "name": "Astro Hans",
+          "theme": "Customer support via WhatsApp",
+          "emoji": ""
+        },
+        "tools": {
+          "profile": "minimal",
+          "loopDetection": {
+            "enabled": true,
+            "historySize": 20,
+            "warningThreshold": 4,
+            "criticalThreshold": 6,
+            "globalCircuitBreakerThreshold": 8,
+            "detectors": {
+              "genericRepeat": true,
+              "knownPollNoProgress": true,
+              "pingPong": true
+            }
+          },
+          "alsoAllow": ["exec", "read", "process", "tts", "image"]
         }
       }
     ]
@@ -813,9 +845,7 @@
       "sendReadReceipts": true,
       "dmPolicy": "open",
       "selfChatMode": true,
-      "allowFrom": [
-        "*"
-      ],
+      "allowFrom": ["*"],
       "groupPolicy": "allowlist",
       "debounceMs": 0,
       "dmHistoryLimit": 50,
@@ -836,9 +866,7 @@
       "configWrites": true,
       "dmPolicy": "open",
       "botToken": "${TELEGRAM_BOT_TOKEN}",
-      "allowFrom": [
-        "*"
-      ],
+      "allowFrom": ["*"],
       "groupPolicy": "allowlist",
       "dms": {},
       "actions": {
@@ -864,9 +892,7 @@
         {
           "provider": "openai",
           "model": "gpt-4o-mini",
-          "capabilities": [
-            "image"
-          ]
+          "capabilities": ["image"]
         }
       ]
     }
@@ -877,22 +903,16 @@
     "bind": "lan",
     "controlUi": {
       "enabled": true,
-      "allowInsecureAuth": true,
-      "dangerouslyDisableDeviceAuth": true,
-      "allowedOrigins": [
-        "*"
-      ],
-      "dangerouslyAllowHostHeaderOriginFallback": true
+      "allowInsecureAuth": false,
+      "dangerouslyDisableDeviceAuth": false,
+      "allowedOrigins": ["http://localhost:8000", "http://127.0.0.1:8000"],
+      "dangerouslyAllowHostHeaderOriginFallback": false
     },
     "auth": {
       "mode": "token",
       "token": "${OPENCLAW_GATEWAY_TOKEN}"
     },
-    "trustedProxies": [
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16"
-    ],
+    "trustedProxies": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
     "http": {
       "endpoints": {
         "chatCompletions": {
@@ -905,7 +925,16 @@
     }
   },
   "plugins": {
+    "load": {
+      "paths": ["/app/extensions/reviewed-reading", "/app/extensions/inference-budget"]
+    },
     "entries": {
+      "inference-budget": {
+        "enabled": true
+      },
+      "reviewed-reading": {
+        "enabled": true
+      },
       "telegram": {
         "enabled": false
       },

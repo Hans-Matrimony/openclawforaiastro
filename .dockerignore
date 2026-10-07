@@ -31,6 +31,25 @@ coverage
 tmp
 **/tmp
 
+# Runtime credentials are injected by the deployment platform, not image files.
+.env
+.env.*
+**/.env
+**/.env.*
+**/*-access.env
+
+# Historical debug exports are not application assets.
+full_memories.json
+tmp_memories.json
+skills/mem0/test_mem*.json
+skills/kundli/test_calc*.json
+skills/kundli/test_varanasi.json
+skills/kundli/final_test.json
+skills/kundli/varanasi_kundli.json
+skills/kundli/meerut_kundli.json
+skills/kundli/current_dasha.json
+skills/mem0/mem0_db/
+
 # build artifacts
 dist
 **/dist

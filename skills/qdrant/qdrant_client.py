@@ -33,7 +33,7 @@ def search_qdrant(query, limit=21):
                 "input": query,
                 "model": "text-embedding-3-small"
             }
-            resp = requests.post("https://api.openai.com/v1/embeddings", headers=headers, json=data)
+            resp = requests.post("https://api.openai.com/v1/embeddings", headers=headers, json=data, timeout=8)
             if resp.status_code == 200:
                 vector = resp.json()['data'][0]['embedding']
         except Exception as e:

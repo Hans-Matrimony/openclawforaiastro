@@ -1,0 +1,6 @@
+{
+  "id": "reviewed-reading",
+  "name": "Reviewed astrology readings",
+  "description": "Authenticated deterministic readings from verified chart evidence; no model calls.",
+  "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
+}

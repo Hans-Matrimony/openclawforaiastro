@@ -23,6 +23,7 @@ services:
       - ./skills/tarot:/app/.openclaw/skills/tarot:ro
       - ./skills/vedastro:/app/.openclaw/skills/vedastro:ro
       - ${OPENCLAW_PREVIEW_WORKSPACE_DIR:-./app/whatsapp-support/workspace-astrologer-preview}:/app/.openclaw/workspace-astrologer-preview
+      - ./app/whatsapp-support/workspace-classifier:/app/.openclaw/workspace-classifier
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -65,6 +66,7 @@ services:
       - ./skills/tarot:/app/.openclaw/skills/tarot:ro
       - ./skills/vedastro:/app/.openclaw/skills/vedastro:ro
       - ${OPENCLAW_PREVIEW_WORKSPACE_DIR:-./app/whatsapp-support/workspace-astrologer-preview}:/app/.openclaw/workspace-astrologer-preview
+      - ./app/whatsapp-support/workspace-classifier:/app/.openclaw/workspace-classifier
     stdin_open: true
     tty: true
     networks:
