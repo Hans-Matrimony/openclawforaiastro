@@ -71,3 +71,21 @@ void test("incomplete image fails before copying release assets", (t) => {
   assert.throws(() => bootstrapAstrologyAssets(app, state));
   assert.equal(fs.existsSync(state), false);
 });
+
+void test("matching read-only release assets start without writes; stale assets fail closed", (t) => {
+  const { app, state } = fixture(t);
+  bootstrapAstrologyAssets(app, state);
+  const writes = ["mkdirSync", "copyFileSync", "chmodSync", "renameSync", "unlinkSync"];
+  for (const operation of writes) {
+    t.mock.method(fs, operation, () => {
+      const error = new Error("Synthetic read-only skill mount");
+      error.code = "EROFS";
+      throw error;
+    });
+  }
+  assert.doesNotThrow(() => bootstrapAstrologyAssets(app, state));
+  const target = path.join(state, "skills/vedastro/vedastro_client.py");
+  fs.writeFileSync(target, "old-matching-code");
+  assert.throws(() => bootstrapAstrologyAssets(app, state), { code: "EROFS" });
+  assert.equal(fs.readFileSync(target, "utf8"), "old-matching-code");
+});

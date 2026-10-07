@@ -47,11 +47,17 @@ export function bootstrapAstrologyAssets(appDir, stateDir) {
     }
   }
   for (const relative of ASTROLOGY_ASSETS) {
+    const source = path.join(sourceRoot, relative);
     const target = path.join(stateDir, relative);
+    // Compose can mount checked-out skills read-only. Matching release code
+    // needs no write; stale or missing assets must still fail closed on EROFS.
+    if (fs.existsSync(target) && fs.readFileSync(source).equals(fs.readFileSync(target))) {
+      continue;
+    }
     fs.mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
     const temporary = `${target}.release-${process.pid}`;
     try {
-      fs.copyFileSync(path.join(sourceRoot, relative), temporary);
+      fs.copyFileSync(source, temporary);
       fs.chmodSync(temporary, 0o600);
       fs.renameSync(temporary, target);
     } finally {
