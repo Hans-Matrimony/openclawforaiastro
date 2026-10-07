@@ -1,0 +1,6 @@
+{
+  "id": "inference-budget",
+  "name": "AstroFriend inference budget",
+  "description": "Shared per-run request and output reservations across SDK retries, fallback and compaction.",
+  "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
+}

@@ -9,20 +9,11 @@ import sys
 import json
 import ast  # Safely evaluates single-quoted python dictionaries
 import base64
-import urllib.request
+import re
 from io import BytesIO
 
-# Auto-install Pillow
-try:
-    from PIL import Image, ImageDraw, ImageFont
-except ImportError:
-    import subprocess
-    subprocess.check_call([
-        sys.executable, "-m", "pip", "install",
-        "--break-system-packages",
-        "pillow"
-    ])
-    from PIL import Image, ImageDraw, ImageFont
+# Installed and checked at image build time; rendering never installs packages.
+from PIL import Image, ImageDraw, ImageFont
 
 import argparse
 
@@ -64,7 +55,7 @@ def normalize_sign_name(sign_name):
     return HINDI_TO_ENGLISH_SIGN.get(sign_name, sign_name)
 
 def get_devanagari_font():
-    local_font = "NotoSansDevanagari-Regular.ttf"
+    local_font = os.path.join(os.path.dirname(os.path.abspath(__file__)), "NotoSansDevanagari-Regular.ttf")
     if os.path.exists(local_font):
         return local_font
 
@@ -78,12 +69,8 @@ def get_devanagari_font():
         if os.path.exists(lf):
             return lf
 
-    try:
-        url = "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf"
-        urllib.request.urlretrieve(url, local_font)
-        return local_font
-    except:
-        return None
+    # A missing font uses the existing Pillow fallback; no network/disk writes.
+    return None
 
 def get_house_from_sign(planet_sign, lagna_sign):
     """
@@ -191,7 +178,79 @@ def parse_planet_positions(planets_list, lagna=None):
     print(f"📊 RESULT: Planets in {len(house_planets)} houses: {list(house_planets.keys())}", file=sys.stderr)
     return house_planets
 
+def verified_image_positions(lagna, moon_sign, planet_positions):
+    """Validate all nine placements before drawing; retain supported input forms."""
+    if lagna not in SIGN_NAMES or moon_sign not in SIGN_NAMES:
+        raise ValueError('Valid Lagna and Moon signs are required')
+    names = set(HINDI_MAP) - {'Lagna'}
+    if not isinstance(planet_positions, list) or not planet_positions:
+        raise ValueError('All nine planetary placements are required')
+    expanded = []
+    for item in planet_positions:
+        if isinstance(item, dict) and not any(key in item for key in ('planet', 'name', 'position', 'house', 'sign')):
+            if not item or any(key not in names | {'Lagna'} for key in item):
+                raise ValueError('Invalid planetary placement')
+            expanded.extend({'name': key, 'sign': value} for key, value in item.items())
+        else:
+            expanded.append(item)
+    if not 9 <= len(expanded) <= 10:
+        raise ValueError('All nine planetary placements are required')
+    placements, normalized = {}, []
+    for item in expanded:
+        flags = ''
+        if isinstance(item, dict):
+            name = item.get('planet') or item.get('name')
+            house, sign = item.get('house'), item.get('sign')
+            if house in (None, '') and not sign and item.get('position') and isinstance(name, str):
+                item = f"{name} {item['position']}"
+        if isinstance(item, str):
+            words = item.split()
+            if not words:
+                raise ValueError('Invalid planetary placement')
+            name = words[0]
+            match = re.search(r'\bHouse\s+(\d{1,2})\b', item, re.IGNORECASE)
+            if not match:
+                raise ValueError('A house number is required for every planet')
+            house = int(match.group(1))
+            annotation = re.search(r'\(([^()]*)\)', item)
+            sign = annotation.group(1) if annotation else None
+            flags = ''.join(f' [{flag}]' for flag in ('Retrograde', 'Combust') if f'[{flag}]' in item)
+        elif not isinstance(item, dict):
+            raise ValueError('Invalid planetary placement')
+        if not isinstance(name, str) or name not in names | {'Lagna'} or name in placements:
+            raise ValueError('Invalid or duplicate planet')
+        signs = []
+        if sign not in (None, ''):
+            if not isinstance(sign, str):
+                raise ValueError('Invalid planetary sign')
+            signs = [normalize_sign_name(part) for part in sign.split('/')]
+            if any(value not in SIGN_NAMES for value in signs) or len(set(signs)) != 1:
+                raise ValueError('Invalid or contradictory planetary sign')
+        if house in (None, '') and signs:
+            house = get_house_from_sign(signs[0], lagna)
+        if isinstance(house, str) and house.isdigit():
+            house = int(house)
+        if type(house) is not int or not 1 <= house <= 12:
+            raise ValueError('Invalid planetary house')
+        expected = SIGN_NAMES[(SIGN_NAMES.index(lagna) + house - 1) % 12]
+        if signs and signs[0] != expected:
+            raise ValueError('Planetary house conflicts with its sign')
+        if name == 'Moon' and expected != moon_sign:
+            raise ValueError('Moon placement conflicts with its summary')
+        if name == 'Lagna' and house != 1:
+            raise ValueError('Lagna must occupy house one')
+        placements[name] = house
+        if name != 'Lagna':
+            normalized.append(f'{name} is in House {house} ({expected}){flags}')
+    if set(placements) - {'Lagna'} != names:
+        raise ValueError('All nine unique planets are required')
+    if (placements['Ketu'] - placements['Rahu']) % 12 != 6:
+        raise ValueError('Rahu and Ketu must occupy opposite signs')
+    return normalized
+
+
 def draw_kundli_chart(lagna, moon_sign, nakshatra, planet_positions=None):
+    planet_positions = verified_image_positions(lagna, moon_sign, planet_positions)
     img_size = 400
     PAD = 20
 
@@ -291,53 +350,25 @@ def main():
 
     args = parser.parse_args()
 
-    # Bulletproof parsing for JSON strings with double OR single quotes
-    # --planets is now REQUIRED, so the AI must provide it
+    # Keep JSON and legacy single-quoted arrays; never print raw chart input.
     try:
         try:
             planets = json.loads(args.planets)
-        except json.JSONDecodeError as je:
-            print(f"🔧 JSON parsing failed: {je}", file=sys.stderr)
-            print(f"🔧 Raw input length: {len(args.planets)} chars", file=sys.stderr)
-            print(f"🔧 First 100 chars: {repr(args.planets[:100])}", file=sys.stderr)
-            print("🔧 Trying ast.literal_eval for single quotes...", file=sys.stderr)
-            try:
-                planets = ast.literal_eval(args.planets)
-            except (SyntaxError, ValueError) as se:
-                print(f"🔧 ast.literal_eval also failed: {se}", file=sys.stderr)
-                print(f"⚠️ CRITICAL ERROR: Unable to parse --planets argument!", file=sys.stderr)
-                print(f"⚠️ This usually means the shell command has unterminated quotes or special characters.", file=sys.stderr)
-                print(f"⚠️ Common causes:", file=sys.stderr)
-                print(f"   1. Degree symbol (°) in the data - try removing it", file=sys.stderr)
-                print(f"   2. Unescaped quotes inside the JSON array", file=sys.stderr)
-                print(f"   3. Command broken across multiple lines (must be ONE line)", file=sys.stderr)
-                print(f"⚠️ Raw input that failed: {repr(args.planets[:200])}", file=sys.stderr)
-                planets = []
-    except Exception as e:
-        print(f"⚠️ UNEXPECTED ERROR PARSING PLANETS: {e}", file=sys.stderr)
-        print(f"⚠️ Raw input: {repr(args.planets[:200])}", file=sys.stderr)
-        planets = []
-
-    if planets:
-        print(f"🪐 Parsed {len(planets)} planet positions from --planets argument", file=sys.stderr)
-        # 🚨 LAZINESS DETECTION: Warn if AI didn't include all 9 planets
-        EXPECTED_PLANETS = 9  # Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu
-        if len(planets) < EXPECTED_PLANETS:
-            print(f"🚨 WARNING: Only {len(planets)} planets provided, but {EXPECTED_PLANETS} expected (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu). Chart will be INCOMPLETE!", file=sys.stderr)
-            print(f"🚨 LAZINESS ALERT: AI agent skipped {(EXPECTED_PLANETS - len(planets))} planets! This is UNACCEPTABLE behavior.", file=sys.stderr)
-    else:
-        print(f"⚠️ ERROR: No planet positions provided after parsing. Chart will be incomplete!", file=sys.stderr)
+        except json.JSONDecodeError:
+            planets = ast.literal_eval(args.planets)
+    except (ValueError, SyntaxError):
+        print('ERROR: Invalid planet JSON; no image generated.', file=sys.stderr)
+        return 1
 
     # Normalize inputs in case the AI agent passes Hindi names instead of English
     safe_lagna = normalize_sign_name(args.lagna)
     safe_moon = normalize_sign_name(args.moon_sign)
 
-    image_data = draw_kundli_chart(
-        safe_lagna,
-        safe_moon,
-        args.nakshatra,
-        planets
-    )
+    try:
+        image_data = draw_kundli_chart(safe_lagna, safe_moon, args.nakshatra, planets)
+    except ValueError:
+        print('ERROR: Incomplete or conflicting chart placements; no image generated.', file=sys.stderr)
+        return 1
 
     b64 = base64.b64encode(image_data).decode()
 
@@ -369,7 +400,7 @@ def main():
                 format="png"
             )
 
-            if storage_result and storage_result.get("success"):
+            if storage_result and storage_result.get("success") and not os.getenv("MONGO_LOGGER_API_TOKEN"):
                 file_id = storage_result.get("fileId")
                 mongo_logger_url = os.getenv("MONGO_LOGGER_URL", "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com")
                 stored_url = f"{mongo_logger_url}/kundli-image/{file_id}"
@@ -384,4 +415,4 @@ def main():
         print(f"IMAGE_BASE64: {b64}")
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

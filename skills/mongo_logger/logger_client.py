@@ -8,14 +8,15 @@ import argparse
 import json
 import os
 import time
+import urllib.request
+import urllib.error
+from service_auth import logger_headers, logger_url, logger_urlopen
 
 # Try requests first, fall back to urllib
 try:
     import requests
     HAS_REQUESTS = True
 except ImportError:
-    import urllib.request
-    import urllib.error
     HAS_REQUESTS = False
 
 # Full URL to the logger webhook (Coolify URL)
@@ -31,15 +32,18 @@ RETRY_DELAY = 1
 
 
 def call_api_requests(payload):
-    headers = {"Content-Type": "application/json"}
+    headers = logger_headers()
     for attempt in range(MAX_RETRIES):
         try:
             resp = requests.post(
-                MONGO_LOGGER_URL,
+                logger_url(MONGO_LOGGER_URL, '/webhook'),
                 json=payload,
                 headers=headers,
                 timeout=DEFAULT_TIMEOUT,
+                allow_redirects=False,
             )
+            if 300 <= resp.status_code < 400:
+                return {"error": "Logger redirect rejected", "status": resp.status_code}
             resp.raise_for_status()
             # logger returns {"status": "received"} – just print it
             return resp.json()
@@ -51,17 +55,17 @@ def call_api_requests(payload):
 
 
 def call_api_urllib(payload):
-    headers = {"Content-Type": "application/json"}
+    headers = logger_headers()
     data = json.dumps(payload).encode("utf-8")
     for attempt in range(MAX_RETRIES):
         try:
             req = urllib.request.Request(
-                MONGO_LOGGER_URL,
+                logger_url(MONGO_LOGGER_URL, '/webhook'),
                 data=data,
                 headers=headers,
                 method="POST",
             )
-            with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
+            with logger_urlopen(req, timeout=DEFAULT_TIMEOUT) as resp:
                 # Body is small JSON like {"status": "received"}
                 return json.load(resp)
         except Exception as e:

@@ -1,11 +1,22 @@
 """Vimshottari periods from sidereal Moon longitude, using a 365.25-day year."""
 
-from datetime import timedelta
+from bisect import bisect_right
+from datetime import datetime, timedelta
 import math
+from numbers import Real
 
 ORDER = ("Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury")
 YEARS = (7, 20, 6, 10, 7, 18, 16, 19, 17)
 YEAR_DAYS = 365.25
+NAKSHATRA_SPAN = 360 / 27
+NAKSHATRA_STARTS = tuple(i * NAKSHATRA_SPAN for i in range(27))
+
+
+def nakshatra_index(longitude):
+    """Half-open star intervals, including exact floating-point neighbors."""
+    if isinstance(longitude, bool) or not isinstance(longitude, Real) or not math.isfinite(longitude) or not 0 <= longitude < 360:
+        raise ValueError("Invalid sidereal Moon longitude")
+    return bisect_right(NAKSHATRA_STARTS, longitude) - 1
 
 
 def current_period(birth_utc, moon_longitude, as_of_utc):
@@ -13,14 +24,14 @@ def current_period(birth_utc, moon_longitude, as_of_utc):
 
     Inputs are naive UTC datetimes. Periods are half-open: [start, end).
     """
-    if not math.isfinite(moon_longitude) or not 0 <= moon_longitude < 360:
-        raise ValueError("Invalid sidereal Moon longitude")
+    star = nakshatra_index(moon_longitude)
+    if any(not isinstance(value, datetime) or value.tzinfo is not None
+           for value in (birth_utc, as_of_utc)):
+        raise ValueError("Dasha instants must be naive UTC datetimes")
     if as_of_utc < birth_utc:
         raise ValueError("Dasha date cannot precede birth")
-    segment = moon_longitude / (360 / 27)
-    star = math.floor(segment)
     index = star % 9
-    elapsed = segment - star
+    elapsed = (moon_longitude - NAKSHATRA_STARTS[star]) / NAKSHATRA_SPAN
     start = birth_utc - timedelta(days=elapsed * YEARS[index] * YEAR_DAYS)
     # Skip whole cycles before scanning at most nine major periods.
     cycle = timedelta(days=120 * YEAR_DAYS)
