@@ -80,7 +80,11 @@ export function validReadingResult(result, value) {
     ) &&
     evidence.topic === value.topic &&
     result.language === (value.language ?? "english") &&
-    result.intent === (value.intent ?? "overview")
+    result.intent === (value.intent ?? "overview") &&
+    (result.style === undefined || ["brief", "standard", "detailed"].includes(result.style)) &&
+    (result.follow_up === undefined || typeof result.follow_up === "boolean") &&
+    (result.style ?? "standard") === (value.style ?? "standard") &&
+    (result.follow_up ?? true) === (value.follow_up ?? true)
   );
 }
 
@@ -90,11 +94,14 @@ export function validateReadingInput(value) {
     typeof value !== "object" ||
     Array.isArray(value) ||
     Object.keys(value).some(
-      (key) => !["dob", "tob", "place", "topic", "language", "intent"].includes(key),
+      (key) =>
+        !["dob", "tob", "place", "topic", "language", "intent", "style", "follow_up"].includes(key),
     ) ||
     !["career", "education", "marriage"].includes(value.topic) ||
     !["english", "hinglish"].includes(value.language ?? "english") ||
     !["overview", "timing"].includes(value.intent ?? "overview") ||
+    (value.style !== undefined && !["brief", "standard", "detailed"].includes(value.style)) ||
+    (value.follow_up !== undefined && typeof value.follow_up !== "boolean") ||
     (value.intent === "timing" && value.topic !== "marriage")
   ) {
     throw new Error("Invalid request");
@@ -134,6 +141,9 @@ export function calculateReading(value, run = execFile) {
         value.language ?? "english",
         "--reading-intent",
         value.intent ?? "overview",
+        "--reading-style",
+        value.style ?? "standard",
+        ...(value.follow_up === false ? ["--no-reading-follow-up"] : []),
       ],
       { timeout: 30_000, maxBuffer: 128 * 1024, windowsHide: true },
       (error, stdout) => {

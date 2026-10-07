@@ -965,6 +965,8 @@ if __name__ == "__main__":
                         help='Render the topic reading from reviewed rules without an LLM')
     parser.add_argument('--reading-language', choices=['english', 'hinglish'], default='english')
     parser.add_argument('--reading-intent', choices=['overview', 'timing'], default='overview')
+    parser.add_argument('--reading-style', choices=['brief', 'standard', 'detailed'], default='standard')
+    parser.add_argument('--no-reading-follow-up', action='store_true')
     parser.add_argument('--node-convention', choices=['true', 'mean'], default='true',
                         help='Lunar node convention (existing default: true)')
     parser.add_argument('--latitude', type=float, help='Confirmed birthplace latitude')
@@ -991,7 +993,8 @@ if __name__ == "__main__":
             if args.render_reading:
                 from render_reading import render_reading
                 output = render_reading(output, args.reading_topic,
-                                        language=args.reading_language, intent=args.reading_intent)
+                                        language=args.reading_language, intent=args.reading_intent,
+                                        style=args.reading_style, follow_up=not args.no_reading_follow_up)
             else:
                 from reading import reading_packet
                 output = reading_packet(output, args.reading_topic)

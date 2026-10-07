@@ -68,6 +68,11 @@ For career, education or marriage interpretation, run calculate.py once with
 `--reading-topic career`, `--reading-topic education` or `--reading-topic marriage`.
 The result includes independently checked placements, up to three relevant
 interpretive themes and fresh current dasha boundaries in one compact packet.
+When rendering a reply, use `--reading-style detailed` only for requested chart
+reasons or depth, and `--reading-style brief` for requested brevity. Use
+`--no-reading-follow-up` when the user asks for no questions. A simple unsupported
+marriage-timing question receives a short limitation; calculated supporting facts
+remain in the evidence packet and appear in replies requesting an explanation.
 Use its `factors` to connect the answer to the question: explain the primary
 traditional theme, its supporting placement and one concrete everyday application.
 Keep the existing friend voice, latest-message language, optional remedy and

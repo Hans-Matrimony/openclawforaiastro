@@ -123,10 +123,44 @@ void test("input rejects unknown fields, control characters and unsupported topi
     { ...valid, model: "expensive" },
     { ...valid, language: "unsupported" },
     { ...valid, intent: "timing" },
+    { ...valid, style: "unbounded" },
+    { ...valid, style: null },
+    { ...valid, follow_up: "false" },
+    { ...valid, follow_up: null },
     { ...valid, place: "x".repeat(161) },
     { ...valid, tob: "08:19\n--full" },
   ]) {
     assert.throws(() => validateReadingInput(value));
+  }
+});
+void test("presentation preferences bind the subprocess and returned reply", async () => {
+  const value = { ...valid, style: "detailed", follow_up: false };
+  const result = {
+    schema: "reviewed-reading-v1",
+    text: "Specific supported reading.",
+    model_calls: 0,
+    model_tokens: 0,
+    language: "english",
+    intent: "overview",
+    style: "detailed",
+    follow_up: false,
+    evidence: evidence("career"),
+  };
+  assert.deepEqual(validateReadingInput(value), value);
+  const returned = await calculateReading(value, (_binary, args, _options, callback) => {
+    assert.equal(args[args.indexOf("--reading-style") + 1], "detailed");
+    assert.ok(args.includes("--no-reading-follow-up"));
+    callback(null, JSON.stringify(result));
+  });
+  assert.equal(returned.follow_up, false);
+  for (const change of [
+    { style: "standard" },
+    { style: null },
+    { follow_up: true },
+    { follow_up: null },
+    { follow_up: "false" },
+  ]) {
+    assert.equal(validReadingResult({ ...result, ...change }, value), false);
   }
 });
 void test("bad bodies and methods never execute the chart process", async () => {

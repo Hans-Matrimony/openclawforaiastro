@@ -4,7 +4,7 @@ Accept a chart, never caller-supplied prose or a prebuilt evidence packet.
 Every personalized sentence comes from the verified packet's reviewed rules.
 """
 from reading import reading_packet
-from reading_language import hinglish_theme
+from reading_language import hinglish_theme, conversational_theme, HINDI_PLANETS, HINDI_SIGNS
 
 
 QUESTIONS = {
@@ -14,53 +14,70 @@ QUESTIONS = {
 }
 
 
-def native_factor_text(factor, hi):
+def boundary_warning(packet, hi):
+    ruler = packet['advanced']['topic_ruler']
+    if (ruler['near_divisional_boundary'] or ruler['near_divisional_ascendant_boundary'] or
+            any(isinstance(w, str) and w.startswith('Moon is ') and 'boundary' in w for w in packet['calculation_warnings'])):
+        return ('Placement ki boundary paas hai; birth time approximate ho toh pehle confirm karein.' if hi else
+                'A placement is near a boundary; confirm an approximate birth time before relying on it.')
+    return ''
+
+
+def native_factor_text(factor, topic, hi):
     """A reviewed interpretation with the exact placement that supports it."""
     fact = factor['fact']
-    theme = hinglish_theme(factor) if hi else factor['traditional_theme']
-    role = (f", house {fact['rules_house']} ke lord," if hi else f", ruler of house {fact['rules_house']},") if 'rules_house' in fact else ''
-    basis = (f"{fact['planet']}{role} house {fact['house']} mein hain ({fact['sign']})." if hi else
+    theme = conversational_theme(factor, topic, hi)
+    role = (f", ghar {fact['rules_house']} ke swami," if hi else f", ruler of house {fact['rules_house']},") if 'rules_house' in fact else ''
+    basis = (f"{HINDI_PLANETS[fact['planet']]}{role} ghar {fact['house']} mein {HINDI_SIGNS[fact['sign']]} rashi mein hain." if hi else
              f"{fact['planet']}{role} is in house {fact['house']} ({fact['sign']}).")
     return theme + ' ' + basis
 
 
-def native_supporting_detail(packet, hi):
+def native_supporting_detail(packet, hi, detailed=True):
     """Explain checked divisional, aspect and strength facts without forecasting."""
     advanced = packet['advanced']
     ruler = advanced['topic_ruler']
-    detail = (f"D{ruler['division']} mein {ruler['planet']} {ruler['divisional_sign']} mein hain" if hi else
-              f"In D{ruler['division']}, {ruler['planet']} is in {ruler['divisional_sign']}")
-    if ruler['divisional_own_sign']:
+    planet = HINDI_PLANETS[ruler['planet']] if hi else ruler['planet']
+    sign = HINDI_SIGNS[ruler['divisional_sign']] if hi else ruler['divisional_sign']
+    division = 'Navamsa' if ruler['division'] == 9 else 'Dashamsa'
+    detail = ''
+    if detailed or ruler['divisional_own_sign'] or ruler['same_d1_divisional_sign']:
+        detail = (f"{division} (D{ruler['division']}) mein {planet} {sign} mein hain" if hi else
+                  f"In {division} (D{ruler['division']}), {planet} is in {sign}")
+    if detail and ruler['divisional_own_sign']:
         detail += (' (apni rashi)' if hi else ' (its own sign)')
-    if ruler['same_d1_divisional_sign']:
+    if detail and ruler['same_d1_divisional_sign']:
         detail += ('; yahi rashi main chart mein bhi hai' if hi else '; this sign also repeats from the main chart')
-    detail += '.'
+    if detail:
+        detail += '.'
     dignity = ruler['d1_dignity']
     if dignity['own_sign']:
-        detail += (' Main chart mein apni rashi mein hain.' if hi else ' It occupies its own sign in the main chart.')
+        detail += (f' {planet} main chart mein apni rashi mein hain.' if hi else f' {planet} occupies its own sign in the main chart.')
     elif dignity['exaltation_sign']:
-        detail += (' Main chart mein traditionally uccha rashi mein hain.' if hi else ' The main chart places it in its traditional exaltation sign.')
+        detail += (f' {planet} main chart mein traditionally uccha rashi mein hain.' if hi else f' The main chart places {planet} in its traditional exaltation sign.')
     elif dignity['debilitation_sign']:
-        detail += (' Main chart mein traditionally neecha rashi mein hain; yeh akela failure ka proof nahi hai.' if hi else
-                   ' The main chart places it in its traditional debilitation sign; that alone does not establish failure.')
+        detail += (f' {planet} main chart mein traditionally neecha rashi mein hain; yeh akela failure ka proof nahi hai.' if hi else
+                   f' The main chart places {planet} in its traditional debilitation sign; that alone does not establish failure.')
     aspects = advanced['full_sign_aspects_to_topic_house']
-    if aspects:
-        names = ', '.join(a['planet'] for a in aspects)
+    if detailed and aspects:
+        names = ', '.join(HINDI_PLANETS[a['planet']] if hi else a['planet'] for a in aspects)
         verb = 'casts' if len(aspects) == 1 else 'cast'
-        detail += (f" {names} ki full sign drishti house {ruler['rules_house']} par hai." if hi else
+        detail += (f" {names} ki poori drishti ghar {ruler['rules_house']} par hai." if hi else
                    f" {names} {verb} a full sign aspect on house {ruler['rules_house']}.")
     strength = packet['provider']['strength']
     if strength['meets_engine_strength_test']:
-        detail += (' Shadbala, planet ki strength ka traditional measure, supportive threshold ko meet karta hai.' if hi else
-                   ' Shadbala, a traditional measure of planetary strength, meets the supportive threshold.')
+        detail += (f' Shadbala ke traditional strength check mein {planet} supportive threshold ko meet karte hain.' if hi else
+                   f' {planet} meets the traditional Shadbala strength threshold.')
     else:
-        detail += (' Shadbala ka overall score supportive threshold se neeche hai; rashi placement aur poori strength alag checks hain, aur yeh failure ki prediction nahi hai.' if hi else
-                   ' Its overall Shadbala score is below the supportive threshold: sign placement and overall strength are separate checks, and this does not predict failure.')
-    if (ruler['near_divisional_boundary'] or ruler['near_divisional_ascendant_boundary'] or
-            any(isinstance(w, str) and w.startswith('Moon is ') and 'boundary' in w for w in packet['calculation_warnings'])):
-        detail += (' Placement ki boundary paas hai; birth time approximate ho toh pehle confirm karein.' if hi else
-                   ' A placement is near a boundary; confirm an approximate birth time before relying on it.')
-    return detail
+        detail += (f' {planet} ka overall Shadbala score supportive threshold se neeche hai; yeh aapki ability ya failure ka faisla nahi hai.' if hi else
+                   f' {planet}\'s overall Shadbala score is below the supportive threshold; it does not establish your ability or predict failure.')
+        if detailed and (ruler['divisional_own_sign'] or ruler['same_d1_divisional_sign'] or dignity['own_sign'] or dignity['exaltation_sign']):
+            detail += (' Rashi mein achhi placement aur poori planetary strength alag checks hain.' if hi else
+                       ' A favorable sign placement and overall planetary strength are separate checks.')
+    warning = boundary_warning(packet, hi)
+    if warning:
+        detail += ' ' + warning
+    return detail.strip()
 
 
 def native_practical(packet, hi):
@@ -99,47 +116,58 @@ def native_practical(packet, hi):
             'Compare the daily work and required skills in two roles you like, then try a small project. Which options are you considering?')
 
 
-def render_vedastro(packet, language, intent):
-    """Three focused bubbles: interpretation, supporting evidence, useful next step."""
+def render_vedastro(packet, language, intent, style='standard', follow_up=True):
+    """Respect requested depth while keeping every interpretation source-bound."""
     hi = language == 'hinglish'
     primary = packet['factors'][0]
-    first = native_factor_text(primary, hi)
+    topic = packet['topic']
+    first = native_factor_text(primary, topic, hi)
     # A second reviewed placement adds depth only when its chart basis differs.
     extra = next((factor for factor in packet['factors'][1:]
                   if (factor['fact']['planet'], factor['fact']['house']) !=
                   (primary['fact']['planet'], primary['fact']['house'])), None)
-    if extra:
-        first += ' ' + native_factor_text(extra, hi)
-    second = native_supporting_detail(packet, hi)
+    second = native_supporting_detail(packet, hi, detailed=style == 'detailed')
     final = native_practical(packet, hi)
+    if not follow_up or style == 'brief':
+        final = final.rsplit('. ', 1)[0] + '.'
     if intent == 'timing':
         lead = ('Shaadi ka exact saal ya mahina abhi bharose se batana mumkin nahi hai.' if hi else
                 'I cannot give a reliable year or month for your marriage yet.')
+        if style != 'detailed':
+            return lead + (' Koi tareekh kehna sirf andaza hoga.' if hi else ' Naming a date would be a guess.')
         major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
         sub = next(iter(major_data['antardashas']))
-        lead += (f" Abhi {major}-{sub} dasha chal rahi hai, lekin sirf dasha ke naam se shaadi ki window batana andaza hoga." if hi else
-                 f" Your current period is {major}-{sub}, but its names alone do not establish a wedding window.")
+        lead += (f" Abhi {HINDI_PLANETS[major]} mahadasha mein {HINDI_PLANETS[sub]} antardasha chal rahi hai, lekin sirf dasha ke naam se shaadi ki window batana andaza hoga." if hi else
+                 f" You are in the {major} major period with the {sub} subperiod; these periods alone do not establish a wedding window.")
         ruler = packet['advanced']['topic_ruler']['planet']
         if ruler in (major, sub):
-            lead += (f" {ruler} shaadi ke house 7 ke lord bhi hain, isliye relationship analysis mein relevant hain." if hi else
+            lead += (f" {HINDI_PLANETS[ruler]} shaadi ke ghar 7 ke swami bhi hain, isliye relationship analysis mein relevant hain." if hi else
                      f" {ruler} also rules marriage house 7, so it is relevant to a relationship analysis.")
-        second = first + ' ' + second
-        first = lead
-    else:
-        second += (' Yeh traditional interpretation hai, future result ki guarantee nahi.' if hi else
-                   ' This is a traditional interpretation, not a guaranteed outcome.')
+        return '\n\n'.join([lead, first, second, final])
+    if style == 'brief':
+        # A short answer retains the main reviewed theme and its basis. The
+        # complete evidence packet is still returned for independent checking.
+        return first + (' ' + boundary_warning(packet, hi) if boundary_warning(packet, hi) else '')
+    if extra:
+        supporting_factor = native_factor_text(extra, topic, hi)
+        if style == 'detailed':
+            return '\n\n'.join([first, supporting_factor, second, final])
+        second = supporting_factor + ' ' + second
     return '\n\n'.join([first, second, final])
 
 
-def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='overview'):
+def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='overview', style='standard', follow_up=True):
     if language not in ('english', 'hinglish') or intent not in ('overview', 'timing'):
         raise ValueError('Unsupported reading language or intent')
+    if style not in ('brief', 'standard', 'detailed') or type(follow_up) is not bool:
+        raise ValueError('Unsupported reading presentation')
     if intent == 'timing' and topic != 'marriage':
         raise ValueError('Unsupported timing question')
     packet = reading_packet(chart, topic, as_of_utc=as_of_utc)
     if packet.get('provider', {}).get('name') == 'vedastro-local':
-        return {'schema': 'reviewed-reading-v1', 'text': render_vedastro(packet, language, intent),
+        return {'schema': 'reviewed-reading-v1', 'text': render_vedastro(packet, language, intent, style, follow_up),
                 'evidence': packet, 'language': language, 'intent': intent,
+                'style': style, 'follow_up': follow_up,
                 'model_calls': 0, 'model_tokens': 0}
     hinglish = language == 'hinglish'
     if intent == 'timing':
@@ -149,7 +177,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         text = ('Shaadi ka saal ya mahina abhi bharose se batana mumkin nahi hai. Koi tareekh kehna sirf andaza hoga.'
                 if hinglish else
                 'I cannot give a reliable year or month for your marriage yet. Naming a date would be a guess.')
-        return {'schema': 'reviewed-reading-v1', 'text': text,
+        return {'schema': 'reviewed-reading-v1', 'text': text, 'style': style, 'follow_up': follow_up,
                 'evidence': packet, 'language': language, 'intent': intent,
                 'model_calls': 0, 'model_tokens': 0}
     paragraphs = []
@@ -213,12 +241,18 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         questions = {'career': 'Aap kaunse work options soch rahe hain?',
                      'education': 'Aap kya padh rahe hain, ya kaunse courses soch rahe hain?',
                      'marriage': 'Saath rehne aur communication ki expectations par baat karna chahenge?'}
-        paragraphs.append(questions[topic] if hinglish else QUESTIONS[topic])
+        if follow_up:
+            paragraphs.append(questions[topic] if hinglish else QUESTIONS[topic])
     # Keep a normal reading to three bubbles: answer, supporting evidence and
     # one practical next step. Preserve every fact and boundary warning.
     answer_count = min(2, len(packet['factors']))
     answer = ' '.join(paragraphs[:answer_count])
-    paragraphs = [answer, ' '.join(paragraphs[answer_count:-2]), ' '.join(paragraphs[-2:])]
+    ending_count = 2 if follow_up else 1
+    paragraphs = [answer, ' '.join(paragraphs[answer_count:-ending_count]), ' '.join(paragraphs[-ending_count:])]
+    if style == 'brief':
+        warning = boundary_warning(packet, hinglish)
+        paragraphs = [answer + (' ' + warning if warning else '')]
     return {'schema': 'reviewed-reading-v1', 'text': '\n\n'.join(paragraphs),
             'evidence': packet, 'language': language, 'intent': intent,
+            'style': style, 'follow_up': follow_up,
             'model_calls': 0, 'model_tokens': 0}

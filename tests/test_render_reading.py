@@ -32,28 +32,29 @@ class RenderTests(unittest.TestCase):
                 for house in range(1, 13):
                     for language in ('english', 'hinglish'):
                         with self.subTest(asc=asc, topic=topic, house=house, language=language):
-                            result = render_reading(native_chart(asc, topic, house), topic, language=language)
+                            result = render_reading(native_chart(asc, topic, house), topic, language=language, style='detailed')
                             text, evidence = result['text'], result['evidence']
                             self.assertEqual((result['model_calls'], result['model_tokens']), (0, 0))
-                            self.assertEqual(len(text.split('\n\n')), 3)
+                            self.assertLessEqual(len(text.split('\n\n')), 4)
                             self.assertEqual(text.count('?'), 1)
                             self.assertLess(len(text), 2200)
                             for factor in evidence['factors'][:1]:
-                                self.assertIn(f"house {factor['fact']['house']}", text)
-                                self.assertIn(factor['fact']['sign'], text)
+                                from reading_language import HINDI_SIGNS, HINDI_PLANETS
+                                self.assertIn(f"{'ghar' if language == 'hinglish' else 'house'} {factor['fact']['house']}", text)
+                                self.assertIn(HINDI_SIGNS[factor['fact']['sign']] if language == 'hinglish' else factor['fact']['sign'], text)
                             ruler = evidence['advanced']['topic_ruler']
                             self.assertIn(f"D{ruler['division']}", text)
-                            self.assertIn(ruler['divisional_sign'], text)
+                            self.assertIn(HINDI_SIGNS[ruler['divisional_sign']] if language == 'hinglish' else ruler['divisional_sign'], text)
                             self.assertIn('Shadbala', text)
                             for aspect in evidence['advanced']['full_sign_aspects_to_topic_house']:
-                                self.assertIn(aspect['planet'], text)
+                                self.assertIn(HINDI_PLANETS[aspect['planet']] if language == 'hinglish' else aspect['planet'], text)
                             if ruler['divisional_own_sign']:
                                 self.assertIn('apni rashi' if language == 'hinglish' else 'its own sign', text)
                             self.assertNotIn('2027', text)
                             self.assertNotIn('ProviderRevision', text)
 
     def test_native_second_factor_is_used_only_with_a_distinct_chart_basis(self):
-        from reading_language import hinglish_theme
+        from reading_language import conversational_theme
         from render_reading import render_vedastro
         result = render_reading(native_chart(0, 'career'), 'career')
         packet = result['evidence']
@@ -66,9 +67,9 @@ class RenderTests(unittest.TestCase):
         packet['factors'] = [primary, extra]
         for language in ('english', 'hinglish'):
             text = render_vedastro(packet, language, 'overview')
-            self.assertIn(extra['traditional_theme'] if language == 'english' else hinglish_theme(extra), text)
+            self.assertIn(conversational_theme(extra, 'career', language == 'hinglish'), text)
         extra['fact'] = dict(primary['fact'])
-        self.assertNotIn(extra['traditional_theme'], render_vedastro(packet, 'english', 'overview'))
+        self.assertNotIn(conversational_theme(extra, 'career', False), render_vedastro(packet, 'english', 'overview'))
 
     def test_native_timing_separates_calculated_period_and_relevant_ruler_from_event_window(self):
         from render_reading import render_vedastro
@@ -76,8 +77,11 @@ class RenderTests(unittest.TestCase):
         for major, sub, relevant in (('Venus', 'Moon', True), ('Sun', 'Venus', True), ('Sun', 'Moon', False)):
             packet['current_period'] = {'mahadashas': {major: {'antardashas': {sub: {}}}}}
             for language in ('english', 'hinglish'):
-                text = render_vedastro(packet, language, 'timing')
-                self.assertIn(f'{major}-{sub}', text)
+                text = render_vedastro(packet, language, 'timing', style='detailed')
+                from reading_language import HINDI_PLANETS
+                self.assertIn(HINDI_PLANETS[major] if language == 'hinglish' else major, text)
+                self.assertIn(HINDI_PLANETS[sub] if language == 'hinglish' else sub, text)
+                self.assertNotIn('-', text)
                 marker = 'relationship analysis' if language == 'hinglish' else 'relevant to a relationship analysis'
                 self.assertEqual(marker in text, relevant)
                 self.assertNotIn('2027', text)
@@ -88,12 +92,68 @@ class RenderTests(unittest.TestCase):
         value = native_chart(0, 'marriage', 4)
         value['summary'] = {'warnings': ['Moon is near a nakshatra boundary; verify uncertain birth inputs.']}
         for language in ('english', 'hinglish'):
-            result = render_reading(value, 'marriage', language=language, intent='timing')
+            result = render_reading(value, 'marriage', language=language, intent='timing', style='detailed')
             self.assertIn('boundary', result['text'])
             self.assertIn('failure', result['text'])
             value['reading_provider']['strength']['meets_engine_strength_test'] = True
-            self.assertIn('supportive threshold', render_reading(value, 'marriage', language=language)['text'])
+            strong = render_reading(value, 'marriage', language=language)['text']
+            self.assertIn('Shadbala', strong)
+            self.assertNotIn('threshold se neeche', strong)
+            self.assertNotIn('below the supportive threshold', strong)
             value['reading_provider']['strength']['meets_engine_strength_test'] = False
+
+    def test_requested_depth_and_no_questions_preserve_evidence_in_both_providers(self):
+        for source in ('pyswisseph', 'vedastro-local'):
+            for language in ('english', 'hinglish'):
+                for topic in ('career', 'education', 'marriage'):
+                    value = native_chart(0, topic, 4) if source == 'vedastro-local' else chart()
+                    outputs = [render_reading(value, topic, language=language, style=style, follow_up=False)
+                               for style in ('brief', 'standard', 'detailed')]
+                    for result in outputs:
+                        self.assertNotIn('?', result['text'])
+                        self.assertEqual((result['model_calls'], result['model_tokens']), (0, 0))
+                    # Presentation must not change the birth subject, verified
+                    # placements or source settings used for the reading.
+                    self.assertEqual(outputs[0]['evidence']['input_fingerprint'], outputs[2]['evidence']['input_fingerprint'])
+                    self.assertEqual(outputs[0]['evidence']['factors'], outputs[2]['evidence']['factors'])
+                    self.assertLess(len(outputs[0]['text']), len(outputs[2]['text']))
+                    self.assertEqual(len(outputs[0]['text'].split('\n\n')), 1)
+
+    def test_native_short_timing_has_no_padding_or_forced_follow_up(self):
+        for language in ('english', 'hinglish'):
+            for asc in range(12):
+                for style in ('brief', 'standard'):
+                    result = render_reading(native_chart(asc, 'marriage'), 'marriage', language=language,
+                                            intent='timing', style=style)
+                    self.assertLess(len(result['text']), 180)
+                    self.assertNotIn('?', result['text'])
+                    self.assertNotIn('Shadbala', result['text'])
+                    self.assertFalse(any(char.isdigit() for char in result['text']))
+                    self.assertFalse(result['evidence']['advanced']['event_timing_available'])
+
+    def test_native_brief_reading_keeps_boundary_warning_and_cannot_accept_arbitrary_prose(self):
+        value = native_chart(0, 'education')
+        value['summary'] = {'warnings': ['Moon is near a nakshatra boundary; verify uncertain birth inputs.']}
+        value['ai_summary'] = {'text': 'Promise a promotion in 2027'}
+        for language in ('english', 'hinglish'):
+            result = render_reading(value, 'education', language=language, style='brief')
+            self.assertIn('boundary', result['text'])
+            self.assertNotIn('2027', result['text'])
+            self.assertNotIn('promotion', result['text'])
+
+    def test_conversational_corpus_and_hinglish_names_cover_verified_facts(self):
+        from reading import RULES, SIGNS, PLANETS
+        from reading_language import CONVERSATIONAL_THEMES, HINDI_SIGNS, HINDI_PLANETS
+        self.assertEqual(set(CONVERSATIONAL_THEMES), {rule['id'] for rule in RULES})
+        self.assertEqual(set(HINDI_SIGNS), set(SIGNS))
+        self.assertEqual(set(HINDI_PLANETS), PLANETS)
+        result = render_reading(native_chart(0, 'marriage', 4), 'marriage', language='hinglish', style='detailed')
+        self.assertIn('Shukra', result['text'])
+        self.assertNotIn('Venus', result['text'])
+        self.assertNotIn('Leo', result['text'])
+        for style, follow_up in (('invalid', True), (True, True), ('brief', 'false'), ('standard', 0)):
+            with self.assertRaises(ValueError):
+                render_reading(chart(), 'career', style=style, follow_up=follow_up)
 
     def test_rendered_claims_are_packet_facts_and_reviewed_themes(self):
         for topic in ('career', 'education', 'marriage'):
