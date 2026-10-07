@@ -160,6 +160,21 @@ class TimingContextTests(unittest.TestCase):
                     self.assertNotIn('2027', text)
                     self.assertNotIn('will happen', text)
 
+    def test_detailed_answers_explain_facts_and_offer_a_distinct_next_step(self):
+        from render_reading import render_vedastro
+        packet = render_reading(self.fixture.call(), 'marriage')['evidence']
+        original = deepcopy(packet)
+        for language in ('english', 'hinglish'):
+            standard = render_vedastro(packet, language, 'timing', 'standard', False)
+            detailed = render_vedastro(packet, language, 'timing', 'detailed', False)
+            self.assertNotEqual(standard.split('\n\n')[-1], detailed.split('\n\n')[-1])
+            self.assertIn('birth chart', detailed)
+            self.assertIn('Shadbala', detailed)
+            self.assertNotIn('?', detailed)
+            self.assertNotIn('category', standard)
+            self.assertNotIn('category', detailed)
+            self.assertEqual(packet, original)
+
     def test_malformed_context_fails_closed_in_prefer_mode(self):
         self.fixture.env['VEDASTRO_READING_MODE'] = 'prefer'
         original = deepcopy(self.fixture.data['timingContext'])

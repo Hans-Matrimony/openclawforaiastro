@@ -99,8 +99,8 @@ def current_context_text(packet, hi, *, include_transits=False, include_period=T
                      ' Traditional family and relationship indicators are mixed in this period.')
             supportive = 'family' if ratings['family'] == 'Good' else 'relationship'
             challenging = 'relationship' if supportive == 'family' else 'family'
-            text += (f' {supportive.capitalize()} category supportive hai, lekin {challenging} category challenging hai.' if hi else
-                     f' The {supportive} category is supportive, while the {challenging} category is challenging.')
+            text += (f' Traditional reading mein {supportive} ke pehlu supportive hain, lekin {challenging} ke pehlu challenging hain; dono ko saath dekhna zaroori hai.' if hi else
+                     f' The traditional reading is supportive around {supportive}, but challenging around {challenging}; both findings matter.')
             if not limit_already_stated:
                 text += (' Shaadi ki timing ke liye ek saaf nateeja nahi milta.' if hi else
                          ' They do not give a clear marriage-timing conclusion.')
@@ -108,8 +108,8 @@ def current_context_text(packet, hi, *, include_transits=False, include_period=T
             for category in ('family', 'relationship'):
                 rating = ratings[category]
                 label = {'Good': 'supportive', 'Bad': 'challenging'}.get(rating, 'neutral')
-                text += (f' Is period ki traditional {category} category {label} hai.' if hi else
-                         f' The traditional {category} category for this period is {label}.')
+                text += (f' Traditional reading mein {category} ke pehlu is waqt {label} hain.' if hi else
+                         f' The traditional reading describes {category} themes as {label} during this period.')
             if not limit_already_stated:
                 text += (' Yeh shaadi hone ya na hone ka faisla nahi hai.' if hi else
                          ' These categories do not establish whether you will marry.')
@@ -118,11 +118,11 @@ def current_context_text(packet, hi, *, include_transits=False, include_period=T
             text += (' Is period ki traditional reading mein study theme supportive hai; exam result aapki preparation par bhi depend karta hai.' if hi else
                      ' Traditional period rules classify the study theme as supportive; exam results also depend on preparation.')
         elif ratings['study'] == 'Bad':
-            text += (' Is period ki traditional study category challenging hai; iska matlab exam mein fail hona ya padhai na kar paana nahi hai.' if hi else
-                     ' The traditional study category is challenging in this period; it does not mean you will fail an exam or cannot study.')
+            text += (' Is period ki traditional reading mein padhai ke sanket challenging hain; iska matlab exam mein fail hona ya padhai na kar paana nahi hai.' if hi else
+                     ' The traditional reading describes study themes as challenging in this period; it does not mean you will fail an exam or cannot study.')
         else:
-            text += (' Is period ki traditional category aapki learning ability ya exam result ka faisla nahi hai.' if hi else
-                     ' The traditional period category does not determine your learning ability or exam results.')
+            text += (' Is period ki traditional reading mein padhai ke sanket neutral hain; yeh aapki learning ability ya exam result ka faisla nahi hai.' if hi else
+                     ' The traditional reading describes study themes as neutral in this period; it does not determine your learning ability or exam results.')
     if include_transits:
         text += (' Current transit, janm ke Moon se: ' if hi else ' Current transits counted from your natal Moon: ')
         descriptions = []

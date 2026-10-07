@@ -50,6 +50,11 @@ def native_supporting_detail(packet, hi, detailed=True):
         detail += ('; yahi rashi main chart mein bhi hai' if hi else '; this sign also repeats from the main chart')
     if detail:
         detail += '.'
+        if detailed:
+            detail += (' Yeh birth chart ka ek aur division hai; sirf is rashi se partner ka swabhav ya koi result tay nahi hota.' if hi else
+                       ' This is another division of the birth chart; this sign alone does not establish a partner\'s character or an outcome.') if packet['topic'] == 'marriage' else (
+                       ' Yeh birth chart ka ek aur division hai; ise main chart ke saath samjha jaata hai, apne aap mein ability ka test nahi.' if hi else
+                       ' This is another division of the birth chart, read alongside the main chart rather than as a test of ability.')
     dignity = ruler['d1_dignity']
     if dignity['own_sign']:
         detail += (f' {planet} main chart mein apni rashi mein hain.' if hi else f' {planet} occupies its own sign in the main chart.')
@@ -70,8 +75,11 @@ def native_supporting_detail(packet, hi, detailed=True):
     if strength['meets_engine_strength_test']:
         detail += (f' VedAstro ke Shadbala assessment mein {planet} ko strong maana gaya hai.' if hi else
                    f' VedAstro\'s Shadbala assessment classifies {planet} as strong.')
+        if detailed:
+            detail += (' Shadbala grah ki calculated strength hai; strong hone ka matlab har pehlu favorable hona nahi hai.' if hi else
+                       ' Shadbala measures calculated planetary strength; being strong does not make every finding favorable.')
     else:
-        detail += (f' VedAstro ke Shadbala assessment mein {planet} strong category mein nahi hain; yeh aapki ability ya failure ka faisla nahi hai.' if hi else
+        detail += (f' VedAstro ke Shadbala assessment mein {planet} ko strong nahi maana gaya hai; yeh aapki ability ya failure ka faisla nahi hai.' if hi else
                    f' VedAstro\'s Shadbala assessment does not classify {planet} as strong; this does not measure your ability or predict failure.')
         if detailed and (ruler['divisional_own_sign'] or ruler['same_d1_divisional_sign'] or dignity['own_sign'] or dignity['exaltation_sign']):
             detail += (' Rashi mein achhi placement aur poori planetary strength alag checks hain.' if hi else
@@ -133,6 +141,26 @@ def _native_practical(packet, hi):
             'Compare the daily work and required skills in two roles you like, then try a small project. Which options are you considering?')
 
 
+def detailed_practical(packet, hi, follow_up):
+    """Turn the earlier advice into an optional exercise, not another forecast."""
+    topic = packet['topic']
+    steps = {
+        'marriage': ('Agla practical step: apni do zaroori expectations likhein aur har ek ke saamne likhein ki kis baat par flexibility hai. Rishta dekhte waqt inhe doosre vyakti ki expectations se compare karein.',
+                     'For a practical next step, write down two important expectations and where you can be flexible. When considering a match, compare these with the other person\'s expectations.'),
+        'education': ('Agla practical step: ek mushkil topic par bina notes dekhe practice questions karein. Galtiyon se agle study session ka focus chunein.',
+                      'For a practical next step, answer practice questions on one difficult topic without your notes. Use the mistakes to choose the focus of your next study session.'),
+        'career': ('Agla practical step: ek target role ki teen requirements likhein aur har ek ke saamne apne kaam ka example rakhein. Jahan example na mile, us skill par chhota project chunein.',
+                   'For a practical next step, list three requirements of a target role and an example of your work for each. Where an example is missing, choose a small project to practice that skill.'),
+    }
+    text = steps[topic][0 if hi else 1]
+    if follow_up:
+        questions = {'marriage': 'Kaunsi expectation aapke liye sabse zaroori hai?',
+                     'education': 'Kaunsa topic abhi mushkil lag raha hai?',
+                     'career': 'Aap kaunsa role soch rahe hain?'}
+        text += ' ' + (questions[topic] if hi else QUESTIONS[topic])
+    return text
+
+
 def render_vedastro(packet, language, intent, style='standard', follow_up=True):
     """Respect requested depth while keeping every interpretation source-bound."""
     hi = language == 'hinglish'
@@ -153,6 +181,8 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
     final = native_practical(packet, hi)
     if not follow_up or style == 'brief':
         final = final.rsplit('. ', 1)[0] + '.'
+    if style == 'detailed':
+        final = detailed_practical(packet, hi, follow_up)
     if intent == 'timing':
         if topic == 'career':
             return render_career_timing(packet, hi, style, follow_up)
