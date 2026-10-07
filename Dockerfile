@@ -59,6 +59,8 @@ RUN chmod -R 700 /app/.openclaw
 COPY openclaw.json /app/openclaw.json
 COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
+COPY config/mcporter.json /app/bootstrap-mcporter.json
+COPY scripts/configure-mcp-runtime.mjs /app/configure-mcp-runtime.mjs
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
