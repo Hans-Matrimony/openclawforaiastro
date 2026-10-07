@@ -83,6 +83,21 @@ def native_supporting_detail(packet, hi, detailed=True):
 
 
 def native_practical(packet, hi):
+    """Offer a practical response to adverse categories, without promising a cure."""
+    base = _native_practical(packet, hi)
+    ratings = packet.get('timing_context', {}).get('period_ratings', {})
+    if packet['topic'] == 'marriage' and any(ratings.get(key) == 'Bad' for key in ('family', 'relationship')):
+        action = ('Practical upay: agar family ya relationship mein tension ho, ek waqt par ek mudde par shaanti se baat karein aur dono ki boundaries clear karein.' if hi else
+                  'A practical step, if there is tension, is to discuss one issue at a time calmly and make both people\'s boundaries clear.')
+        return action + ' ' + base
+    if packet['topic'] == 'education' and ratings.get('study') == 'Bad':
+        action = ('Practical upay: agar padhai mein rukawat aa rahi ho, chhote study sessions aur weekly practice test se mushkil topics pehchanein; zaroorat par teacher se help lein.' if hi else
+                  'If studying feels difficult, use short study sessions and a weekly practice test to identify difficult topics, and ask a teacher for help when needed.')
+        return action + ' ' + base
+    return base
+
+
+def _native_practical(packet, hi):
     """Translate a house theme into a concrete optional step, never an aptitude."""
     topic = packet['topic']
     house = packet['factors'][0]['fact']['house']
@@ -131,7 +146,8 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
     second = native_supporting_detail(packet, hi, detailed=style == 'detailed')
     from timing_context import current_context_text
     current_context = current_context_text(packet, hi, include_transits=style == 'detailed',
-                                          include_period=intent != 'timing' or style != 'detailed')
+                                          include_period=intent != 'timing' or style != 'detailed',
+                                          limit_already_stated=intent == 'timing')
     if current_context and style != 'brief' and intent != 'timing':
         second += ' ' + current_context
     final = native_practical(packet, hi)
@@ -157,8 +173,8 @@ def render_vedastro(packet, language, intent, style='standard', follow_up=True):
             second += ' ' + current_context
         major, major_data = next(iter(packet['current_period']['mahadashas'].items()))
         sub = next(iter(major_data['antardashas']))
-        lead += (f" Abhi {HINDI_PLANETS[major]} mahadasha mein {HINDI_PLANETS[sub]} antardasha chal rahi hai, lekin sirf dasha ke naam se shaadi ki window batana andaza hoga." if hi else
-                 f" You are in the {major} major period with the {sub} subperiod; these periods alone do not establish a wedding window.")
+        lead += (f" Abhi {HINDI_PLANETS[major]} mahadasha mein {HINDI_PLANETS[sub]} antardasha chal rahi hai." if hi else
+                 f" You are in the {major} major period with the {sub} subperiod.")
         ruler = packet['advanced']['topic_ruler']['planet']
         if not current_context and ruler in (major, sub):
             lead += (f" {HINDI_PLANETS[ruler]} shaadi ke ghar 7 ke swami bhi hain, isliye relationship analysis mein relevant hain." if hi else
@@ -182,7 +198,7 @@ def render_career_timing(packet, hi, style, follow_up):
     lead = ('Job milne ka exact samay is reading se tay nahi hota.' if hi else
             'This reading does not establish when you will receive a job offer.')
     context = current_context_text(packet, hi, include_transits=style == 'detailed',
-                                   include_ratings=style != 'brief')
+                                   include_ratings=style != 'brief', limit_already_stated=True)
     if style == 'brief':
         warning = boundary_warning(packet, hi)
         return ' '.join(part for part in (lead, context, warning) if part)

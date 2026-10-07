@@ -181,6 +181,60 @@ class TimingContextTests(unittest.TestCase):
             self.assertIn('birth time', text)
             self.assertNotIn('?', text)
 
+    def test_timing_has_one_date_limit_without_losing_evidence_or_uncertainty(self):
+        from render_reading import render_vedastro
+        from test_render_reading import native_chart
+        context = render_reading(self.fixture.call(), 'marriage')['evidence']['timing_context']
+        for topic in ('marriage', 'career'):
+            packet = render_reading(native_chart(0, topic), topic)['evidence']
+            packet['timing_context'] = deepcopy(context)
+            packet['advanced']['topic_ruler']['near_divisional_boundary'] = True
+            original = deepcopy(packet)
+            for language in ('english', 'hinglish'):
+                for style in ('standard', 'detailed'):
+                    with self.subTest(topic=topic, language=language, style=style):
+                        text = render_vedastro(packet, language, 'timing', style, False)
+                        limit = ('Shaadi ka exact saal' if language == 'hinglish' else
+                                 'I cannot give a reliable year') if topic == 'marriage' else (
+                                 'Job milne ka exact samay' if language == 'hinglish' else
+                                 'This reading does not establish when')
+                        self.assertEqual(text.count(limit), 1)
+                        for duplicate in ('guarantee', 'wedding window', 'andaza hoga',
+                                          'shaadi ki timing ke liye', 'In positions se'):
+                            self.assertNotIn(duplicate, text)
+                        self.assertIn('Shadbala', text)
+                        self.assertIn('boundary', text)
+                        self.assertIn('birth time', text)
+                        self.assertNotIn('?', text)
+                        if style == 'detailed':
+                            self.assertIn('Moon', text)
+                        self.assertEqual(packet, original)
+
+    def test_adverse_categories_are_named_and_practical_steps_are_conditional(self):
+        from timing_context import current_context_text
+        from render_reading import native_practical
+        packet = render_reading(self.fixture.call(), 'marriage')['evidence']
+        for ratings in RATINGS['rules'].values():
+            for topic in ('marriage', 'education'):
+                packet['topic'] = topic
+                packet['timing_context']['period_ratings'] = deepcopy(ratings)
+                original = deepcopy(packet)
+                adverse = (any(ratings[k] == 'Bad' for k in ('family', 'relationship'))
+                           if topic == 'marriage' else ratings['study'] == 'Bad')
+                for hi in (False, True):
+                    with self.subTest(ratings=ratings, topic=topic, hi=hi):
+                        text = current_context_text(packet, hi)
+                        practical = native_practical(packet, hi)
+                        self.assertEqual('challenging' in text, adverse)
+                        self.assertEqual(('Practical upay:' if hi else
+                                          ('A practical step, if' if topic == 'marriage' else
+                                           'If studying feels difficult')) in practical, adverse)
+                        for claim in ('impossible', 'never marry', 'will fail', 'guaranteed cure',
+                                      'gemstone', 'divorce is certain'):
+                            # The education limitation may explicitly reject failure.
+                            self.assertNotIn(claim, practical)
+                        self.assertEqual(packet, original)
+
 
 if __name__ == '__main__':
     unittest.main()
