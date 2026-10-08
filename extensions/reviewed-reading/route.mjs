@@ -115,7 +115,7 @@ export function validReadingProvider(evidence) {
   );
 }
 
-export function validReadingResult(result, value) {
+function validLegacyResult(result, value) {
   const evidence = result?.evidence;
   return (
     result?.schema === "reviewed-reading-v1" &&
@@ -155,7 +155,248 @@ export function validReadingResult(result, value) {
   );
 }
 
-export function validateReadingInput(value) {
+export function validPredictionAssessment(assessment, topic) {
+  const statuses = ["supportive", "adverse", "mixed", "limited", "conditional", "unsupported"];
+  return (
+    assessment?.schema === "prediction-assessment-v1" &&
+    assessment.topic === topic &&
+    ["supportive", "adverse", "mixed", "limited", "conditional"].includes(
+      assessment.conclusion?.status,
+    ) &&
+    ["supportive", "adverse", "mixed", "limited"].includes(assessment.natal?.status) &&
+    Array.isArray(assessment.natal.reasons) &&
+    assessment.natal.reasons.length <= 3 &&
+    assessment.natal.reasons.every(
+      (reason) =>
+        reason &&
+        typeof reason.id === "string" &&
+        ["supportive", "adverse"].includes(reason.status) &&
+        reason.fact &&
+        typeof reason.fact === "object",
+    ) &&
+    statuses.includes(assessment.current_period?.status) &&
+    ["conditional", "unsupported", "uncertain_birth"].includes(assessment.event?.status) &&
+    Array.isArray(assessment.event.windows) &&
+    assessment.event.windows.length <= 2 &&
+    (assessment.event.status === "conditional") === assessment.event.windows.length > 0 &&
+    assessment.event.windows.every(
+      (window) =>
+        window &&
+        window.kind === "traditional_candidate" &&
+        ["VenusMarsPD2", "VenusJupiterPD2"].includes(window.rule_id) &&
+        [1, 2].includes(window.priority) &&
+        /^\d{4}-\d{2}-\d{2}T.*Z$/u.test(window.start) &&
+        /^\d{4}-\d{2}-\d{2}T.*Z$/u.test(window.end) &&
+        Number.isFinite(Date.parse(window.start)) &&
+        Number.isFinite(Date.parse(window.end)) &&
+        Date.parse(window.start) < Date.parse(window.end),
+    ) &&
+    (topic === "marriage" || assessment.event.windows.length === 0)
+  );
+}
+
+export function validOutcomeEvidence(evidence, topic) {
+  if (!validPredictionAssessment(evidence?.prediction_assessment, topic)) {
+    return false;
+  }
+  const assessment = evidence.prediction_assessment;
+  const scopes = {
+    marriage: "relationship_quality",
+    career: "career_indications",
+    education: "learning_conditions",
+    finance: "financial_indications",
+  };
+  const rules = {
+    SaturnIn7thNotLagnaLord: ["adverse", "Saturn", 7, undefined],
+    JupiterInHouse7: ["supportive", "Jupiter", 7, undefined],
+    House7LordInHouse4: ["supportive", null, 4, 7],
+    House10LordInHouse8: ["adverse", null, 8, 10],
+    House10LordInHouse12: ["adverse", null, 12, 10],
+    House10LordInHouse11: ["supportive", null, 11, 10],
+  };
+  const planets = new Set(["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]);
+  const natalSource =
+    "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml";
+  const periodSource =
+    "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml";
+  const instant = (value) => {
+    if (typeof value !== "string") {
+      throw new Error("Invalid timestamp");
+    }
+    const match =
+      /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.(\d{1,6}))?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/u.exec(
+        value,
+      );
+    const parsed = Date.parse(value);
+    if (
+      !match ||
+      !Number.isFinite(parsed) ||
+      value.startsWith("0000") ||
+      new Date(Date.parse(match[1] + "T00:00:00Z")).toISOString().slice(0, 10) !== match[1]
+    ) {
+      throw new Error("Invalid timestamp");
+    }
+    return BigInt(parsed) * 1000n + BigInt((match[2] ?? "").padEnd(6, "0").slice(3));
+  };
+  try {
+    if (
+      !Object.hasOwn(scopes, topic) ||
+      assessment.conclusion.scope !== scopes[topic] ||
+      assessment.natal.scope !==
+        (topic === "marriage" ? "relationship_quality" : "topic_indications") ||
+      assessment.event.scope !==
+        (topic === "marriage" ? "selected_marriage_period_rules" : "event_timing_not_reviewed")
+    ) {
+      return false;
+    }
+    const asc = SIGNS.indexOf(evidence.chart_facts?.lagna);
+    if (asc < 0) {
+      return false;
+    }
+    for (const reason of assessment.natal.reasons) {
+      if (!Object.hasOwn(rules, reason.id)) {
+        return false;
+      }
+      const [status, planet, house, ruler] = rules[reason.id],
+        fact = reason.fact;
+      if (
+        !fact ||
+        Array.isArray(fact) ||
+        reason.source !== natalSource ||
+        reason.status !== status ||
+        !planets.has(fact.planet) ||
+        (planet && fact.planet !== planet) ||
+        !Number.isInteger(fact.house) ||
+        fact.house !== house ||
+        fact.rules_house !== ruler ||
+        !SIGNS.includes(fact.sign) ||
+        ((SIGNS.indexOf(fact.sign) - asc + 12) % 12) + 1 !== house
+      ) {
+        return false;
+      }
+    }
+    const period = assessment.current_period,
+      majors = Object.entries(evidence.current_period.mahadashas);
+    if (majors.length !== 1) {
+      return false;
+    }
+    const [major, data] = majors[0],
+      minors = Object.entries(data.antardashas);
+    if (minors.length !== 1) {
+      return false;
+    }
+    const [minor, dates] = minors[0],
+      when = instant(evidence.as_of_utc),
+      start = instant(period.start),
+      end = instant(period.end);
+    if (
+      major !== period.mahadasha ||
+      minor !== period.antardasha ||
+      instant(dates.start) !== start ||
+      instant(dates.end) !== end ||
+      when < start ||
+      when >= end
+    ) {
+      return false;
+    }
+    if (period.status === "unsupported") {
+      if (period.rule_id !== null || period.source !== null) {
+        return false;
+      }
+    } else if (
+      major !== "Venus" ||
+      period.rule_id !== major + minor + "PD2" ||
+      period.source !== periodSource
+    ) {
+      return false;
+    }
+    const horizon = instant(assessment.event.search_end),
+      seen = new Set();
+    if (horizon <= when) {
+      return false;
+    }
+    for (const window of assessment.event.windows) {
+      const first = instant(window.start),
+        last = instant(window.end);
+      if (
+        seen.has(window.rule_id) ||
+        window.source !== periodSource ||
+        window.mahadasha !== "Venus" ||
+        !["Mars", "Jupiter"].includes(window.antardasha) ||
+        window.rule_id !== "Venus" + window.antardasha + "PD2" ||
+        first < when ||
+        first >= horizon ||
+        instant(window.period_start) > first ||
+        first >= last ||
+        (window.priority === 2 &&
+          (window.antardasha !== "Jupiter" ||
+            !assessment.natal.reasons.some((reason) => reason.id === "JupiterInHouse7")))
+      ) {
+        return false;
+      }
+      seen.add(window.rule_id);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function validOutcomeResult(result, value) {
+  const evidence = result?.evidence;
+  const current =
+    result?.schema === "reviewed-reading-v2" &&
+    evidence?.schema === "topic-reading-v2" &&
+    evidence.rules_revision === "reviewed-outcomes-v2" &&
+    typeof evidence.period_interpretation_available === "boolean" &&
+    validOutcomeEvidence(evidence, value.topic) &&
+    evidence.period_interpretation_available ===
+      (evidence.prediction_assessment.current_period.status !== "unsupported");
+  return (
+    current &&
+    validReadingProvider(evidence) &&
+    (evidence.timing_context === undefined ||
+      validReadingTimingContext({ ...evidence, period_interpretation_available: true })) &&
+    evidence.settings?.ayanamsa === "LAHIRI" &&
+    evidence.settings?.house_system === "whole_sign" &&
+    evidence.settings?.node === "true" &&
+    evidence.settings?.dasha_year_days === 365.25 &&
+    (result.style ?? "standard") === (value.style ?? "standard") &&
+    (result.follow_up ?? true) === (value.follow_up ?? true) &&
+    typeof result.text === "string" &&
+    result.text.trim().length > 0 &&
+    result.text.length <= 16000 &&
+    result.model_calls === 0 &&
+    result.model_tokens === 0 &&
+    typeof evidence.input_fingerprint === "string" &&
+    /^[a-f0-9]{64}$/u.test(evidence.input_fingerprint) &&
+    Array.isArray(evidence.factors) &&
+    evidence.factors.length >= 1 &&
+    evidence.factors.length <= 3 &&
+    evidence.factors.every(
+      (factor) =>
+        factor &&
+        typeof factor.fact === "object" &&
+        factor.fact !== null &&
+        !Array.isArray(factor.fact) &&
+        ["vedastro_classical", "local_house_symbolism"].includes(factor.source),
+    ) &&
+    evidence.topic === value.topic &&
+    result.language === (value.language ?? "english") &&
+    result.intent === (value.intent ?? "overview")
+  );
+}
+
+export function validReadingResult(result, value) {
+  return result?.schema === "reviewed-reading-v2"
+    ? validOutcomeResult(result, value)
+    : validLegacyResult(result, value);
+}
+
+export function validateReadingInput(value, contractVersion = 1) {
+  if (![1, 2].includes(contractVersion)) {
+    throw new Error("Unsupported reading contract");
+  }
   if (
     !value ||
     typeof value !== "object" ||
@@ -164,12 +405,15 @@ export function validateReadingInput(value) {
       (key) =>
         !["dob", "tob", "place", "topic", "language", "intent", "style", "follow_up"].includes(key),
     ) ||
-    !["career", "education", "marriage"].includes(value.topic) ||
+    !["career", "education", "marriage", "finance"].includes(value.topic) ||
+    (contractVersion === 1 && value.topic === "finance") ||
     !["english", "hinglish"].includes(value.language ?? "english") ||
     !["overview", "timing"].includes(value.intent ?? "overview") ||
     (value.style !== undefined && !["brief", "standard", "detailed"].includes(value.style)) ||
     (value.follow_up !== undefined && typeof value.follow_up !== "boolean") ||
-    (value.intent === "timing" && !["marriage", "career"].includes(value.topic))
+    (value.intent === "timing" &&
+      contractVersion === 1 &&
+      !["marriage", "career"].includes(value.topic))
   ) {
     throw new Error("Invalid request");
   }
@@ -188,8 +432,11 @@ export function validateReadingInput(value) {
   return value;
 }
 
-export function calculateReading(value, run = execFile) {
+export function calculateReading(value, run = execFile, contractVersion = 1) {
   return new Promise((resolve, reject) => {
+    if (![1, 2].includes(contractVersion)) {
+      return reject(new Error("Unsupported reading contract"));
+    }
     // No shell, arbitrary script path, model call, retries or unbounded output.
     run(
       "python3",
@@ -204,6 +451,8 @@ export function calculateReading(value, run = execFile) {
         "--reading-topic",
         value.topic,
         "--render-reading",
+        "--reading-contract",
+        String(contractVersion),
         "--reading-language",
         value.language ?? "english",
         "--reading-intent",
@@ -219,7 +468,10 @@ export function calculateReading(value, run = execFile) {
         }
         try {
           const result = JSON.parse(stdout);
-          if (!validReadingResult(result, value)) {
+          if (
+            !validReadingResult(result, value) ||
+            result.schema !== `reviewed-reading-v${contractVersion}`
+          ) {
             throw new Error("Invalid calculated reading");
           }
           resolve(result);
@@ -272,14 +524,19 @@ export function createReadingHandler(
       }
       clearTimeout(timer);
       let value;
+      const header = req.headers?.["x-astro-reading-contract"];
+      const contractVersion = header === "2" ? 2 : 1;
       try {
-        value = validate(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+        if (header !== undefined && !["1", "2"].includes(header)) {
+          throw new Error("Unsupported reading contract");
+        }
+        value = validate(JSON.parse(Buffer.concat(chunks).toString("utf8")), contractVersion);
       } catch {
         send(400, { error: "invalid_reading_request" });
         return;
       }
       try {
-        send(200, await calculate(value));
+        send(200, await calculate(value, undefined, contractVersion));
       } catch {
         // Never expose child output, birth details or filesystem information.
         send(422, { error: "birth_details_unresolved" });

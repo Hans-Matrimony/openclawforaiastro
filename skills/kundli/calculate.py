@@ -959,12 +959,14 @@ if __name__ == "__main__":
     parser.add_argument('--full', action='store_true', help='Return full raw data (warning: 7000+ lines)')
     parser.add_argument('--legacy-full', action='store_true',
                         help='Return the complete original jyotishganit raw schema from one engine')
-    parser.add_argument('--reading-topic', choices=['career', 'education', 'marriage'],
+    parser.add_argument('--reading-topic', choices=['career', 'education', 'marriage', 'finance'],
                         help='Return a compact verified topic reading, not raw chart data')
     parser.add_argument('--render-reading', action='store_true',
                         help='Render the topic reading from reviewed rules without an LLM')
     parser.add_argument('--reading-language', choices=['english', 'hinglish'], default='english')
     parser.add_argument('--reading-intent', choices=['overview', 'timing'], default='overview')
+    parser.add_argument('--reading-contract', type=int, choices=[1, 2], default=None,
+                        help='Renderer response version; HTTP clients negotiate explicitly')
     parser.add_argument('--reading-style', choices=['brief', 'standard', 'detailed'], default='standard')
     parser.add_argument('--no-reading-follow-up', action='store_true')
     parser.add_argument('--node-convention', choices=['true', 'mean'], default='true',
@@ -989,15 +991,21 @@ if __name__ == "__main__":
         # If not full mode, trim the output to essentials to prevent LLM confusion
         if args.reading_topic:
             from reading_provider import use_reading_provider
-            output = use_reading_provider(output, args.reading_topic)
+            if args.reading_topic != 'finance':
+                output = use_reading_provider(output, args.reading_topic)
+            elif os.getenv('VEDASTRO_READING_MODE', 'off') == 'required':
+                raise ValueError('Native finance reading is not supported')
+            else:
+                output['reading_provider_fallback'] = {'code': 'unsupported_topic', 'topic': 'finance'}
             if args.render_reading:
                 from render_reading import render_reading
                 output = render_reading(output, args.reading_topic,
                                         language=args.reading_language, intent=args.reading_intent,
-                                        style=args.reading_style, follow_up=not args.no_reading_follow_up)
+                                        style=args.reading_style, follow_up=not args.no_reading_follow_up,
+                                        contract_version=args.reading_contract or 1)
             else:
                 from reading import reading_packet
-                output = reading_packet(output, args.reading_topic)
+                output = reading_packet(output, args.reading_topic, contract_version=args.reading_contract or 2)
         elif not args.full and not args.legacy_full:
             trimmed = {
                 "summary": output.get("summary"),

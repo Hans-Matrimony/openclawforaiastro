@@ -57,7 +57,7 @@ class ReadingTests(unittest.TestCase):
                 for house in range(1, 13):
                     c = chart(asc, owner, house)
                     for topic in rule['topics']:
-                        packet = reading.reading_packet(c, topic)
+                        packet = reading.reading_packet(c, topic, contract_version=2 if topic == 'finance' else 1)
                         # Other valid rules may fill the bounded packet first;
                         # whenever a reviewed rule is emitted its condition must hold.
                         for factor in packet['factors']:

@@ -64,7 +64,7 @@ def dignity(planet, value):
 
 def advanced_facts(chart, asc, positions, topic):
     """Called only after reading.verified_positions validates the whole D1 chart."""
-    target = {'career': 10, 'education': 5, 'marriage': 7}[topic]
+    target = {'career': 10, 'education': 5, 'marriage': 7, 'finance': 2}[topic]
     owner = LORDS[(asc + target - 1) % 12]
     degrees = {p['name']: longitude(p['sidereal_degree']) for p in chart['planet_positions']}
     owner_sign = SIGNS.index(positions[owner]['sign'])

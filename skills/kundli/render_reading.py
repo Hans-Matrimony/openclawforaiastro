@@ -294,7 +294,16 @@ def render_career_timing(packet, hi, style, follow_up):
     return '\n\n'.join([' '.join(part for part in (lead, context) if part), basis + ' ' + details, practical])
 
 
-def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='overview', style='standard', follow_up=True):
+def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='overview', style='standard', follow_up=True, contract_version=1):
+    if type(contract_version) is not int or contract_version not in (1, 2):
+        raise ValueError('Unsupported reading contract')
+    if contract_version == 2:
+        if style not in ('brief', 'standard', 'detailed') or type(follow_up) is not bool:
+            raise ValueError('Unsupported reading presentation')
+        from render_outcome_reading import render_reading as render_outcome
+        result = render_outcome(chart, topic, as_of_utc=as_of_utc, language=language, intent=intent, style=style, follow_up=follow_up)
+        result.update(style=style, follow_up=follow_up)
+        return result
     if language not in ('english', 'hinglish') or intent not in ('overview', 'timing'):
         raise ValueError('Unsupported reading language or intent')
     if style not in ('brief', 'standard', 'detailed') or type(follow_up) is not bool:

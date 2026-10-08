@@ -1,0 +1,2267 @@
+[
+  {
+    "request": {
+      "topic": "marriage",
+      "intent": "timing",
+      "language": "english",
+      "style": "brief",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "In this comparison of dasha periods, the more supportive marriage window is November 2031 to July 2034. It comes from the Venus Jupiter period and is conditional, not a fixed wedding date.\n\nAnother indicated period is September 2027 to November 2028; it has less support in this comparison.\n\nThe indications are mixed. There is an adverse traditional indication for relationship harmony. There is a supportive traditional relationship indication.",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "marriage",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "House7LordInHouse4",
+            "fact": {
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 4,
+              "rules_house": 7
+            },
+            "traditional_theme": "Home and shared domestic comfort: discuss expectations about living together against real circumstances.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Venus",
+            "rules_house": 7,
+            "d1_sign": "Aquarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 42.75812806117735,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Scorpio",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Mars",
+              "from_house": 12,
+              "to_house": 7,
+              "count_from_planet": 8
+            }
+          ],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "marriage",
+          "conclusion": {
+            "status": "mixed",
+            "scope": "relationship_quality"
+          },
+          "natal": {
+            "status": "mixed",
+            "scope": "relationship_quality",
+            "reasons": [
+              {
+                "id": "SaturnIn7thNotLagnaLord",
+                "status": "adverse",
+                "fact": {
+                  "planet": "Saturn",
+                  "sign": "Taurus",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              },
+              {
+                "id": "JupiterInHouse7",
+                "status": "supportive",
+                "fact": {
+                  "planet": "Jupiter",
+                  "sign": "Taurus",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              },
+              {
+                "id": "House7LordInHouse4",
+                "status": "supportive",
+                "fact": {
+                  "planet": "Venus",
+                  "sign": "Aquarius",
+                  "house": 4,
+                  "rules_house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              }
+            ]
+          },
+          "current_period": {
+            "status": "mixed",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "conditional",
+            "windows": [
+              {
+                "rule_id": "VenusJupiterPD2",
+                "start": "2031-11-17T18:36:04.327695Z",
+                "period_start": "2031-11-17T18:36:04.327695Z",
+                "end": "2034-07-18T18:36:04.327695Z",
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+                "kind": "traditional_candidate",
+                "priority": 2,
+                "mahadasha": "Venus",
+                "antardasha": "Jupiter"
+              },
+              {
+                "rule_id": "VenusMarsPD2",
+                "start": "2027-09-17T21:36:04.327695Z",
+                "period_start": "2027-09-17T21:36:04.327695Z",
+                "end": "2028-11-17T00:36:04.327695Z",
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+                "kind": "traditional_candidate",
+                "priority": 1,
+                "mahadasha": "Venus",
+                "antardasha": "Mars"
+              }
+            ],
+            "scope": "selected_marriage_period_rules",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": "Jupiter period with natal Jupiter in seventh precedes other reviewed candidates"
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "timing",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "brief",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "marriage",
+      "intent": "timing",
+      "language": "english",
+      "style": "standard",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "In this comparison of dasha periods, the more supportive marriage window is November 2031 to July 2034. It comes from the Venus Jupiter period and is conditional, not a fixed wedding date.\n\nAnother indicated period is September 2027 to November 2028; it has less support in this comparison.\n\nThe indications are mixed. There is an adverse traditional indication for relationship harmony. This comes from Saturn in house 7 (Taurus). There is a supportive traditional relationship indication. This comes from Jupiter in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "marriage",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "House7LordInHouse4",
+            "fact": {
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 4,
+              "rules_house": 7
+            },
+            "traditional_theme": "Home and shared domestic comfort: discuss expectations about living together against real circumstances.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Venus",
+            "rules_house": 7,
+            "d1_sign": "Aquarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 42.75812806117735,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Scorpio",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Mars",
+              "from_house": 12,
+              "to_house": 7,
+              "count_from_planet": 8
+            }
+          ],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "marriage",
+          "conclusion": {
+            "status": "mixed",
+            "scope": "relationship_quality"
+          },
+          "natal": {
+            "status": "mixed",
+            "scope": "relationship_quality",
+            "reasons": [
+              {
+                "id": "SaturnIn7thNotLagnaLord",
+                "status": "adverse",
+                "fact": {
+                  "planet": "Saturn",
+                  "sign": "Taurus",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              },
+              {
+                "id": "JupiterInHouse7",
+                "status": "supportive",
+                "fact": {
+                  "planet": "Jupiter",
+                  "sign": "Taurus",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              },
+              {
+                "id": "House7LordInHouse4",
+                "status": "supportive",
+                "fact": {
+                  "planet": "Venus",
+                  "sign": "Aquarius",
+                  "house": 4,
+                  "rules_house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              }
+            ]
+          },
+          "current_period": {
+            "status": "mixed",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "conditional",
+            "windows": [
+              {
+                "rule_id": "VenusJupiterPD2",
+                "start": "2031-11-17T18:36:04.327695Z",
+                "period_start": "2031-11-17T18:36:04.327695Z",
+                "end": "2034-07-18T18:36:04.327695Z",
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+                "kind": "traditional_candidate",
+                "priority": 2,
+                "mahadasha": "Venus",
+                "antardasha": "Jupiter"
+              },
+              {
+                "rule_id": "VenusMarsPD2",
+                "start": "2027-09-17T21:36:04.327695Z",
+                "period_start": "2027-09-17T21:36:04.327695Z",
+                "end": "2028-11-17T00:36:04.327695Z",
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+                "kind": "traditional_candidate",
+                "priority": 1,
+                "mahadasha": "Venus",
+                "antardasha": "Mars"
+              }
+            ],
+            "scope": "selected_marriage_period_rules",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": "Jupiter period with natal Jupiter in seventh precedes other reviewed candidates"
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "timing",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "standard",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "marriage",
+      "intent": "timing",
+      "language": "english",
+      "style": "detailed",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "In this comparison of dasha periods, the more supportive marriage window is November 2031 to July 2034. It comes from the Venus Jupiter period and is conditional, not a fixed wedding date.\n\nAnother indicated period is September 2027 to November 2028; it has less support in this comparison.\n\nThe indications are mixed. There is an adverse traditional indication for relationship harmony. This comes from Saturn in house 7 (Taurus). There is a supportive traditional relationship indication. This comes from Jupiter in house 7 (Taurus). There is support for domestic comfort in the traditional relationship reading. This comes from Venus, ruler of house 7, in house 4 (Aquarius).\n\nThe current period contains both relationship friction and domestic comfort indications. Its relationship outlook is mixed. This period runs until September 2027.",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "marriage",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "House7LordInHouse4",
+            "fact": {
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 4,
+              "rules_house": 7
+            },
+            "traditional_theme": "Home and shared domestic comfort: discuss expectations about living together against real circumstances.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Venus",
+            "rules_house": 7,
+            "d1_sign": "Aquarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 42.75812806117735,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Scorpio",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Mars",
+              "from_house": 12,
+              "to_house": 7,
+              "count_from_planet": 8
+            }
+          ],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "marriage",
+          "conclusion": {
+            "status": "mixed",
+            "scope": "relationship_quality"
+          },
+          "natal": {
+            "status": "mixed",
+            "scope": "relationship_quality",
+            "reasons": [
+              {
+                "id": "SaturnIn7thNotLagnaLord",
+                "status": "adverse",
+                "fact": {
+                  "planet": "Saturn",
+                  "sign": "Taurus",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              },
+              {
+                "id": "JupiterInHouse7",
+                "status": "supportive",
+                "fact": {
+                  "planet": "Jupiter",
+                  "sign": "Taurus",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              },
+              {
+                "id": "House7LordInHouse4",
+                "status": "supportive",
+                "fact": {
+                  "planet": "Venus",
+                  "sign": "Aquarius",
+                  "house": 4,
+                  "rules_house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              }
+            ]
+          },
+          "current_period": {
+            "status": "mixed",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "conditional",
+            "windows": [
+              {
+                "rule_id": "VenusJupiterPD2",
+                "start": "2031-11-17T18:36:04.327695Z",
+                "period_start": "2031-11-17T18:36:04.327695Z",
+                "end": "2034-07-18T18:36:04.327695Z",
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+                "kind": "traditional_candidate",
+                "priority": 2,
+                "mahadasha": "Venus",
+                "antardasha": "Jupiter"
+              },
+              {
+                "rule_id": "VenusMarsPD2",
+                "start": "2027-09-17T21:36:04.327695Z",
+                "period_start": "2027-09-17T21:36:04.327695Z",
+                "end": "2028-11-17T00:36:04.327695Z",
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+                "kind": "traditional_candidate",
+                "priority": 1,
+                "mahadasha": "Venus",
+                "antardasha": "Mars"
+              }
+            ],
+            "scope": "selected_marriage_period_rules",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": "Jupiter period with natal Jupiter in seventh precedes other reviewed candidates"
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "timing",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "detailed",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "career",
+      "intent": "overview",
+      "language": "english",
+      "style": "brief",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The reviewed indications do not establish a clear favorable or adverse outcome.\n\nThis period mentions gains, but does not establish a job offer or promotion. This period runs until September 2027.\n\nFamily business and trade are directions highlighted in your traditional career reading. This comes from Sun, ruler of house 10, in house 2 (Sagittarius).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "career",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "House10LordInHouse2",
+            "fact": {
+              "planet": "Sun",
+              "sign": "Sagittarius",
+              "house": 2,
+              "rules_house": 10
+            },
+            "traditional_theme": "Family enterprise and earning through a trade: consider these only if they fit actual experience.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Sun",
+            "rules_house": 10,
+            "d1_sign": "Sagittarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 22.92654815905077,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 10,
+            "divisional_sign": "Gemini",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Venus",
+              "from_house": 4,
+              "to_house": 10,
+              "count_from_planet": 7
+            }
+          ],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "career",
+          "conclusion": {
+            "status": "limited",
+            "scope": "career_indications"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "limited",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "brief",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "career",
+      "intent": "overview",
+      "language": "english",
+      "style": "standard",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The reviewed indications do not establish a clear favorable or adverse outcome.\n\nThis period mentions gains, but does not establish a job offer or promotion. This period runs until September 2027.\n\nFamily business and trade are directions highlighted in your traditional career reading. This comes from Sun, ruler of house 10, in house 2 (Sagittarius).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "career",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "House10LordInHouse2",
+            "fact": {
+              "planet": "Sun",
+              "sign": "Sagittarius",
+              "house": 2,
+              "rules_house": 10
+            },
+            "traditional_theme": "Family enterprise and earning through a trade: consider these only if they fit actual experience.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Sun",
+            "rules_house": 10,
+            "d1_sign": "Sagittarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 22.92654815905077,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 10,
+            "divisional_sign": "Gemini",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Venus",
+              "from_house": 4,
+              "to_house": 10,
+              "count_from_planet": 7
+            }
+          ],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "career",
+          "conclusion": {
+            "status": "limited",
+            "scope": "career_indications"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "limited",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "standard",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "career",
+      "intent": "overview",
+      "language": "english",
+      "style": "detailed",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The reviewed indications do not establish a clear favorable or adverse outcome.\n\nThis period mentions gains, but does not establish a job offer or promotion. This period runs until September 2027.\n\nFamily business and trade are directions highlighted in your traditional career reading. This comes from Sun, ruler of house 10, in house 2 (Sagittarius).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "career",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "House10LordInHouse2",
+            "fact": {
+              "planet": "Sun",
+              "sign": "Sagittarius",
+              "house": 2,
+              "rules_house": 10
+            },
+            "traditional_theme": "Family enterprise and earning through a trade: consider these only if they fit actual experience.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Sun",
+            "rules_house": 10,
+            "d1_sign": "Sagittarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 22.92654815905077,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 10,
+            "divisional_sign": "Gemini",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Venus",
+              "from_house": 4,
+              "to_house": 10,
+              "count_from_planet": 7
+            }
+          ],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "career",
+          "conclusion": {
+            "status": "limited",
+            "scope": "career_indications"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "limited",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "detailed",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "education",
+      "intent": "overview",
+      "language": "english",
+      "style": "brief",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The current period supports learning and acquiring knowledge. It does not establish a particular admission or exam result. This period runs until September 2027.\n\nFor education, your broader house reading highlights partnership and cooperation. This comes from Jupiter, ruler of house 5, in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "education",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:5:7",
+            "fact": {
+              "planet": "Jupiter",
+              "sign": "Taurus",
+              "house": 7,
+              "rules_house": 5
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: partnership and cooperation.",
+            "source": "local_house_symbolism"
+          },
+          {
+            "id": "MoonInHouse5",
+            "fact": {
+              "planet": "Moon",
+              "sign": "Pisces",
+              "house": 5
+            },
+            "traditional_theme": "Clarity and reflective learning: try organizing study material and reviewing understanding, without predicting exam marks.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Jupiter",
+            "rules_house": 5,
+            "d1_sign": "Taurus",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 41.05523950039691,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Pisces",
+            "divisional_own_sign": true,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "education",
+          "conclusion": {
+            "status": "supportive",
+            "scope": "learning_conditions"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "supportive",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "brief",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "education",
+      "intent": "overview",
+      "language": "english",
+      "style": "standard",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The current period supports learning and acquiring knowledge. It does not establish a particular admission or exam result. This period runs until September 2027.\n\nFor education, your broader house reading highlights partnership and cooperation. This comes from Jupiter, ruler of house 5, in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "education",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:5:7",
+            "fact": {
+              "planet": "Jupiter",
+              "sign": "Taurus",
+              "house": 7,
+              "rules_house": 5
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: partnership and cooperation.",
+            "source": "local_house_symbolism"
+          },
+          {
+            "id": "MoonInHouse5",
+            "fact": {
+              "planet": "Moon",
+              "sign": "Pisces",
+              "house": 5
+            },
+            "traditional_theme": "Clarity and reflective learning: try organizing study material and reviewing understanding, without predicting exam marks.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Jupiter",
+            "rules_house": 5,
+            "d1_sign": "Taurus",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 41.05523950039691,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Pisces",
+            "divisional_own_sign": true,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "education",
+          "conclusion": {
+            "status": "supportive",
+            "scope": "learning_conditions"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "supportive",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "standard",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "education",
+      "intent": "overview",
+      "language": "english",
+      "style": "detailed",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The current period supports learning and acquiring knowledge. It does not establish a particular admission or exam result. This period runs until September 2027.\n\nFor education, your broader house reading highlights partnership and cooperation. This comes from Jupiter, ruler of house 5, in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "education",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:5:7",
+            "fact": {
+              "planet": "Jupiter",
+              "sign": "Taurus",
+              "house": 7,
+              "rules_house": 5
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: partnership and cooperation.",
+            "source": "local_house_symbolism"
+          },
+          {
+            "id": "MoonInHouse5",
+            "fact": {
+              "planet": "Moon",
+              "sign": "Pisces",
+              "house": 5
+            },
+            "traditional_theme": "Clarity and reflective learning: try organizing study material and reviewing understanding, without predicting exam marks.",
+            "source": "vedastro_classical"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Jupiter",
+            "rules_house": 5,
+            "d1_sign": "Taurus",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 41.05523950039691,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Pisces",
+            "divisional_own_sign": true,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "education",
+          "conclusion": {
+            "status": "supportive",
+            "scope": "learning_conditions"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "supportive",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "detailed",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "finance",
+      "intent": "timing",
+      "language": "english",
+      "style": "brief",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "This reading does not establish a reliable timeframe for financial recovery.\n\nThe current period supports financial gains. It does not establish an amount or a date by which a financial problem will be resolved. This period runs until September 2027.\n\nFor finance, your broader house reading highlights partnership and cooperation. This comes from Jupiter, ruler of house 2, in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "finance",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:2:7",
+            "fact": {
+              "planet": "Jupiter",
+              "sign": "Taurus",
+              "house": 7,
+              "rules_house": 2
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: partnership and cooperation.",
+            "source": "local_house_symbolism"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Jupiter",
+            "rules_house": 2,
+            "d1_sign": "Taurus",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 41.05523950039691,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Pisces",
+            "divisional_own_sign": true,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "finance",
+          "conclusion": {
+            "status": "supportive",
+            "scope": "financial_indications"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "supportive",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "timing",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "brief",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "finance",
+      "intent": "timing",
+      "language": "english",
+      "style": "standard",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "This reading does not establish a reliable timeframe for financial recovery.\n\nThe current period supports financial gains. It does not establish an amount or a date by which a financial problem will be resolved. This period runs until September 2027.\n\nFor finance, your broader house reading highlights partnership and cooperation. This comes from Jupiter, ruler of house 2, in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "finance",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:2:7",
+            "fact": {
+              "planet": "Jupiter",
+              "sign": "Taurus",
+              "house": 7,
+              "rules_house": 2
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: partnership and cooperation.",
+            "source": "local_house_symbolism"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Jupiter",
+            "rules_house": 2,
+            "d1_sign": "Taurus",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 41.05523950039691,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Pisces",
+            "divisional_own_sign": true,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "finance",
+          "conclusion": {
+            "status": "supportive",
+            "scope": "financial_indications"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "supportive",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "timing",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "standard",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "finance",
+      "intent": "timing",
+      "language": "english",
+      "style": "detailed",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "This reading does not establish a reliable timeframe for financial recovery.\n\nThe current period supports financial gains. It does not establish an amount or a date by which a financial problem will be resolved. This period runs until September 2027.\n\nFor finance, your broader house reading highlights partnership and cooperation. This comes from Jupiter, ruler of house 2, in house 7 (Taurus).",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "finance",
+        "input_fingerprint": "abf634e34f7c0b568063d6c06195537fb3917a93d6d41b85656f82475b3faa97",
+        "as_of_utc": "2026-10-08T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "chart_facts": {
+          "lagna": "Scorpio",
+          "moon_sign": "Pisces",
+          "nakshatra": "Revati"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Venus": {
+              "start": "2021-09-17T09:36:04.327695Z",
+              "end": "2041-09-17T09:36:04.327695Z",
+              "antardashas": {
+                "Moon": {
+                  "start": "2026-01-17T03:36:04.327695Z",
+                  "end": "2027-09-17T21:36:04.327695Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:2:7",
+            "fact": {
+              "planet": "Jupiter",
+              "sign": "Taurus",
+              "house": 7,
+              "rules_house": 2
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: partnership and cooperation.",
+            "source": "local_house_symbolism"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Jupiter",
+            "rules_house": 2,
+            "d1_sign": "Taurus",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 41.05523950039691,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Pisces",
+            "divisional_own_sign": true,
+            "same_d1_divisional_sign": false,
+            "divisional_house": null,
+            "divisional_ascendant": null,
+            "near_divisional_boundary": false,
+            "near_divisional_ascendant_boundary": false
+          },
+          "full_sign_aspects_to_topic_house": [],
+          "strength_scope": "sign dignity, repeated-sign placement and uccha bala only; not full Shadbala",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ]
+        },
+        "period_interpretation_available": true,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "finance",
+          "conclusion": {
+            "status": "supportive",
+            "scope": "financial_indications"
+          },
+          "natal": {
+            "status": "limited",
+            "scope": "topic_indications",
+            "reasons": []
+          },
+          "current_period": {
+            "status": "supportive",
+            "rule_id": "VenusMoonPD2",
+            "mahadasha": "Venus",
+            "antardasha": "Moon",
+            "start": "2026-01-17T03:36:04.327695Z",
+            "end": "2027-09-17T21:36:04.327695Z",
+            "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml"
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "event_timing_not_reviewed",
+            "search_end": "2034-10-08T00:00:00Z",
+            "ranking_basis": null
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Calculated aspect, strength and divisional facts do not confirm the selected event candidates."
+        ]
+      },
+      "language": "english",
+      "intent": "timing",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "detailed",
+      "follow_up": false
+    }
+  },
+  {
+    "request": {
+      "topic": "marriage",
+      "language": "english",
+      "intent": "overview",
+      "style": "detailed",
+      "follow_up": false
+    },
+    "result": {
+      "schema": "reviewed-reading-v2",
+      "text": "The checked indications are adverse. There is an adverse traditional indication for relationship harmony. This comes from Saturn in house 7 (Libra).\n\nIn Navamsa (D9), Venus is in Cancer. This is another division of the birth chart; this sign alone does not establish a partner's character or an outcome. Jupiter casts a full sign aspect on house 7. VedAstro's Shadbala assessment does not classify Venus as strong; this does not measure your ability or predict failure. A placement is near a boundary; confirm an approximate birth time before relying on it.",
+      "evidence": {
+        "schema": "topic-reading-v2",
+        "rules_revision": "reviewed-outcomes-v2",
+        "topic": "marriage",
+        "input_fingerprint": "64358a39b83ab4f791e65ce3708aa90fcb53c38f2a0afa499b1ad82eb250772b",
+        "as_of_utc": "2026-10-07T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "VedAstro.Library",
+          "source_revision": "40763952742f76369a505d8db2e9e9fa67f75d78"
+        },
+        "chart_facts": {
+          "lagna": "Aries",
+          "moon_sign": "Leo",
+          "nakshatra": "Magha"
+        },
+        "current_period": {
+          "mahadashas": {
+            "Sun": {
+              "start": "2023-11-17T07:19:00Z",
+              "end": "2029-11-16T19:19:00Z",
+              "antardashas": {
+                "Saturn": {
+                  "start": "2026-09-23T06:25:00Z",
+                  "end": "2027-09-05T06:07:00Z"
+                }
+              }
+            }
+          }
+        },
+        "factors": [
+          {
+            "id": "house-context:7:9",
+            "fact": {
+              "planet": "Venus",
+              "sign": "Sagittarius",
+              "house": 9,
+              "rules_house": 7
+            },
+            "traditional_theme": "The topic ruler connects to general house symbolism: higher study, teaching and worldview.",
+            "source": "local_house_symbolism"
+          }
+        ],
+        "advanced": {
+          "schema": "advanced-natal-facts-v1",
+          "topic_ruler": {
+            "planet": "Venus",
+            "rules_house": 7,
+            "d1_sign": "Sagittarius",
+            "d1_own_sign": false,
+            "d1_dignity": {
+              "own_sign": false,
+              "exaltation_sign": false,
+              "debilitation_sign": false,
+              "uccha_bala_virupas": 24.333333333333332,
+              "strength_component": "uccha_bala_only",
+              "total_shadbala": null
+            },
+            "division": 9,
+            "divisional_sign": "Cancer",
+            "divisional_own_sign": false,
+            "same_d1_divisional_sign": false,
+            "divisional_house": 1,
+            "divisional_ascendant": "Cancer",
+            "near_divisional_boundary": true,
+            "near_divisional_ascendant_boundary": true
+          },
+          "full_sign_aspects_to_topic_house": [
+            {
+              "planet": "Jupiter",
+              "from_house": 1,
+              "to_house": 7,
+              "count_from_planet": 7
+            }
+          ],
+          "strength_scope": "native VedAstro six-component Shadbala, kept separate from whole-sign placement interpretations",
+          "node_aspects_evaluated": false,
+          "event_timing_available": false,
+          "sources": {
+            "divisional_mappings": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Vargas.cs",
+            "full_sign_aspects": "https://github.com/VedAstro/VedAstro/blob/master/Library/Logic/Calculate/Core.cs"
+          },
+          "strength_sources": [
+            "https://github.com/VedAstro/VedAstro/blob/master/Library/Data/OpenAPIStaticTable.cs",
+            "https://github.com/naturalstupid/PyJHora/blob/main/src/jhora/const.py"
+          ],
+          "vedastro_strength": {
+            "planet": "Venus",
+            "total_virupas": 360,
+            "total_rupas": 6.0,
+            "components_virupas": {
+              "PlanetChestaBala": 60,
+              "PlanetKalaBala": 60,
+              "PlanetDrikBala": 60,
+              "PlanetSthanaBala": 60,
+              "PlanetDigBala": 60,
+              "PlanetNaisargikaBala": 60
+            },
+            "native_house_system": "vedastro_bhava",
+            "meets_engine_strength_test": false
+          }
+        },
+        "period_interpretation_available": false,
+        "prediction_assessment": {
+          "schema": "prediction-assessment-v1",
+          "topic": "marriage",
+          "conclusion": {
+            "status": "adverse",
+            "scope": "relationship_quality"
+          },
+          "natal": {
+            "status": "adverse",
+            "scope": "relationship_quality",
+            "reasons": [
+              {
+                "id": "SaturnIn7thNotLagnaLord",
+                "status": "adverse",
+                "fact": {
+                  "planet": "Saturn",
+                  "sign": "Libra",
+                  "house": 7
+                },
+                "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+              }
+            ]
+          },
+          "current_period": {
+            "status": "unsupported",
+            "rule_id": null,
+            "mahadasha": "Sun",
+            "antardasha": "Saturn",
+            "start": "2026-09-23T06:25:00Z",
+            "end": "2027-09-05T06:07:00Z",
+            "source": null
+          },
+          "event": {
+            "status": "unsupported",
+            "windows": [],
+            "scope": "selected_marriage_period_rules",
+            "search_end": "2034-10-07T00:00:00Z",
+            "ranking_basis": "Jupiter period with natal Jupiter in seventh precedes other reviewed candidates"
+          },
+          "limits": [
+            "Traditional indications are not calibrated probabilities.",
+            "An adverse harmony indication does not mean marriage is denied or divorce is certain.",
+            "Candidate periods are not fixed wedding dates or a comparison of all timing methods.",
+            "Transits, strength and divisional confirmation were not evaluated."
+          ]
+        },
+        "calculation_warnings": [],
+        "sources": {
+          "vedastro_classical": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml",
+          "vedastro_periods": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml",
+          "local_house_symbolism": "Reviewed general whole-sign house symbolism"
+        },
+        "limits": [
+          "Traditional interpretive themes, not measured ability, traits or promised outcomes.",
+          "Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.",
+          "Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.",
+          "Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.",
+          "Native strength is calculated separately; it does not confirm the selected traditional event candidates."
+        ],
+        "provider": {
+          "name": "vedastro-local",
+          "source_revision": "40763952742f76369a505d8db2e9e9fa67f75d78",
+          "verified_against": "pyswisseph",
+          "native_settings": {
+            "ayanamsa": "LAHIRI",
+            "node": "true",
+            "dasha_year_days": 365.25,
+            "house_system": "vedastro_bhava",
+            "engine": "VedAstro.Library"
+          },
+          "as_of_utc": "2026-10-07T00:00:00+00:00",
+          "topic": "marriage",
+          "topic_ruler": "Venus",
+          "native_d9_sign": "Cancer",
+          "strength": {
+            "planet": "Venus",
+            "total_virupas": 360,
+            "total_rupas": 6.0,
+            "components_virupas": {
+              "PlanetChestaBala": 60,
+              "PlanetKalaBala": 60,
+              "PlanetDrikBala": 60,
+              "PlanetSthanaBala": 60,
+              "PlanetDigBala": 60,
+              "PlanetNaisargikaBala": 60
+            },
+            "native_house_system": "vedastro_bhava",
+            "meets_engine_strength_test": false
+          }
+        }
+      },
+      "language": "english",
+      "intent": "overview",
+      "model_calls": 0,
+      "model_tokens": 0,
+      "style": "detailed",
+      "follow_up": false
+    }
+  }
+]

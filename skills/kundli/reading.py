@@ -10,6 +10,7 @@ import math
 from datetime import datetime, timezone
 from vimshottari import current_period, nakshatra_index
 from advanced_facts import advanced_facts
+from prediction_assessment import assess, REVISION, PERIOD_SOURCE
 
 SIGNS = ('Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
          'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces')
@@ -46,7 +47,7 @@ RULES = [
      'theme': 'Learning connected with writing and groups: explore written summaries or a study group.'},
     {'id': 'House5LordInHouse12', 'topics': ('education',), 'ruler_of': 5, 'house': 12,
      'theme': 'Reflective or spiritual inquiry: explore quiet study without assuming beliefs or academic results.'},
-    {'id': 'House2LordInHouse10', 'topics': ('career',), 'ruler_of': 2, 'house': 10,
+    {'id': 'House2LordInHouse10', 'topics': ('career', 'finance'), 'ruler_of': 2, 'house': 10,
      'theme': 'Earnings connected with professional activity: compare real payment arrangements and the value of work delivered.'},
     {'id': 'House7LordInHouse1', 'topics': ('marriage',), 'ruler_of': 7, 'house': 1,
      'theme': 'Familiarity and shared history in relationships: consider how two people get to know each other and build trust.'},
@@ -66,7 +67,7 @@ RULES = [
      'theme': 'Reflective learning and philosophical inquiry: explore understanding ideas rather than treating this as measured ability.'},
     {'id': 'MarsInHouse1', 'topics': ('career',), 'planet': 'Mars', 'house': 1,
      'theme': 'Initiative and practical activity: explore taking responsibility for a real project, without assuming talent.'},
-    {'id': 'House2LordInHouse1', 'topics': ('career',), 'ruler_of': 2, 'house': 1,
+    {'id': 'House2LordInHouse1', 'topics': ('career', 'finance'), 'ruler_of': 2, 'house': 1,
      'theme': 'Earning through personal effort and learning: compare actual work and payment arrangements.'},
 ]
 HOUSE_SYMBOLS = {
@@ -110,8 +111,12 @@ def verified_positions(chart):
     return asc, result
 
 
-def reading_packet(chart, topic, *, as_of_utc=None):
-    if topic not in ('career', 'education', 'marriage'):
+def reading_packet(chart, topic, *, as_of_utc=None, contract_version=1):
+    if type(contract_version) is not int or contract_version not in (1, 2):
+        raise ValueError('Unsupported reading contract')
+    if contract_version == 1 and topic == 'finance':
+        raise ValueError('Finance requires reading contract 2')
+    if topic not in ('career', 'education', 'marriage', 'finance'):
         raise ValueError('Unsupported reading topic')
     asc, positions = verified_positions(chart)
     degrees = {p['name']: p['sidereal_degree'] for p in chart['planet_positions']}
@@ -131,7 +136,7 @@ def reading_packet(chart, topic, *, as_of_utc=None):
             continue
         factors.append({'id': rule['id'], 'fact': dict(fact, **({'rules_house': ruler_of} if ruler_of else {})),
                         'traditional_theme': rule['theme'], 'source': 'vedastro_classical'})
-    target = {'career': 10, 'education': 5, 'marriage': 7}[topic]
+    target = {'career': 10, 'education': 5, 'marriage': 7, 'finance': 2}[topic]
     owner = LORDS[(asc + target - 1) % 12]
     if not any(f['fact'].get('rules_house') == target for f in factors):
         fact = positions[owner]
@@ -186,37 +191,56 @@ def reading_packet(chart, topic, *, as_of_utc=None):
     canonical = {'dob': birth['dob'], 'tob': birth['tob'], 'coordinates': birth['coordinates'],
                  'timezone_offset': birth['timezone_offset'], 'birth_utc': birth['birth_utc'], 'settings': settings}
     fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
+    warnings = chart.get('summary', {}).get('warnings', [])
+    uncertain_birth = any(isinstance(w, str) and w.startswith('Moon is ') and 'boundary' in w for w in warnings)
+    lords = {house: LORDS[(asc + house - 1) % 12] for house in range(1, 13)}
+    assessment = assess(positions, lords, topic, birth_utc, degrees['Moon'], as_of,
+                        uncertain_birth=uncertain_birth)
     packet = {
-        'schema': 'topic-reading-v1', 'rules_revision': 'reviewed-placements-v2',
+        'schema': 'topic-reading-v2', 'rules_revision': REVISION,
         'topic': topic, 'input_fingerprint': fingerprint,
         'as_of_utc': as_of.isoformat(), 'settings': settings,
         'chart_facts': {'lagna': chart['lagna'], 'moon_sign': chart['moon_sign'],
                         'nakshatra': chart['nakshatra']},
         'current_period': active, 'factors': factors[:3],
         'advanced': advanced_facts(chart, asc, positions, topic),
-        'period_interpretation_available': False,
+        'period_interpretation_available': assessment['current_period']['status'] != 'unsupported',
+        'prediction_assessment': assessment,
         'calculation_warnings': chart.get('summary', {}).get('warnings', []),
-        'sources': {'vedastro_classical': SOURCE, 'local_house_symbolism': 'Reviewed general whole-sign house symbolism'},
+        'sources': {'vedastro_classical': SOURCE, 'vedastro_periods': PERIOD_SOURCE,
+                    'local_house_symbolism': 'Reviewed general whole-sign house symbolism'},
         'limits': ['Traditional interpretive themes, not measured ability, traits or promised outcomes.',
-                   'Personal interpretations are limited to the factors; practical examples are hypothetical options.',
-                   'No dasha meaning is supplied; do not infer focus, emotions or aptitude from a period name.',
-                   'Period dates are calculated dasha boundaries, not marriage, job or admission forecasts.',
-                   'Full sign aspects and D9/D10 topic-ruler placements are calculated; no personality or event forecast follows from them.',
-                   'Only sign dignity, repeated-sign placement and uccha bala are evaluated; full Shadbala, transits and event timing are not evaluated.'],
+                   'Personal interpretations are limited to factors and prediction_assessment; practical examples are hypothetical options.',
+                   'Use only the topic-specific period meanings in prediction_assessment, not a general Good/Bad label.',
+                   'Only explicitly reviewed event candidates may be described as timing indications; no fixed event dates.',
+                   'Calculated aspect, strength and divisional facts do not confirm the selected event candidates.'],
     }
     if remote:
         packet['provider'] = provider
         packet['advanced']['vedastro_strength'] = provider['strength']
         packet['advanced']['strength_scope'] = 'native VedAstro six-component Shadbala, kept separate from whole-sign placement interpretations'
-        packet['limits'][-1] = 'Native VedAstro Shadbala is calculated separately; transits and event timing are not evaluated.'
+        packet['limits'][-1] = 'Native strength is calculated separately; it does not confirm the selected traditional event candidates.'
         context = provider.get('timing_context')
         # Current-sky evidence is specific to the provider's calculation minute.
         # A later rendering can refresh periods, but must not reuse stale transits.
         if context and context['as_of_utc'] == as_of.replace(second=0, microsecond=0).isoformat():
             packet['timing_context'] = context
-            packet['period_interpretation_available'] = True
-            packet['limits'][2] = 'Period categories come from the pinned classical source; they do not establish emotions, ability or outcomes.'
-            packet['limits'][-1] = 'Native Shadbala and current Jupiter/Saturn transits are verified; obstruction and personal event forecasts are not evaluated.'
+            if contract_version == 1:
+                packet['period_interpretation_available'] = True
+            if contract_version == 1:
+                packet['limits'][2] = 'Period categories come from the pinned classical source; they do not establish emotions, ability or outcomes.'
+            packet['limits'][-1] = 'Native strength and current transit facts are verified separately; obstruction and a full comparison of event-timing methods are not evaluated.'
     elif 'reading_provider_fallback' in chart:
         packet['provider_fallback'] = chart['reading_provider_fallback']
+    if contract_version == 1:
+        packet.update(schema='topic-reading-v1', rules_revision='reviewed-placements-v2',
+                      period_interpretation_available='timing_context' in packet)
+        packet.pop('prediction_assessment')
+        packet['sources'].pop('vedastro_periods')
+        packet['limits'] = ['Traditional interpretive themes, not measured ability, traits or promised outcomes.', 'Personal interpretations are limited to the factors; practical examples are hypothetical options.', 'No dasha meaning is supplied; do not infer focus, emotions or aptitude from a period name.', 'Period dates are calculated dasha boundaries, not marriage, job or admission forecasts.', 'Full sign aspects and D9/D10 topic-ruler placements are calculated; no personality or event forecast follows from them.', 'Only sign dignity, repeated-sign placement and uccha bala are evaluated; full Shadbala, transits and event timing are not evaluated.']
+        if remote:
+            packet['limits'][-1] = 'Native VedAstro Shadbala is calculated separately; transits and event timing are not evaluated.'
+        if 'timing_context' in packet:
+            packet['limits'][2] = 'Period categories come from the pinned classical source; they do not establish emotions, ability or outcomes.'
+            packet['limits'][-1] = 'Native Shadbala and current Jupiter/Saturn transits are verified; obstruction and personal event forecasts are not evaluated.'
     return packet

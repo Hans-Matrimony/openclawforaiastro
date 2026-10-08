@@ -1,46 +1,48 @@
 ---
 name: kundli
 description: Calculate Vedic Astrology birth charts (Kundli) with optional image generation.
-metadata:
-  {
-    "openclaw":
-      {
-        "emoji": "🔮",
-        "requires": { "bins": ["python3"] }
-      },
-  }
+metadata: { "openclaw": { "emoji": "🔮", "requires": { "bins": ["python3"] } } }
 ---
 
 # Skill: Kundli Calculation
 
 ## Topic readings without extra retrieval
 
-For a personal career, education or marriage reading, use the confirmed subject's
+For a personal career, education, marriage or finance reading, use the confirmed subject's
 birth details and one compact call:
 
 ```bash
 python3 ~/.openclaw/skills/kundli/calculate.py --dob "2002-02-16" --tob "08:19" --place "Delhi" --reading-topic career
 ```
 
-Choose `career`, `education` or `marriage` from the actual question. These example
+Choose `career`, `education`, `marriage` or `finance` from the actual question. These example
 birth details are synthetic, never the current user's profile. Read the confirmed
 backend/session profile first; fetch MongoDB/Mem0 only for missing or conflicting
 fields. This lookup rule takes priority over the unconditional lookup examples below.
 Save new and corrected details using the existing persistence workflow.
 
-For a reviewed response without generative interpretation, add `--render-reading`
-and `--reading-language english|hinglish` to the same topic command. For a marriage
-date question, add `--reading-intent timing`: it states that the evaluated factors
-do not establish an event window. The result contains `text`, its verified
+For a v2 reviewed response without generative interpretation, add `--render-reading`,
+`--reading-contract 2` and `--reading-language english|hinglish` to the same topic command.
+Rendering without an explicit contract retains v1 behavior for existing clients. For a marriage
+date question, add `--reading-intent timing`: it gives only explicitly reviewed,
+conditional event candidates and their comparison scope, or says that the requested
+timeframe is not established. Career/education timing questions can use the same
+intent without inventing job, promotion, admission or exam dates. The result contains `text`, its verified
 `evidence`, language/intent and zero model-call/token counters. Hinglish uses fixed
 reviewed wording, not a translation model. Other languages and friend conversation
 handling retain their existing paths.
 
 The packet contains `chart_facts`, `current_period`, `settings`, an input fingerprint,
 and at most three `factors` with checked placements and reviewed traditional themes.
-Explain the most relevant meaning and a practical example in the existing friend
-voice and user language. Source IDs are internal traceability, not user-facing labels.
+For v2, use `prediction_assessment` to answer the actual outcome before advice:
+supportive, adverse, mixed, conditional or not established. Explain conflicting
+indications together. Remedies and exercises are optional, never substitutes for
+a prediction. Preserve the subject, qualified conclusion and window in follow-ups;
+update only for corrected inputs or changed evidence. Source IDs are internal
+traceability, not user-facing labels.
 General house symbolism is explicitly separate from VedAstro classical entries.
+Finance supplies selected period indications, not amounts, investment returns,
+stock predictions or a verified date of financial recovery.
 Do not turn dasha boundaries into event forecasts or claim checked aspects, strength,
 divisional charts, aptitude, spouse traits or guaranteed results. Interpretive themes
 are not probabilities. Skip Qdrant when the packet covers the question; otherwise
@@ -89,12 +91,14 @@ is recomputed; storage failure does not substitute a chart.
 This skill allows you to calculate a Vedic Astrology birth chart (Kundli) for a user based on their birth details.
 
 ## Description
+
 Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, Nakshatra, Planetary positions across zodiac signs and houses, and Vimshottari Dashas.
 
 ## Usage
 
 **CRITICAL - CHART IMAGE GENERATION RULES:**
 When generating Kundli chart images, you MUST:
+
 1. Run `calculate.py` to get the planet positions
 2. Extract the `planet_positions` array from the output
 3. Pass ALL 9 planet positions to `draw_kundli_traditional.py` using the `--planets` parameter
@@ -103,6 +107,7 @@ When generating Kundli chart images, you MUST:
 6. ✅ **SHELL SYNTAX FIX:** The `planet_positions` format has been updated to NOT include degree symbols (e.g., removed "at 17.88°"). This prevents "Unterminated quoted string" errors when the AI copies the data to the shell command. You can copy the entire array exactly as shown in calculate.py output without worrying about special characters.
 
 **CRITICAL - PRESERVE OUTPUT FORMAT:**
+
 - When the `draw_kundli_traditional.py` script outputs `IMAGE_URL: <url>`, you MUST include this EXACTLY as-is in your response
 - DO NOT convert it to Markdown link format like `[IMAGE_URL](url)`
 - DO NOT modify, wrap, or reformat the `IMAGE_URL:` line in any way
@@ -111,20 +116,23 @@ When generating Kundli chart images, you MUST:
 **Birth lookup when confirmed backend/session details are incomplete**
 
 Only when needed details are missing or conflicting, use this lookup workflow:
+
 1. **FIRST** check MongoDB API for existing birth details (FAST! 5-20ms):
+
    ```bash
    # Try MongoDB (5 second timeout - don't wait forever if slow)
    MONGO_DATA=$(curl -s --max-time 5 "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata/<USER_ID>")
-   
+
    # Check if MongoDB has birth data
    DOB=$(echo "$MONGO_DATA" | grep -o '"dateOfBirth":"[^"]*"' | cut -d'"' -f4)
    TOB=$(echo "$MONGO_DATA" | grep -o '"timeOfBirth":"[^"]*"' | cut -d'"' -f4)
    PLACE=$(echo "$MONGO_DATA" | grep -o '"birthPlace":"[^"]*"' | cut -d'"' -f4)
-   
+
    # If MongoDB has all required data, use it!
    if [ -n "$DOB" ] && [ -n "$TOB" ] && [ -n "$PLACE" ]; then
        echo "Found birth data in MongoDB: DOB=$DOB, TOB=$TOB, Place=$PLACE"
    ```
+
 2. **FALLBACK** If MongoDB doesn't have complete data, check Mem0 once; either service can be unavailable:
    ```bash
    else
@@ -134,6 +142,7 @@ Only when needed details are missing or conflicting, use this lookup workflow:
    ```
 3. Ask only for missing or conflicting details. Failed lookups do not prove details were never supplied.
 4. When user provides birth details, **IMMEDIATELY** store them in BOTH MongoDB AND Mem0:
+
    ```bash
    # Save to MongoDB user_metadata (for fast lookup next time)
    curl -X POST "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata" \
@@ -147,7 +156,8 @@ Only when needed details are missing or conflicting, use this lookup workflow:
      --metadata '{"source":"kundli_skill"}'
    ```
 
-> **✅ IMPORTANT:** 
+> **✅ IMPORTANT:**
+>
 > - MongoDB user_metadata = Fast lookup layer (NEW optimization)
 > - Mem0 = Continues working as before (NO functionality broken!)
 > - Save to BOTH places = Best of both worlds!
@@ -155,14 +165,17 @@ Only when needed details are missing or conflicting, use this lookup workflow:
 Call this skill whenever a user provides their birth details (Date, Time, and Place of birth).
 
 ### Calculate Kundli (Text Output)
+
 ```bash
 python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City Name"
 ```
 
 ### Generate Kundli Chart Image
+
 When a user asks to **"make kundali chart"**, **"generate chart image"**, or **"show my chart"**, follow these EXACT steps:
 
 **Step 1: Calculate Kundli**
+
 ```bash
 python3 ~/.openclaw/skills/kundli/calculate.py --dob "YYYY-MM-DD" --tob "HH:MM" --place "City"
 ```
@@ -173,11 +186,13 @@ Look for `"planet_positions"` array in the JSON output. Copy EVERY entry from th
 **Step 3: Generate the chart image with ALL planet positions**
 
 **TEMPLATE - Copy this and fill in the values (CRITICAL: MUST BE ON A SINGLE LINE):**
+
 ```bash
 cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<PASTE_LAGNA_HERE>" --moon-sign "<PASTE_MOON_SIGN_HERE>" --nakshatra "<PASTE_NAKSHATRA_HERE>" --planets '<PASTE_ENTIRE_PLANET_POSITIONS_ARRAY_HERE>' --user-id "<USER_ID>"
 ```
 
 **CRITICAL CHECKLIST before running the command:**
+
 - [ ] I ran `calculate.py` first and have the JSON output
 - [ ] I extracted the `planet_positions` array (it starts with `[` and ends with `]`)
 - [ ] I am passing the ENTIRE `planet_positions` array to `--planets` (every single entry!)
@@ -186,11 +201,13 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "<
 
 REAL EXAMPLE:
 If `planet_positions` contains:
+
 ```
 ["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]
 ```
 
 Then you MUST run (ON ONE SINGLE LINE):
+
 ```bash
 cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "Taurus" --moon-sign "Pisces" --nakshatra "Uttara Bhadrapada" --planets '["Saturn is in House 1 (Taurus/Vrishabh)", "Jupiter is in House 2 (Gemini/Mithun)", "Rahu is in House 2 (Gemini/Mithun)", "Ketu is in House 8 (Sagittarius/Dhanu)", "Mercury is in House 9 (Capricorn/Makar)", "Sun is in House 10 (Aquarius/Kumbh)", "Venus is in House 10 (Aquarius/Kumbh)", "Moon is in House 11 (Pisces/Meen)", "Mars is in House 11 (Pisces/Meen)"]' --user-id "USER_PHONE_NUMBER"
 ```
@@ -200,6 +217,7 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "T
 **IMPORTANT**: This script ONLY generates astrology-related images (Kundli charts). Do NOT use it for any other image generation purposes. For general images, use the dedicated image generation skills.
 
 ### Parameters (calculate.py)
+
 - `--dob`: Date of Birth in YYYY-MM-DD format (e.g., 1990-10-15)
 - `--tob`: Time of Birth - accepts multiple formats:
   - 24-hour: HH:MM (e.g., 14:30, 09:50)
@@ -207,6 +225,7 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "T
 - `--place`: Place of Birth (e.g., "Delhi", "Mumbai", "London")
 
 ### Parameters (draw_kundli_traditional.py)
+
 - `--lagna`: Ascendant sign (e.g., Leo, Scorpio, Aries) - **required**
 - `--moon-sign`: Moon sign/Rashi (e.g., Scorpio, Pisces, Cancer) - **required**
 - `--nakshatra`: Birth star/Nakshatra (e.g., Anuradha, Rohini, Ashwini) - **required**
@@ -214,7 +233,9 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "T
 - `--user-id`: User ID to store the generated chart against and return the correct webhook URL.
 
 ## Output
+
 The default calculate.py response contains `summary`, `ai_summary`, `lagna`, `moon_sign`, `nakshatra`, and `user_input`:
+
 - **user_input**: Echoes input, coordinates, timezone offset, and calculation engine.
 - **lagna**: The Ascendant sign.
 - **moon_sign**: The Rashi sign.
@@ -231,12 +252,14 @@ Calculation failures return error JSON and a nonzero process exit. Do not interp
 The draw_kundli_traditional.py tool creates and returns a visual Kundli chart image file.
 
 ## Guidelines for Interpretation
+
 1. **Lagna and Moon**: State calculated placements accurately. Use only reviewed evidence for personal interpretations; sign labels alone do not establish personality or emotions.
 2. **Dashas**: Dates describe calculated period boundaries. Without separately evaluated timing evidence, they cannot establish when a job, marriage or other event will happen.
 3. **Limitations**: Do not infer aspects, planetary strength, divisional-chart results, aptitude or partner traits from unevaluated data.
 4. **Remedies**: When relevant or requested, use one targeted retrieval for optional low-risk traditional practices. Respect the user's beliefs and avoid guaranteed outcomes.
 
 ## Image Generation Policy
+
 - This skill generates **ONLY astrology-related images** (Kundli charts, birth charts, horoscope diagrams)
 - It will NOT generate any other types of images
 - `draw_kundli_traditional.py` draws the verified placements locally with Pillow; it does not require an image-model API key.
