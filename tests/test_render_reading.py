@@ -26,6 +26,19 @@ def native_chart(asc, topic, house=1):
 
 
 class RenderTests(unittest.TestCase):
+    def test_compact_reading_keeps_adverse_dignity_and_complete_bubbles(self):
+        for asc in range(12):
+            for topic in ('marriage', 'career', 'education'):
+                for house in range(1, 13):
+                    for language in ('english', 'hinglish'):
+                        result = render_reading(native_chart(asc, topic, house), topic,
+                                                language=language, follow_up=False)
+                        if result['evidence']['advanced']['topic_ruler']['d1_dignity']['debilitation_sign']:
+                            self.assertIn('neecha rashi' if language == 'hinglish' else 'debilitation sign', result['text'])
+                        for paragraph in result['text'].split('\n\n'):
+                            self.assertLessEqual(len(paragraph), 360)
+                            self.assertTrue(paragraph.endswith('.'))
+
     def test_career_timing_preserves_topic_facts_styles_and_uncertainty(self):
         for asc in range(12):
             for house in range(1, 13):

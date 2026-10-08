@@ -182,6 +182,9 @@ def compact_native_reading(packet, hi, intent, follow_up):
     strong = packet['provider']['strength']['meets_engine_strength_test']
     strength = ((f'Shadbala mein {name} strong hain.' if strong else f'Shadbala mein {name} ko strong nahi maana gaya hai.') if hi else
                 (f'Shadbala rates {name} as strong.' if strong else f'Shadbala does not rate {name} as strong.'))
+    if packet['advanced']['topic_ruler']['d1_dignity']['debilitation_sign']:
+        strength += (f' Main chart mein {name} neecha rashi mein hain.' if hi else
+                     f' The main chart places {name} in its debilitation sign.')
     steps = {
         'marriage': ('Rishta dekhte waqt rehne ki jagah, family involvement aur zimmedariyon par expectations saaf rakhein.',
                      'When considering a match, discuss living arrangements, family involvement and shared responsibilities.'),
