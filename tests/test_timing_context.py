@@ -137,7 +137,9 @@ class TimingContextTests(unittest.TestCase):
                 reading = render_reading(value, 'marriage', language=language,
                                          style='standard', follow_up=follow_up)
                 self.assertIn('period' if language == 'english' else 'dasha', reading['text'])
-                self.assertEqual('?' in reading['text'], follow_up)
+                # Permission for a follow-up is not a requirement to append one
+                # after a complete, ordinary chart reading.
+                self.assertNotIn('?', reading['text'])
                 self.assertEqual((reading['model_calls'], reading['model_tokens']), (0, 0))
                 self.assertLessEqual(len(reading['text'].split('\n\n')), 3)
 
@@ -214,6 +216,23 @@ class TimingContextTests(unittest.TestCase):
             self.assertIn('boundary', text)
             self.assertIn('birth time', text)
             self.assertNotIn('?', text)
+
+    def test_standard_reading_finishes_without_forced_advice_or_question(self):
+        from render_reading import render_vedastro
+        from test_render_reading import native_chart
+        context = render_reading(self.fixture.call(), 'marriage')['evidence']['timing_context']
+        for topic in ('marriage', 'career', 'education'):
+            packet = render_reading(native_chart(0, topic), topic)['evidence']
+            packet['timing_context'] = deepcopy(context)
+            for language in ('english', 'hinglish'):
+                for intent in (('overview',) if topic == 'education' else ('overview', 'timing')):
+                    with self.subTest(topic=topic, language=language, intent=intent):
+                        text = render_vedastro(packet, language, intent, 'standard', True)
+                        self.assertLessEqual(len(text.split()), 105)
+                        self.assertNotIn('?', text)
+                        self.assertNotIn('Practical upay:', text)
+                        self.assertIn('Shadbala', text)
+                        self.assertTrue(all(len(part) <= 360 for part in text.split('\n\n')))
 
     def test_timing_has_one_date_limit_without_losing_evidence_or_uncertainty(self):
         from render_reading import render_vedastro

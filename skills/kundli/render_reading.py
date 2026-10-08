@@ -165,7 +165,7 @@ def compact_native_reading(packet, hi, intent, follow_up):
     """Give the answer first; keep the full calculation in the evidence packet."""
     from timing_context import current_context_text
     topic = packet['topic']
-    basis = native_factor_text(packet['factors'][0], topic, hi)
+    basis = native_factor_text(packet['factors'][0], topic, hi).replace('. ', '; ', 1)
     context = current_context_text(packet, hi, include_ratings=False)
     ratings = packet.get('timing_context', {}).get('period_ratings', {})
     labels = {'Good': 'supportive', 'Bad': 'challenging', 'Neutral': 'neutral'}
@@ -177,30 +177,19 @@ def compact_native_reading(packet, hi, intent, follow_up):
         label = labels[ratings['study']]
         context += (f' Padhai ke sanket {label} hain; result preparation par bhi depend karta hai.' if hi else
                     f' Study indicators are {label}; results also depend on preparation.')
+    context = context.replace('. ', '; ', 1)
     planet = packet['advanced']['topic_ruler']['planet']
     name = HINDI_PLANETS[planet] if hi else planet
     strong = packet['provider']['strength']['meets_engine_strength_test']
     strength = ((f'Shadbala mein {name} strong hain.' if strong else f'Shadbala mein {name} ko strong nahi maana gaya hai.') if hi else
                 (f'Shadbala rates {name} as strong.' if strong else f'Shadbala does not rate {name} as strong.'))
     if packet['advanced']['topic_ruler']['d1_dignity']['debilitation_sign']:
-        strength += (f' Main chart mein {name} neecha rashi mein hain.' if hi else
-                     f' The main chart places {name} in its debilitation sign.')
-    steps = {
-        'marriage': ('Rishta dekhte waqt rehne ki jagah, family involvement aur zimmedariyon par expectations saaf rakhein.',
-                     'When considering a match, discuss living arrangements, family involvement and shared responsibilities.'),
-        'career': ('Ek pasand ke role ki requirements ko apni skills se compare karein; applications aur interview feedback ka record rakhein.',
-                   'Compare a target role with your skills; track applications and interview feedback.'),
-        'education': ('Ek mushkil topic par practice questions karein aur galtiyon se agle study session ka focus chunein.',
-                      'Try practice questions on one difficult topic and use mistakes to plan your next study session.'),
-    }
-    final = steps[topic][0 if hi else 1]
-    warning = boundary_warning(packet, hi)
-    if warning:
-        final += ' ' + warning
-    if follow_up and intent != 'timing':
-        questions = {'marriage': 'Aap rishta dekh rahe hain?', 'career': 'Kaunsa role soch rahe hain?',
-                     'education': 'Aap kya padh rahe hain?'}
-        final += ' ' + (questions[topic] if hi else QUESTIONS[topic])
+        strength = strength.rstrip('.') + (f'; main chart mein {name} neecha rashi mein hain.' if hi else
+                     f'; the main chart places {name} in its debilitation sign.')
+    # follow_up permits a question; it never requires one. A completed reading
+    # needs neither an automatic interview nor unrelated practical homework.
+    # Explicit requests for remedies/advice use the ordinary conversation path.
+    final = boundary_warning(packet, hi)
     if intent == 'timing':
         lead = (('Shaadi ka saal ya mahina is reading se tay nahi hota.' if hi else
                  'This reading does not establish a marriage year or month.') if topic == 'marriage' else
