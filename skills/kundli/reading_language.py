@@ -48,7 +48,7 @@ def hinglish_theme(factor):
 # renderings above stay intact; only the verified native reading uses these.
 CONVERSATIONAL_THEMES = {
     'House10LordInHouse1': ('A traditional career direction here is work with personal ownership and autonomy.', 'Career mein apni zimmedari aur independent work ka traditional sambandh aata hai.'),
-    'House10LordInHouse2': ('One traditional career direction is earning through a family enterprise or trade.', 'Career ke liye family business ya kisi trade se earning ka traditional sambandh aata hai.'),
+    'House10LordInHouse2': ('Your career reading points to family business or trade as options to explore.', 'Career reading mein family business ya trade explore karne ka sanket hai.'),
     'House10LordInHouse3': ('Writing, speaking and work involving short journeys are traditional directions to explore.', 'Writing, bolne aur chhoti journeys se jude kaam explore karne ka traditional sambandh aata hai.'),
     'House10LordInHouse4': ('Education, land and property operations are traditional work directions to explore.', 'Education, zameen aur property operations se jude kaam explore karne ka traditional sambandh aata hai.'),
     'House10LordInHouse5': ('The traditional work connection is commercial brokerage or speculation; this is not investment advice.', 'Traditional work connection commercial brokerage ya speculation se hai; yeh investment karne ki salah nahi hai.'),
@@ -62,7 +62,7 @@ CONVERSATIONAL_THEMES = {
     'House5LordInHouse12': ('Reflection and spiritual inquiry are traditional study themes here.', 'Padhai ki traditional reading mein reflection aur spiritual inquiry ka sambandh aata hai.'),
     'House2LordInHouse10': ('A second traditional connection is earning through professional activity.', 'Ek aur traditional sambandh professional kaam se earning ka hai.'),
     'House7LordInHouse1': ('The traditional relationship theme is familiarity and shared history.', 'Relationship ki traditional reading mein pehchaan aur shared history ka sambandh aata hai.'),
-    'House7LordInHouse4': ('Your traditional relationship reading emphasizes home and shared domestic comfort.', 'Relationship ki traditional reading mein ghar aur saath rehne ka comfort khaas theme hai.'),
+    'House7LordInHouse4': ('For marriage, the chart highlights home and expectations about living together.', 'Shaadi ki reading mein ghar aur saath rehne ki expectations khaas hain.'),
     'House7LordInHouse10': ('The traditional relationship theme connects partnership with work and shared responsibilities.', 'Relationship ki traditional reading mein partnership ka sambandh work aur shared responsibilities se hai.'),
     'MercuryInHouse5': ('Learning and explaining ideas is another traditional study theme.', 'Ideas seekhna aur unhein samjhana padhai ka ek aur traditional theme hai.'),
     'JupiterInHouse5': ('Logic, law and advisory study are traditional directions to explore.', 'Logic, law aur advisory study explore karne ka traditional sambandh aata hai.'),
@@ -86,6 +86,6 @@ def conversational_theme(factor, topic, hi):
         house = factor['fact']['house']
         if hi:
             label = {'education': 'padhai', 'marriage': 'relationship', 'career': 'career'}[topic]
-            return f"Aapki {label} ki traditional reading mein {HINGLISH_HOUSES[house]} ka sambandh aata hai."
-        return f"Your traditional {topic} reading connects with {HOUSE_SYMBOLS[house]}."
+            return f"Aapki {label} ki reading mein {HINGLISH_HOUSES[house]} ka sambandh aata hai."
+        return f"Your {topic} reading connects with {HOUSE_SYMBOLS[house]}."
     return CONVERSATIONAL_THEMES[factor['id']][1 if hi else 0]

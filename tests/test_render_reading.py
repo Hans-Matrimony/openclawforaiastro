@@ -82,17 +82,17 @@ class RenderTests(unittest.TestCase):
         result = render_reading(native_chart(0, 'career'), 'career')
         packet = result['evidence']
         primary = packet['factors'][0]
-        # Controlled reviewed second placement verifies that the native branch
-        # cannot silently discard a relevant factor, as it did previously.
+        # The short first answer focuses on one factor; requested detail must
+        # still explain a second reviewed placement with a distinct basis.
         extra = {'id': 'MarsInHouse1', 'source': 'vedastro_classical',
                  'traditional_theme': 'Initiative and practical activity: explore taking responsibility for a real project, without assuming talent.',
                  'fact': {'planet': 'Mars', 'house': 1, 'sign': 'Aries'}}
         packet['factors'] = [primary, extra]
         for language in ('english', 'hinglish'):
-            text = render_vedastro(packet, language, 'overview')
+            text = render_vedastro(packet, language, 'overview', 'detailed')
             self.assertIn(conversational_theme(extra, 'career', language == 'hinglish'), text)
         extra['fact'] = dict(primary['fact'])
-        self.assertNotIn(conversational_theme(extra, 'career', False), render_vedastro(packet, 'english', 'overview'))
+        self.assertNotIn(conversational_theme(extra, 'career', False), render_vedastro(packet, 'english', 'overview', 'detailed'))
 
     def test_native_timing_separates_calculated_period_and_relevant_ruler_from_event_window(self):
         from render_reading import render_vedastro

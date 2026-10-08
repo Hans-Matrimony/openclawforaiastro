@@ -175,6 +175,25 @@ class TimingContextTests(unittest.TestCase):
             self.assertNotIn('category', detailed)
             self.assertEqual(packet, original)
 
+    def test_compact_first_reply_preserves_all_period_ratings_and_complete_bubbles(self):
+        from render_reading import render_vedastro
+        packet = render_reading(self.fixture.call(), 'marriage')['evidence']
+        labels = {'Good': 'supportive', 'Bad': 'challenging', 'Neutral': 'neutral'}
+        for ratings in RATINGS['rules'].values():
+            packet['timing_context']['period_ratings'] = deepcopy(ratings)
+            before = deepcopy(packet)
+            for language in ('english', 'hinglish'):
+                text = render_vedastro(packet, language, 'timing', 'standard', False)
+                for key in ('family', 'relationship'):
+                    self.assertIn(labels[ratings[key]], text)
+                self.assertLess(len(text), 750)
+                self.assertNotIn('?', text)
+                self.assertNotIn('VedAstro', text)
+                for paragraph in text.split('\n\n'):
+                    self.assertLessEqual(len(paragraph), 360)
+                    self.assertTrue(paragraph.endswith('.'))
+                self.assertEqual(packet, before)
+
     def test_malformed_context_fails_closed_in_prefer_mode(self):
         self.fixture.env['VEDASTRO_READING_MODE'] = 'prefer'
         original = deepcopy(self.fixture.data['timingContext'])
@@ -213,6 +232,9 @@ class TimingContextTests(unittest.TestCase):
                                  'I cannot give a reliable year') if topic == 'marriage' else (
                                  'Job milne ka exact samay' if language == 'hinglish' else
                                  'This reading does not establish when')
+                        if topic == 'marriage' and style == 'standard':
+                            limit = ('Shaadi ka saal ya mahina' if language == 'hinglish' else
+                                     'This reading does not establish a marriage year or month')
                         self.assertEqual(text.count(limit), 1)
                         for duplicate in ('guarantee', 'wedding window', 'andaza hoga',
                                           'shaadi ki timing ke liye', 'In positions se'):
