@@ -99,6 +99,11 @@ test("confidence cannot be replaced by forced verdicts, invented windows or fixe
   assert.match(policy, /More birth details do not establish these answers/);
   assert.match(policy, /Use only explicitly supplied, checked relationship themes/);
   assert.match(policy, /never "pakki sambhavna" or an unconditional promise/);
+  assert.match(policy, /give one concise limitation sentence and stop/);
+  assert.match(
+    policy,
+    /Do not append placements, partner traits\/background, remedies, questions or another reading/,
+  );
 });
 
 test("release bootstrap and the default loader deliver the real policy without replacing friend files", (t) => {
