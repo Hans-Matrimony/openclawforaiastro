@@ -31,6 +31,7 @@ test("only the astrology section is delivered, with direct positive and adverse 
   assert.match(policy, /Do not append stock lines such as "pakki date nahi hai"/);
   assert.match(policy, /Do not dilute the conclusion with a separate disclaimer bubble/);
   assert.match(policy, /If evidence is actually missing, conflicting or conditional/);
+  assert.match(policy, /send only the short question and stop/);
   assert.doesNotMatch(policy, /Close-friend tone:|MODEL 2|Name:|Janam Tithi:/);
 });
 
