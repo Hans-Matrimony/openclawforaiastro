@@ -43,8 +43,8 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
     current = assessment['current_period']
     windows = assessment['event']['windows']
     if intent == 'overview' and assessment['conclusion']['status'] == 'limited':
-        paragraphs.append('Reviewed indications se koi saaf anukool ya pratikool nateeja tay nahi hota.'
-                          if hinglish else 'The reviewed indications do not establish a clear favorable or adverse outcome.')
+        paragraphs.append('Kundli ke in sanketon se abhi koi saaf anukool ya pratikool nateeja nahi nikalta.'
+                          if hinglish else 'These chart indications do not point clearly to a favorable or adverse outcome.')
     if intent == 'timing':
         if windows:
             primary = windows[0]
@@ -75,9 +75,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             paragraphs.append(f"Is reading se {target[0]} ka bharosemand timeframe nahi milta."
                               if hinglish else f"This reading does not establish a reliable timeframe for {target[1]}.")
     if natal['reasons']:
-        label = {'mixed': ('Indications mixed hain.', 'The indications are mixed.'),
-                 'adverse': ('Checked indications pratikool hain.', 'The checked indications are adverse.'),
-                 'supportive': ('Checked indications anukool hain.', 'The checked indications are supportive.')}[assessment['conclusion']['status']][0 if hinglish else 1]
+        label = {'mixed': ('Kundli mein support aur rukawat, dono ke sanket hain.', 'Your chart has both supportive and challenging indications.'),
+                 'adverse': ('Is reading mein rukawat ke sanket zyada hain.', 'This reading shows more challenging indications.'),
+                 'supportive': ('Is reading mein anukool sanket zyada hain.', 'This reading shows more supportive indications.')}[assessment['conclusion']['status']][0 if hinglish else 1]
         parts = [label]
         for reason in natal['reasons'][:3 if style == 'detailed' else 2]:
             parts.append(NATAL_WORDING[reason['id']][0 if not hinglish else 1] +
@@ -85,7 +85,11 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         paragraphs.append(' '.join(parts))
     if current['status'] != 'unsupported' and (intent == 'overview' or not windows or style == 'detailed'):
         wording = PERIOD_WORDING[(current['antardasha'], topic)][1 if hinglish else 0]
-        paragraphs.append(wording + (f" Yeh period {_month(current['end'])} tak hai." if hinglish else f" This period runs until {_month(current['end'])}."))
+        major = HINGLISH_PLANETS[current['mahadasha']] if hinglish else current['mahadasha']
+        minor = HINGLISH_PLANETS[current['antardasha']] if hinglish else current['antardasha']
+        lead = (f"Abhi {major} mahadasha mein {minor} antardasha chal rahi hai. " if hinglish else
+                f"You are currently in the {major} major period and {minor} subperiod. ")
+        paragraphs.append(lead + wording + (f" Yeh period {_month(current['end'])} tak hai." if hinglish else f" This period runs until {_month(current['end'])}."))
     if not natal['reasons'] and (intent == 'overview' or not windows or style == 'detailed'):
         for factor in packet['factors'][:1]:
             text = hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False)

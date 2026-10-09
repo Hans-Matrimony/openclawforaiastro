@@ -130,7 +130,7 @@ class PredictionTests(unittest.TestCase):
         self.assertEqual(assessment['current_period']['status'], 'supportive')
         self.assertEqual(assessment['conclusion']['status'], 'mixed')
         text = render_reading(value, 'career', as_of_utc=datetime(2032, 10, 8, tzinfo=timezone.utc))['text']
-        self.assertTrue(text.startswith('The indications are mixed.'))
+        self.assertTrue(text.startswith('Your chart has both supportive and challenging indications.'))
         self.assertIn('Career interruptions', text)
         self.assertIn('supports professional gains', text)
 
