@@ -1,0 +1,49 @@
+name: Astrology Confidence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .pi/prompts/astrologer.md
+      - app/whatsapp-support/workspace-astrologer/**
+      - extensions/reviewed-reading/**
+      - scripts/bootstrap-astrology-assets.mjs
+      - scripts/astrologer-prompt.test.mjs
+      - tests/test_astrology_reply_policy.mjs
+      - tests/test_astrologer_prompt_contracts.mjs
+      - tests/test_astrology_bootstrap.mjs
+      - tests/test_reviewed_reading_route.mjs
+      - .github/workflows/astrology-confidence.yml
+  pull_request:
+    paths:
+      - .pi/prompts/astrologer.md
+      - app/whatsapp-support/workspace-astrologer/**
+      - extensions/reviewed-reading/**
+      - scripts/bootstrap-astrology-assets.mjs
+      - scripts/astrologer-prompt.test.mjs
+      - tests/test_astrology_reply_policy.mjs
+      - tests/test_astrologer_prompt_contracts.mjs
+      - tests/test_astrology_bootstrap.mjs
+      - tests/test_reviewed_reading_route.mjs
+      - .github/workflows/astrology-confidence.yml
+
+permissions:
+  contents: read
+
+jobs:
+  policy-and-compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify policy loading, edge cases and existing contracts
+        run: >-
+          node --test
+          tests/test_astrology_reply_policy.mjs
+          tests/test_astrologer_prompt_contracts.mjs
+          tests/test_reviewed_reading_route.mjs
+          tests/test_astrology_bootstrap.mjs
+          scripts/astrologer-prompt.test.mjs
