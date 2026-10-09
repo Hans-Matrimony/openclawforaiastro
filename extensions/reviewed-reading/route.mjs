@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import path from "node:path";
+import { periodStatus, validWindowRule, revisions } from "./period-rules.mjs";
 
 const MAX_BODY = 4096;
 const MAX_CONCURRENT = 2;
@@ -183,7 +184,7 @@ export function validPredictionAssessment(assessment, topic) {
       (window) =>
         window &&
         window.kind === "traditional_candidate" &&
-        ["VenusMarsPD2", "VenusJupiterPD2"].includes(window.rule_id) &&
+        validWindowRule(window, true) &&
         [1, 2].includes(window.priority) &&
         /^\d{4}-\d{2}-\d{2}T.*Z$/u.test(window.start) &&
         /^\d{4}-\d{2}-\d{2}T.*Z$/u.test(window.end) &&
@@ -199,6 +200,8 @@ export function validOutcomeEvidence(evidence, topic) {
   if (!validPredictionAssessment(evidence?.prediction_assessment, topic)) {
     return false;
   }
+  if (!revisions.includes(evidence.rules_revision)) return false;
+  const extended = evidence.rules_revision === "reviewed-outcomes-v3";
   const assessment = evidence.prediction_assessment;
   const scopes = {
     marriage: "relationship_quality",
@@ -253,10 +256,17 @@ export function validOutcomeEvidence(evidence, topic) {
     if (asc < 0) {
       return false;
     }
+    const allowedReasons = {
+      marriage: ["SaturnIn7thNotLagnaLord", "JupiterInHouse7", "House7LordInHouse4"],
+      career: ["House10LordInHouse8", "House10LordInHouse12", "House10LordInHouse11"],
+      education: [], finance: [],
+    };
+    const seenReasons = new Set();
     for (const reason of assessment.natal.reasons) {
-      if (!Object.hasOwn(rules, reason.id)) {
+      if (!allowedReasons[topic].includes(reason.id) || seenReasons.has(reason.id)) {
         return false;
       }
+      seenReasons.add(reason.id);
       const [status, planet, house, ruler] = rules[reason.id],
         fact = reason.fact;
       if (
@@ -275,6 +285,14 @@ export function validOutcomeEvidence(evidence, topic) {
         return false;
       }
     }
+    const natalDirections = new Set(assessment.natal.reasons.map(reason => reason.status));
+    const natalStatus = natalDirections.size === 2 ? "mixed" : [...natalDirections][0] ?? "limited";
+    if (assessment.natal.status !== natalStatus) return false;
+    const directions = new Set([natalStatus, assessment.current_period.status]);
+    const conclusion = directions.has("mixed") || (directions.has("supportive") && directions.has("adverse")) ? "mixed" :
+      directions.has("supportive") ? "supportive" : directions.has("adverse") ? "adverse" :
+      directions.has("conditional") ? "conditional" : "limited";
+    if (assessment.conclusion.status !== conclusion) return false;
     const period = assessment.current_period,
       majors = Object.entries(evidence.current_period.mahadashas);
     if (majors.length !== 1) {
@@ -304,12 +322,13 @@ export function validOutcomeEvidence(evidence, topic) {
         return false;
       }
     } else if (
-      major !== "Venus" ||
+      periodStatus(major, minor, topic, extended) === undefined ||
       period.rule_id !== major + minor + "PD2" ||
       period.source !== periodSource
     ) {
       return false;
     }
+    if (period.status !== (periodStatus(major, minor, topic, extended) ?? "unsupported")) return false;
     const horizon = instant(assessment.event.search_end),
       seen = new Set();
     if (horizon <= when) {
@@ -321,9 +340,7 @@ export function validOutcomeEvidence(evidence, topic) {
       if (
         seen.has(window.rule_id) ||
         window.source !== periodSource ||
-        window.mahadasha !== "Venus" ||
-        !["Mars", "Jupiter"].includes(window.antardasha) ||
-        window.rule_id !== "Venus" + window.antardasha + "PD2" ||
+        !validWindowRule(window, extended) ||
         first < when ||
         first >= horizon ||
         instant(window.period_start) > first ||
@@ -336,6 +353,8 @@ export function validOutcomeEvidence(evidence, topic) {
       }
       seen.add(window.rule_id);
     }
+    const ordered = [...assessment.event.windows].sort((a,b)=>b.priority-a.priority || a.start.localeCompare(b.start));
+    if (ordered.some((window,index)=>window !== assessment.event.windows[index])) return false;
     return true;
   } catch {
     return false;
@@ -347,7 +366,7 @@ function validOutcomeResult(result, value) {
   const current =
     result?.schema === "reviewed-reading-v2" &&
     evidence?.schema === "topic-reading-v2" &&
-    evidence.rules_revision === "reviewed-outcomes-v2" &&
+    revisions.includes(evidence.rules_revision) &&
     typeof evidence.period_interpretation_available === "boolean" &&
     validOutcomeEvidence(evidence, value.topic) &&
     evidence.period_interpretation_available ===

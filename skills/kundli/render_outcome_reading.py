@@ -84,19 +84,23 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
                          (_basis(reason['fact'], hinglish) if style != 'brief' else ''))
         paragraphs.append(' '.join(parts))
     if current['status'] != 'unsupported' and (intent == 'overview' or not windows or style == 'detailed'):
-        wording = PERIOD_WORDING[(current['antardasha'], topic)][1 if hinglish else 0]
+        if current['mahadasha'] == 'Venus' and (current['antardasha'], topic) in PERIOD_WORDING:
+            wording = PERIOD_WORDING[(current['antardasha'], topic)][1 if hinglish else 0]
+        else:
+            from period_rules import period_wording
+            wording = period_wording(topic, current['status'], hinglish)
         major = HINGLISH_PLANETS[current['mahadasha']] if hinglish else current['mahadasha']
         minor = HINGLISH_PLANETS[current['antardasha']] if hinglish else current['antardasha']
         lead = (f"Abhi {major} mahadasha mein {minor} antardasha chal rahi hai. " if hinglish else
                 f"You are currently in the {major} major period and {minor} subperiod. ")
         paragraphs.append(lead + wording + (f" Yeh period {_month(current['end'])} tak hai." if hinglish else f" This period runs until {_month(current['end'])}."))
-    if not natal['reasons'] and (intent == 'overview' or not windows or style == 'detailed'):
+    if not natal['reasons']:
         for factor in packet['factors'][:1]:
             text = hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False)
             paragraphs.append(text + _basis(factor['fact'], hinglish))
-    if style == 'detailed' and packet.get('provider', {}).get('name') == 'vedastro-local':
+    if style != 'brief' and packet.get('provider', {}).get('name') == 'vedastro-local':
         from render_reading import native_supporting_detail
-        paragraphs.append(native_supporting_detail(packet, hinglish, detailed=True))
+        paragraphs.append(native_supporting_detail(packet, hinglish, detailed=style == 'detailed'))
     # Full analysis limits remain in evidence. Surface a limitation only when it
     # affects this answer (timing above, uncertain birth input below), not as filler.
     if any(isinstance(warning, str) and warning.startswith('Moon is ') and 'boundary' in warning

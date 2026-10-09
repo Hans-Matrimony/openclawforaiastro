@@ -68,6 +68,22 @@ class ProviderTests(unittest.TestCase):
         self.assertIs(self.call(), self.chart)
         self.transport.assert_not_called()
 
+    def test_finance_uses_second_house_ruler_and_checks_native_contract(self):
+        # Aries second-house ruler is Venus, as in the original strength fixture.
+        self.data.update(topic='finance', topicHouse=2)
+        reference = lambda *args, **kwargs: {'planet_positions': self.chart['planet_positions'], 'lagna': 'Aries', 'lagna_degree': 10}
+        result = use_reading_provider(self.chart, 'finance', as_of_utc=self.when, env=self.env,
+                                     transport=self.transport, reference_calculator=reference)
+        self.assertEqual(result['reading_provider']['topic_ruler'], 'Venus')
+        rendered = render_reading(result, 'finance', contract_version=2, as_of_utc=self.when)
+        self.assertEqual(rendered['evidence']['advanced']['topic_ruler']['rules_house'], 2)
+        self.assertEqual(rendered['evidence']['prediction_assessment']['event']['windows'], [])
+        self.assertIn('Shadbala', rendered['text'])
+        self.data['topicHouse'] = 7
+        with self.assertRaises(MatchError):
+            use_reading_provider(self.chart, 'finance', as_of_utc=self.when, env=self.env,
+                                 transport=self.transport, reference_calculator=reference)
+
     def test_outage_has_explicit_fallback_and_required_mode_has_no_retry(self):
         self.transport.side_effect = MatchError('provider_timeout')
         self.env['VEDASTRO_READING_MODE'] = 'prefer'

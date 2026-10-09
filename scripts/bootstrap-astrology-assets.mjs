@@ -9,6 +9,8 @@ export const ASTROLOGY_ASSETS = [
     "calculate.py",
     "reading.py",
     "prediction_assessment.py",
+    "period_rules.py",
+    "period_rules.json",
     "outcome_language.py",
     "render_outcome_reading.py",
     "reading_provider.py",

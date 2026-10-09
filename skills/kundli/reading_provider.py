@@ -82,7 +82,7 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
                      moon_sign=next(p['sign'] for p in reference['planet_positions'] if p['name'] == 'Moon'),
                      lagna_sidereal_degree=SIGNS.index(reference['lagna']) * 30 + reference['lagna_degree'])
         asc, _ = verified_positions(basis)
-        target = {'marriage': 7, 'career': 10, 'education': 5}[topic]
+        target = {'marriage': 7, 'career': 10, 'education': 5, 'finance': 2}[topic]
         owner = LORDS[(asc + target - 1) % 12]
         std_time = local.strftime('%H:%M %d/%m/%Y %z')
         std_time = std_time[:-2] + ':' + std_time[-2:]

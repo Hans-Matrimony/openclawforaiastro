@@ -6,6 +6,7 @@ Good/Bad label is treated as a probability that an individual event will happen.
 """
 from datetime import datetime, timedelta
 from vimshottari import current_period
+from period_rules import period_status, marriage_rule
 
 HOROSCOPE_SOURCE = 'https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml'
 PERIOD_SOURCE = 'https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/EventDataList.xml'
@@ -33,7 +34,7 @@ def _reason(rule_id, status, planet, positions, rules_house=None):
     return {'id': rule_id, 'status': status, 'fact': fact, 'source': HOROSCOPE_SOURCE}
 
 
-def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_birth=False):
+def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_birth=False, extended=False):
     """Called only after reading_packet has verified the complete chart and inputs."""
     reasons = []
     if topic == 'marriage':
@@ -55,11 +56,11 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
     natal_status = ('mixed' if statuses == {'supportive', 'adverse'} else
                     next(iter(statuses)) if statuses else 'limited')
     current = current_period(birth_utc, moon_degree, as_of.replace(tzinfo=None))
-    reviewed = VENUS_PERIODS.get(current['antardasha'], {}).get(topic) if current['mahadasha'] == 'Venus' else None
+    reviewed = period_status(current['mahadasha'], current['antardasha'], topic, extended=extended)
     if uncertain_birth:
         reviewed = None
     period = {'status': reviewed or 'unsupported', 'rule_id':
-              f"Venus{current['antardasha']}PD2" if reviewed else None,
+              f"{current['mahadasha']}{current['antardasha']}PD2" if reviewed else None,
               'mahadasha': current['mahadasha'], 'antardasha': current['antardasha'],
               'start': current['antardasha_start'], 'end': current['antardasha_end'],
               'source': PERIOD_SOURCE if reviewed else None}
@@ -70,11 +71,12 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
         adult_from = birth_utc.replace(year=birth_utc.year + 18, day=28)
     # Only these reviewed descriptions explicitly include marriage. A pleasant
     # period, earnings theme or marriage-harmony theme does not imply a wedding.
-    # Require natal relevance of the major lord as well as the PD1/PD2 condition.
+    # Legacy rules require major-lord natal relevance. Extended rules expose only
+    # explicit source-table candidates, without claiming complete chart confirmation.
     relevant_major = lords[7] == 'Venus' or positions['Venus']['house'] == 7
     horizon = as_of.replace(tzinfo=None) + timedelta(days=8 * 365.25)
     cursor = as_of.replace(tzinfo=None)
-    if (topic == 'marriage' and relevant_major and not uncertain_birth
+    if (topic == 'marriage' and (extended or relevant_major) and not uncertain_birth
             and as_of.replace(tzinfo=None) >= adult_from):
         for _ in range(81):
             candidate = current_period(birth_utc, moon_degree, cursor)
@@ -82,7 +84,7 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
             end = datetime.fromisoformat(candidate['antardasha_end'].replace('Z', '+00:00')).replace(tzinfo=None)
             if start >= horizon:
                 break
-            if candidate['mahadasha'] == 'Venus' and candidate['antardasha'] in ('Mars', 'Jupiter'):
+            if marriage_rule(candidate['mahadasha'], candidate['antardasha'], extended=extended):
                 minor = candidate['antardasha']
                 # Explicit declared priority, not a calibrated strength score:
                 # Jupiter period has a favorable source reading and, when in
@@ -92,11 +94,11 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
                 if eligible_start >= end or eligible_start >= horizon:
                     cursor = end
                     continue
-                windows.append({'rule_id': f'Venus{minor}PD2', 'start': eligible_start.isoformat() + 'Z',
+                windows.append({'rule_id': f"{candidate['mahadasha']}{minor}PD2", 'start': eligible_start.isoformat() + 'Z',
                                 'period_start': candidate['antardasha_start'],
                                 'end': candidate['antardasha_end'], 'source': PERIOD_SOURCE,
                                 'kind': 'traditional_candidate', 'priority': priority,
-                                'mahadasha': 'Venus', 'antardasha': minor})
+                                'mahadasha': candidate['mahadasha'], 'antardasha': minor})
             if end <= cursor:
                 raise ValueError('Non-advancing period scan')
             cursor = end

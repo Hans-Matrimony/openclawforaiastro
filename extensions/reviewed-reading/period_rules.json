@@ -1,0 +1,817 @@
+{
+  "source_revision": "40763952742f76369a505d8db2e9e9fa67f75d78",
+  "source_file": "Library/Data/EventDataListStatic.cs",
+  "source_sha256": "3f2c1f78ee4d5fcd7a349deec77fdf99fb9133493f13e68a63f65a67db280887",
+  "rules": {
+    "SunSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "7a5c425885acd154227c3c3dfd023649df95bea95c2bfb757d00fdd49af6294e"
+    },
+    "SunMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "c414eabb3cdcdfec6dba2ad8073ea5b1fa3486a545714de6425f088a34422950"
+    },
+    "SunMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "1597d396222d1974147b1fa81de5d73eab53611dc7116ddf69d321a4dd604db5"
+    },
+    "SunRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "56897de4bba41522f80e6ba7a89299b37c61a229ef342ff245eae972ad630cac"
+    },
+    "SunJupiterPD2": {
+      "ratings": {
+        "Studies": "Good",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "dcef097d573cb1d706cf30fea8e63686ad72bdcb21c9d6784da34e0ea73ec2f5"
+    },
+    "SunSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "e219223ebc32197c17fbfe7b009fb930e27e4fcecb13884a9ab6ebd36b67f3b0"
+    },
+    "SunMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "a0fc2b926154d04dd9d4afd0bddcf65ef1052e7f01e1b63c88038f90a5da888f"
+    },
+    "SunKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "dd8051fba865e8a4c9e7c89f073039a656fad202ba3209ac2bdc18276275b042"
+    },
+    "SunVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": true,
+      "description_sha256": "0b1b4178acb4c01dc74c1fa3f5bd594f3617345549751800d61674af9674bb87"
+    },
+    "MoonSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "b16d79e4876da0293f598957aa5ac52c3dee0562facfc29febe7cabb3766a36b"
+    },
+    "MoonMoonPD2": {
+      "ratings": {
+        "Studies": "Good",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": true,
+      "description_sha256": "a20cf5edc9c8ebf980bb5ca3872cca7ab229988668768c47e379c9198d85d366"
+    },
+    "MoonMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "12f90429dde9aa8a6bbf0138c0231c4e7ca44a3c848f71dd698422cabfc603e4"
+    },
+    "MoonRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "5615cf06a2fa4831bf2c83036ed33ac91fd8e05815b750a033d868b029916e76"
+    },
+    "MoonJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "57c9cd2ec76aac6edda51173693394ace333b8abed023f5dbf3d9e95e6677da4"
+    },
+    "MoonSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "d56695d1154c3e2325bfebe641d3f4f83cceef8d502171d40fe304a45f279fa7"
+    },
+    "MoonMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": false,
+      "description_sha256": "e47f2db46b27e695304f1d2c5842a403b3dceaf8e87a7adc40531c4ac6db8a0e"
+    },
+    "MoonKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "f7ada7ec5e40246f926ba0252126f7d433a4fd8290d145ed5c344253a64ceae1"
+    },
+    "MoonVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "b12357f9d6b21a669028c002a5b75dea2ce2e2913ad737329ab4bcf2ef5e3f3b"
+    },
+    "MarsSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "4d3f48ba09f760a0cb1136826c9f2f4e5fa3be222ee46b1c90498157a55fffa3"
+    },
+    "MarsMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": false,
+      "description_sha256": "cd673fbb24ba10a88c9cbc2e39ed9823aba3518793dd19ad9c7f5e0c01713451"
+    },
+    "MarsMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "b6be51c9af1573fd1cab1e29926d465e04587f872df780901ef63868ae576d6e"
+    },
+    "MarsRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "841ca7df4cd785f5a6c678b942823231e361a2f601474daa2d9442ecc36a5fc9"
+    },
+    "MarsJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "06ed7d25b8e64c0bd9c72e7e9800d5f148b5f9e8397e6a5b48f0f5993bb2a7a7"
+    },
+    "MarsSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "f03ad5e9f5c341cf2489bb108765359945090d574c404598cdb4ca990e334d6f"
+    },
+    "MarsMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": true,
+      "description_sha256": "2e2ce84df887ee95f80376a445778bc4479bf1600ff7b5653f2017f07828a67a"
+    },
+    "MarsKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "516e756f7a76767b654a7365f7cf8fe03f76c00469dada7aac940490409b104e"
+    },
+    "MarsVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": false,
+      "description_sha256": "d7d26304137dd3bb1d7148e17c96900ba19004755146f4c8370ecae2bf4c37b9"
+    },
+    "RahuSunPD2": {
+      "ratings": {
+        "Studies": "Good",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "e8930ef75e431ce93c91d4865426032dc9c3ab9a0b2c83152fa1a8913eefa387"
+    },
+    "RahuMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "12350a45cbadd1b3f0024e9b5f27ad14c2e211e2ffe1c08ed654cfa92fa679ec"
+    },
+    "RahuMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "43c582317d58b2bbe9799180628b7e00114cafadbc241f8f16f8b1a9c7e4bc84"
+    },
+    "RahuRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "aec0fbc518d79048b7da52f3713854993d9ba294953a598722915aca6c550d6a"
+    },
+    "RahuJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "7bbac5e3001c968a10381d723251ec76cea91abe98fc6112432b6d7fc1ef8e9b"
+    },
+    "RahuSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "9ad4526c671a24d4d523f321c4fd31c427acac6c62aff917c863b75a44c1f234"
+    },
+    "RahuMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "284227d3cc5fa765130fca369c66a584e484cf2ba897965306bec31a9987a932"
+    },
+    "RahuKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "65fb21dbe8c934bc23f334d64c91d8020bea69cf2a8c7114b09f673424c4b392"
+    },
+    "RahuVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": true,
+      "description_sha256": "1432786f15f061f4a70738f8e08e9f4057e354d0d8d614011cb57a79a8bdb5e6"
+    },
+    "JupiterSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "2427b5ecf3019cbe566cbf4de2f36ad71f69535f197a6cd36e8424f8368dd1e7"
+    },
+    "JupiterMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": false,
+      "description_sha256": "8f2f7327b1fc19a19b3e7bb14d00f35359818bc50884b1633990e32fc8221bdf"
+    },
+    "JupiterMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "0f202bdf7fc2a2df5fb3d2eaa6d3973619c94d51338f5f193cdf0ac7aa033d72"
+    },
+    "JupiterRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "f555b1ebf4291ffb0566f46d7961698eb83495848b17a082c89ab28af42e701e"
+    },
+    "JupiterJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "22322b300ea85db94c9244551f6fbacf72ee52fa679c7571812988f6bab04adf"
+    },
+    "JupiterSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "55a49a96a4dde5f05deb52fb40c145e8490aa4c5315ac39482d51ff6e4f5a006"
+    },
+    "JupiterMercuryPD2": {
+      "ratings": {
+        "Studies": "Good",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "7f080dd087e4799c2bb9693f5e2468b8d2d607370ae907b99af5da7874a6c56b"
+    },
+    "JupiterKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "388d379419f5d97764e72b7d51c5de8940c57752cc347b794e88dbf59aac6341"
+    },
+    "JupiterVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "7563dd8ee005883f9aac2e71f32f7cb8bec14a1e962395eccc75bef9de720677"
+    },
+    "SaturnSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "ce3850c3c1e16a13defcf4525d746df61f4d0c44685499184eb6f178ff356986"
+    },
+    "SaturnMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "55df4cb82b1a60174041a7c465a1866c4a745eff2e580d2d5fdfcff2454eb9e4"
+    },
+    "SaturnMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "e67bd5536629f9d0fc024131b22506be225071caae9a9b8ae53ed1563d478f74"
+    },
+    "SaturnRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "35bec19d7457144ae05591285a178fb4dca0b06a3f8371de787d2b6883c80949"
+    },
+    "SaturnJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "2194ed2755313e771102664b7f35f49cc664658cf40659fef279b86ccdcb8dd3"
+    },
+    "SaturnSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "982855f2c898e3285edbf99196abd1846266a99dd30df811b15ded095e400372"
+    },
+    "SaturnMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "2a8498e7a78772309dbd4d8fa4b700728164eb08673624e54c8e9b5e3d53abd5"
+    },
+    "SaturnKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "cbf13fe3730a35a8c5f67bb19336b6fe272f66f39b76defa0e07528c077e51ab"
+    },
+    "SaturnVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": false,
+      "description_sha256": "5930d70ab854aa210fffa3cd470c949af9d3f02b957a4d15c7a560d157d1b674"
+    },
+    "MercurySunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "595a0879328a23255e4288696d501bb86082706512a48a3c876843527a39d070"
+    },
+    "MercuryMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "98015a76fda65c9dd14b82517a759896ba5d89054a0466d27fa419cadd71d1c9"
+    },
+    "MercuryMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "72a069249f88b07977f3a084934667eeeca0ab508c24c898ad42cd07a5ad26be"
+    },
+    "MercuryRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Good",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "c0e53d192ad30d1b604d71956b64d3aba4aa40d6579c7b49b53f44bfe2570637"
+    },
+    "MercuryJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": true,
+      "description_sha256": "4e93f656b2f1888e39595e1590d12d176dee574e9648b0c19082f0ef0e984caa"
+    },
+    "MercurySaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "7e2fc0e9045430e12f4d508973fa62cd7740362070e9742e57679f70a0515e82"
+    },
+    "MercuryMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "5e0d4934e50cc0985be3c0f3dca62bb86c364848fc3cc9f22964d8f57b492cf2"
+    },
+    "MercuryKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "6aacf3301be5d9732340f7cb4507be715b1d0c34d5060f6667f9fe5d66e63da2"
+    },
+    "MercuryVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "904e21e9dbaa7d541601a882d66f18b1085d2e0271d85be5a1ea1a376df32cca"
+    },
+    "KetuSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "226491f9bcc1df02860b69b98dfcb52ea376ef3f026cdbe04eac6d10acc91a04"
+    },
+    "KetuMoonPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "5a1673bc6b6a1e53e8c14142a0abdfe1975e77e65e3dde569a1e4de44dc5449f"
+    },
+    "KetuMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "db12a3872d686846a084a776bf5761d399f8c4c123f54ef6fbe14cafd5973a64"
+    },
+    "KetuRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "11aa13c7393940acfc745edf6c64c0fb105f4c35a53f86a4237d0fea3d9a2dee"
+    },
+    "KetuJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": true,
+      "description_sha256": "4e3c9f4ad850e48a8cb85f1b26ba6456babd88cc08584245a475039ca8f84450"
+    },
+    "KetuSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "746cc8fcbd6d9d8110984d54d8fb2d51d0196da710472150d393af11aeb2bc3b"
+    },
+    "KetuMercuryPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "54a3afebfb9b7ce407f896746b17859d4282d2a2339e7f870610d280dccaa6f9"
+    },
+    "KetuKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "cd15919ab65d25f578842ea0235f8824a83dada76d2a85aae32b17be6926499e"
+    },
+    "KetuVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "16152acabc0f7663731ef6c007739c12463c41c74379d3fe6f68057c9069f859"
+    },
+    "VenusSunPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "20cb2494bea3701ca0436daf03fbbcf5e733c32d84ba1d90695b5963f3ae0050"
+    },
+    "VenusMoonPD2": {
+      "ratings": {
+        "Studies": "Good",
+        "Family": "Good",
+        "Money": "Neutral",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "274d26e1c6127d9dd0e17f6be2c924ddf48b48537f8fcb1f1ba32aea3d0b528a"
+    },
+    "VenusMarsPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Neutral",
+        "Love": "Neutral"
+      },
+      "marriage_event": true,
+      "description_sha256": "ab3674d03194cc1c4d51f367cc3de84fcfe8669c9b64150648a1c50612f705b2"
+    },
+    "VenusRahuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "e712083856aaddd4c15f4a1df189976b9d6201cbeec22f210e8abf0f0dc2474b"
+    },
+    "VenusJupiterPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": true,
+      "description_sha256": "10fd5080d9efff966f2b3dcbc574dc27280249975ec6e88a4c3c37e2180246c1"
+    },
+    "VenusSaturnPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Neutral",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "a2804799bee6a29e7af25fde4c863ec34f74dc87605fad35ab8fa67c410cfc87"
+    },
+    "VenusMercuryPD2": {
+      "ratings": {
+        "Studies": "Good",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Good"
+      },
+      "marriage_event": false,
+      "description_sha256": "abf2f81c641a7f4fbf3e455d4d484dd7451c6d2005ef454ceec3890e268c01da"
+    },
+    "VenusKetuPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Bad",
+        "Money": "Bad",
+        "Love": "Bad"
+      },
+      "marriage_event": false,
+      "description_sha256": "2ca3da5444e18c7c0f08e2478c139a3e0c47f5e91a102d7187441c86c06da5fb"
+    },
+    "VenusVenusPD2": {
+      "ratings": {
+        "Studies": "Neutral",
+        "Family": "Good",
+        "Money": "Good",
+        "Love": "Neutral"
+      },
+      "marriage_event": false,
+      "description_sha256": "b5a5774664b1b9035b3b9a32b86be59477b72ec72432373c361fbf19dbe83b38"
+    }
+  }
+}

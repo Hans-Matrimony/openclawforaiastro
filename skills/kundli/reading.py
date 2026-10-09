@@ -5,6 +5,7 @@ checked against a verified Lahiri whole-sign chart, not an upstream AI summary.
 See VEDASTRO-MIT.txt. Themes are interpretations, never measured outcomes.
 """
 import hashlib
+import os
 import json
 import math
 from datetime import datetime, timezone
@@ -194,10 +195,11 @@ def reading_packet(chart, topic, *, as_of_utc=None, contract_version=1):
     warnings = chart.get('summary', {}).get('warnings', [])
     uncertain_birth = any(isinstance(w, str) and w.startswith('Moon is ') and 'boundary' in w for w in warnings)
     lords = {house: LORDS[(asc + house - 1) % 12] for house in range(1, 13)}
+    extended = contract_version == 2 and os.getenv('ASTROFRIEND_EXTENDED_PERIOD_RULES', '0') == '1'
     assessment = assess(positions, lords, topic, birth_utc, degrees['Moon'], as_of,
-                        uncertain_birth=uncertain_birth)
+                        uncertain_birth=uncertain_birth, extended=extended)
     packet = {
-        'schema': 'topic-reading-v2', 'rules_revision': REVISION,
+        'schema': 'topic-reading-v2', 'rules_revision': 'reviewed-outcomes-v3' if extended else REVISION,
         'topic': topic, 'input_fingerprint': fingerprint,
         'as_of_utc': as_of.isoformat(), 'settings': settings,
         'chart_facts': {'lagna': chart['lagna'], 'moon_sign': chart['moon_sign'],

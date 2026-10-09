@@ -991,7 +991,7 @@ if __name__ == "__main__":
         # If not full mode, trim the output to essentials to prevent LLM confusion
         if args.reading_topic:
             from reading_provider import use_reading_provider
-            if args.reading_topic != 'finance':
+            if args.reading_topic != 'finance' or os.getenv('VEDASTRO_NATIVE_FINANCE_ENABLED', '0') == '1':
                 output = use_reading_provider(output, args.reading_topic)
             elif os.getenv('VEDASTRO_READING_MODE', 'off') == 'required':
                 raise ValueError('Native finance reading is not supported')
