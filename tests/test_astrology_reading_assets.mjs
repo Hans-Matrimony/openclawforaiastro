@@ -22,7 +22,7 @@ test('reviewed reading endpoint retains authentication without changing agent co
   const config = JSON.parse(read('openclaw.json'));
   assert.deepEqual(config.plugins.load.paths, ['/app/extensions/reviewed-reading']);
   assert.equal(config.plugins.entries['reviewed-reading'].enabled, true);
-  assert.match(read('extensions/reviewed-reading/index.ts'), /auth: 'gateway'/u);
+  assert.match(read('extensions/reviewed-reading/index.ts'), /auth: ['"]gateway['"]/u);
   assert.match(read('extensions/reviewed-reading/route.mjs'), /--render-reading/u);
   assert.match(read('Dockerfile'), /COPY extensions\/reviewed-reading\/ \/app\/extensions\/reviewed-reading\//u);
 });
