@@ -120,6 +120,18 @@ test("relationship limits remain concise without dismissing supported relationsh
   );
 });
 
+test("confirmed marriage prompts a separation reading without generic counselling or court promises", () => {
+  assert.match(policy, /After marriage is confirmed, address the separation reading directly/);
+  assert.match(policy, /When status is known, do not ask again/);
+  assert.match(policy, /If separation-specific analysis is missing, name that gap once/);
+  assert.match(policy, /do not claim astrology never studies separation/);
+  assert.match(policy, /An astrological window is not a court finalization date/);
+  assert.match(policy, /No assumed suffering, reassurance-only reply or burden question/);
+  assert.match(policy, /Past marriage status needs user-confirmed facts, not a DOB-based guess/);
+  assert.match(policy, /Explain method challenges without re-asking status/);
+  assert.match(policy, /End separation readings without questions or reading offers/);
+});
+
 test("release bootstrap and the default loader deliver the real policy without replacing friend files", (t) => {
   const prefix = path.join(os.tmpdir(), "astro-policy-");
   const directory = fs.mkdtempSync(prefix);
