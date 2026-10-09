@@ -27,6 +27,7 @@ test("only the astrology section is delivered, with direct positive and adverse 
   assert.match(policy, /Kindness is tone, not a positive forecast/);
   assert.match(policy, /not inferred distress or a separate comfort bubble/);
   assert.match(policy, /Do not append "what worries you\?" or another generic question/);
+  assert.match(policy, /Do not add a Moon\/sign personality claim/);
   assert.doesNotMatch(policy, /Close-friend tone:|MODEL 2|Name:|Janam Tithi:/);
 });
 
