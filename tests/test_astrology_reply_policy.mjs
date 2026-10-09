@@ -95,6 +95,10 @@ test("confidence cannot be replaced by forced verdicts, invented windows or fixe
   assert.match(policy, /Never manufacture a positive\/negative verdict/);
   assert.match(policy, /Do not force "Haan\/Nahi", a contact countdown/);
   assert.match(policy, /an event verdict or a timing window/);
+  assert.match(policy, /A complete astrology answer ends without a closing question/);
+  assert.match(policy, /More birth details do not establish these answers/);
+  assert.match(policy, /Use only explicitly supplied, checked relationship themes/);
+  assert.match(policy, /never "pakki sambhavna" or an unconditional promise/);
 });
 
 test("release bootstrap and the default loader deliver the real policy without replacing friend files", (t) => {
