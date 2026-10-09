@@ -6,14 +6,78 @@ metadata:
     "openclaw":
       {
         "emoji": "🔮",
-        "requires": { "bins": ["python3", "uv"] },
-        "env": ["OPENAI_API_KEY"],
-        "envNote": "OPENAI_API_KEY is only required for chart image generation"
+        "requires": { "bins": ["python3"] }
       },
   }
 ---
 
 # Skill: Kundli Calculation
+
+## Topic readings without extra retrieval
+
+For a personal career, education or marriage reading, use the confirmed subject's
+birth details and one compact call:
+
+```bash
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "2002-02-16" --tob "08:19" --place "Delhi" --reading-topic career
+```
+
+Choose `career`, `education` or `marriage` from the actual question. These example
+birth details are synthetic, never the current user's profile. Read the confirmed
+backend/session profile first; fetch MongoDB/Mem0 only for missing or conflicting
+fields. This lookup rule takes priority over the unconditional lookup examples below.
+Save new and corrected details using the existing persistence workflow.
+
+For a reviewed response without generative interpretation, add `--render-reading`
+and `--reading-language english|hinglish` to the same topic command. For a marriage
+date question, add `--reading-intent timing`: it states that the evaluated factors
+do not establish an event window. The result contains `text`, its verified
+`evidence`, language/intent and zero model-call/token counters. Hinglish uses fixed
+reviewed wording, not a translation model. Other languages and friend conversation
+handling retain their existing paths.
+
+The packet contains `chart_facts`, `current_period`, `settings`, an input fingerprint,
+and at most three `factors` with checked placements and reviewed traditional themes.
+Explain the most relevant meaning and a practical example in the existing friend
+voice and user language. Source IDs are internal traceability, not user-facing labels.
+General house symbolism is explicitly separate from VedAstro classical entries.
+Do not turn dasha boundaries into event forecasts or claim checked aspects, strength,
+divisional charts, aptitude, spouse traits or guaranteed results. Interpretive themes
+are not probabilities. Skip Qdrant when the packet covers the question; otherwise
+use one targeted search with --limit 3. Do not retry identical failed tool calls.
+For topic-reading-v1, only its factors supply personal interpretations. State
+period dates as facts, without adding an unsupplied meaning for Ketu/Jupiter/etc.
+Practical examples are hypothetical options, not claims about this user's habits,
+preferences or abilities. Keep the source theme distinct from observed user facts.
+
+Normal chart, all-position and image requests retain the existing default output,
+all nine positions and IMAGE_URL contract. Do not combine --reading-topic with
+--full or --legacy-full. Emotional-only and casual messages need no calculation.
+The topic packet makes no network or LLM calls of its own. It requires the primary
+Swiss Ephemeris chart; it refuses conflicting or incomplete positions. Dependencies
+and timezone data must be installed at image build time; no runtime installation or
+silent IST timezone fallback is used.
+Normal calculations also stop on a missing/failed primary engine rather than
+silently switching conventions. --legacy-full remains an explicit legacy operation;
+KUNDLI_ALLOW_LEGACY_FALLBACK=1 is for deliberate legacy diagnostics, not production
+topic readings. Reviewed topic readings reject that fallback even when enabled.
+The existing lunar-node default remains true. --node-convention mean is an explicit
+comparison option when the other provider uses mean Rahu/Ketu. The returned settings
+and fingerprint include this choice. Never silently mix either convention into a
+saved reading; a comparison also needs the same ayanamsa and house system.
+
+For confirmed coordinates outside the local city catalogue, pass `--latitude`
+and `--longitude` together. Global geocoding must resolve to one location; ask
+for city, region and country if ambiguous. An explicitly confirmed birth UTC
+offset can be passed with `--utc-offset` (hours, e.g. -5 or 5.5) to resolve a DST
+overlap. Never infer an offset merely to silence a timezone error.
+
+The image enables a bounded natal-only SQLite cache in the private state directory
+with `KUNDLI_NATAL_CACHE_PATH`. It keys the UTC birth instant, coordinates, node,
+engine, calculator revision and ephemeris files. It contains no user IDs or reply
+text. Current dashas and reading timestamps are refreshed on every request; never
+cache the complete topic packet as a timeless reading. Invalid/expired cache data
+is recomputed; storage failure does not substitute a chart.
 
 This skill allows you to calculate a Vedic Astrology birth chart (Kundli) for a user based on their birth details.
 
@@ -37,9 +101,9 @@ When generating Kundli chart images, you MUST:
 - DO NOT modify, wrap, or reformat the `IMAGE_URL:` line in any way
 - Simply include the full `IMAGE_URL: <url>` line verbatim in your response
 
-**CRITICAL: ALWAYS check MongoDB API FIRST for birth details, Mem0 as reliable fallback**
+**Birth lookup when confirmed backend/session details are incomplete**
 
-For EVERY user message related to Kundli:
+Only when needed details are missing or conflicting, use this lookup workflow:
 1. **FIRST** check MongoDB API for existing birth details (FAST! 5-20ms):
    ```bash
    # Try MongoDB (5 second timeout - don't wait forever if slow)
@@ -54,14 +118,14 @@ For EVERY user message related to Kundli:
    if [ -n "$DOB" ] && [ -n "$TOB" ] && [ -n "$PLACE" ]; then
        echo "Found birth data in MongoDB: DOB=$DOB, TOB=$TOB, Place=$PLACE"
    ```
-2. **FALLBACK** If MongoDB doesn't have complete data, check Mem0 (ALWAYS works!):
+2. **FALLBACK** If MongoDB doesn't have complete data, check Mem0 once; either service can be unavailable:
    ```bash
    else
        echo "MongoDB incomplete or unavailable - checking Mem0..."
        python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
    fi
    ```
-3. Only ask for birth details if NOT found in either MongoDB or Mem0
+3. Ask only for missing or conflicting details. Failed lookups do not prove details were never supplied.
 4. When user provides birth details, **IMMEDIATELY** store them in BOTH MongoDB AND Mem0:
    ```bash
    # Save to MongoDB user_metadata (for fast lookup next time)
@@ -143,24 +207,31 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py --lagna "T
 - `--user-id`: User ID to store the generated chart against and return the correct webhook URL.
 
 ## Output
-The calculate.py tool returns a detailed JSON object containing:
-- **metadata**: Echoes input and provides GPS coordinates.
+The default calculate.py response contains `summary`, `ai_summary`, `lagna`, `moon_sign`, `nakshatra`, and `user_input`:
+- **user_input**: Echoes input, coordinates, timezone offset, and calculation engine.
 - **lagna**: The Ascendant sign.
 - **moon_sign**: The Rashi sign.
 - **nakshatra**: The Moon's birth star (Janma Nakshatra). This is ALWAYS the Moon's Nakshatra. Do NOT use the nakshatra of any other planet (e.g. Saturn in House 1) as the birth Nakshatra.
-- **panchang**: Tithi, Yoga, Karana, Weekday.
-- **planets**: A list of all planets and their positions.
-- **dashas**: Current Vimshottari Mahadasha and Antardasha.
+- **ai_summary.planet_positions**: All nine placements, formatted for the existing image tool.
+- **summary.current_dasha**: Current Vimshottari Mahadasha and Antardasha.
+
+With `--full`, the Swiss Ephemeris path also returns numeric `planet_positions`, date-specific `ayanamsa`, and `dashas.current.mahadashas`. Vimshottari uses the birth Moon position, its remaining period balance, and a 365.25-day year. Period timestamps are UTC.
+
+Extended legacy data, including panchanga, is optional and lives under `supplemental_jyotishganit`. It uses independent calculation conventions: never substitute its signs or dashas for the primary summary or combine the two charts into one reading. If that engine fails, `supplemental_error` explains why the extra data is absent; the primary chart remains usable. On the jyotishganit fallback path, the full raw chart belongs to that engine instead, as indicated by `user_input.ephemeris_used`.
+
+Calculation failures return error JSON and a nonzero process exit. Do not interpret missing fields as zero positions or invent a chart after failure. `12:00` is accepted as noon in 24-hour notation; `00:00` is midnight.
 
 The draw_kundli_traditional.py tool creates and returns a visual Kundli chart image file.
 
 ## Guidelines for Interpretation
-1. **Lagna**: This is the most important part of the self. Interpret the 1st house based on this.
-2. **Moon Sign (Rashi)**: Represents the mind and emotions.
-3. **Dashas**: These determine "when" things happen. Always check the current Mahadasha before giving predictions.
-4. **Remedies**: Use the Qdrant knowledge base to suggest remedies based on the planetary placements you find in the calculation.
+1. **Lagna and Moon**: State calculated placements accurately. Use only reviewed evidence for personal interpretations; sign labels alone do not establish personality or emotions.
+2. **Dashas**: Dates describe calculated period boundaries. Without separately evaluated timing evidence, they cannot establish when a job, marriage or other event will happen.
+3. **Limitations**: Do not infer aspects, planetary strength, divisional-chart results, aptitude or partner traits from unevaluated data.
+4. **Remedies**: When relevant or requested, use one targeted retrieval for optional low-risk traditional practices. Respect the user's beliefs and avoid guaranteed outcomes.
 
 ## Image Generation Policy
 - This skill generates **ONLY astrology-related images** (Kundli charts, birth charts, horoscope diagrams)
 - It will NOT generate any other types of images
-- All chart images are generated using Gemini 3 Pro Image (Nano Banana Pro) via GEMINI_API_KEY
+- `draw_kundli_traditional.py` draws the verified placements locally with Pillow; it does not require an image-model API key.
+
+Full-output compatibility: `--full` includes legacy raw fields such as `d1Chart` and `panchanga` as aliases, with engine provenance in `field_sources`. These aliases use jyotishganit's conventions; the primary summary, planets and dashas remain Swiss-based. Use `--legacy-full` when a consumer requires only the original jyotishganit raw schema. It fails explicitly if that engine is unavailable.

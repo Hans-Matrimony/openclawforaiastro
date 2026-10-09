@@ -10,7 +10,7 @@ metadata:
 
 # Mongo Logger - Chat Transcript Storage & Context
 
-**🚨 PRIORITY SKILL: MUST be checked FIRST for EVERY user message**
+**Priority history skill. The astrologer-specific retrieval policy below takes precedence for that agent; logging remains unchanged.**
 
 Use this skill to:
 1. **Fetch conversation history** for personalized context
@@ -18,7 +18,17 @@ Use this skill to:
 
 It talks to the `openclaw_mongo_logger` service via its API.
 
-## 🚨 MANDATORY WORKFLOW FOR ALL USER MESSAGES
+## Astrologer retrieval policy
+
+For the `astrologer` agent only, follow the current workspace's conditional history rules instead of the default retrieval workflow below:
+
+- Use the current session when it already resolves the user's request. Skip history retrieval for self-contained greetings, thanks, and acknowledgements.
+- For unresolved references such as "aur batao", "that", or "what should I reply", retrieve enough history to identify the topic before answering. Start with 5 messages for greeting context, 10-15 for ordinary follow-ups, or 20 for timing continuity.
+- Expand to 40 when a disputed prediction or complex follow-up needs older context. If still unresolved or retrieval fails, ask one focused clarification; never invent prior facts or dates.
+- Preserve user ID isolation, the selected language, and respectful address. Personalization is optional when it adds no useful information.
+- Skipping retrieval does not skip transcript logging. Keep all existing logging rules and commands below. Other agents retain the default retrieval workflow.
+
+## Default retrieval workflow for other agents
 
 For EVERY incoming user message, you MUST:
 
@@ -45,7 +55,7 @@ For EVERY incoming user message, you MUST:
 
 ## Commands
 
-### Fetch Conversation History (DO THIS FIRST!)
+### Fetch Conversation History
 
 ```bash
 # Fetch recent messages for context
@@ -89,7 +99,7 @@ python3 ~/.openclaw/skills/mongo_logger/logger_client.py log \
 
 ### For Personalized Responses:
 
-1. **ALWAYS check conversation history first** - This makes you feel like a caring friend who remembers!
+1. **Use the applicable retrieval workflow** - astrologer uses conditional retrieval above; other agents keep the default history-first behavior.
 2. **Reference past topics naturally**: "Pichli baar jo problem bola tha..."
 3. **Follow up on concerns**: "Wo stress issue kaisa hai ab?"
 4. **Be emotionally aware**: If they shared problems before, ask how they're doing

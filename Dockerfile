@@ -20,7 +20,11 @@ RUN npm init -y
 RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
-RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client \
+    pyswisseph==2.10.3.2 timezonefinder==9.0.0 tzdata==2026.4 --break-system-packages
+
+# Verify the reading engine at build time rather than installing during a chat.
+RUN python3 -c "import swisseph; from timezonefinder import TimezoneFinder; from zoneinfo import ZoneInfo; assert TimezoneFinder().timezone_at(lat=28.6139, lng=77.209); ZoneInfo('Asia/Kolkata'); assert len(swisseph.calc_ut(2451545.0, swisseph.MOON)[0]) == 6"
 
 # ❌ REMOVE UI BUILD (this was breaking everything)
 
@@ -53,6 +57,14 @@ COPY openclaw.json /app/.openclaw/
 COPY config/ /app/.openclaw/config/
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
+COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
+COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_language.py \
+    skills/kundli/render_reading.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
+    skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
+    /app/bootstrap/skills/kundli/
+COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md /app/bootstrap/workspace-astrologer/
+COPY .pi/prompts/astrologer.md /app/bootstrap/.pi/prompts/astrologer.md
+COPY scripts/bootstrap-astrology-assets.mjs /app/bootstrap-astrology-assets.mjs
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
