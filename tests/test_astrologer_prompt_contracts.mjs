@@ -2,16 +2,17 @@
 // Run with: node --test tests/test_astrologer_prompt_contracts.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 const workspace = "app/whatsapp-support/workspace-astrologer/";
 const docs = Object.fromEntries(
-  ["AGENTS", "SOUL", "TOOLS", "WORKFLOW", "GUARDRAILS", "KUNDLI_RESPONSE"].map(
-    (name) => [name, read(`${workspace}${name}.md`)],
-  ),
+  ["AGENTS", "SOUL", "TOOLS", "WORKFLOW", "GUARDRAILS", "KUNDLI_RESPONSE"].map((name) => [
+    name,
+    read(`${workspace}${name}.md`),
+  ]),
 );
 const prompt = read(".pi/prompts/astrologer.md");
 const memory = read("skills/mem0/SKILL.md");
@@ -24,25 +25,48 @@ test("concise defaults remain soft for complete multi-part and multilingual answ
   assert.match(docs.AGENTS, /copyable drafts, and safety-critical guidance/);
   assert.match(docs.AGENTS, /Never truncate an answer, URL, media marker, or tool arguments/);
   for (const text of [prompt, ...Object.values(docs)]) {
-    assert.doesNotMatch(text, /Use 3-5 bubbles maximum|normal 3-4 bubbles|Always \(3 bubbles|max 25 words|cap it at 3 chart points/);
+    assert.doesNotMatch(
+      text,
+      /Use 3-5 bubbles maximum|normal 3-4 bubbles|Always \(3 bubbles|max 25 words|cap it at 3 chart points/,
+    );
   }
 });
 
 test("factual replies can end without filler while interpretations retain a remedy", () => {
-  assert.match(docs.AGENTS, /Remedies are optional: offer one only when requested or clearly useful, safe, and supported/);
-  assert.match(docs.AGENTS, /bare chart facts, detail collection, and media delivery need no remedy/);
+  assert.match(
+    docs.AGENTS,
+    /Remedies are optional: offer one only when requested or clearly useful, safe, and supported/,
+  );
+  assert.match(
+    docs.AGENTS,
+    /bare chart facts, detail collection, and media delivery need no remedy/,
+  );
   assert.match(docs.AGENTS, /Respect beliefs and refusal/);
-  assert.match(docs.KUNDLI_RESPONSE, /Bare rashi\/lagna\/nakshatra\/dasha\/position answers need no separate opener/);
+  assert.match(
+    docs.KUNDLI_RESPONSE,
+    /Bare rashi\/lagna\/nakshatra\/dasha\/position answers need no separate opener/,
+  );
 });
 
 test("reading confidence is scoped to astrology and still requires evidence", () => {
-  const policy = prompt.split("**Astrology-only confidence and evidence policy:**")[1]?.split("**Close-friend tone:**")[0];
+  const policy = prompt
+    .split("**Astrology-only confidence and evidence policy:**")[1]
+    ?.split("**Close-friend tone:**")[0];
   assert.ok(policy);
-  assert.match(policy, /never to friend-only conversation, identity, pricing, payment, media delivery or the test-number Tarot flow/);
-  assert.match(policy, /takes precedence over older Qdrant-only knowledge rules and example predictions/);
-  assert.match(policy, /An earlier assistant answer or style example is not evidence/);
+  assert.match(
+    policy,
+    /never to friend-only conversation, identity, pricing, payment, media delivery or the test-number Tarot flow/,
+  );
+  assert.match(
+    policy,
+    /takes precedence over older Qdrant-only knowledge rules and example predictions/,
+  );
+  assert.match(policy, /Earlier assistant prose\/examples are not evidence/);
   assert.match(policy, /not a proven trait or promised event/);
-  assert.match(policy, /No invented dates, probabilities, strength, transits, spouse traits, loyalty or certainty/);
+  assert.match(
+    policy,
+    /No invented dates, probabilities, strength, transits, spouse traits, loyalty or certainty/,
+  );
   assert.match(policy, /Friend behaviour remains unchanged/);
   assert.match(docs.KUNDLI_RESPONSE, /friend-only flow is unchanged/);
 });
@@ -70,7 +94,10 @@ test("ambiguous and disputed follow-ups expand history without disabling logging
 });
 
 test("identity reuse keeps partner details separate and preserves both personas", () => {
-  assert.match(prompt, /Never infer gender from a name, a quoted message, or a partner\/family profile/);
+  assert.match(
+    prompt,
+    /Never infer gender from a name, a quoted message, or a partner\/family profile/,
+  );
   assert.match(prompt, /\*\*Male\*\* \| \*\*MEERA\*\*/);
   assert.match(prompt, /\*\*Female\*\* \| \*\*AARAV\*\*/);
   assert.match(prompt, /\*\*Unknown\*\* \| \*\*MEERA\*\*/);

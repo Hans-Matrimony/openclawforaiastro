@@ -108,6 +108,18 @@ test("confidence cannot be replaced by forced verdicts, invented windows or fixe
   );
 });
 
+test("relationship limits remain concise without dismissing supported relationship themes", () => {
+  assert.match(policy, /ordinary, kind language, not lectures about free will/);
+  assert.match(policy, /Unke baat karne ka waqt aapki kundli se tay nahi hota/);
+  assert.match(policy, /Explain missing analysis once in everyday words/);
+  assert.match(policy, /Do not dismiss a new-relationship question as private mind-reading/);
+  assert.match(policy, /without promising someone will arrive/);
+  assert.match(
+    policy,
+    /A placement-only topic packet supports its supplied traditional themes, not an event verdict or a timing window/,
+  );
+});
+
 test("release bootstrap and the default loader deliver the real policy without replacing friend files", (t) => {
   const prefix = path.join(os.tmpdir(), "astro-policy-");
   const directory = fs.mkdtempSync(prefix);
@@ -168,14 +180,14 @@ function fixture() {
 test("only the astrology section is delivered, with direct positive and adverse conclusions", () => {
   assert.match(policy, /positive, adverse, delayed, mixed, conditional or unsupported/);
   assert.match(policy, /Strong evaluated support permits "yes, this is likely"/);
-  assert.match(policy, /Weak or adverse evaluated support/);
+  assert.match(policy, /State weak\/adverse support clearly/);
   assert.match(policy, /Lack of evidence is not evidence that an event will never happen/);
   assert.match(policy, /Kindness is tone, not a positive forecast/);
   assert.match(policy, /not inferred distress or a separate comfort bubble/);
   assert.match(policy, /Do not append "what worries you\?" or another generic question/);
-  assert.match(policy, /Do not add a Moon\/sign personality claim/);
+  assert.match(policy, /No invented personality, pain or support invitation/);
   assert.match(policy, /Do not append stock lines such as "pakki date nahi hai"/);
-  assert.match(policy, /Do not dilute the conclusion with a separate disclaimer bubble/);
+  assert.match(policy, /No separate disclaimer bubble/);
   assert.match(policy, /If evidence is actually missing, conflicting or conditional/);
   assert.match(policy, /send only the short question and stop/);
   assert.doesNotMatch(policy, /Close-friend tone:|MODEL 2|Name:|Janam Tithi:/);
