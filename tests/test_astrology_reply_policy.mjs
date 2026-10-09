@@ -35,6 +35,8 @@ test("the shipped confidence policy fits the loader with editing headroom", () =
   assert.match(policy, /conflicting friendship\/engagement instructions/);
   assert.match(policy, /Never suppress a needed clarification just to sound confident/);
   assert.match(policy, /Keep conditional traditional candidates conditional/);
+  assert.match(policy, /00:00 and 12:00 are valid times, not presumed placeholders/);
+  assert.match(policy, /Do not re-ask a complete usable birth profile/);
 });
 
 test("loader boundaries accept 8000 characters but reject larger policies and oversized Unicode sources", () => {
