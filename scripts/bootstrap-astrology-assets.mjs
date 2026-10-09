@@ -12,6 +12,7 @@ export const ASTROLOGY_ASSETS = [
     "period_rules.py",
     "period_rules.json",
     "outcome_language.py",
+    "topic_wording.py",
     "render_outcome_reading.py",
     "reading_provider.py",
     "timing_context.py",

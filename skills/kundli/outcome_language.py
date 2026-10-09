@@ -78,9 +78,9 @@ EDUCATION_OPTIONS = {
 
 def hinglish_theme(factor, *, topic=None, include_advice=True):
     if factor['source'] == 'local_house_symbolism':
-        label = f'{topic} ki general house reading' if topic else 'general house reading'
-        text = ('Aapki ' + label + ' mein '
-                + HINGLISH_HOUSES[factor['fact']['house']] + ' ka theme hai.')
+        from topic_wording import topic_house_wording
+        text = (topic_house_wording(topic, factor['fact']['house'], True) if topic else
+                'Is placement ka sambandh ' + HINGLISH_HOUSES[factor['fact']['house']] + ' se hai.')
         if topic == 'education' and include_advice:
             text += ' ' + EDUCATION_OPTIONS[factor['fact']['house']][1]
         return text
@@ -94,8 +94,9 @@ def hinglish_theme(factor, *, topic=None, include_advice=True):
 def english_theme(factor, *, topic=None, include_advice=True):
     if factor['source'] == 'local_house_symbolism':
         from reading import HOUSE_SYMBOLS
-        label = f'For {topic}, your broader house reading' if topic else 'Your broader house reading'
-        text = label + ' highlights ' + HOUSE_SYMBOLS[factor['fact']['house']] + '.'
+        from topic_wording import topic_house_wording
+        text = (topic_house_wording(topic, factor['fact']['house']) if topic else
+                'This placement connects with ' + HOUSE_SYMBOLS[factor['fact']['house']] + '.')
         if topic == 'education' and include_advice:
             text += ' ' + EDUCATION_OPTIONS[factor['fact']['house']][0]
         return text
