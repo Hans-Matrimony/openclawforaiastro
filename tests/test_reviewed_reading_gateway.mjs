@@ -107,6 +107,15 @@ void test(
     await fs.cp(path.join(root, "skills/kundli"), path.join(state, "skills/kundli"), {
       recursive: true,
     });
+    // The reading module imports the adapter even with the provider disabled.
+    // Copy its code, never a local env file or provider credentials.
+    await fs.mkdir(path.join(state, "skills/vedastro"), { recursive: true });
+    for (const file of ["natal_client.py", "vedastro_client.py"]) {
+      await fs.copyFile(
+        path.join(root, "skills/vedastro", file),
+        path.join(state, "skills/vedastro", file),
+      );
+    }
     const configPath = path.join(state, "openclaw.json");
     await fs.writeFile(
       configPath,
@@ -133,7 +142,13 @@ void test(
       process.execPath,
       [entry, "gateway", "--port", String(port), "--bind", "loopback"],
       {
-        env: { ...process.env, OPENCLAW_STATE_DIR: state, OPENCLAW_CONFIG_PATH: configPath },
+        env: {
+          ...process.env,
+          OPENCLAW_STATE_DIR: state,
+          OPENCLAW_CONFIG_PATH: configPath,
+          KUNDLI_NATAL_CACHE_PATH: path.join(state, "cache/kundli.sqlite3"),
+          VEDASTRO_READING_MODE: "off",
+        },
         stdio: ["ignore", "ignore", "ignore"],
         windowsHide: true,
       },
@@ -208,7 +223,7 @@ void test(
         const input = { dob: "2002-02-16", tob: "08:19", place: "Delhi", topic, language, intent };
         const response = await request("POST", input);
         const result = await response.json();
-        assert.equal(response.status, 200);
+        assert.equal(response.status, 200, result.error ?? "Synthetic reading failed");
         assert.equal(validReadingResult(result, input), true);
         assert.equal(result.evidence.chart_facts.lagna, "Aquarius");
         fingerprints.add(result.evidence.input_fingerprint);
