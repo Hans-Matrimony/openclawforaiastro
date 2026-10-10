@@ -621,7 +621,10 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          accept-android-sdk-licenses: false
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+          # Google no longer serves the legacy "tools" package in v3's defaults.
+          packages: platform-tools
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -630,7 +633,6 @@ jobs:
 
       - name: Install Android SDK packages
         run: |
-          yes | sdkmanager --licenses >/dev/null
           sdkmanager --install \
             "platform-tools" \
             "platforms;android-36" \

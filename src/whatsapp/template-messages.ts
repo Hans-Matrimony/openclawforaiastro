@@ -193,7 +193,7 @@ export const ASTROLOGY_TEMPLATES = {
   RE_ENGAGEMENT_EN: {
     name: "astrology_re_engagement_01",
     language: "en",
-    getComponents: (userName: string) => [
+    getComponents: (userName: string): TemplateComponent[] => [
       {
         type: "body",
         parameters: [
@@ -213,7 +213,7 @@ export const ASTROLOGY_TEMPLATES = {
   APPOINTMENT_REMINDER_EN: {
     name: "astrology_appointment_reminder",
     language: "en",
-    getComponents: (date: string, time: string) => [
+    getComponents: (date: string, time: string): TemplateComponent[] => [
       {
         type: "body",
         parameters: [
@@ -234,7 +234,7 @@ export const ASTROLOGY_TEMPLATES = {
   FOLLOW_UP_UPDATE_EN: {
     name: "astrology_follow_up_01",
     language: "en",
-    getComponents: (topic: string, update: string) => [
+    getComponents: (topic: string, update: string): TemplateComponent[] => [
       {
         type: "body",
         parameters: [
@@ -255,7 +255,7 @@ export const ASTROLOGY_TEMPLATES = {
   CHECK_IN_EN: {
     name: "astrology_check_in",
     language: "en",
-    getComponents: (userName: string) => [
+    getComponents: (userName: string): TemplateComponent[] => [
       {
         type: "body",
         parameters: [

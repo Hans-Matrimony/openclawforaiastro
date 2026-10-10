@@ -456,6 +456,8 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  extensions/reviewed-reading: {}
+
   extensions/signal:
     devDependencies:
       openclaw:
