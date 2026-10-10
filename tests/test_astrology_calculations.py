@@ -115,8 +115,14 @@ class CalculationTests(unittest.TestCase):
         for place in ('Delhi, India', '  DELHI ,  India ', 'New Delhi, Delhi, India'):
             self.assertEqual(original.get_coordinates(place), (28.6139, 77.209))
         self.assertEqual(original.get_coordinates('Meerut, Uttar Pradesh, India'), (28.9845, 77.7064))
+        for place in ('Bengaluru', 'Bangalore', 'Bengaluru, India', 'Bangalore, India',
+                      'Bengaluru, Karnataka, India', 'Bangalore, Karnataka, India',
+                      '  BENGALURU , Karnataka ,  India '):
+            self.assertEqual(original.get_coordinates(place), (12.9716, 77.5946))
         geocoder.geocode.assert_not_called()
-        for place in ('Delhi, Canada', 'Delhi, Ontario, Canada', 'Meerut, Unknown Region, India'):
+        for place in ('Delhi, Canada', 'Delhi, Ontario, Canada', 'Meerut, Unknown Region, India',
+                      'Bengaluru, Canada', 'Bengaluru, Unknown Region, India',
+                      'Bangalore, Unknown Region, India'):
             with self.assertRaisesRegex(ValueError, 'not uniquely resolved'):
                 original.get_coordinates(place)
 
