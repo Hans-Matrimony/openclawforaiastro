@@ -98,7 +98,8 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
     current = assessment['current_period']
     windows = assessment['event']['windows']
     timing_limit = None
-    if intent == 'overview' and assessment['conclusion']['status'] == 'limited' and style == 'detailed':
+    if (intent == 'overview' and assessment['conclusion']['status'] == 'limited'
+            and style == 'detailed' and not packet['factors']):
         paragraphs.append('Kundli ke in sanketon se abhi koi saaf anukool ya pratikool nateeja nahi nikalta.'
                           if hinglish else 'These chart indications do not point clearly to a favorable or adverse outcome.')
     if intent == 'timing':

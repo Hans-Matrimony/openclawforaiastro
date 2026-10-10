@@ -66,6 +66,16 @@ class WordingQualityTests(unittest.TestCase):
                 if topic=='career' and language=='hinglish':
                     self.assertTrue(standard['text'].startswith('Career mein '))
 
+    def test_detailed_direction_keeps_factors_without_an_empty_generic_prelude(self):
+        for topic in ('career', 'education', 'finance'):
+            for language in ('english', 'hinglish'):
+                result = render_reading(reference_chart(), topic, as_of_utc=WHEN,
+                                        language=language, style='detailed')
+                self.assertTrue(result['evidence']['factors'])
+                self.assertFalse(result['text'].startswith('These chart indications do not point clearly'))
+                self.assertFalse(result['text'].startswith('Kundli ke in sanketon se abhi koi saaf'))
+                self.assertIn('house' if language == 'english' else 'ghar', result['text'])
+
     def test_concise_timing_keeps_primary_secondary_and_opposing_reasons(self):
         for language in ('english','hinglish'):
             standard=render_reading(reference_chart(),'marriage',as_of_utc=WHEN,language=language,intent='timing',style='standard')
