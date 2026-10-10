@@ -31,7 +31,7 @@ THEMES = {
     12: ('distance, reflection and private time', 'door ki jagahon, soch-vichar aur apne liye waqt'),
 }
 LABELS = {
-    2: ('resources', 'resources'), 5: ('learning and romance', 'padhai aur romance'),
+    2: ('earnings', 'kamai'), 5: ('learning and romance', 'padhai aur romance'),
     7: ('partnerships', 'rishton'), 9: ('higher learning', 'aage ki padhai'),
     10: ('career', 'career'), 11: ('networks and gains', 'network aur gains'),
 }
@@ -67,7 +67,7 @@ def assess_topic(lagna, positions, topic):
             'transits': 'not_evaluated', 'windows': []}
 
 
-def render_topic(assessment, topic, language, intent):
+def render_topic(assessment, topic, language, intent, *, legacy=False):
     if topic not in TOPICS or language not in ('english', 'hinglish') or intent not in INTENTS:
         raise ValueError('Unsupported topic reading')
     if intent == 'contact' and topic != 'relationship':
@@ -77,12 +77,21 @@ def render_topic(assessment, topic, language, intent):
     if intent == 'contact':
         paragraphs.append('Unke reply ka din aapki kundli se tay nahi hota. Aapki apni relationship reading mein yeh sandarbh milta hai:' if hi else
                           "Your chart cannot establish when they will reply. Your own relationship reading provides this context:")
-    factors = assessment['factors'][1:2] if intent == 'detail' else assessment['factors'][:1 if intent in ('overview', 'brief', 'contact') else 2]
+    timing_limit = ('Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.' if hi else
+                    'This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.')
+    if intent == 'timing' and not legacy:
+        paragraphs.append(timing_limit)
+    # Contact concerns the user's partnerships, not the arrival of somebody new.
+    factors = assessment['factors'][1:2] if intent in ('detail', 'contact') else assessment['factors'][:1]
+    if legacy:
+        factors = assessment['factors'][1:2] if intent == 'detail' else assessment['factors'][:1 if intent in ('overview', 'brief', 'contact') else 2]
     for f in factors:
         target, house = f['rules_house'], f['house']
         # The fifth house is used for learning or romance according to the topic.
         label = ('romance', 'romance') if target == 5 and topic in ('relationship', 'marriage') else (
             ('learning', 'padhai') if target == 5 else LABELS[target])
+        if legacy and target == 2:
+            label = ('resources', 'resources')
         theme = FOCUSED_THEMES.get((topic, target, house))
         if hi:
             meaning = theme[1] if theme else f"Aapki {label[1]} ki reading ka sambandh {THEMES[house][1]} se dikhta hai."
@@ -92,9 +101,8 @@ def render_topic(assessment, topic, language, intent):
             meaning = theme[0] if theme else f"Your {label[0]} reading connects with {THEMES[house][0]}."
             paragraphs.append(meaning + ' ' +
                               f"This is based on {f['planet']}, ruler of house {target}, being in house {house}.")
-    if intent == 'timing':
-        paragraphs.append('Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.' if hi else
-                          'This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.')
+    if intent == 'timing' and legacy:
+        paragraphs.append(timing_limit)
     return '\n\n'.join(paragraphs)
 
 
@@ -124,6 +132,10 @@ def validate_topic_result(result, request, now=None):
         if stamp.tzinfo is None or not -30 <= (now - stamp).total_seconds() <= 120:
             return False
         expected = assess_topic(e['lagna'], e['positions'], request['topic'])
-        return e['assessment'] == expected and result['text'] == render_topic(expected, request['topic'], request['language'], request['intent'])
+        # Roll out the validator first. Both exact reviewed renderings bind the
+        # same evidence, so the previous server remains usable during rollout.
+        approved = [render_topic(expected, request['topic'], request['language'], request['intent'], legacy=old)
+                    for old in (False, True)]
+        return e['assessment'] == expected and result['text'] in approved
     except (KeyError, ValueError, TypeError, AttributeError, OverflowError):
         return False

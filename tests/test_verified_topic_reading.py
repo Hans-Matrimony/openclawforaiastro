@@ -31,6 +31,10 @@ class VerifiedTopicTests(unittest.TestCase):
                         self.assertNotIn('2027', r['text'])
             r = render_verified_topic(c, 'relationship', intent='contact')
             self.assertIn('cannot establish when they will reply', r['text'])
+            self.assertNotIn('new connections', r['text'])
+            self.assertIn('ruler of house 7', r['text'])
+            r = render_verified_topic(c, 'relationship', intent='timing')
+            self.assertTrue(r['text'].startswith('This reading has not assessed'))
 
     def test_corruption_stale_future_and_cross_birth_are_rejected(self):
         c = chart()

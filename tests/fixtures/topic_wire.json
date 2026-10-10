@@ -18,7 +18,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.933117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.294820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -114,7 +114,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.\n\nYour partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "text": "This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.\n\nYour romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
       "language": "english",
       "intent": "timing",
       "evidence": {
@@ -122,7 +122,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.294820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -226,7 +226,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.294820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -330,7 +330,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.294820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -426,7 +426,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your chart cannot establish when they will reply. Your own relationship reading provides this context:\n\nYour romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "text": "Your chart cannot establish when they will reply. Your own relationship reading provides this context:\n\nYour partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.",
       "language": "english",
       "intent": "contact",
       "evidence": {
@@ -434,7 +434,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -538,7 +538,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -634,7 +634,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.\n\nAapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "text": "Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.\n\nAapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
       "language": "hinglish",
       "intent": "timing",
       "evidence": {
@@ -642,7 +642,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -746,7 +746,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -850,7 +850,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -946,7 +946,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Unke reply ka din aapki kundli se tay nahi hota. Aapki apni relationship reading mein yeh sandarbh milta hai:\n\nAapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "text": "Unke reply ka din aapki kundli se tay nahi hota. Aapki apni relationship reading mein yeh sandarbh milta hai:\n\nAapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.",
       "language": "hinglish",
       "intent": "contact",
       "evidence": {
@@ -954,7 +954,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "relationship",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1058,7 +1058,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.295820+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1154,7 +1154,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your career reading connects with family, resources and communication. This is based on Mars, ruler of house 10, being in house 2.\n\nYour resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "text": "This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.\n\nYour career reading connects with family, resources and communication. This is based on Mars, ruler of house 10, being in house 2.",
       "language": "english",
       "intent": "timing",
       "evidence": {
@@ -1162,7 +1162,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.296817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1266,7 +1266,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.296817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1362,7 +1362,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
+      "text": "Your earnings reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
       "language": "english",
       "intent": "detail",
       "evidence": {
@@ -1370,7 +1370,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.296817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1474,7 +1474,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.296817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1570,7 +1570,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki career ki reading ka sambandh family, resources aur bol-chaal se dikhta hai. Iska aadhar dasve ghar ke swami Mangal ka doosre ghar mein hona hai.\n\nAapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "text": "Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.\n\nAapki career ki reading ka sambandh family, resources aur bol-chaal se dikhta hai. Iska aadhar dasve ghar ke swami Mangal ka doosre ghar mein hona hai.",
       "language": "hinglish",
       "intent": "timing",
       "evidence": {
@@ -1578,7 +1578,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.296817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1682,7 +1682,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.296817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1778,7 +1778,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "text": "Aapki kamai ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
       "language": "hinglish",
       "intent": "detail",
       "evidence": {
@@ -1786,7 +1786,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "career",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.297817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1890,7 +1890,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.297817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -1986,7 +1986,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your learning reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.\n\nYour higher learning reading connects with personal initiative and your own priorities. This is based on Venus, ruler of house 9, being in house 1.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "text": "This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.\n\nYour learning reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
       "language": "english",
       "intent": "timing",
       "evidence": {
@@ -1994,7 +1994,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.297817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2098,7 +2098,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.297817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2202,7 +2202,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.297817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2306,7 +2306,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.297817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2402,7 +2402,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki padhai ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.\n\nAapki aage ki padhai ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar nauve ghar ke swami Shukra ka pehle ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "text": "Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.\n\nAapki padhai ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
       "language": "hinglish",
       "intent": "timing",
       "evidence": {
@@ -2410,7 +2410,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2514,7 +2514,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2618,7 +2618,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "education",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2722,7 +2722,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2818,7 +2818,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.\n\nYour romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "text": "This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.\n\nYour partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.",
       "language": "english",
       "intent": "timing",
       "evidence": {
@@ -2826,7 +2826,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -2930,7 +2930,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3034,7 +3034,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.298817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3138,7 +3138,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3234,7 +3234,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.\n\nAapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "text": "Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.\n\nAapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.",
       "language": "hinglish",
       "intent": "timing",
       "evidence": {
@@ -3242,7 +3242,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3346,7 +3346,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3450,7 +3450,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "marriage",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3546,7 +3546,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
+      "text": "Your earnings reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
       "language": "english",
       "intent": "overview",
       "evidence": {
@@ -3554,7 +3554,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3650,7 +3650,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.\n\nYour networks and gains reading connects with learning and creative expression. This is based on Jupiter, ruler of house 11, being in house 5.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "text": "This reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.\n\nYour earnings reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
       "language": "english",
       "intent": "timing",
       "evidence": {
@@ -3658,7 +3658,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3754,7 +3754,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
+      "text": "Your earnings reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
       "language": "english",
       "intent": "brief",
       "evidence": {
@@ -3762,7 +3762,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.299817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3866,7 +3866,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.300817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -3962,7 +3962,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "text": "Aapki kamai ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
       "language": "hinglish",
       "intent": "overview",
       "evidence": {
@@ -3970,7 +3970,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.300817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -4066,7 +4066,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.\n\nAapki network aur gains ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar gyaarahve ghar ke swami Guru ka paanchve ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "text": "Is reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.\n\nAapki kamai ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
       "language": "hinglish",
       "intent": "timing",
       "evidence": {
@@ -4074,7 +4074,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.300817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -4170,7 +4170,7 @@
     },
     "result": {
       "schema": "reviewed-topic-v1",
-      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "text": "Aapki kamai ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
       "language": "hinglish",
       "intent": "brief",
       "evidence": {
@@ -4178,7 +4178,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.300817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
@@ -4282,7 +4282,7 @@
         "rules_revision": "reviewed-natal-topic-themes-v1",
         "topic": "finance",
         "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
-        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "as_of_utc": "2026-10-10T04:34:06.300817+00:00",
         "settings": {
           "ayanamsa": "LAHIRI",
           "house_system": "whole_sign",
