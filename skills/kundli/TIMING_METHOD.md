@@ -3,6 +3,9 @@
 This service calculates a bounded traditional astrology screen. It is not a
 calibrated event predictor, complete Shadbala implementation or legal timetable.
 The old natal/topic/separation endpoints and raw chart modes stay compatible.
+For user-confirmed existing marriages, the marriage-only `harmony` intent labels
+the same partnership screen as relationship context, not a forecast of a new
+wedding or empirically measured harmony. Remarriage timing needs clarification.
 
 ## Calculations
 

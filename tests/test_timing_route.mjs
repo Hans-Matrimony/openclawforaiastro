@@ -22,6 +22,13 @@ test("timing route binds topics, languages, request and counter schema", () => {
   assert.throws(() =>
     validateTimingInput({ ...rows[0].request, topic: "separation", intent: "contact" }),
   );
+  assert.equal(
+    validateTimingInput({ ...rows[0].request, topic: "marriage", intent: "harmony" }).intent,
+    "harmony",
+  );
+  assert.throws(() =>
+    validateTimingInput({ ...rows[0].request, topic: "career", intent: "harmony" }),
+  );
 });
 test("fixed no-shell timing argv with bounded process and body", async () => {
   const row = rows[0];

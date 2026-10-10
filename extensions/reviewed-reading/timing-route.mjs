@@ -5,6 +5,13 @@ import { createReadingHandler } from "./route.mjs";
 import { validateTopicInput } from "./topic-route.mjs";
 
 export function validateTimingInput(value) {
+  if (value?.intent === "harmony") {
+    if (value.topic !== "marriage") {
+      throw new Error("Harmony is marriage-only");
+    }
+    validateTopicInput({ ...value, intent: "overview" });
+    return value;
+  }
   if (value?.topic === "separation") {
     if (!["overview", "timing", "detail", "brief"].includes(value.intent ?? "overview")) {
       throw new Error("Invalid separation intent");

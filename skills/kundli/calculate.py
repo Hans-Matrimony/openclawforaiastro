@@ -960,7 +960,7 @@ if __name__ == "__main__":
     parser.add_argument('--verified-topic', choices=['career', 'education', 'marriage', 'relationship', 'finance'])
     parser.add_argument('--timing-topic', choices=['career', 'education', 'marriage', 'relationship', 'finance', 'separation'],
                         help='Validated dasha/transit/strength screening with candidate months, not event deadlines')
-    parser.add_argument('--topic-intent', choices=['overview', 'timing', 'contact', 'detail', 'brief'], default='overview')
+    parser.add_argument('--topic-intent', choices=['overview', 'timing', 'contact', 'detail', 'brief', 'harmony'], default='overview')
     parser.add_argument('--node-convention', choices=['true', 'mean'], default='true',
                         help='Lunar node convention (existing default: true)')
     parser.add_argument('--latitude', type=float, help='Confirmed birthplace latitude')

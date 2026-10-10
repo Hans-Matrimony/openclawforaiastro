@@ -32,6 +32,11 @@ class TimingTests(unittest.TestCase):
         self.assertIn('cannot establish their decision', render_timing(row['result']['assessment'], 'relationship', 'english', 'contact'))
         with self.assertRaises(ValueError):
             render_timing(row['result']['assessment'], 'career', 'english', 'contact')
+        marriage = next(r for r in ROWS if r['request']['topic'] == 'marriage')
+        text = render_timing(marriage['result']['assessment'], 'marriage', 'english', 'harmony')
+        self.assertNotIn('for marriage.', text)
+        with self.assertRaises(ValueError):
+            render_timing(row['result']['assessment'], 'career', 'english', 'harmony')
 
     def test_periods_match_existing_convention_and_half_open_boundaries(self):
         birth = datetime(2000, 1, 1, tzinfo=timezone.utc)

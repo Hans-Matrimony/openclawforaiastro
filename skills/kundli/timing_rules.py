@@ -207,10 +207,12 @@ def assess_timing(e, topic):
 
 
 def render_timing(a, topic, language, intent):
-    if language not in ('english', 'hinglish') or intent not in ('overview', 'timing', 'contact', 'detail', 'brief'):
+    if language not in ('english', 'hinglish') or intent not in ('overview', 'timing', 'contact', 'detail', 'brief', 'harmony'):
         raise ValueError('Unsupported timing rendering')
     if intent == 'contact' and topic != 'relationship':
         raise ValueError('Contact is relationship-only')
+    if intent == 'harmony' and topic != 'marriage':
+        raise ValueError('Harmony is marriage-only')
     hi = language == 'hinglish'
     if topic == 'separation':
         opening = {'not_established': (
@@ -255,8 +257,9 @@ def render_timing(a, topic, language, intent):
     candidates = [w for w in a['windows'] if w['kind'] == 'aligned'][:3]
     if candidates and intent != 'contact':
         months = ', '.join(w['month'] for w in candidates)
-        paragraphs.append((f"Dasha, grah-sthiti aur Guru-Shani ke gochar ko saath check karne par {months} mein {LABELS[topic][1]} ke liye paramparik sanket milte hain. Yeh sambhavit maukon ke mahine hain, pakke event ki dates nahi." if hi else
-                           f"The combined period, strength and Jupiter/Saturn transit screen flags {months} for {LABELS[topic][0]}. These are traditional opportunity months, not guaranteed event dates."))
+        label = ('existing marriage harmony', 'vaivahik talmel') if intent == 'harmony' else LABELS[topic]
+        paragraphs.append((f"Dasha, grah-sthiti aur Guru-Shani ke gochar ko saath check karne par {months} mein {label[1]} ke liye paramparik sanket milte hain. Yeh sambhavit maukon ke mahine hain, pakke event ki dates nahi." if hi else
+                           f"The combined period, strength and Jupiter/Saturn transit screen flags {months} for {label[0]}. These are traditional opportunity months, not guaranteed event dates."))
     else:
         reason = ('natal separation ka yog clear nahi hai' if hi else 'a natal separation indication is not established') if topic == 'separation' and a['natal']['status'] != 'separation_indication' else (
             'dasha, gochar aur strength ke sanket ek saath saaf support nahi dete' if hi else
