@@ -44,7 +44,9 @@ def _factor_reason(factor, topic, hinglish, compact=False):
                    'Aapki relationship reading mein ', 'Aapki reading mein '):
         if text.startswith(prefix):
             text = text[len(prefix):]
-            text = text[0].upper() + text[1:]
+            topic_prefix = {'career': 'Career mein ', 'education': 'Padhai mein ',
+                            'marriage': 'Rishte mein ', 'finance': 'Paise ke maamle mein '}[topic]
+            text = topic_prefix + text
             break
     return text.rstrip('.') + ' — ' + _conversational_basis(factor['fact'], hinglish) + '.'
 

@@ -63,6 +63,8 @@ class WordingQualityTests(unittest.TestCase):
                 self.assertNotIn('saaf anukool ya pratikool',standard['text'].split('.')[0])
                 self.assertLessEqual(len(standard['text'].split('\n\n')),2)
                 self.assertIn('house' if language=='english' else 'ghar',standard['text'].split('\n\n')[0])
+                if topic=='career' and language=='hinglish':
+                    self.assertTrue(standard['text'].startswith('Career mein '))
 
     def test_concise_timing_keeps_primary_secondary_and_opposing_reasons(self):
         for language in ('english','hinglish'):
