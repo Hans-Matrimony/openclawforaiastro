@@ -12,7 +12,7 @@ For a personal career, education, marriage or finance reading, use the confirmed
 birth details and one compact call:
 
 ```bash
-python3 ~/.openclaw/skills/kundli/calculate.py --dob "2002-02-16" --tob "08:19" --place "Delhi" --reading-topic career
+python3 ~/.openclaw/skills/kundli/calculate.py --dob "2002-02-16" --tob "08:19" --place "Delhi" --reading-topic career --reading-contract 2
 ```
 
 Choose `career`, `education`, `marriage` or `finance` from the actual question. These example
@@ -20,6 +20,16 @@ birth details are synthetic, never the current user's profile. Read the confirme
 backend/session profile first; fetch MongoDB/Mem0 only for missing or conflicting
 fields. This lookup rule takes priority over the unconditional lookup examples below.
 Save new and corrected details using the existing persistence workflow.
+
+Use `--reading-contract 2` for current personal topic readings, including when
+generating a conversational answer to a mixed emotional and astrology request.
+Obtain one packet per explicitly requested topic. An emotional-only message
+still needs no calculation. Keep the friend response to expressed feelings,
+and use the fresh topic packets for its astrology part. If the current v2
+`prediction_assessment.event.windows` is nonempty, it supplies conditional
+candidate periods: do not say that timing analysis is unavailable. This does
+not turn a candidate into a fixed date. If timing was not asked for, do not
+add an unsolicited timing limitation.
 
 For a v2 reviewed response without generative interpretation, add `--render-reading`,
 `--reading-contract 2` and `--reading-language english|hinglish` to the same topic command.

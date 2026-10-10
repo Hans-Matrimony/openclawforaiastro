@@ -151,9 +151,13 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<ID>" --limi
 3. ✅ Use only the relevant detail; do not mention the lookup.
 
 **STEP 3.5: Calculate Kundli (Only When Astrology Needs It)**
-- For career, education or marriage readings, use calculate.py with the matching
-  `--reading-topic` once to get question-specific verified evidence and current
-  period boundaries together. Follow KUNDLI_RESPONSE.md's evidence rules.
+- For career, education, marriage or finance readings, use calculate.py with the matching
+  `--reading-topic` and `--reading-contract 2` once per requested topic to get
+  question-specific verified evidence, current period boundaries and any
+  reviewed conditional event candidates together. This also applies when the
+  request includes expressed worry; preserve the friend response alongside it.
+  Follow KUNDLI_RESPONSE.md's evidence rules. Use a normal all-position calculation
+  for factual/chart-image requests, not in place of a personal topic assessment.
 - If the backend already supplies a verified calculation with the same confirmed
   subject, birth inputs, settings and current period timestamp, use it for this
   turn. Never reuse stale current periods or a different subject's packet.

@@ -66,8 +66,13 @@ retrying identical inputs. Preserve all existing safety, age and consent boundar
 
 ## Question specific evidence and bounded tools
 
-For career, education or marriage interpretation, run calculate.py once with
-`--reading-topic career`, `--reading-topic education` or `--reading-topic marriage`.
+For career, education, marriage or finance interpretation, run calculate.py once with
+`--reading-topic career`, `--reading-topic education`, `--reading-topic marriage` or `--reading-topic finance`.
+Always include `--reading-contract 2`, including with `--render-reading`, for
+current personal interpretations. In a mixed emotional and astrology request,
+obtain one fresh packet per requested astrology topic and keep the ordinary
+friend response to the expressed feeling. A normal all-position chart output
+or an old v1 interpretation is not a substitute for the current topic assessment.
 The result includes independently checked placements, up to three relevant
 interpretive themes and fresh current dasha boundaries in one compact packet.
 When rendering a reply, use `--reading-style detailed` only for requested chart
@@ -84,7 +89,10 @@ at-most-one-follow-up rules. Do not turn an emotional-only message into a readin
 checked locally. `local_house_symbolism` is general symbolism, not an upstream
 prediction. Neither proves ability, spouse traits, wealth or an event date.
 The supplied current_period dates are period boundaries, not marriage/job/admission
-windows. The packet may also supply calculated sign aspects, D9/D10 placements,
+windows. Separately, a v2 prediction_assessment.event.windows list supplies only
+its explicitly reviewed conditional event candidates. Do not describe timing
+as unavailable when that current list is nonempty; do not add a timing refusal
+when timing was not requested. The packet may also supply calculated sign aspects, D9/D10 placements,
 sign dignity and the uccha-bala component. Use only the supplied facts; none alone
 establishes an event window. If `provider.name` is `vedastro-local`, the packet
 also contains checked native six-component Shadbala with its separate bhava
