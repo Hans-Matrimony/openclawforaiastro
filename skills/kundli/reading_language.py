@@ -23,6 +23,8 @@ HINGLISH_THEMES = {
     'MoonInHouse5': 'Clarity aur reflective learning ka traditional theme hai; study material organize karke understanding review karein, exam marks ki prediction nahi.',
     'MercuryInHouse11': 'Scientific ya technical learning aur applied engineering explore karne ka theme hai; isse koi course ya profession tay nahi hota.',
     'JupiterInHouse4': 'Reflective learning aur philosophical inquiry ka traditional theme hai; concepts samajhne ko explore karein, ise measured ability na maanein.',
+    'MercuryInHouse4': 'Classical source mein education aur diplomatic work ke examples hain; teaching ya communication se jude courses aur roles ko actual interests aur eligibility ke saath explore karein.',
+    'JupiterInHouse1': 'Classical source mein law, teaching, writing aur theology ke work examples hain; inki study aur work pathways ko actual interests aur qualifications se compare karein, beliefs ya success assume kiye bina.',
     'MarsInHouse1': 'Initiative aur practical activity ka traditional theme hai; kisi real project ki zimmedari lena explore karein, talent assume kiye bina.',
     'House2LordInHouse1': 'Personal effort aur learning se earning ka traditional theme hai; actual work aur payment arrangements compare karein.',
 }
@@ -69,6 +71,8 @@ CONVERSATIONAL_THEMES = {
     'MoonInHouse5': ('Clarity and reflection are another traditional study theme.', 'Concepts ko clear karna aur un par sochna padhai ka ek aur traditional theme hai.'),
     'MercuryInHouse11': ('Scientific or technical learning and applied engineering are traditional directions to explore.', 'Scientific ya technical learning aur applied engineering explore karne ka traditional sambandh aata hai.'),
     'JupiterInHouse4': ('Reflective learning and philosophical inquiry are another traditional study theme.', 'Concepts par sochna aur philosophical inquiry padhai ka ek aur traditional theme hai.'),
+    'MercuryInHouse4': ('The classical source gives education and diplomatic work as occupational examples; teaching or communication-related pathways are options to explore, not measured aptitude.', 'Classical source mein education aur diplomatic work ke examples hain; teaching ya communication se jude pathways explore karne ke options hain, ability ka test nahi.'),
+    'JupiterInHouse1': ('Law, teaching, writing and theology are classical occupational examples; their study and work pathways are options to explore, not promised professions.', 'Law, teaching, writing aur theology classical work examples hain; inki study aur work pathways explore karne ke options hain, pakki profession ki prediction nahi.'),
     'MarsInHouse1': ('Initiative and practical activity are another traditional work theme.', 'Initiative aur practical kaam career ka ek aur traditional theme hai.'),
     'House2LordInHouse1': ('Earning through personal effort and learning is another traditional connection.', 'Apni mehnat aur learning se earning ka ek aur traditional sambandh aata hai.'),
 }

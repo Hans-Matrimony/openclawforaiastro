@@ -172,13 +172,18 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         # Add only distinct chart reasons; do not repeat the same planet/house.
         used = {(reason['fact']['planet'], reason['fact']['house']) for reason in natal['reasons'][:3 if style == 'detailed' else 2]}
         extras = []
+        # Occupational examples add the specific direction that a generic
+        # topic-ruler paragraph cannot supply. Retain the bounded three-factor
+        # packet when present, rather than silently dropping its last example.
+        example_ids = {'MercuryInHouse4', 'JupiterInHouse1'}
+        extra_limit = 3 if any(f['id'] in example_ids for f in packet['factors']) else (2 if style == 'detailed' else 1)
         for factor in packet['factors']:
             identity = (factor['fact']['planet'], factor['fact']['house'])
             if identity in used:
                 continue
             used.add(identity)
             extras.append(_factor_reason(factor, topic, hinglish, compact=style == 'standard'))
-            if len(extras) >= (2 if style == 'detailed' else 1):
+            if len(extras) >= extra_limit:
                 break
         if extras:
             paragraphs.append(' '.join(extras))

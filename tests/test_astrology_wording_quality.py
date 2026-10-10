@@ -11,6 +11,30 @@ WHEN=datetime(2026,10,9,tzinfo=timezone.utc)
 
 
 class WordingQualityTests(unittest.TestCase):
+    def test_new_occupational_examples_require_the_exact_planet_house(self):
+        for planet, house, identity, direction in (
+                ('Mercury', 4, 'MercuryInHouse4', 'education'),
+                ('Jupiter', 1, 'JupiterInHouse1', 'Law')):
+            for topic in ('education', 'career'):
+                selected = chart(0, planet, house)
+                if planet == 'Jupiter':
+                    # Isolate this example from another valid occupational
+                    # rule, which can legitimately fill the three-factor cap.
+                    mercury = next(p for p in selected['planet_positions'] if p['name'] == 'Mercury')
+                    mercury.update(sign='Gemini', house=3, sidereal_degree=70)
+                matched = render_reading(selected, topic, as_of_utc=WHEN,
+                                         language='english', style='detailed')
+                self.assertIn(identity, [f['id'] for f in matched['evidence']['factors']])
+                self.assertIn(direction.lower(), matched['text'].lower())
+                self.assertIn('occupational examples', matched['text'])
+                self.assertNotIn('will become', matched['text'])
+                hi = render_reading(selected, topic, as_of_utc=WHEN,
+                                    language='hinglish', style='detailed')
+                self.assertIn('examples', hi['text'])
+                for other_house in (house % 12 + 1, (house - 2) % 12 + 1):
+                    absent = reading_packet(chart(0, planet, other_house), topic, contract_version=2)
+                    self.assertNotIn(identity, [f['id'] for f in absent['factors']])
+
     def test_every_general_house_has_topic_specific_bilingual_wording(self):
         for house in range(1,13):
             for topic in ('marriage','career','education','finance'):

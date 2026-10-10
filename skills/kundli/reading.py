@@ -70,6 +70,10 @@ RULES = [
      'theme': 'Initiative and practical activity: explore taking responsibility for a real project, without assuming talent.'},
     {'id': 'House2LordInHouse1', 'topics': ('career', 'finance'), 'ruler_of': 2, 'house': 1,
      'theme': 'Earning through personal effort and learning: compare actual work and payment arrangements.'},
+    {'id': 'MercuryInHouse4', 'topics': ('education', 'career'), 'planet': 'Mercury', 'house': 4,
+     'theme': 'Education and diplomatic work are classical occupational examples: explore teaching or communication-related study against real interests and entry requirements, not as measured aptitude.'},
+    {'id': 'JupiterInHouse1', 'topics': ('education', 'career'), 'planet': 'Jupiter', 'house': 1,
+     'theme': 'Law, teaching, writing and theology are classical occupational examples: explore their study or work pathways against real interests and qualifications, without assuming beliefs or success.'},
 ]
 HOUSE_SYMBOLS = {
     1: 'self-direction and personal priorities', 2: 'resources, family and speech',
