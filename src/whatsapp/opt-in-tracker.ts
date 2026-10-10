@@ -99,8 +99,12 @@ export async function hasOptedIn(phoneNumber: string): Promise<boolean> {
   const record = store.records[normalized];
 
   // Must have opted in AND not revoked
-  if (!record) return false;
-  if (record.revokedAt && record.revokedAt < Date.now()) return false;
+  if (!record) {
+    return false;
+  }
+  if (record.revokedAt && record.revokedAt < Date.now()) {
+    return false;
+  }
 
   // Check if confirmation is required
   // For now, we accept single opt-in (can be upgraded to double)
@@ -115,8 +119,12 @@ export async function isOptInValid(phoneNumber: string): Promise<boolean> {
   const store = await loadOptInStore();
   const record = store.records[normalized];
 
-  if (!record) return false;
-  if (record.revokedAt) return false;
+  if (!record) {
+    return false;
+  }
+  if (record.revokedAt) {
+    return false;
+  }
 
   // Opt-in expires after 2 years if no interaction
   const TWO_YEARS = 2 * 365 * 24 * 60 * 60 * 1000;
@@ -227,9 +235,7 @@ export async function reactivateOptIn(
 /**
  * Get opt-in record for a phone number
  */
-export async function getOptInRecord(
-  phoneNumber: string,
-): Promise<OptInRecord | null> {
+export async function getOptInRecord(phoneNumber: string): Promise<OptInRecord | null> {
   const normalized = normalizePhoneNumber(phoneNumber);
   const store = await loadOptInStore();
   return store.records[normalized] || null;
@@ -308,12 +314,14 @@ export async function canMessageUser(phoneNumber: string): Promise<{
  * Import opt-ins from a list (for migrating existing users)
  * Use with caution - only import users who have genuinely opted in
  */
-export async function importOptIns(entries: {
-  phoneNumber: string;
-  source: OptInSource;
-  consentDate: Date;
-  consentGiven: string;
-}[]): Promise<{ imported: number; skipped: number }> {
+export async function importOptIns(
+  entries: {
+    phoneNumber: string;
+    source: OptInSource;
+    consentDate: Date;
+    consentGiven: string;
+  }[],
+): Promise<{ imported: number; skipped: number }> {
   let imported = 0;
   let skipped = 0;
 

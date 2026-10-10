@@ -141,8 +141,10 @@ function sanitizeDeepSeekReasoningContent(messages: AgentMessage[]): AgentMessag
         } else {
           // Case: object, array, or other type → convert to string or use placeholder
           try {
+            // Keep legacy coercion: default object strings and empty strings become placeholders below.
+            // oxlint-disable-next-line typescript/no-base-to-string
             const str = String(currentThinking);
-            normalizedThinking = (str === "[object Object]" || str.trim().length === 0) ? " " : str;
+            normalizedThinking = str === "[object Object]" || str.trim().length === 0 ? " " : str;
           } catch {
             normalizedThinking = " ";
           }

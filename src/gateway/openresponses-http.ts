@@ -529,11 +529,15 @@ export async function handleOpenResponsesHttpRequest(
         deps,
       );
 
-      const payloads = (result as { payloads?: Array<{
-        text?: string;
-        mediaUrl?: string;
-        mediaUrls?: string[];
-      }> } | null)?.payloads;
+      const payloads = (
+        result as {
+          payloads?: Array<{
+            text?: string;
+            mediaUrl?: string;
+            mediaUrls?: string[];
+          }>;
+        } | null
+      )?.payloads;
 
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
@@ -574,21 +578,21 @@ export async function handleOpenResponsesHttpRequest(
       if (Array.isArray(payloads) && payloads.length > 0) {
         for (const p of payloads) {
           if (typeof p.text === "string" && p.text) {
-             const textLines = p.text.split('\n');
-             let hasInlineMedia = false;
-             for (const line of textLines) {
-               const trimmed = line.trim();
-               if (trimmed.startsWith('MEDIA:')) {
-                 const mediaUrl = trimmed.substring(6).trim();
-                 contentParts.push(`MEDIA: ${mediaUrl}`);
-                 hasInlineMedia = true;
-               } else if (trimmed) {
-                 contentParts.push(line);
-               }
-             }
-             if (!hasInlineMedia) {
-               contentParts.push(p.text);
-             }
+            const textLines = p.text.split("\n");
+            let hasInlineMedia = false;
+            for (const line of textLines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith("MEDIA:")) {
+                const mediaUrl = trimmed.substring(6).trim();
+                contentParts.push(`MEDIA: ${mediaUrl}`);
+                hasInlineMedia = true;
+              } else if (trimmed) {
+                contentParts.push(line);
+              }
+            }
+            if (!hasInlineMedia) {
+              contentParts.push(p.text);
+            }
           }
           if (p.mediaUrl) {
             contentParts.push(`MEDIA: ${p.mediaUrl}`);
@@ -822,11 +826,14 @@ export async function handleOpenResponsesHttpRequest(
 
       // Fallback: if no streaming deltas were received, send the full response
       if (!sawAssistantDelta) {
-        const resultAny = result as { payloads?: Array<{
-          text?: string;
-          mediaUrl?: string;
-          mediaUrls?: string[];
-        }>; meta?: unknown };
+        const resultAny = result as {
+          payloads?: Array<{
+            text?: string;
+            mediaUrl?: string;
+            mediaUrls?: string[];
+          }>;
+          meta?: unknown;
+        };
         const payloads = resultAny.payloads;
         const meta = resultAny.meta;
         const stopReason =
@@ -911,20 +918,26 @@ export async function handleOpenResponsesHttpRequest(
         const contentParts: string[] = [];
 
         // [PAYLOAD_INSPECT_STREAMING] Log payloads structure in streaming fallback
-        console.error(`[PAYLOAD_INSPECT_STREAMING] payloads type: ${typeof payloads}, isArray: ${Array.isArray(payloads)}, length: ${Array.isArray(payloads) ? payloads.length : 'N/A'}`);
+        console.error(
+          `[PAYLOAD_INSPECT_STREAMING] payloads type: ${typeof payloads}, isArray: ${Array.isArray(payloads)}, length: ${Array.isArray(payloads) ? payloads.length : "N/A"}`,
+        );
         if (Array.isArray(payloads) && payloads.length > 0) {
           for (const p of payloads) {
-            console.error(`[PAYLOAD_INSPECT_STREAMING] payload keys: ${Object.keys(p)}, has_text: ${typeof p.text === "string"}, has_mediaUrl: ${typeof p.mediaUrl === "string"}, has_mediaUrls: ${Array.isArray(p.mediaUrls)}`);
+            console.error(
+              `[PAYLOAD_INSPECT_STREAMING] payload keys: ${Object.keys(p).join(",")}, has_text: ${typeof p.text === "string"}, has_mediaUrl: ${typeof p.mediaUrl === "string"}, has_mediaUrls: ${Array.isArray(p.mediaUrls)}`,
+            );
             if (typeof p.text === "string" && p.text) {
               // Parse MEDIA: tags from text (skills might output them inline)
-              const textLines = p.text.split('\n');
+              const textLines = p.text.split("\n");
               let hasInlineMedia = false;
               for (const line of textLines) {
                 const trimmed = line.trim();
-                if (trimmed.startsWith('MEDIA:')) {
+                if (trimmed.startsWith("MEDIA:")) {
                   // Extract URL from MEDIA: line
                   const mediaUrl = trimmed.substring(6).trim();
-                  console.error(`[PAYLOAD_INSPECT_STREAMING] Found inline MEDIA: tag in text: ${mediaUrl.substring(0, 100)}...`);
+                  console.error(
+                    `[PAYLOAD_INSPECT_STREAMING] Found inline MEDIA: tag in text: ${mediaUrl.substring(0, 100)}...`,
+                  );
                   contentParts.push(`MEDIA: ${mediaUrl}`);
                   hasInlineMedia = true;
                 } else if (trimmed) {
@@ -937,22 +950,27 @@ export async function handleOpenResponsesHttpRequest(
             }
             // Append media URLs as MEDIA: tags for webhook compatibility
             if (p.mediaUrl) {
-              console.error(`[PAYLOAD_INSPECT_STREAMING] Found mediaUrl: ${p.mediaUrl.substring(0, 100)}...`);
+              console.error(
+                `[PAYLOAD_INSPECT_STREAMING] Found mediaUrl: ${p.mediaUrl.substring(0, 100)}...`,
+              );
               contentParts.push(`MEDIA: ${p.mediaUrl}`);
             }
             if (p.mediaUrls && p.mediaUrls.length > 0) {
-              console.error(`[PAYLOAD_INSPECT_STREAMING] Found mediaUrls array: ${p.mediaUrls.length} URLs`);
+              console.error(
+                `[PAYLOAD_INSPECT_STREAMING] Found mediaUrls array: ${p.mediaUrls.length} URLs`,
+              );
               for (const url of p.mediaUrls) {
                 contentParts.push(`MEDIA: ${url}`);
               }
             }
           }
         } else {
-          console.error(`[PAYLOAD_INSPECT_STREAMING] WARNING: No payloads array or empty payloads!`);
+          console.error(
+            `[PAYLOAD_INSPECT_STREAMING] WARNING: No payloads array or empty payloads!`,
+          );
         }
-        const content = contentParts.length > 0
-          ? contentParts.join("\n\n")
-          : "No response from OpenClaw.";
+        const content =
+          contentParts.length > 0 ? contentParts.join("\n\n") : "No response from OpenClaw.";
         if (contentParts.length === 0) {
           const resultMeta = (result as { meta?: unknown }).meta;
           console.warn(

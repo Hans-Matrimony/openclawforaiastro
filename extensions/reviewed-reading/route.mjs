@@ -200,7 +200,9 @@ export function validOutcomeEvidence(evidence, topic) {
   if (!validPredictionAssessment(evidence?.prediction_assessment, topic)) {
     return false;
   }
-  if (!revisions.includes(evidence.rules_revision)) return false;
+  if (!revisions.includes(evidence.rules_revision)) {
+    return false;
+  }
   const extended = evidence.rules_revision === "reviewed-outcomes-v3";
   const assessment = evidence.prediction_assessment;
   const scopes = {
@@ -259,7 +261,8 @@ export function validOutcomeEvidence(evidence, topic) {
     const allowedReasons = {
       marriage: ["SaturnIn7thNotLagnaLord", "JupiterInHouse7", "House7LordInHouse4"],
       career: ["House10LordInHouse8", "House10LordInHouse12", "House10LordInHouse11"],
-      education: [], finance: [],
+      education: [],
+      finance: [],
     };
     const seenReasons = new Set();
     for (const reason of assessment.natal.reasons) {
@@ -285,14 +288,26 @@ export function validOutcomeEvidence(evidence, topic) {
         return false;
       }
     }
-    const natalDirections = new Set(assessment.natal.reasons.map(reason => reason.status));
-    const natalStatus = natalDirections.size === 2 ? "mixed" : [...natalDirections][0] ?? "limited";
-    if (assessment.natal.status !== natalStatus) return false;
+    const natalDirections = new Set(assessment.natal.reasons.map((reason) => reason.status));
+    const natalStatus =
+      natalDirections.size === 2 ? "mixed" : ([...natalDirections][0] ?? "limited");
+    if (assessment.natal.status !== natalStatus) {
+      return false;
+    }
     const directions = new Set([natalStatus, assessment.current_period.status]);
-    const conclusion = directions.has("mixed") || (directions.has("supportive") && directions.has("adverse")) ? "mixed" :
-      directions.has("supportive") ? "supportive" : directions.has("adverse") ? "adverse" :
-      directions.has("conditional") ? "conditional" : "limited";
-    if (assessment.conclusion.status !== conclusion) return false;
+    const conclusion =
+      directions.has("mixed") || (directions.has("supportive") && directions.has("adverse"))
+        ? "mixed"
+        : directions.has("supportive")
+          ? "supportive"
+          : directions.has("adverse")
+            ? "adverse"
+            : directions.has("conditional")
+              ? "conditional"
+              : "limited";
+    if (assessment.conclusion.status !== conclusion) {
+      return false;
+    }
     const period = assessment.current_period,
       majors = Object.entries(evidence.current_period.mahadashas);
     if (majors.length !== 1) {
@@ -328,7 +343,9 @@ export function validOutcomeEvidence(evidence, topic) {
     ) {
       return false;
     }
-    if (period.status !== (periodStatus(major, minor, topic, extended) ?? "unsupported")) return false;
+    if (period.status !== (periodStatus(major, minor, topic, extended) ?? "unsupported")) {
+      return false;
+    }
     const horizon = instant(assessment.event.search_end),
       seen = new Set();
     if (horizon <= when) {
@@ -353,8 +370,12 @@ export function validOutcomeEvidence(evidence, topic) {
       }
       seen.add(window.rule_id);
     }
-    const ordered = [...assessment.event.windows].sort((a,b)=>b.priority-a.priority || a.start.localeCompare(b.start));
-    if (ordered.some((window,index)=>window !== assessment.event.windows[index])) return false;
+    const ordered = assessment.event.windows.toSorted(
+      (a, b) => b.priority - a.priority || a.start.localeCompare(b.start),
+    );
+    if (ordered.some((window, index) => window !== assessment.event.windows[index])) {
+      return false;
+    }
     return true;
   } catch {
     return false;

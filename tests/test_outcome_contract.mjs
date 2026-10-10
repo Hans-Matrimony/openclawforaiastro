@@ -11,7 +11,7 @@ import {
 const rows = JSON.parse(
   fs.readFileSync(new URL("./fixtures/outcome_wire.json", import.meta.url), "utf8"),
 );
-test("real v2 readings preserve all topic and presentation contracts", () => {
+void test("real v2 readings preserve all topic and presentation contracts", () => {
   for (const row of rows) {
     assert.equal(validReadingResult(row.result, row.request), true, JSON.stringify(row.request));
   }
@@ -19,7 +19,7 @@ test("real v2 readings preserve all topic and presentation contracts", () => {
   assert.ok(brief.result.text.length < standard.result.text.length);
   assert.doesNotMatch(brief.result.text, /\?|everything will be fine|will definitely/u);
 });
-test("contradictory subjects, rules, scopes, dates and period packets cannot be delivered", () => {
+void test("contradictory subjects, rules, scopes, dates and period packets cannot be delivered", () => {
   const row = rows[1];
   const mutations = [
     (evidence) => {
@@ -67,21 +67,21 @@ test("contradictory subjects, rules, scopes, dates and period packets cannot be 
     assert.equal(validReadingResult(broken, row.request), false);
   }
 });
-test("microseconds before a dasha boundary remain inside the current period", () => {
+void test("microseconds before a dasha boundary remain inside the current period", () => {
   const row = structuredClone(rows[1]);
   const end = row.result.evidence.prediction_assessment.current_period.end;
   row.result.evidence.as_of_utc = end.replace("327695Z", "327694Z");
   assert.notEqual(row.result.evidence.as_of_utc, end);
   assert.equal(validReadingResult(row.result, row.request), true);
 });
-test("finance and education timing require explicit v2 negotiation", () => {
+void test("finance and education timing require explicit v2 negotiation", () => {
   for (const topic of ["finance", "education"]) {
     const value = { dob: "2001-01-03", tob: "05:00", place: "Delhi", topic, intent: "timing" };
     assert.throws(() => validateReadingInput(value));
     assert.equal(validateReadingInput(value, 2), value);
   }
 });
-test("HTTP version negotiation preserves old clients and rejects ambiguous headers", async () => {
+void test("HTTP version negotiation preserves old clients and rejects ambiguous headers", async () => {
   for (const [header, expected] of [
     [undefined, 1],
     ["1", 1],
