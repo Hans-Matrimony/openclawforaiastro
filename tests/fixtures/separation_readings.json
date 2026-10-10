@@ -1,0 +1,770 @@
+[
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "separation",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "The selected conditions checked here do not establish a clear separation indication. This is a limited check, not evidence that divorce cannot happen.\n\nYour seventh-house lord Mercury is in house 9. A Saturn aspect or a Venus-Mars conjunction alone is not a separation verdict.\n\nThis reviews selected natal conditions; full strength, Navamsha and transit confirmation are not included.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "47fe8a89647fe6cb641b75a101a4a9a5bbd6b70a1c1a2e84c9d1adc47017f8ec",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "separation",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "The selected conditions checked here do not establish a clear separation indication. This is a limited check, not evidence that divorce cannot happen.\n\nYour seventh-house lord Mercury is in house 9. A Saturn aspect or a Venus-Mars conjunction alone is not a separation verdict.\n\nThis assessment has not established a separation window; a dasha end date will not be used as a divorce deadline.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "31da86b8333a4f101cb679df30d249e26243ab526284b5d12eb12605ec667efe",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "separation",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "Abhi check kiye gaye yogon se separation ka saaf sanket establish nahi hua. Yeh limited check hai; iska matlab divorce ho hi nahi sakta, aisa nahi hai.\n\nAapke saatve ghar ke swami Budh nauve ghar mein hain. Sirf Shani ki drishti ya Shukra-Mangal ka ek saath hona separation ka verdict nahi hai.\n\nYeh selected janm-kundli yogon ki reading hai; poori grah-strength, Navamsha aur transit ki pushti abhi shamil nahi hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "8f9b221c91e44536f3b3d0bfaf1676ad729e4c7429ee4e3d9f54383de23ce59f",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "separation",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "Abhi check kiye gaye yogon se separation ka saaf sanket establish nahi hua. Yeh limited check hai; iska matlab divorce ho hi nahi sakta, aisa nahi hai.\n\nAapke saatve ghar ke swami Budh nauve ghar mein hain. Sirf Shani ki drishti ya Shukra-Mangal ka ek saath hona separation ka verdict nahi hai.\n\nIs assessment mein separation ka time-window establish nahi hua; dasha ki end-date divorce ki deadline nahi hai.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "fd7b6d1a73a697339e0e321811f07bd49a4e7d989bdfdc5a6c67f35956e77cec",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "??????",
+      "topic": "separation",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "The selected conditions checked here do not establish a clear separation indication. This is a limited check, not evidence that divorce cannot happen.\n\nYour seventh-house lord Mercury is in house 9. A Saturn aspect or a Venus-Mars conjunction alone is not a separation verdict.\n\nThis reviews selected natal conditions; full strength, Navamsha and transit confirmation are not included.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "c6d2a1f1c5c4d6b207cd453513ef7f6a62407c32f3613bbe2b51c90f22fa3e74",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "??????",
+      "topic": "separation",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "The selected conditions checked here do not establish a clear separation indication. This is a limited check, not evidence that divorce cannot happen.\n\nYour seventh-house lord Mercury is in house 9. A Saturn aspect or a Venus-Mars conjunction alone is not a separation verdict.\n\nThis assessment has not established a separation window; a dasha end date will not be used as a divorce deadline.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "3d440c3d11f904f5c5d5ef9b9ea4dd99ff95a5fb416cd8445cbd903b74064800",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "??????",
+      "topic": "separation",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "Abhi check kiye gaye yogon se separation ka saaf sanket establish nahi hua. Yeh limited check hai; iska matlab divorce ho hi nahi sakta, aisa nahi hai.\n\nAapke saatve ghar ke swami Budh nauve ghar mein hain. Sirf Shani ki drishti ya Shukra-Mangal ka ek saath hona separation ka verdict nahi hai.\n\nYeh selected janm-kundli yogon ki reading hai; poori grah-strength, Navamsha aur transit ki pushti abhi shamil nahi hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "452604c82fe351114b351cca1fe0a31a8843305c1e642a05dbded752330b74ca",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "??????",
+      "topic": "separation",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-separation-v1",
+      "text": "Abhi check kiye gaye yogon se separation ka saaf sanket establish nahi hua. Yeh limited check hai; iska matlab divorce ho hi nahi sakta, aisa nahi hai.\n\nAapke saatve ghar ke swami Budh nauve ghar mein hain. Sirf Shani ki drishti ya Shukra-Mangal ka ek saath hona separation ka verdict nahi hai.\n\nIs assessment mein separation ka time-window establish nahi hua; dasha ki end-date divorce ki deadline nahi hai.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "separation-assessment-v1",
+        "rules_revision": "selected-separation-conditions-v1",
+        "topic": "separation",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T00:00:00+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Pisces",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Sagittarius",
+            "house": 10
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Scorpio",
+            "house": 9
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Capricorn",
+            "house": 11
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Pisces",
+            "house": 1
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Leo",
+            "house": 6
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Aquarius",
+            "house": 12
+          }
+        },
+        "assessment": {
+          "status": "not_established",
+          "matched": [],
+          "unevaluated": [],
+          "seventh_lord": "Mercury",
+          "seventh_lord_house": 9,
+          "seventh_influences": [
+            "Jupiter",
+            "Saturn"
+          ],
+          "event_timing": "not_established",
+          "legal_finalization": "not_evaluated",
+          "windows": []
+        },
+        "source": "https://github.com/VedAstro/VedAstro/blob/master/Library/XMLData/HoroscopeDataList.xml"
+      },
+      "request_fingerprint": "a3056cb710c09bc1765ff9eb7ec2f24b2382b21402f8fac8d93908f9bbc13c78",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  }
+]

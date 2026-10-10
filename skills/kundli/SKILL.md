@@ -15,6 +15,18 @@ metadata:
 
 ## Topic readings without extra retrieval
 
+For a divorce or separation question after the user has confirmed marriage, use
+`--reading-topic separation --render-reading` with the confirmed subject's birth
+details. Add `--reading-intent timing` for a timing question. The separate result
+checks selected separation and relationship-strain rules, including exceptions;
+it does not treat generic marriage themes as separation evidence. Preserve the
+fixed reviewed text rather than adding new interpretations. The assessment's
+`not_established` status means the selected checks did not establish an indication,
+not that divorce is impossible. Neither its dasha boundaries nor an unevaluated
+condition can become a separation window or court date. A Saturn aspect alone
+and a Venus-Mars conjunction outside the reviewed condition are not divorce rules.
+Confirmed marital status comes from the user, not a guessed past event in a chart.
+
 For a personal career, education or marriage reading, use the confirmed subject's
 birth details and one compact call:
 

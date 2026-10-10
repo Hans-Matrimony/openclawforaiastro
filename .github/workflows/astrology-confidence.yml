@@ -7,6 +7,9 @@ on:
       - .pi/prompts/astrologer.md
       - app/whatsapp-support/workspace-astrologer/**
       - extensions/reviewed-reading/**
+      - skills/kundli/**
+      - Dockerfile
+      - tests/test_*reading.py
       - scripts/bootstrap-astrology-assets.mjs
       - scripts/astrologer-prompt.test.mjs
       - tests/test_astrology_reply_policy.mjs
@@ -19,6 +22,9 @@ on:
       - .pi/prompts/astrologer.md
       - app/whatsapp-support/workspace-astrologer/**
       - extensions/reviewed-reading/**
+      - skills/kundli/**
+      - Dockerfile
+      - tests/test_*reading.py
       - scripts/bootstrap-astrology-assets.mjs
       - scripts/astrologer-prompt.test.mjs
       - tests/test_astrology_reply_policy.mjs
@@ -47,3 +53,8 @@ jobs:
           tests/test_reviewed_reading_route.mjs
           tests/test_astrology_bootstrap.mjs
           scripts/astrologer-prompt.test.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify separation rules and response validation without external services
+        run: python -m unittest discover -s tests -p 'test_*reading.py'

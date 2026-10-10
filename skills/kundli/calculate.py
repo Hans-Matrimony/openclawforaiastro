@@ -951,7 +951,7 @@ if __name__ == "__main__":
     parser.add_argument('--full', action='store_true', help='Return full raw data (warning: 7000+ lines)')
     parser.add_argument('--legacy-full', action='store_true',
                         help='Return the complete original jyotishganit raw schema from one engine')
-    parser.add_argument('--reading-topic', choices=['career', 'education', 'marriage'],
+    parser.add_argument('--reading-topic', choices=['career', 'education', 'marriage', 'separation'],
                         help='Return a compact verified topic reading, not raw chart data')
     parser.add_argument('--render-reading', action='store_true',
                         help='Render the topic reading from reviewed rules without an LLM')
@@ -978,7 +978,12 @@ if __name__ == "__main__":
 
         # If not full mode, trim the output to essentials to prevent LLM confusion
         if args.reading_topic:
-            if args.render_reading:
+            if args.reading_topic == 'separation':
+                from separation import render_separation
+                output = render_separation(output, language=args.reading_language, intent=args.reading_intent)
+                if not args.render_reading:
+                    output = output['evidence']
+            elif args.render_reading:
                 from render_reading import render_reading
                 output = render_reading(output, args.reading_topic,
                                         language=args.reading_language, intent=args.reading_intent)

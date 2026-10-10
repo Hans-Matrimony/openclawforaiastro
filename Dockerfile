@@ -59,6 +59,7 @@ COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
 COPY skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_language.py \
+    skills/kundli/separation.py skills/kundli/separation_rules.py \
     skills/kundli/render_reading.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
     skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
     /app/bootstrap/skills/kundli/
