@@ -249,6 +249,17 @@ Calculation failures return error JSON and a nonzero process exit. Do not interp
 The draw_kundli_traditional.py tool creates and returns a visual Kundli chart image file.
 
 ## Guidelines for Interpretation
+For timing or a fuller topic reading use `--timing-topic career|education|finance|marriage|relationship|separation`
+with `--topic-intent timing|overview|detail|brief|contact` and `--reading-language english|hinglish`.
+This returns `reviewed-timing-v1`: MD/AD/PD, selected strength/D9 factors,
+105 future transit samples and independently reproducible candidate month screening.
+Use only its reviewed text or explicitly labelled evidence; no dasha boundary or
+mixed observation is an event deadline. See [TIMING_METHOD.md](TIMING_METHOD.md).
+For multiple supported questions calculate each requested topic and preserve
+their distinct results. For unsupported methods, correct/missing birth inputs,
+other languages or media retain the existing agent flow; do not pretend this
+screen covers those methods. This is not full Shadbala or a calibrated predictor.
+
 1. **Lagna and Moon**: State calculated placements accurately. Use only reviewed evidence for personal interpretations; sign labels alone do not establish personality or emotions.
 2. **Dashas**: Dates describe calculated period boundaries. Without separately evaluated timing evidence, they cannot establish when a job, marriage or other event will happen.
 3. **Limitations**: Do not infer aspects, planetary strength, divisional-chart results, aptitude or partner traits from unevaluated data.

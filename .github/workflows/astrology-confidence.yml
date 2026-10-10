@@ -52,6 +52,7 @@ jobs:
           tests/test_astrologer_prompt_contracts.mjs
           tests/test_reviewed_reading_route.mjs
           tests/test_verified_topic_route.mjs
+          tests/test_timing_route.mjs
           tests/test_astrology_bootstrap.mjs
           scripts/astrologer-prompt.test.mjs
       - uses: actions/setup-python@v5
@@ -59,3 +60,7 @@ jobs:
           python-version: "3.11"
       - name: Verify separation rules and response validation without external services
         run: python -m unittest discover -s tests -p 'test_*reading.py'
+      - name: Install primary calculation test dependencies
+        run: python -m pip install pyswisseph==2.10.3.2 geopy==2.4.1
+      - name: Verify primary timing calculations and old chart compatibility
+        run: python -m unittest discover -s tests -p 'test_timing_primary.py'
