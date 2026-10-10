@@ -98,7 +98,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
     current = assessment['current_period']
     windows = assessment['event']['windows']
     timing_limit = None
-    if intent == 'overview' and assessment['conclusion']['status'] == 'limited' and style != 'standard':
+    if intent == 'overview' and assessment['conclusion']['status'] == 'limited' and style == 'detailed':
         paragraphs.append('Kundli ke in sanketon se abhi koi saaf anukool ya pratikool nateeja nahi nikalta.'
                           if hinglish else 'These chart indications do not point clearly to a favorable or adverse outcome.')
     if intent == 'timing':
@@ -183,7 +183,8 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             paragraphs.append(' '.join(extras))
     elif not natal['reasons'] and intent != 'timing':
         factor = packet['factors'][0]
-        paragraphs.append(hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False))
+        # Brief direction readings must retain the reason before period context.
+        paragraphs.insert(0, _factor_reason(factor, topic, hinglish, compact=True))
     if style != 'brief' and packet.get('provider', {}).get('name') == 'vedastro-local':
         from render_reading import native_supporting_detail
         detail = native_supporting_detail(packet, hinglish, detailed=style == 'detailed')

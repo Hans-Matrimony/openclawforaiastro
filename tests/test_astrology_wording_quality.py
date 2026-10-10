@@ -76,3 +76,16 @@ class WordingQualityTests(unittest.TestCase):
             self.assertTrue(all(planet in standard['text'] for planet in (('Saturn','Jupiter') if language=='english' else ('Shani','Guru'))))
             self.assertLess(len(standard['text'].split()),len(detailed['text'].split()))
             self.assertLessEqual(len(standard['text'].split()),140)
+
+    def test_brief_direction_keeps_chart_reason_and_period_context(self):
+        for topic in ('career', 'education', 'finance'):
+            for language in ('english', 'hinglish'):
+                brief = render_reading(reference_chart(), topic, as_of_utc=WHEN,
+                                       language=language, style='brief')
+                detailed = render_reading(reference_chart(), topic, as_of_utc=WHEN,
+                                          language=language, style='detailed')
+                self.assertEqual(brief['evidence'], detailed['evidence'])
+                self.assertIn('house' if language == 'english' else 'ghar', brief['text'])
+                self.assertIn('September 2027', brief['text'])
+                self.assertNotIn('saaf anukool ya pratikool', brief['text'])
+                self.assertNotIn('do not point clearly', brief['text'])
