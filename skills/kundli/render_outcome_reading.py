@@ -26,11 +26,44 @@ def _basis(fact, hinglish):
     return f" This comes from {fact['planet']}{role} in house {fact['house']} ({fact['sign']})."
 
 
-def _natal_reason(reason, hinglish):
+def _conversational_basis(fact, hinglish):
+    """Same placement, expressed as a reason rather than a separate report label."""
+    if hinglish:
+        role = f"{HINGLISH_HOUSE_NAMES[fact['rules_house']]} ghar ke swami " if 'rules_house' in fact else ''
+        return f"{role}{HINGLISH_PLANETS[fact['planet']]} {HINGLISH_SIGNS[fact['sign']]} ke {HINGLISH_HOUSE_NAMES[fact['house']]} ghar mein hain"
+    role = f", ruler of house {fact['rules_house']}," if 'rules_house' in fact else ''
+    return f"{fact['planet']}{role} is in {fact['sign']} in house {fact['house']}"
+
+
+def _factor_reason(factor, topic, hinglish, compact=False):
+    text = hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False)
+    if not compact:
+        return text + _basis(factor['fact'], hinglish)
+    # Remove presentation filler only; never infer a new talent, trait or outcome.
+    for prefix in ('Aapki career reading mein ', 'Aapki education reading mein ',
+                   'Aapki relationship reading mein ', 'Aapki reading mein '):
+        if text.startswith(prefix):
+            text = text[len(prefix):]
+            text = text[0].upper() + text[1:]
+            break
+    return text.rstrip('.') + ' — ' + _conversational_basis(factor['fact'], hinglish) + '.'
+
+
+def _natal_reason(reason, hinglish, compact=False):
     """Join the reviewed relationship meaning and its placement into one sentence."""
     fact = reason['fact']
     if reason['id'] not in ('SaturnIn7thNotLagnaLord', 'JupiterInHouse7', 'House7LordInHouse4'):
         return NATAL_WORDING[reason['id']][1 if hinglish else 0] + _basis(fact, hinglish)
+    if compact:
+        names = HINGLISH_PLANETS if hinglish else {fact['planet']: fact['planet']}
+        meanings = {
+            'SaturnIn7thNotLagnaLord': ('relationship harmony mein tanav', 'strain in relationship harmony'),
+            'JupiterInHouse7': ('relationship ke liye support', 'support for the relationship'),
+            'House7LordInHouse4': ('ghar aur saath rehne ke comfort', 'home and comfort in living together'),
+        }
+        meaning = meanings[reason['id']][0 if hinglish else 1]
+        return (f"{names[fact['planet']]} {HINGLISH_SIGNS[fact['sign']]} ke {HINGLISH_HOUSE_NAMES[fact['house']]} ghar mein {meaning} se jude hain."
+                if hinglish else f"{fact['planet']} in {fact['sign']} in house {fact['house']} is associated with {meaning}.")
     if hinglish:
         role = 'Shaadi ke saatve ghar ke swami ' if 'rules_house' in fact else ''
         basis = f"{role}{HINGLISH_PLANETS[fact['planet']]} {HINGLISH_SIGNS[fact['sign']]} rashi ke {HINGLISH_HOUSE_NAMES[fact['house']]} ghar mein hain"
@@ -63,7 +96,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
     current = assessment['current_period']
     windows = assessment['event']['windows']
     timing_limit = None
-    if intent == 'overview' and assessment['conclusion']['status'] == 'limited':
+    if intent == 'overview' and assessment['conclusion']['status'] == 'limited' and style != 'standard':
         paragraphs.append('Kundli ke in sanketon se abhi koi saaf anukool ya pratikool nateeja nahi nikalta.'
                           if hinglish else 'These chart indications do not point clearly to a favorable or adverse outcome.')
     if intent == 'timing':
@@ -80,12 +113,20 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             minor = HINGLISH_PLANETS[primary['antardasha']] if hinglish else primary['antardasha']
             paragraphs.append((lead + f" Yeh {major} {minor} period ka conditional sanket hai, shaadi ki pakki date nahi."
                                if hinglish else english + f" It comes from the {major} {minor} period and is conditional, not a fixed wedding date."))
+            if style == 'standard':
+                comparison = 'zyada anukool window' if primary['priority'] == 2 else 'ek sambhavit period'
+                english_comparison = 'more supportive window' if primary['priority'] == 2 else 'possible period'
+                paragraphs[-1] = (f"Shaadi ke liye {dates} {comparison} hai — {major}-{minor} period ka conditional sanket, pakki date nahi."
+                                  if hinglish else f"The {english_comparison} for marriage is {dates} — a conditional indication from the {major}-{minor} period, not a fixed wedding date.")
             if len(windows) > 1 and style != 'brief':
                 other = windows[1]
                 dates = f"{_month(other['start'])} se {_month(other['end'])}" if hinglish else f"{_month(other['start'])} to {_month(other['end'])}"
                 if other['priority'] < primary['priority']:
                     alternative = (f"{dates} mein bhi shaadi ka sanket hai, par is comparison mein yeh kam anukool hai."
                                    if hinglish else f"Another indicated period is {dates}; it has less support in this comparison.")
+                    if style == 'standard':
+                        alternative = (f"{dates} doosra, kam anukool period hai." if hinglish else
+                                       f"{dates} is another, less supportive period in this comparison.")
                 else:
                     alternative = f"Ek aur sambhavit period {dates} hai." if hinglish else f"Another indicated period is {dates}."
                 paragraphs[-1] += ' ' + alternative
@@ -104,7 +145,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
                  'supportive': ('Is reading mein anukool sanket zyada hain.', 'This reading shows more supportive indications.')}[assessment['conclusion']['status']][0 if hinglish else 1]
         parts = [label]
         for reason in natal['reasons'][:3 if style == 'detailed' else 2]:
-            parts.append(_natal_reason(reason, hinglish) if style != 'brief' else
+            parts.append(_natal_reason(reason, hinglish, compact=style == 'standard') if style != 'brief' else
                          NATAL_WORDING[reason['id']][1 if hinglish else 0])
         paragraphs.append(' '.join(parts))
     if current['status'] != 'unsupported' and (intent == 'overview' or not windows or style == 'detailed'):
@@ -133,9 +174,8 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             if identity in used:
                 continue
             used.add(identity)
-            text = hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False)
-            extras.append(text + _basis(factor['fact'], hinglish))
-            if len(extras) >= (2 if style == 'detailed' or not natal['reasons'] else 1):
+            extras.append(_factor_reason(factor, topic, hinglish, compact=style == 'standard'))
+            if len(extras) >= (2 if style == 'detailed' else 1):
                 break
         if extras:
             paragraphs.append(' '.join(extras))
@@ -158,6 +198,15 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         # Warnings are intentionally not interpolated: upstream data can contain prose.
         paragraphs.append('Chandra ki placement boundary ke paas hai; birth time uncertain ho toh pehle confirm karein.'
                           if hinglish else 'The Moon is near a placement boundary; confirm an uncertain birth time before relying on it.')
+    if style == 'standard':
+        # A direction question should lead with its chart-supported direction,
+        # not a generic absence-of-certainty sentence. Mixed/adverse labels stay.
+        if intent == 'overview' and not natal['reasons'] and extras:
+            factor_paragraph = next(p for p in paragraphs if p.startswith(extras[0]))
+            paragraphs.remove(factor_paragraph)
+            paragraphs.insert(0, factor_paragraph)
+        if len(paragraphs) > 2:
+            paragraphs = [paragraphs[0], ' '.join(paragraphs[1:])]
     if style == 'brief':
         warning = paragraphs[-1] if any('boundary' in p for p in paragraphs[-1:]) else None
         paragraphs = [' '.join(paragraphs[:1 if intent == 'timing' and windows else 2])]

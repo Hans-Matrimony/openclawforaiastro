@@ -52,3 +52,25 @@ class WordingQualityTests(unittest.TestCase):
         self.assertIn('Jupiter',result['text'])
         self.assertIn('Venus',result['text'])
         self.assertNotIn('everything will be fine',result['text'])
+
+    def test_standard_direction_leads_with_theme_and_retains_exact_evidence(self):
+        for topic in ('career','education','finance'):
+            for language in ('english','hinglish'):
+                standard=render_reading(reference_chart(),topic,as_of_utc=WHEN,language=language,style='standard')
+                detailed=render_reading(reference_chart(),topic,as_of_utc=WHEN,language=language,style='detailed')
+                self.assertEqual(standard['evidence'],detailed['evidence'])
+                self.assertNotIn('do not point clearly',standard['text'].split('.')[0])
+                self.assertNotIn('saaf anukool ya pratikool',standard['text'].split('.')[0])
+                self.assertLessEqual(len(standard['text'].split('\n\n')),2)
+                self.assertIn('house' if language=='english' else 'ghar',standard['text'].split('\n\n')[0])
+
+    def test_concise_timing_keeps_primary_secondary_and_opposing_reasons(self):
+        for language in ('english','hinglish'):
+            standard=render_reading(reference_chart(),'marriage',as_of_utc=WHEN,language=language,intent='timing',style='standard')
+            detailed=render_reading(reference_chart(),'marriage',as_of_utc=WHEN,language=language,intent='timing',style='detailed')
+            self.assertEqual(standard['evidence'],detailed['evidence'])
+            self.assertTrue(all(year in standard['text'] for year in ('2031','2034','2027','2028')))
+            self.assertIn('conditional',standard['text'])
+            self.assertTrue(all(planet in standard['text'] for planet in (('Saturn','Jupiter') if language=='english' else ('Shani','Guru'))))
+            self.assertLess(len(standard['text'].split()),len(detailed['text'].split()))
+            self.assertLessEqual(len(standard['text'].split()),140)
