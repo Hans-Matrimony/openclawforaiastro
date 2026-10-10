@@ -12,6 +12,8 @@ export const ASTROLOGY_ASSETS = [
     "render_reading.py",
     "separation.py",
     "separation_rules.py",
+    "topic.py",
+    "topic_rules.py",
     "natal_cache.py",
     "vimshottari.py",
     "cities_india.json",
@@ -22,8 +24,37 @@ export const ASTROLOGY_ASSETS = [
   ".pi/prompts/astrologer.md",
 ];
 
+const NOTE_START = "<!-- astrofriend-reading-contract:start -->";
+const NOTE_END = "<!-- astrofriend-reading-contract:end -->";
+export function mergeReadingContract(source) {
+  const start = source.indexOf(NOTE_START);
+  const end = source.indexOf(NOTE_END);
+  if (
+    start < 0 !== end < 0 ||
+    (start >= 0 && end < start) ||
+    (start >= 0 && source.indexOf(NOTE_START, start + NOTE_START.length) >= 0) ||
+    (end >= 0 && source.indexOf(NOTE_END, end + NOTE_END.length) >= 0)
+  ) {
+    throw new Error("Incomplete reading contract markers");
+  }
+  const note = `${NOTE_START}\nFor a requested personal astrology reading, answer the topic before advice. Use its checked topic assessment; a raw placement or dasha boundary is not an event forecast. Friend-only curiosity stays in friend conversation. Do not append a counselling or engagement question to a complete reading. The managed astrology evidence policy overrides older timing and friendship examples only for astrology readings.\n${NOTE_END}`;
+  return start < 0
+    ? `${source}\n\n${note}\n`
+    : source.slice(0, start) + note + source.slice(end + NOTE_END.length);
+}
+
 export function bootstrapAstrologyAssets(appDir, stateDir) {
   const sourceRoot = path.join(appDir, "bootstrap");
+  const personaNotes = ["AGENTS.md", "SOUL.md"]
+    .map((name) => {
+      const target = path.join(stateDir, "workspace-astrologer", name);
+      if (!fs.existsSync(target)) {
+        return null;
+      }
+      const source = fs.readFileSync(target, "utf8");
+      return { target, source, merged: mergeReadingContract(source) };
+    })
+    .filter(Boolean);
   // Validate all inputs before replacing any file. A partial image is an error.
   for (const relative of ASTROLOGY_ASSETS) {
     if (!fs.statSync(path.join(sourceRoot, relative)).isFile()) {
@@ -37,6 +68,22 @@ export function bootstrapAstrologyAssets(appDir, stateDir) {
     try {
       fs.copyFileSync(path.join(sourceRoot, relative), temporary);
       fs.chmodSync(temporary, 0o600);
+      fs.renameSync(temporary, target);
+    } finally {
+      if (fs.existsSync(temporary)) {
+        fs.unlinkSync(temporary);
+      }
+    }
+  }
+  // Preserve the full mounted friend persona; refresh only this marked, narrow
+  // astrology contract so old engagement examples cannot reverse its scope.
+  for (const { target, source, merged } of personaNotes) {
+    if (merged === source) {
+      continue;
+    }
+    const temporary = `${target}.release-${process.pid}`;
+    try {
+      fs.writeFileSync(temporary, merged, { mode: 0o600 });
       fs.renameSync(temporary, target);
     } finally {
       if (fs.existsSync(temporary)) {

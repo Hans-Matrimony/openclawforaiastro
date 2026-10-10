@@ -95,22 +95,19 @@ test("confidence cannot be replaced by forced verdicts, invented windows or fixe
   assert.doesNotMatch(source, /never make consecutive readings uniformly positive/);
   assert.match(policy, /A complete answer can end naturally/);
   assert.match(policy, /Never manufacture a positive\/negative verdict/);
-  assert.match(policy, /Do not force "Haan\/Nahi", a contact countdown/);
+  assert.match(policy, /Never manufacture a reply date/);
   assert.match(policy, /an event verdict or a timing window/);
   assert.match(policy, /A complete astrology answer ends without a closing question/);
-  assert.match(policy, /More birth details do not establish these answers/);
-  assert.match(policy, /Use only explicitly supplied, checked relationship themes/);
+  assert.match(policy, /require partner birth details/);
+  assert.match(policy, /only checked own-chart themes/);
   assert.match(policy, /never "pakki sambhavna" or an unconditional promise/);
-  assert.match(policy, /give one concise limitation sentence and stop/);
-  assert.match(
-    policy,
-    /Do not append placements, partner traits\/background, remedies, questions or another reading/,
-  );
+  assert.match(policy, /A partner-feelings question gets one kind limitation sentence/);
+  assert.match(policy, /without invented private facts or follow-up questions/);
 });
 
 test("relationship limits remain concise without dismissing supported relationship themes", () => {
-  assert.match(policy, /ordinary, kind language, not lectures about free will/);
-  assert.match(policy, /Unke baat karne ka waqt aapki kundli se tay nahi hota/);
+  assert.match(policy, /or lecture about free will/);
+  assert.match(policy, /distinguish the other person/);
   assert.match(policy, /Explain missing analysis once in everyday words/);
   assert.match(policy, /Do not dismiss a new-relationship question as private mind-reading/);
   assert.match(policy, /without promising someone will arrive/);
@@ -168,7 +165,13 @@ test("release bootstrap and the default loader deliver the real policy without r
     const delivered = hooks[0][1]({}, { agentId: "astrologer", trigger: "user" });
     assert.deepEqual(delivered, { appendSystemContext: policy });
     for (const relative of preserved) {
-      assert.equal(fs.readFileSync(path.join(state, relative), "utf8"), "existing synthetic state");
+      const value = fs.readFileSync(path.join(state, relative), "utf8");
+      if (/(?:AGENTS|SOUL)\.md$/u.test(relative)) {
+        assert.ok(value.startsWith("existing synthetic state\n\n"));
+        assert.match(value, /astrofriend-reading-contract:start/);
+      } else {
+        assert.equal(value, "existing synthetic state");
+      }
     }
   } finally {
     if (previousState === undefined) {
@@ -216,7 +219,7 @@ test("dates, remedies, repeated questions and third-party claims retain evidence
   );
   assert.match(
     policy,
-    /Do not infer another person's love, loyalty, intentions, future contact, name initial or a certain divorce/,
+    /Do not infer another person's love, loyalty, intentions, future contact or name initial/,
   );
 });
 

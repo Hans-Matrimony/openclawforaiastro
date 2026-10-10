@@ -957,6 +957,8 @@ if __name__ == "__main__":
                         help='Render the topic reading from reviewed rules without an LLM')
     parser.add_argument('--reading-language', choices=['english', 'hinglish'], default='english')
     parser.add_argument('--reading-intent', choices=['overview', 'timing'], default='overview')
+    parser.add_argument('--verified-topic', choices=['career', 'education', 'marriage', 'relationship', 'finance'])
+    parser.add_argument('--topic-intent', choices=['overview', 'timing', 'contact', 'detail', 'brief'], default='overview')
     parser.add_argument('--node-convention', choices=['true', 'mean'], default='true',
                         help='Lunar node convention (existing default: true)')
     parser.add_argument('--latitude', type=float, help='Confirmed birthplace latitude')
@@ -966,6 +968,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     try:
+        if args.verified_topic and (args.reading_topic or args.render_reading or args.full or args.legacy_full):
+            raise ValueError('--verified-topic cannot be combined with other output modes')
         if args.render_reading and not args.reading_topic:
             raise ValueError('--render-reading requires --reading-topic')
         if args.reading_topic and (args.full or args.legacy_full):
@@ -977,7 +981,11 @@ if __name__ == "__main__":
                                  longitude=args.longitude, utc_offset=args.utc_offset)
 
         # If not full mode, trim the output to essentials to prevent LLM confusion
-        if args.reading_topic:
+        if args.verified_topic:
+            from topic import render_verified_topic
+            output = render_verified_topic(output, args.verified_topic,
+                                           language=args.reading_language, intent=args.topic_intent)
+        elif args.reading_topic:
             if args.reading_topic == 'separation':
                 from separation import render_separation
                 output = render_separation(output, language=args.reading_language, intent=args.reading_intent)

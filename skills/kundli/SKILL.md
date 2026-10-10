@@ -94,6 +94,19 @@ is recomputed; storage failure does not substitute a chart.
 This skill allows you to calculate a Vedic Astrology birth chart (Kundli) for a user based on their birth details.
 
 ## Description
+For English/Hinglish own-profile career, education, marriage, relationship and
+finance requests, `--verified-topic <topic> --reading-language <language>` returns
+`reviewed-topic-v1`. `--topic-intent` accepts overview, timing, detail, brief and
+relationship-only contact. This checks current-user natal house meanings and
+explicitly leaves strength, divisional charts, transits and event timing
+unevaluated. Never convert its themes into an arrival promise or a favourable
+dasha verdict. Detail supplies the other checked factor rather than repeating
+the overview. The authenticated `/astrofriend/topic-reading` route delivers this
+contract to the PWA, which independently verifies birth-request binding,
+freshness, positions, factors and exact rendered wording. Calculation failure
+must not trigger a speculative replacement reading. Existing raw charts,
+`--reading-topic`, separation and image output modes retain their contracts.
+
 Uses a local high-precision Vedic astrology engine to compute Lagna, Moon Sign, Nakshatra, Planetary positions across zodiac signs and houses, and Vimshottari Dashas.
 
 ## Usage

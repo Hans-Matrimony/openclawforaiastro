@@ -13,6 +13,8 @@ test("reading release includes every required asset and refreshes mounted state"
     "render_reading.py",
     "separation.py",
     "separation_rules.py",
+    "topic.py",
+    "topic_rules.py",
     "natal_cache.py",
     "vimshottari.py",
     "cities_india.json",

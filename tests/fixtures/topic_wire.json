@@ -1,0 +1,4370 @@
+[
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.933117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "061cd180f3569c73fd515376154c42651e9ebcf5ce6c8424876657ab41bf8e88",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.\n\nYour partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "d5e1b63c08d407d6dc3b78485a5dfa23f8b4549286dbf08a31cf94c7cc29eec4",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "english",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "language": "english",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "613e6c782a93d6618aa52091b214ec5762f3c4cf353a2d4c76754bb63f99e684",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "english",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.",
+      "language": "english",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "0dfe5bb9ea31f1d87ea62de4e2c5a6bacd5b6510d543f46c4831a2d5b09d87ce",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "english",
+      "intent": "contact"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your chart cannot establish when they will reply. Your own relationship reading provides this context:\n\nYour romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "language": "english",
+      "intent": "contact",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.934117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "f2ddd0a4ce70f78e4c5aae85d3cbf66415f944fc32265cb456acc6435f8fc90d",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "6a9988e06c907efe5bc39413f2cad50bdcd3a8f6ad4e360ee74df1af1c2a0cc8",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.\n\nAapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "79f774e709e5afdcd91769ec93103e7571d1218ef3059d2ac7fe26464e80ec72",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "hinglish",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "1915214f2108705d554480745c57057a1302a1aece671e24967bb3bf28e97ba2",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "hinglish",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "c46c6c8568112e68af3e1819d104ab81b11ef96cae4b911cb04e2eab868a8bb3",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "relationship",
+      "language": "hinglish",
+      "intent": "contact"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Unke reply ka din aapki kundli se tay nahi hota. Aapki apni relationship reading mein yeh sandarbh milta hai:\n\nAapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "contact",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "relationship",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "004d43cd40a2c0547d2b51ca5ce4fb5f7600d12c3de821e1331c38e60bd709ef",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your career reading connects with family, resources and communication. This is based on Mars, ruler of house 10, being in house 2.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "5229aac83449942032882c2751a1da03ca546de6c5b1e89389b52fa21d4304d8",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your career reading connects with family, resources and communication. This is based on Mars, ruler of house 10, being in house 2.\n\nYour resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.935117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "30ebdafc66dc50ca5b8d3bec968c71bdd4072da9784382b673e59dac1674bfc7",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "english",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your career reading connects with family, resources and communication. This is based on Mars, ruler of house 10, being in house 2.",
+      "language": "english",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "ae9ed77ac7bc66573968b1346d16748ee2e5c3b90a8763fb3e36101882202700",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "english",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
+      "language": "english",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "e4a37e59ee62f9d174e28f8b4c54b993bf48de7abf3feda58efe05a895e19b08",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki career ki reading ka sambandh family, resources aur bol-chaal se dikhta hai. Iska aadhar dasve ghar ke swami Mangal ka doosre ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "e868dd365d963389891b80a108afd67f7801cd69abbc5d18ce5c1680c0b09c60",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki career ki reading ka sambandh family, resources aur bol-chaal se dikhta hai. Iska aadhar dasve ghar ke swami Mangal ka doosre ghar mein hona hai.\n\nAapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "7f3f33e9a919105eae1d3360e142b9a52c623f028d5cf823c9498653a718ceba",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "hinglish",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki career ki reading ka sambandh family, resources aur bol-chaal se dikhta hai. Iska aadhar dasve ghar ke swami Mangal ka doosre ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "4a4219b3e1dd4863295d8e4c9f308456eed70ebf975dd41be0698be291231ffc",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "career",
+      "language": "hinglish",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "career",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.936117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 10,
+              "planet": "Mars",
+              "sign": "Pisces",
+              "house": 2
+            },
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "ca713ef908c52abd219fd02bcf0369b049ee5017f12b7a1aea0ad5ac91bd63b7",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your learning reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "916b5215e7122096a0ad49701dfbc21aa96ca4b9429adf31d560611080f607f3",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your learning reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.\n\nYour higher learning reading connects with personal initiative and your own priorities. This is based on Venus, ruler of house 9, being in house 1.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "75f3cf6f39fcefd3a2c63e5ebd66d0bccc7a14e59c611876d223551d55292a57",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "english",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your learning reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "language": "english",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "6f8910f3b4a9802f7e8128422568eb1c7de23ad596196903a85a95144a44cfc3",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "english",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your higher learning reading connects with personal initiative and your own priorities. This is based on Venus, ruler of house 9, being in house 1.",
+      "language": "english",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "059654917d3b0f1c00a1af5efe1904d6a7bed0665510e6256718b73c5f8f03af",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki padhai ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "7047275453c219523fd8cdfaa0f6caa490c45dad98114206f9e2ec492afa39c8",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki padhai ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.\n\nAapki aage ki padhai ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar nauve ghar ke swami Shukra ka pehle ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.937119+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "2b922f2f20b5d5f7c3e647de4d4d72eef1ccb047857b9ea325869b84eb5bb4fe",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "hinglish",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki padhai ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "ada859c3f495d7c6327b252b90161fa22564e77a923d9d041b30eaaacc281c2b",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "education",
+      "language": "hinglish",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki aage ki padhai ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar nauve ghar ke swami Shukra ka pehle ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "education",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            },
+            {
+              "rules_house": 9,
+              "planet": "Venus",
+              "sign": "Aquarius",
+              "house": 1
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "5c7002f6f08fd73b9ebcc9dbc8c7793cc58212a22e6b9f58d96cd0c6559b3a69",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "92cb04519956698664456f06b16ca072e59dbc87399870564297d66a822dcc10",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.\n\nYour romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "4e1849e8d7991fa7003f6084dff73b7f7cd83d18350a16c121d951ad6de6f197",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "english",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your partnerships reading connects with personal initiative and your own priorities. This is based on Sun, ruler of house 7, being in house 1.",
+      "language": "english",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "52520e5b27f58f0c52da414d3a42f28619a9a9b50ba68aabe1676d6df3d4670a",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "english",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your romance reading connects with distance, reflection and private time. This is based on Mercury, ruler of house 5, being in house 12.",
+      "language": "english",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "d12514e2d1dd3740c467bb18b26678fccf49a7a2d7291313309e1ae36dcb46b2",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.938118+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "d5c4a745df2d5051d7a09d2798cba28fb3ea240f1c1fbc5605b7cea51355eab1",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.\n\nAapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "514866caf63f8a51e44a1e1a63ef46014d28e6b1cf61e6eb40dd7ebcfeed5ed3",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "hinglish",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki rishton ki reading ka sambandh apni pehel aur apni priorities se dikhta hai. Iska aadhar saatve ghar ke swami Surya ka pehle ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "929100f6604be6a67e5dea9c7f2d29ef0d127c5cec27613c016968617e0decba",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "marriage",
+      "language": "hinglish",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki romance ki reading ka sambandh door ki jagahon, soch-vichar aur apne liye waqt se dikhta hai. Iska aadhar paanchve ghar ke swami Budh ka baarahve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "marriage",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 7,
+              "planet": "Sun",
+              "sign": "Aquarius",
+              "house": 1
+            },
+            {
+              "rules_house": 5,
+              "planet": "Mercury",
+              "sign": "Capricorn",
+              "house": 12
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "d286fd3ca66e1f5266e976fe1d0fe18e45475290b3fbc229440a4af54ca34e20",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "english",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
+      "language": "english",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "e56911bd0e067f8cabfab9e6e32ffeca898e42d7e810f93adac7f367a87aabd9",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "english",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.\n\nYour networks and gains reading connects with learning and creative expression. This is based on Jupiter, ruler of house 11, being in house 5.\n\nThis reading has not assessed periods, transits and planetary strength together for event timing, so it does not establish a date or time window.",
+      "language": "english",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.939117+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "0a4e3158bce1a0f6ee54329cb7e8e9643251b0936c7299f55224766d9a932210",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "english",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your resources reading connects with learning and creative expression. This is based on Jupiter, ruler of house 2, being in house 5.",
+      "language": "english",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "c5d54f1a1c74817b5bc100a829ed0f1b66c50519979f012cd91377a45e664d6e",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "english",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Your networks and gains reading connects with learning and creative expression. This is based on Jupiter, ruler of house 11, being in house 5.",
+      "language": "english",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "b76a755def1e9f79bc3fb2dfa66afdd0afd7511316f55ba90a142d666a285096",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "hinglish",
+      "intent": "overview"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "overview",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "291ef94daa4d24d6225edf456ca52bd6671030d4e65218c8d26d522570caa5cd",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "hinglish",
+      "intent": "timing"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.\n\nAapki network aur gains ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar gyaarahve ghar ke swami Guru ka paanchve ghar mein hona hai.\n\nIs reading mein dasha, gochar aur grah-strength ko saath lekar timing ki jaanch nahi hui hai, isliye abhi koi date ya time-window nikalna sahi nahi hoga.",
+      "language": "hinglish",
+      "intent": "timing",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "b8f54983c9b4323b5ffa96b68b7281fef5beb9cf0de59f78fce21201a798a5b7",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "hinglish",
+      "intent": "brief"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki resources ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar doosre ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "brief",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "12836eb0fd4ac40a2acf32cf4cb44217eacaea06e32d18345114568663478be5",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  },
+  {
+    "request": {
+      "dob": "2002-02-16",
+      "tob": "08:19",
+      "place": "Delhi",
+      "topic": "finance",
+      "language": "hinglish",
+      "intent": "detail"
+    },
+    "result": {
+      "schema": "reviewed-topic-v1",
+      "text": "Aapki network aur gains ki reading ka sambandh seekhne aur creativity se dikhta hai. Iska aadhar gyaarahve ghar ke swami Guru ka paanchve ghar mein hona hai.",
+      "language": "hinglish",
+      "intent": "detail",
+      "evidence": {
+        "schema": "natal-topic-assessment-v1",
+        "rules_revision": "reviewed-natal-topic-themes-v1",
+        "topic": "finance",
+        "input_fingerprint": "cb5caef7279a4202dc7f640b00eeec5a2ec1c1b7f90e83e0572260681eb80c55",
+        "as_of_utc": "2026-10-10T04:26:26.940116+00:00",
+        "settings": {
+          "ayanamsa": "LAHIRI",
+          "house_system": "whole_sign",
+          "node": "true",
+          "dasha_year_days": 365.25,
+          "engine": "pyswisseph"
+        },
+        "lagna": "Aquarius",
+        "positions": {
+          "Sun": {
+            "planet": "Sun",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Moon": {
+            "planet": "Moon",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Mercury": {
+            "planet": "Mercury",
+            "sign": "Capricorn",
+            "house": 12
+          },
+          "Venus": {
+            "planet": "Venus",
+            "sign": "Aquarius",
+            "house": 1
+          },
+          "Mars": {
+            "planet": "Mars",
+            "sign": "Pisces",
+            "house": 2
+          },
+          "Jupiter": {
+            "planet": "Jupiter",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Saturn": {
+            "planet": "Saturn",
+            "sign": "Taurus",
+            "house": 4
+          },
+          "Rahu": {
+            "planet": "Rahu",
+            "sign": "Gemini",
+            "house": 5
+          },
+          "Ketu": {
+            "planet": "Ketu",
+            "sign": "Sagittarius",
+            "house": 11
+          }
+        },
+        "assessment": {
+          "status": "natal_themes_only",
+          "factors": [
+            {
+              "rules_house": 2,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            },
+            {
+              "rules_house": 11,
+              "planet": "Jupiter",
+              "sign": "Gemini",
+              "house": 5
+            }
+          ],
+          "event_timing": "not_evaluated",
+          "strength": "not_evaluated",
+          "divisional_charts": "not_evaluated",
+          "transits": "not_evaluated",
+          "windows": []
+        },
+        "source": "reviewed_whole_sign_house_themes"
+      },
+      "request_fingerprint": "840682bb87a68e032e9fa6d6b96faee760c45d728549e9ee4aa1545adc431870",
+      "model_calls": 0,
+      "model_tokens": 0
+    }
+  }
+]

@@ -51,6 +51,7 @@ jobs:
           tests/test_astrology_reply_policy.mjs
           tests/test_astrologer_prompt_contracts.mjs
           tests/test_reviewed_reading_route.mjs
+          tests/test_verified_topic_route.mjs
           tests/test_astrology_bootstrap.mjs
           scripts/astrologer-prompt.test.mjs
       - uses: actions/setup-python@v5

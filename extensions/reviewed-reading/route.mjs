@@ -145,7 +145,10 @@ export function calculateReading(value, run = execFile) {
   });
 }
 
-export function createReadingHandler(calculate = calculateReading) {
+export function createReadingHandler(
+  calculate = calculateReading,
+  validate = validateReadingInput,
+) {
   let active = 0;
   return async (req, res) => {
     const send = (status, body) => {
@@ -184,7 +187,7 @@ export function createReadingHandler(calculate = calculateReading) {
       clearTimeout(timer);
       let value;
       try {
-        value = validateReadingInput(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+        value = validate(JSON.parse(Buffer.concat(chunks).toString("utf8")));
       } catch {
         send(400, { error: "invalid_reading_request" });
         return;
