@@ -36,11 +36,13 @@ void test(
       }
       const data = JSON.parse(body);
       const serialized = JSON.stringify(data.messages);
-      const marker = /AFTEST:([a-z0-9-]+)/.exec(serialized)?.[1] ?? "unknown";
+      const marker = [...serialized.matchAll(/AFTEST:([a-z0-9-]+)/g)].at(-1)?.[1] ?? "unknown";
       requests.push({
         marker,
         tokens: data.max_tokens ?? data.max_completion_tokens,
         url: req.url,
+        userTurns: data.messages.filter((message) => message.role === "user").length,
+        bytes: Buffer.byteLength(body),
       });
       if (marker === "retries") {
         res.writeHead(503, { "content-type": "application/json" });
@@ -139,7 +141,10 @@ void test(
           heartbeat: { every: "0m" },
           model: { primary: "testa/test", fallbacks: ["testb/test", "testc/test"] },
         },
-        list: [{ id: "astrologer", workspace, skills: [], tools: { allow: ["read"] } }],
+        list: [
+          { id: "astrologer", workspace, skills: [], tools: { allow: ["read"] } },
+          { id: "astrologer_pwa", workspace, skills: [], tools: { allow: ["read"] } },
+        ],
       },
       plugins: {
         allow: ["inference-budget"],
@@ -169,18 +174,18 @@ void test(
       });
     }
     const closed = new Promise((resolve) => child.once("close", resolve));
-    const invoke = async (marker) => {
+    const invoke = async (marker, { agent = "astrologer", sessionKey, content = "" } = {}) => {
       const response = await fetch(`http://127.0.0.1:${port}/v1/responses`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
           "content-type": "application/json",
           "x-openclaw-scopes": "operator.write",
-          "x-openclaw-session-key": `agent:astrologer:budget-test:${randomUUID()}`,
+          "x-openclaw-session-key": sessionKey ?? `agent:${agent}:budget-test:${randomUUID()}`,
         },
         body: JSON.stringify({
-          model: "openclaw/astrologer",
-          input: `AFTEST:${marker} [Language: english] Synthetic QA.`,
+          model: `openclaw/${agent}`,
+          input: `AFTEST:${marker} [Language: english] Synthetic QA. ${content}`,
           max_output_tokens: 8192,
         }),
         signal: AbortSignal.timeout(110000),
@@ -230,6 +235,22 @@ void test(
         assert.equal(requests.filter((r) => r.marker === marker).length, 6, marker);
       }
       assert.ok(requests.every((r) => r.tokens <= 2048));
+      const sessionKey = `agent:astrologer_pwa:budget-history:${randomUUID()}`;
+      for (let turn = 0; turn < 8; turn++) {
+        const marker = `history-${turn}`;
+        assert.match(
+          await invoke(marker, { agent: "astrologer_pwa", sessionKey, content: "x".repeat(35000) }),
+          /friendly chat/,
+        );
+        const sent = requests.filter((request) => request.marker === marker);
+        assert.equal(
+          sent.length,
+          1,
+          "Each PWA turn needs one request, including after history grows",
+        );
+        assert.ok(sent[0].userTurns <= 3, "Published SDK receives complete bounded PWA history");
+        assert.ok(sent[0].bytes < 196608, "PWA history stays below the unchanged request cap");
+      }
     } catch (error) {
       // Only synthetic requests are used by this isolated process.
       console.error(output.replaceAll(token, "[redacted]"));

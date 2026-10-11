@@ -53,8 +53,9 @@ traceability, not user-facing labels.
 General house symbolism is explicitly separate from VedAstro classical entries.
 Finance supplies selected period indications, not amounts, investment returns,
 stock predictions or a verified date of financial recovery.
-Do not turn dasha boundaries into event forecasts or claim checked aspects, strength,
-divisional charts, aptitude, spouse traits or guaranteed results. Interpretive themes
+Do not turn dasha boundaries into event forecasts. Report aspects, strength and
+divisional placements only when supplied in the current verified packet; they do
+not establish aptitude, spouse traits or guaranteed results. Interpretive themes
 are not probabilities. Skip Qdrant when the packet covers the question; otherwise
 use one targeted search with --limit 3. Do not retry identical failed tool calls.
 For topic-reading-v1, only its factors supply personal interpretations. State

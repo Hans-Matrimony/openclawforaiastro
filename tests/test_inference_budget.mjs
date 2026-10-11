@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createBudgetRuntime } from "../extensions/inference-budget/runtime.mjs";
+import { createBudgetRuntime, recentPwaContext } from "../extensions/inference-budget/runtime.mjs";
 import {
   ModelBudget,
   boundPayload,
@@ -22,6 +22,92 @@ void test("startup shim validation permits quote formatting but rejects other co
 });
 
 const body = JSON.stringify({ messages: [{ role: "user", content: "hello" }], max_tokens: 9999 });
+
+void test("PWA history retains complete recent turns and the current tool exchange without mutating stored history", () => {
+  const messages = [];
+  for (let index = 0; index < 7; index++) {
+    messages.push({ role: "user", content: `turn-${index}` });
+    messages.push({ role: "assistant", content: [{ type: "toolCall", id: `call-${index}` }] });
+    messages.push({ role: "toolResult", toolCallId: `call-${index}`, content: "checked evidence" });
+    messages.push({ role: "assistant", content: "answer" });
+  }
+  const context = {
+    systemPrompt: "unchanged instructions",
+    tools: [{ name: "calculate" }],
+    messages,
+  };
+  const bounded = recentPwaContext(context, "astrologer_pwa");
+  assert.equal(bounded.systemPrompt, context.systemPrompt);
+  assert.equal(bounded.tools, context.tools);
+  assert.deepEqual(bounded.messages, messages.slice(16));
+  assert.equal(messages.length, 28);
+  assert.equal(bounded.messages.at(-2).toolCallId, "call-6");
+  assert.equal(recentPwaContext(context, "astrologer"), context);
+  assert.equal(recentPwaContext(context, "reply_repair"), context);
+  assert.equal(
+    recentPwaContext({ ...context, messages: messages.slice(-12) }, "astrologer_pwa").messages
+      .length,
+    12,
+  );
+});
+
+void test("eight long PWA turns reach the guarded SDK with fresh budgets and bounded history", async () => {
+  const sent = [];
+  const runtime = createBudgetRuntime({
+    fetchImpl: async (_url, options) => {
+      sent.push(JSON.parse(options.body));
+      return new Response("{}", { status: 200 });
+    },
+  });
+  const providerMap = new Map();
+  const stream = (model, context) => {
+    const result = runtime.transport
+      .fetch("https://example.invalid", {
+        method: "POST",
+        body: JSON.stringify({ messages: context.messages, max_tokens: 2048 }),
+      })
+      .then((response) => ({
+        role: "assistant",
+        content: [{ type: "text", text: response.ok ? "ok" : "failed" }],
+        stopReason: response.ok ? "stop" : "error",
+        provider: model.provider,
+      }));
+    return {
+      async *[Symbol.asyncIterator]() {
+        yield { type: "done", message: await result };
+      },
+      result: () => result,
+    };
+  };
+  providerMap.set("openai-completions", {
+    api: "openai-completions",
+    stream,
+    streamSimple: stream,
+  });
+  const sdk = {
+    getApiProviders: () => [...providerMap.values()],
+    getApiProvider: (api) => providerMap.get(api),
+    registerApiProvider: (provider) => providerMap.set(provider.api, provider),
+  };
+  runtime.installSdk(sdk);
+  const model = { id: "test", api: "openai-completions", provider: "test" };
+  const messages = [];
+  for (let turn = 0; turn < 8; turn++) {
+    runtime.bind({ agentId: "astrologer_pwa", sessionId: "pwa", runId: `turn-${turn}` });
+    runtime.bindModel(model, "pwa");
+    messages.push({ role: "user", content: `question-${turn}:` + "x".repeat(35000) });
+    const answer = await sdk
+      .getApiProvider(model.api)
+      .streamSimple(model, { messages }, { sessionId: "pwa" })
+      .result();
+    assert.equal(answer.content[0].text, "ok");
+    assert.equal(runtime.forSession("pwa").attempts, 1);
+    assert.equal(sent.at(-1).messages.length, Math.min(turn + 1, 3));
+    assert.equal(sent.at(-1).messages.at(-1).content, messages.at(-1).content);
+  }
+  assert.equal(messages.length, 8, "Stored conversation is never rewritten by the transport view");
+  assert.equal(sent.length, 8);
+});
 
 void test("reserves every attempt including identical SDK retries and provider changes", async () => {
   let sends = 0;

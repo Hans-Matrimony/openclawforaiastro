@@ -10,6 +10,24 @@ export const GUARDED_AGENTS = new Set([
 ]);
 const RETENTION_MS = 3600000;
 const CAPACITY = 4096;
+// PWA requests already carry their bounded, server-owned recent conversation.
+// Retain complete recent agent turns instead of replaying every old envelope.
+// Tool exchanges belonging to the current user turn must never be split.
+export function recentPwaContext(context, agentId) {
+  if (agentId !== "astrologer_pwa" || !Array.isArray(context?.messages)) {
+    return context;
+  }
+  const starts = [];
+  for (const [index, message] of context.messages.entries()) {
+    if (message.role === "user") {
+      starts.push(index);
+    }
+  }
+  if (starts.length <= 3) {
+    return context;
+  }
+  return { ...context, messages: context.messages.slice(starts.at(-3)) };
+}
 const MESSAGES = {
   english:
     "I couldn’t finish this reply just now. Please ask one specific question so I can help clearly.",
@@ -105,6 +123,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
         return;
       }
       const budget = new ModelBudget(limits);
+      budget.agentId = context.agentId;
       budget.language = /\[Language:\s*([a-z]+)\]/i.exec(prompt)?.[1]?.toLowerCase() ?? "english";
       entry = { budget, created: now(), sessionIds: new Set() };
       runs.set(context.runId, entry);
@@ -150,7 +169,11 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
           return inner(model, context, options);
         }
         const stream = transport.scope.run({ budget, api: model.api }, () =>
-          inner(model, context, options),
+          inner(
+            model,
+            options?.sessionId ? recentPwaContext(context, budget.agentId) : context,
+            options,
+          ),
         );
         return wrapResult(stream, model, budget, !options?.sessionId);
       };

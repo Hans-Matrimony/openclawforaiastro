@@ -23,7 +23,7 @@ export default {
       const budget = runtime.forSession(event.sessionId);
       if (budget) {
         api.logger.info(
-          `[inference-budget] attempts=${budget.attempts} requestBytes=${budget.bytes} reservedOutputTokens=${budget.outputTokens} blocked=${budget.blocked}`,
+          `[inference-budget] attempts=${budget.attempts} requestBytes=${budget.bytes} reservedOutputTokens=${budget.outputTokens} blocked=${budget.blocked} reason=${budget.reason ?? "none"}`,
         );
       }
     });
