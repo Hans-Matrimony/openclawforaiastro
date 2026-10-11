@@ -525,9 +525,8 @@ export function calculateReading(value, run = execFile, contractVersion = 1) {
 
 export function createReadingHandler(
   calculate = calculateReading,
-  { validate = validateReadingInput, maxBody = MAX_BODY } = {},
+  { validate = validateReadingInput, maxBody = MAX_BODY, concurrency = { active: 0 } } = {},
 ) {
-  let active = 0;
   return async (req, res) => {
     const send = (status, body) => {
       if (res.destroyed || res.writableEnded) {
@@ -541,11 +540,11 @@ export function createReadingHandler(
       send(405, { error: "method_not_allowed" });
       return;
     }
-    if (active >= MAX_CONCURRENT) {
+    if (concurrency.active >= MAX_CONCURRENT) {
       send(503, { error: "reading_busy" });
       return;
     }
-    active += 1;
+    concurrency.active += 1;
     const timer = setTimeout(() => {
       send(408, { error: "request_timeout" });
       req.destroy();
@@ -585,7 +584,7 @@ export function createReadingHandler(
       send(400, { error: "invalid_reading_request" });
     } finally {
       clearTimeout(timer);
-      active -= 1;
+      concurrency.active -= 1;
     }
   };
 }

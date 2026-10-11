@@ -23,3 +23,13 @@ source categories and typed Kaksha/Ashtakavarga scores are verified before the
 original daily wording is composed. Native failures stop the reading, and no
 model inference or hosted fallback is used. The service requires the existing
 natal-provider configuration. With the flag off, the legacy local-rule flow remains.
+
+The authenticated `POST /astrofriend/daily` gateway route provides this same
+checked reading without model inference. It accepts confirmed `dob`, `tob`,
+`place`, `language`, and an optional `date` (12:00 UTC snapshot). Current requests
+use the current UTC minute. Daily and topic routes share two calculation slots,
+bounded request/response sizes, and a fixed Python executable without a shell.
+
+The PWA additionally requires `ASTROFRIEND_VERIFIED_DAILY_REPLIES=true` and its
+existing verified-astrology rollout flag. This is an opt-in daily path; native
+errors return unavailable rather than falling back to a generative forecast.
