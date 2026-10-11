@@ -1,0 +1,31 @@
+{
+  "agents": {
+    "defaults": {
+      "model": { "primary": "deepseek/deepseek-chat" }
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com/v1",
+        "apiKey": "${DEEPSEEK_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "deepseek-chat", "name": "DeepSeek Chat" },
+          { "id": "deepseek-reasoner", "name": "DeepSeek Reasoner" }
+        ]
+      },
+      "dashscope": {
+        "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+        "apiKey": "${DASHSCOPE_API_KEY}",
+        "api": "openai-completions",
+        "models": [{ "id": "qwen-flash", "name": "Qwen Flash (RahuNova wala)" }]
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "auth": { "mode": "token", "token": "<generate-your-own-local-token>" }
+  }
+}
