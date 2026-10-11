@@ -1,7 +1,7 @@
 // Opt-in integration with the published runtime, real SDK retries and a fake
 // loopback model service. No customer data, API keys or paid inference required.
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import http from "node:http";
@@ -10,7 +10,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 import { validateInstalledBudget } from "../scripts/validate-inference-budget.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -19,7 +20,7 @@ void test(
   "published gateway bounds real SDK retries and isolates concurrent agent loops",
   {
     skip: !process.env.OPENCLAW_TEST_ENTRY,
-    timeout: 300000,
+    timeout: 600000,
   },
   async () => {
     const entry = path.resolve(process.env.OPENCLAW_TEST_ENTRY);
@@ -43,6 +44,7 @@ void test(
         url: req.url,
         userTurns: data.messages.filter((message) => message.role === "user").length,
         bytes: Buffer.byteLength(body),
+        summaryPresent: serialized.includes("AFSUMMARY:earlier-preferences"),
       });
       if (marker === "retries") {
         res.writeHead(503, { "content-type": "application/json" });
@@ -215,6 +217,7 @@ void test(
         assert.ok(Date.now() < until, output || "gateway readiness timed out");
         await delay(250);
       }
+      console.log("Isolated published gateway ready");
       assert.match(await invoke("single"), /friendly chat/);
       assert.equal(requests.filter((r) => r.marker === "single").length, 1);
       assert.ok(
@@ -227,6 +230,7 @@ void test(
         6,
         "SDK retries and provider fallback must share six attempts",
       );
+      console.log("Published SDK request and retry limits passed");
       const replies = await Promise.all([invoke("loop-a"), invoke("loop-b")]);
       for (const reply of replies) {
         assert.match(reply, /couldn’t finish/);
@@ -235,6 +239,7 @@ void test(
         assert.equal(requests.filter((r) => r.marker === marker).length, 6, marker);
       }
       assert.ok(requests.every((r) => r.tokens <= 2048));
+      console.log("Concurrent synthetic tool loops passed");
       const sessionKey = `agent:astrologer_pwa:budget-history:${randomUUID()}`;
       for (let turn = 0; turn < 8; turn++) {
         const marker = `history-${turn}`;
@@ -250,13 +255,52 @@ void test(
         );
         assert.ok(sent[0].userTurns <= 3, "Published SDK receives complete bounded PWA history");
         assert.ok(sent[0].bytes < 196608, "PWA history stays below the unchanged request cap");
+        console.log(`Bounded PWA history turn ${turn + 1}/8 passed`);
+      }
+      // Exercise actual pinned Pi compaction persistence/conversion. Only this
+      // synthetic session file is changed, while the gateway is between turns.
+      const sessions = path.join(state, "agents/astrologer_pwa/sessions");
+      const files = (await fs.readdir(sessions)).filter((file) => file.endsWith(".jsonl"));
+      assert.equal(files.length, 1);
+      const { SessionManager } = await import(
+        pathToFileURL(
+          path.resolve(
+            path.dirname(entry),
+            "../../@mariozechner/pi-coding-agent/dist/core/session-manager.js",
+          ),
+        ).href
+      );
+      const session = SessionManager.open(path.join(sessions, files[0]));
+      const users = session
+        .getBranch()
+        .filter((item) => item.type === "message" && item.message.role === "user");
+      assert.equal(users.length, 8);
+      session.appendCompaction("AFSUMMARY:earlier-preferences", users.at(-1).id, 30000);
+      for (let turn = 8; turn < 12; turn++) {
+        const marker = `history-${turn}`;
+        assert.match(
+          await invoke(marker, { agent: "astrologer_pwa", sessionKey, content: "x".repeat(35000) }),
+          /friendly chat/,
+        );
+        const sent = requests.filter((request) => request.marker === marker);
+        assert.equal(sent.length, 1);
+        assert.ok(sent[0].summaryPresent, "Compacted preferences survive later PWA turns");
+        assert.ok(sent[0].userTurns <= 4, "Three real user turns plus the converted summary");
+        assert.ok(sent[0].bytes < 196608);
+        console.log(`Post-compaction PWA history turn ${turn - 7}/4 passed`);
       }
     } catch (error) {
       // Only synthetic requests are used by this isolated process.
       console.error(output.replaceAll(token, "[redacted]"));
       throw error;
     } finally {
-      child.kill();
+      // The published entry can respawn Node. Kill only this owned process tree
+      // on Windows so its inherited pipes cannot keep the test waiting forever.
+      if (process.platform === "win32" && child.exitCode === null) {
+        await promisify(execFile)("taskkill.exe", ["/PID", String(child.pid), "/T", "/F"]);
+      } else {
+        child.kill();
+      }
       await closed;
       server.closeAllConnections();
       await new Promise((resolve) => server.close(resolve));

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { pwaContext } from "../extensions/inference-budget/pi-extension.mjs";
 import { createBudgetRuntime, recentPwaContext } from "../extensions/inference-budget/runtime.mjs";
 import {
   ModelBudget,
@@ -51,7 +52,41 @@ void test("PWA history retains complete recent turns and the current tool exchan
   );
 });
 
-void test("eight long PWA turns reach the guarded SDK with fresh budgets and bounded history", async () => {
+void test("PWA context hook retains summaries and does not count custom messages as user turns", () => {
+  const oldSummary = { role: "compactionSummary", summary: "superseded" };
+  const summary = { role: "compactionSummary", summary: "earlier preferences" };
+  const branch = { role: "branchSummary", summary: "branch context" };
+  const messages = [oldSummary, summary, branch];
+  for (let turn = 0; turn < 5; turn++) {
+    messages.push({ role: "user", content: `turn-${turn}` });
+    messages.push({ role: "assistant", content: [{ type: "toolCall", id: `call-${turn}` }] });
+    messages.push({ role: "custom", content: "injected context" });
+    messages.push({ role: "toolResult", toolCallId: `call-${turn}`, content: "evidence" });
+  }
+  const original = structuredClone(messages);
+  const event = { type: "context", messages };
+  const context = { sessionManager: { getSessionId: () => "pwa" } };
+  const runtime = { forSession: () => ({ agentId: "astrologer_pwa" }) };
+  const result = pwaContext(event, context, runtime);
+  assert.deepEqual(result.messages, [summary, branch, ...messages.slice(11)]);
+  assert.equal(result.messages.filter((message) => message.role === "user").length, 3);
+  assert.equal(result.messages.at(-1).toolCallId, "call-4");
+  assert.deepEqual(messages, original);
+  const newerBranch = { role: "branchSummary", summary: "newer branch" };
+  const withNewerBranch = { ...event, messages: [...messages, newerBranch] };
+  assert.deepEqual(pwaContext(withNewerBranch, context, runtime).messages, [
+    summary,
+    ...messages.slice(11),
+    newerBranch,
+  ]);
+  assert.equal(
+    pwaContext(event, context, { forSession: () => ({ agentId: "astrologer" }) }),
+    undefined,
+  );
+  assert.equal(pwaContext(event, context, { forSession: () => undefined }), undefined);
+});
+
+void test("eight long PWA turns reach the guarded SDK after preconversion trimming with fresh budgets", async () => {
   const sent = [];
   const runtime = createBudgetRuntime({
     fetchImpl: async (_url, options) => {
@@ -96,9 +131,14 @@ void test("eight long PWA turns reach the guarded SDK with fresh budgets and bou
     runtime.bind({ agentId: "astrologer_pwa", sessionId: "pwa", runId: `turn-${turn}` });
     runtime.bindModel(model, "pwa");
     messages.push({ role: "user", content: `question-${turn}:` + "x".repeat(35000) });
+    const context = pwaContext(
+      { messages },
+      { sessionManager: { getSessionId: () => "pwa" } },
+      runtime,
+    ) ?? { messages };
     const answer = await sdk
       .getApiProvider(model.api)
-      .streamSimple(model, { messages }, { sessionId: "pwa" })
+      .streamSimple(model, context, { sessionId: "pwa" })
       .result();
     assert.equal(answer.content[0].text, "ok");
     assert.equal(runtime.forSession("pwa").attempts, 1);

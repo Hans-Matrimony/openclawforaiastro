@@ -11,8 +11,8 @@ export const GUARDED_AGENTS = new Set([
 const RETENTION_MS = 3600000;
 const CAPACITY = 4096;
 // PWA requests already carry their bounded, server-owned recent conversation.
-// Retain complete recent agent turns instead of replaying every old envelope.
-// Tool exchanges belonging to the current user turn must never be split.
+// This runs on AgentMessages before Pi converts summaries/custom messages to
+// role=user. Keep complete turns and the latest summaries of earlier history.
 export function recentPwaContext(context, agentId) {
   if (agentId !== "astrologer_pwa" || !Array.isArray(context?.messages)) {
     return context;
@@ -26,7 +26,34 @@ export function recentPwaContext(context, agentId) {
   if (starts.length <= 3) {
     return context;
   }
-  return { ...context, messages: context.messages.slice(starts.at(-3)) };
+  const start = starts.at(-3);
+  const retained = context.messages.slice(start);
+  const retainedSummaryRoles = new Set(
+    retained
+      .filter((message) => ["compactionSummary", "branchSummary"].includes(message.role))
+      .map((message) => message.role),
+  );
+  const summaries = new Map();
+  for (const [index, message] of context.messages.entries()) {
+    if (index >= start) {
+      break;
+    }
+    if (
+      ["compactionSummary", "branchSummary"].includes(message.role) &&
+      !retainedSummaryRoles.has(message.role)
+    ) {
+      summaries.set(message.role, { index, message });
+    }
+  }
+  return {
+    ...context,
+    messages: [
+      ...[...summaries.values()]
+        .toSorted((a, b) => a.index - b.index)
+        .map(({ message }) => message),
+      ...retained,
+    ],
+  };
 }
 const MESSAGES = {
   english:
@@ -169,11 +196,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
           return inner(model, context, options);
         }
         const stream = transport.scope.run({ budget, api: model.api }, () =>
-          inner(
-            model,
-            options?.sessionId ? recentPwaContext(context, budget.agentId) : context,
-            options,
-          ),
+          inner(model, context, options),
         );
         return wrapResult(stream, model, budget, !options?.sessionId);
       };
