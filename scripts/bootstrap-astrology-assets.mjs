@@ -32,6 +32,7 @@ export const ASTROLOGY_ASSETS = [
     "calculate.py",
     "daily_provider.py",
     "daily_wording.py",
+    "vedha_geometry.py",
     "scheduler.py",
     "vedic_rules.json",
     "SKILL.md",

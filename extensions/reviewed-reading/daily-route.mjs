@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { createReadingHandler } from "./route.mjs";
+import { validVedhaGeometry } from "./vedha-geometry.mjs";
 
 const SIGNS = [
   "Aries",
@@ -74,7 +75,7 @@ export function validDailyEvidence(e, value, now = Date.now()) {
       e.verified_against !== "pyswisseph" ||
       e.model_calls !== 0 ||
       e.event_prediction_available !== false ||
-      e.obstruction_evaluated !== false ||
+      typeof e.obstruction_evaluated !== "boolean" ||
       e.transit_house_reference !== "natal_moon_whole_sign" ||
       e.kaksha_validation !== "native_source_type_range_and_lord_geometry" ||
       !/^[a-f0-9]{64}$/u.test(e.input_fingerprint) ||
@@ -130,6 +131,13 @@ export function validDailyEvidence(e, value, now = Date.now()) {
           return false;
         }
       }
+    }
+    if (
+      e.obstruction_evaluated
+        ? !validVedhaGeometry(e.gochara_vedha, e.transits)
+        : Object.hasOwn(e, "gochara_vedha")
+    ) {
+      return false;
     }
     return (
       PLANETS.includes(e.current_period.mahadasha) &&

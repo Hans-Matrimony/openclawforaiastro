@@ -33,3 +33,14 @@ bounded request/response sizes, and a fixed Python executable without a shell.
 The PWA additionally requires `ASTROFRIEND_VERIFIED_DAILY_REPLIES=true` and its
 existing verified-astrology rollout flag. This is an opt-in daily path; native
 errors return unavailable rather than falling back to a generative forecast.
+
+`VEDASTRO_DAILY_VEDHA_ENABLED=1` separately opts into reviewed obstruction
+geometry in the same native request. It requires the service's boolean
+`includeVedha` capability. The adapter checks the pinned first-match Vedhanka
+table against independently checked Moon-relative positions, seven-planet
+occupancy and Sun/Saturn and Moon/Mercury exceptions. It rejects missing,
+unrequested or inconsistent geometry. A qualifying obstruction is described
+alongside a Kaksha point; it does not become an event verdict, probability or
+a reversal of a traditional result. The flag defaults to `0`; both its input
+fingerprint and the evidence state distinguish enabled readings. Published
+table variants are not silently merged with the pinned source convention.

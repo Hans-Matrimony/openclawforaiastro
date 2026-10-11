@@ -19,6 +19,7 @@ from daily_wording import render_daily
 from vedastro_client import MatchError
 
 FIXTURE = json.loads((ROOT/'tests/fixtures/vedastro_daily_synthetic.json').read_text(encoding='utf-8'))
+VEDHA_FIXTURE = json.loads((ROOT/'tests/fixtures/vedastro_daily_vedha_synthetic.json').read_text(encoding='utf-8'))
 WHEN = datetime(2026, 10, 11, 12, tzinfo=timezone.utc)
 ENV = {'VEDASTRO_DAILY_ENABLED':'1', 'VEDASTRO_NATAL_ENABLED':'1',
        'VEDASTRO_NATAL_API_URL':'https://calculator.example/api',
@@ -45,6 +46,59 @@ class DailyEvidenceTests(unittest.TestCase):
         self.assertEqual(len(evidence['transits']), 9)
         self.assertEqual(len(evidence['kakshas']), 7)
         self.assertFalse(evidence['event_prediction_available'])
+
+    def test_optional_native_vedha_uses_one_request_and_validates_occupancy(self):
+        self.raw = deepcopy(VEDHA_FIXTURE['response'])
+        env = {**ENV,'VEDASTRO_DAILY_VEDHA_ENABLED':'1'}
+        result = daily_evidence(self.chart,as_of_utc=WHEN,env=env,transport=self.transport,reference_calculator=self.reference)
+        self.assertEqual(result,VEDHA_FIXTURE['evidence'])
+        self.assertTrue(self.transport.call_args.args[1]['includeVedha'])
+        self.assertEqual(self.transport.call_count,1)
+        self.assertTrue(result['obstruction_evaluated'])
+        rows = result['gochara_vedha']['planets']
+        self.assertFalse(rows['Venus']['obstructed'])  # No erroneous self-obstruction.
+        self.assertEqual(rows['Sun']['exempt_planets_at_point'],['Saturn'])
+        self.assertEqual(rows['Mercury']['obstructing_planets'],['Sun'])
+
+    def test_vedha_configuration_and_unrequested_or_missing_geometry_fail_closed(self):
+        for flag in ('true','',True,1):
+            with self.subTest(flag=flag),self.assertRaises(MatchError):
+                daily_evidence(self.chart,env={**ENV,'VEDASTRO_DAILY_VEDHA_ENABLED':flag},transport=self.transport)
+        self.transport.assert_not_called()
+        for enabled,raw in [(True,FIXTURE['response']),(False,VEDHA_FIXTURE['response'])]:
+            with self.subTest(enabled=enabled):
+                with self.assertRaises(MatchError):
+                    daily_evidence(self.chart,as_of_utc=WHEN,env={**ENV,'VEDASTRO_DAILY_VEDHA_ENABLED':'1' if enabled else '0'},
+                        transport=lambda *args:deepcopy(raw),reference_calculator=self.reference)
+
+    def test_vedha_source_frame_point_scope_and_blocker_corruption_are_rejected(self):
+        for key,value in [('sourceRevision','unknown'),('tableSelection','other_school'),
+                          ('occupancyCorrection','query_transit_house'),('planetScope','nine_planets'),
+                          ('houseReference','ascendant'),('eventPredictionAvailable',True)]:
+            raw = deepcopy(VEDHA_FIXTURE['response'])
+            raw['Payload']['DailyEvidence']['gocharaVedha'][key]=value
+            with self.subTest(key=key),self.assertRaises(MatchError):
+                daily_evidence(self.chart,as_of_utc=WHEN,env={**ENV,'VEDASTRO_DAILY_VEDHA_ENABLED':'1'},
+                    transport=lambda *args:raw,reference_calculator=Mock(side_effect=deepcopy(FIXTURE['references'])))
+        for key,value in [('obstructionHouseFromNatalMoon',True),('obstructingPlanets',['Mercury']),
+                          ('obstructingPlanets',['Rahu']),('obstructed',False),('exemptPlanetsAtPoint',['Moon'])]:
+            raw = deepcopy(VEDHA_FIXTURE['response'])
+            raw['Payload']['DailyEvidence']['gocharaVedha']['planets']['Mercury'][key]=value
+            with self.subTest(key=key,value=value),self.assertRaises(MatchError):
+                daily_evidence(self.chart,as_of_utc=WHEN,env={**ENV,'VEDASTRO_DAILY_VEDHA_ENABLED':'1'},
+                    transport=lambda *args:raw,reference_calculator=Mock(side_effect=deepcopy(FIXTURE['references'])))
+
+    def test_vedha_renderer_reports_typed_geometry_without_outcome_or_table_reversal(self):
+        evidence = deepcopy(VEDHA_FIXTURE['evidence'])
+        for language in ('english','hinglish'):
+            text=render_daily(evidence,language)
+            self.assertIn('Vedha',text)
+            self.assertNotIn('probability',text)
+            self.assertNotIn('revers',text)
+            self.assertEqual(len(text.split('\n\n')),3)
+        evidence['gochara_vedha']['planets']['Mercury']['obstructed']=False
+        with self.assertRaises(ValueError):
+            render_daily(evidence,'english')
 
     def test_provider_outage_is_not_retried_or_replaced_with_legacy_reading(self):
         self.transport.side_effect = MatchError('provider_timeout')

@@ -13,6 +13,7 @@ from reading import verified_positions
 from timing_context import verified_timing_context
 from vedastro_client import MatchError
 from vimshottari import current_period, nakshatra_index
+from vedha_geometry import normalize_vedha
 
 KAKSHA_LORDS = ('Saturn', 'Jupiter', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon', 'Ascendant')
 SEVEN = PLANETS - {'Rahu', 'Ketu'}
@@ -29,6 +30,10 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
     env = os.environ if env is None else env
     if env.get('VEDASTRO_DAILY_ENABLED') != '1':
         raise MatchError('daily_provider_disabled')
+    vedha_flag = env.get('VEDASTRO_DAILY_VEDHA_ENABLED','0')
+    if vedha_flag not in ('0','1'):
+        raise MatchError('provider_invalid_configuration')
+    include_vedha = vedha_flag == '1'
     base, token = configuration(env)
     verified_positions(chart)
     if chart['calculation_source'] != 'pyswisseph' or chart['calculation_settings']['node'] != 'true':
@@ -56,12 +61,15 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
         location = {'Name': 'Confirmed coordinates', 'Latitude': latitude, 'Longitude': longitude}
         body = {'time': {'StdTime': std_time, 'Location': location}, 'Ayanamsa': 'LAHIRI',
                 'checkTime': {'StdTime': check_time, 'Location': location}}
+        if include_vedha:
+            body['includeVedha'] = True
         raw = (transport or fetch_natal)(base + '/Calculate/DailyEvidence', body, token)
         data = raw['Payload']['DailyEvidence']
         natal = normalize_natal({**raw, 'Payload': {'NatalEvidence': data['natal']}}, expected)['data']
         if (data['schema'] != 'vedastro-daily-evidence-v1' or data['checkTime']['StdTime'] != check_time
                 or data['transitHouseReference'] != 'natal_moon_whole_sign'
-                or data['obstructionEvaluated'] is not False or data['eventPredictionAvailable'] is not False):
+                or data['obstructionEvaluated'] is not include_vedha or data['eventPredictionAvailable'] is not False
+                or (not include_vedha and 'gocharaVedha' in data)):
             raise MatchError('calculation_conflict')
         for key in ('Latitude', 'Longitude'):
             if abs(finite(data['checkTime']['Location'][key], -180, 180) - expected[key.lower()]) > 0.000001:
@@ -122,14 +130,21 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
                                  'bhinna_ashtakavarga': score['Ashtaka'], 'sarva_ashtakavarga': score['Sarvashtaka']}
         if abs((transits['Rahu']['longitude'] - transits['Ketu']['longitude']) % 360 - 180) > 0.001:
             raise MatchError('calculation_conflict')
-        return {'schema': 'reviewed-daily-evidence-v1', 'as_of_utc': when.isoformat(),
-                'input_fingerprint': hashlib.sha256(json.dumps([expected, check_time, SETTINGS, REVISION], sort_keys=True).encode()).hexdigest(),
+        fingerprint_inputs = [expected, check_time, SETTINGS, REVISION]
+        vedha = normalize_vedha(data['gocharaVedha'],transits) if include_vedha else None
+        if include_vedha:
+            fingerprint_inputs.append({'includeVedha':True})
+        result = {'schema': 'reviewed-daily-evidence-v1', 'as_of_utc': when.isoformat(),
+                'input_fingerprint': hashlib.sha256(json.dumps(fingerprint_inputs, sort_keys=True).encode()).hexdigest(),
                 'provider': 'vedastro-local', 'source_revision': REVISION, 'native_settings': SETTINGS.copy(),
                 'verified_against': 'pyswisseph', 'model_calls': 0, 'natal': natal,
                 'current_period': phase, 'timing_context': context, 'transits': transits, 'kakshas': kakshas,
                 'kaksha_validation': 'native_source_type_range_and_lord_geometry',
-                'transit_house_reference': 'natal_moon_whole_sign', 'obstruction_evaluated': False,
+                'transit_house_reference': 'natal_moon_whole_sign', 'obstruction_evaluated': include_vedha,
                 'event_prediction_available': False}
+        if vedha is not None:
+            result['gochara_vedha'] = vedha
+        return result
     except MatchError:
         raise
     except (KeyError, TypeError, ValueError, AttributeError, OverflowError):

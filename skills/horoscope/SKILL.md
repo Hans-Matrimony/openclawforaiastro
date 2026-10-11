@@ -49,7 +49,13 @@ and current positions against independent Swiss calculations, verifies the
 clock, dasha and source categories, and validates typed native Kaksha scores.
 An enabled native failure is an error, never a silent legacy fallback. Its
 general house themes are labeled separately from native scores. This does not
-reproduce the website's private interpretation engine or evaluate transit Vedha.
+reproduce the website's private interpretation engine. Transit Vedha is omitted
+unless `VEDASTRO_DAILY_VEDHA_ENABLED=1` is explicitly configured. That option
+adds a seven-planet obstruction-house occupancy check to the same native request,
+using the pinned source's first-match table and Sun-Saturn/Moon-Mercury exceptions.
+The gateway verifies the table and occupants before presenting a separate Vedha
+fact. Do not equate a Kaksha point with an unobstructed transit or turn an
+obstruction into a reversed outcome, probability, or event date.
 
 With the daily flag off, the existing Swiss coordinates and `local_daily_rules`
 from `vedic_rules.json` remain available. In either mode,

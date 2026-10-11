@@ -13,6 +13,9 @@ import { createReadingHandler } from "../extensions/reviewed-reading/route.mjs";
 const fixture = JSON.parse(
   fs.readFileSync(new URL("./fixtures/vedastro_daily_synthetic.json", import.meta.url)),
 );
+const vedhaFixture = JSON.parse(
+  fs.readFileSync(new URL("./fixtures/vedastro_daily_vedha_synthetic.json", import.meta.url)),
+);
 const value = {
   dob: "1995-03-14",
   tob: "10:15",
@@ -41,6 +44,38 @@ void test("real native fixture is accepted; date, source, frame and score corrup
   const bad = structuredClone(fixture.evidence);
   bad.kakshas.Sun.kaksha_score = true;
   assert.equal(validDailyEvidence(bad, value), false);
+});
+
+void test("opt-in native Vedha requires corrected point occupancy and preserves pair exceptions", () => {
+  assert.equal(validDailyEvidence(vedhaFixture.evidence, value), true);
+  for (const [field, changed] of [
+    ["occupancy_correction", "query_transit_house"],
+    ["source_revision", "unknown"],
+    ["house_reference", "ascendant"],
+    ["planet_scope", "nine_planets"],
+    ["event_prediction_available", true],
+  ]) {
+    const bad = structuredClone(vedhaFixture.evidence);
+    bad.gochara_vedha[field] = changed;
+    assert.equal(validDailyEvidence(bad, value), false);
+  }
+  for (const [field, changed] of [
+    ["obstruction_house_from_natal_moon", true],
+    ["obstructing_planets", ["Mercury"]],
+    ["obstructing_planets", ["Rahu"]],
+    ["obstructed", false],
+    ["exempt_planets_at_point", ["Moon"]],
+  ]) {
+    const bad = structuredClone(vedhaFixture.evidence);
+    bad.gochara_vedha.planets.Mercury[field] = changed;
+    assert.equal(validDailyEvidence(bad, value), false);
+  }
+  const unrequested = structuredClone(vedhaFixture.evidence);
+  unrequested.obstruction_evaluated = false;
+  assert.equal(validDailyEvidence(unrequested, value), false);
+  const missing = structuredClone(vedhaFixture.evidence);
+  delete missing.gochara_vedha;
+  assert.equal(validDailyEvidence(missing, value), false);
 });
 
 void test("daily request excludes shell options, extra fields, invalid dates and unsupported contract", () => {

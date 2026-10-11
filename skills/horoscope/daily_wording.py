@@ -1,6 +1,7 @@
 """Original wording for typed native daily facts; never a generative forecast."""
 from datetime import datetime
 from reading_language import HINDI_PLANETS, HINDI_SIGNS
+from vedha_geometry import validate_vedha
 
 THEMES = {
     1: ('personal plans', 'apni planning'), 2: ('family conversations and spending', 'family ki baat aur kharch'),
@@ -29,8 +30,14 @@ TASKS = {
 def render_daily(evidence, language):
     if evidence['schema'] != 'reviewed-daily-evidence-v1' or language not in ('english', 'hinglish'):
         raise ValueError('Unsupported daily reading contract')
-    if evidence['event_prediction_available'] is not False or evidence['obstruction_evaluated'] is not False:
+    if evidence['event_prediction_available'] is not False or type(evidence['obstruction_evaluated']) is not bool:
         raise ValueError('Unreviewed daily outcome claim')
+    vedha = evidence.get('gochara_vedha')
+    if evidence['obstruction_evaluated']:
+        if not validate_vedha(vedha,evidence['transits']):
+            raise ValueError('Unreviewed daily obstruction geometry')
+    elif vedha is not None:
+        raise ValueError('Unexpected daily obstruction geometry')
     hi = language == 'hinglish'
     if set(evidence['kakshas']) != {'Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn'} or any(
             type(row['kaksha_score']) is not int or row['kaksha_score'] not in (0,1)
@@ -65,6 +72,18 @@ def render_daily(evidence, language):
             nuance = f'{position(positive)} ka Kaksha point supportive hai, jabki {position(missing)} ko favorable point nahi mila.'
         else:
             nuance = f'{position(positive)} has a supportive Kaksha point, while {position(missing)} has no favorable point.'
+    if vedha is not None:
+        # Report a qualifying obstruction alongside a point, never turn a
+        # favorable/absent binary point into an event verdict or probability.
+        qualified = next((name for name in order if evidence['kakshas'][name]['kaksha_score'] == 1
+                          and vedha['planets'][name]['obstructed']),None)
+        if qualified:
+            row = vedha['planets'][qualified]
+            blockers = ', '.join(HINDI_PLANETS[name] if hi else name for name in row['obstructing_planets'])
+            point = row['obstruction_house_from_natal_moon']
+            clause = (f'{HINDI_PLANETS[qualified]} ki separate Vedha check mein {blockers} janam rashi se obstruction ghar {point} mein hain.' if hi else
+                      f'The separate Vedha check for {qualified} finds {blockers} in obstruction house {point} from your natal Moon.')
+            nuance = (nuance + ' ' + clause).strip()
     moon = evidence['transits']['Moon']
     house = moon['house_from_natal_moon']
     sign = HINDI_SIGNS[moon['sign']] if hi else moon['sign']
