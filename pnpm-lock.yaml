@@ -337,6 +337,8 @@ importers:
         specifier: workspace:*
         version: link:../..
 
+  extensions/inference-budget: {}
+
   extensions/line:
     devDependencies:
       openclaw:
@@ -455,6 +457,8 @@ importers:
       openclaw:
         specifier: workspace:*
         version: link:../..
+
+  extensions/reviewed-reading: {}
 
   extensions/signal:
     devDependencies:
