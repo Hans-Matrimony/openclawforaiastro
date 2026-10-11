@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { __testing, acquireSessionWriteLock } from "./session-write-lock.js";
 
 describe("acquireSessionWriteLock", () => {
@@ -74,26 +74,51 @@ describe("acquireSessionWriteLock", () => {
 
   it("removes held locks on termination signals", async () => {
     const signals = ["SIGINT", "SIGTERM", "SIGQUIT", "SIGABRT"] as const;
-    for (const signal of signals) {
-      const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-cleanup-"));
-      try {
-        const sessionFile = path.join(root, "sessions.json");
-        const lockPath = `${sessionFile}.lock`;
-        await acquireSessionWriteLock({ sessionFile, timeoutMs: 500 });
-        const keepAlive = () => {};
-        if (signal === "SIGINT") {
-          process.on(signal, keepAlive);
-        }
-
-        __testing.handleTerminationSignal(signal);
-
-        await expect(fs.stat(lockPath)).rejects.toThrow();
-        if (signal === "SIGINT") {
-          process.off(signal, keepAlive);
-        }
-      } finally {
-        await fs.rm(root, { recursive: true, force: true });
+    const originalKill = process.kill.bind(process);
+    // Observe re-raising without terminating the test worker; preserve real PID liveness checks.
+    const killSpy = vi.spyOn(process, "kill").mockImplementation((pid, signal) => {
+      if (pid === process.pid && signals.some((cleanupSignal) => cleanupSignal === signal)) {
+        return true;
       }
+      return originalKill(pid, signal);
+    });
+    try {
+      for (const signal of signals) {
+        const root = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-lock-cleanup-"));
+        const keepAlive = () => {};
+        try {
+          const sessionFile = path.join(root, "sessions.json");
+          const lockPath = `${sessionFile}.lock`;
+          await acquireSessionWriteLock({ sessionFile, timeoutMs: 500 });
+          if (signal === "SIGINT") {
+            process.on(signal, keepAlive);
+          }
+
+          const listenersBefore = process.listeners(signal);
+          if (signal === "SIGINT") {
+            expect(listenersBefore).toContain(keepAlive);
+            expect(listenersBefore.length).toBeGreaterThan(1);
+          }
+          killSpy.mockClear();
+          __testing.handleTerminationSignal(signal);
+
+          await expect(fs.stat(lockPath)).rejects.toThrow();
+          if (listenersBefore.length === 1) {
+            expect(killSpy).toHaveBeenCalledTimes(1);
+            expect(killSpy).toHaveBeenCalledWith(process.pid, signal);
+          } else {
+            expect(killSpy).not.toHaveBeenCalled();
+            expect(process.listeners(signal)).toEqual(listenersBefore);
+          }
+        } finally {
+          if (signal === "SIGINT") {
+            process.off(signal, keepAlive);
+          }
+          await fs.rm(root, { recursive: true, force: true });
+        }
+      }
+    } finally {
+      killSpy.mockRestore();
     }
   });
 
