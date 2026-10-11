@@ -153,33 +153,31 @@ def send_whatsapp_message(phone_number: str, message: str):
 
 
 def format_horoscope_message(horoscope_data: Dict, user_name: str = None) -> str:
-    """Format horoscope data into a readable message."""
-    greeting = f"Namaste {user_name}! 🙏" if user_name else "Namaste! 🙏"
-
+    """Format calculated facts and traditional text without an accuracy guarantee."""
+    if not isinstance(horoscope_data, dict) or horoscope_data.get('error'):
+        raise ValueError('A failed horoscope cannot be formatted as a reading')
+    greeting = f"Namaste {user_name}!" if user_name else "Namaste!"
     sign = horoscope_data.get('birth_moon_sign', '')
     hindi_sign = horoscope_data.get('birth_moon_sign_hindi', '')
     date = horoscope_data.get('date', datetime.now().strftime("%Y-%m-%d"))
-
-    message = f"""{greeting}
-
-📅 *Your Daily Horoscope - {date}*
-
-🌙 *Moon Sign:* {sign} ({hindi_sign})
-🌟 *Nakshatra:* {horoscope_data.get('birth_nakshatra', '')}
-🔮 *Today\'s Moon Transit:* House {horoscope_data.get('transit_moon_house', '')}
-
-✨ *Prediction:*
-{horoscope_data.get('prediction', '')}
-
-🎨 *Lucky Color:* {horoscope_data.get('lucky_color', '')}
-🔢 *Lucky Numbers:* {', '.join(map(str, horoscope_data.get('lucky_numbers', [])))}
-📆 *Lucky Day:* {horoscope_data.get('lucky_day', '')}
-
----
-🔥 *100% Accurate* - Calculated using Swiss Ephemeris
-"""
-
-    return message
+    lines = [
+        greeting, '', f"*Your Daily Horoscope - {date}*", '',
+        f"*Moon Sign:* {sign} ({hindi_sign})",
+        f"*Nakshatra:* {horoscope_data.get('birth_nakshatra', '')}",
+        f"*Moon Transit:* House {horoscope_data.get('transit_moon_house', '')} from the natal Moon",
+        '', '*Traditional reading:*', horoscope_data.get('prediction', ''),
+    ]
+    cultural = []
+    if horoscope_data.get('lucky_color'):
+        cultural.append(f"*Traditional Color:* {horoscope_data['lucky_color']}")
+    if horoscope_data.get('lucky_numbers'):
+        cultural.append("*Traditional Numbers:* " + ', '.join(map(str, horoscope_data['lucky_numbers'])))
+    if horoscope_data.get('lucky_day'):
+        cultural.append(f"*Traditional Day:* {horoscope_data['lucky_day']}")
+    if cultural:
+        lines += ['', *cultural, 'These are cultural suggestions, without guaranteed outcomes.']
+    lines += ['', horoscope_data.get('calculation_method', 'Calculated daily snapshot')]
+    return '\n'.join(lines)
 
 
 def send_daily_horoscopes(dry_run: bool = False):

@@ -80,6 +80,7 @@ COPY skills/kundli/prediction_assessment.py skills/kundli/outcome_language.py sk
     /app/bootstrap/skills/kundli/
 COPY skills/vedastro/vedastro_client.py skills/vedastro/natal_client.py skills/vedastro/SKILL.md /app/bootstrap/skills/vedastro/
 COPY skills/horoscope/calculate.py skills/horoscope/scheduler.py skills/horoscope/vedic_rules.json \
+    skills/horoscope/daily_provider.py skills/horoscope/daily_wording.py \
     skills/horoscope/SKILL.md /app/bootstrap/skills/horoscope/
 COPY skills/qdrant/qdrant_client.py /app/bootstrap/skills/qdrant/qdrant_client.py
 COPY skills/mongo_logger/logger_client.py skills/mongo_logger/fetch_history.py \

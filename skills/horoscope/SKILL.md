@@ -1,422 +1,84 @@
 ---
 name: horoscope
-description: 100% Accurate Vedic Daily Horoscope with English/Hinglish support
-metadata:
-  {
-    "openclaw": { "emoji": "🔮", "requires": { "bins": ["python3"], "py": ["pyswisseph"] } },
-  }
+description: Daily Vedic Moon-transit snapshots with separate traditional interpretations in English and Hinglish.
+metadata: { "openclaw": { "requires": { "bins": ["python3"], "py": ["pyswisseph"] } } }
 ---
 
-# Vedic Horoscope Skill (100% Accurate)
+# Daily horoscope
 
-Provides **authentic Vedic astrology-based daily horoscopes** using Swiss Ephemeris (pyswisseph) for professional-grade accuracy. Supports both English and Hinglish output.
+Use this skill for an explicitly requested daily reading. A greeting or
+emotional-only message needs no horoscope. Marriage, career, education and finance
+outcomes use the fresh reviewed topic contract in `kundli`; daily Moon themes
+are not evidence of a wedding, job, exam result or financial recovery.
 
-## ✨ Key Features
+## Confirmed inputs and deployment
 
-- ✅ **100% Accurate**: Uses Swiss Ephemeris (NASA-grade precision)
-- ✅ **Vedic Astrology**: Based on Moon sign (Rashi), not Sun sign
-- ✅ **Personalized**: Uses user's birth chart for predictions
-- ✅ **Bilingual**: English or Hinglish (auto-detected)
-- ✅ **Unlimited**: No API limits, completely offline calculation
-- ✅ **Proactive Delivery**: Daily horoscope subscriptions via WhatsApp
+Reuse the current subject's confirmed birth date, local time and resolved place
+from the backend/session profile. Retrieve missing or conflicting inputs only
+through the existing authenticated tools configured for this deployment. Never
+copy a service URL from an example or contact another environment. If a lookup
+fails, ask only for missing inputs; do not claim that memory retrieval always works.
+Keep third-party details separate. Do not save profile or memory records merely
+to generate a reading; use the existing authorized correction workflow.
 
----
-
-## 🎯 Quick Start
-
-### Generate Daily Horoscope (On-Demand)
-
-Without `--date`, calculations use the current UTC instant. `--date YYYY-MM-DD` selects a reproducible snapshot at 12:00 UTC on that date, returned as `calculated_at_utc`; this is not a local sunrise forecast. The requested date controls both transits and dasha selection. Current Vimshottari periods include the birth-period balance and elapsed time, using a 365.25-day year. Birth time is converted to UTC using the kundli result's offset.
-
-A reliable Swiss birth chart is required for this flow. Missing calculators, incomplete charts, or unavailable transits return error JSON and a nonzero CLI exit; do not use the result as a prediction. Ephemeris calculations do not guarantee the accuracy of an interpretation.
+## Calculate
 
 ```bash
-# English horoscope
-python3 ~/.openclaw/skills/horoscope/calculate.py \
-  --dob "1990-05-15" \
-  --tob "10:30 AM" \
-  --place "Mumbai"
-
-# Hinglish horoscope (auto-detected from user input)
-python3 ~/.openclaw/skills/horoscope/calculate.py \
-  --dob "1990-05-15" \
-  --tob "10:30 AM" \
-  --place "Mumbai" \
-  --language auto \
-  --user-input "mera aaj ka horoscope batao"
-
-# Explicit Hinglish
-python3 ~/.openclaw/skills/horoscope/calculate.py \
-  --dob "1990-05-15" \
-  --tob "10:30 AM" \
-  --place "Mumbai" \
-  --language hinglish
+python3 ~/.openclaw/skills/horoscope/calculate.py --dob "1990-05-15" --tob "10:30 AM" --place "Mumbai" --language english
+python3 ~/.openclaw/skills/horoscope/calculate.py --dob "1990-05-15" --tob "10:30 AM" --place "Mumbai" --language hinglish
 ```
 
----
+These inputs are synthetic, never the user's defaults. Resolve unknown times,
+places and timezone conflicts before calculating. Follow an explicit user language
+instruction; otherwise use the latest meaningful message. Auto detection can use
+`--language auto --user-input "mera aaj ka horoscope batao"`.
 
-## 📋 Get User Birth Details (MongoDB FIRST, Mem0 fallback ALWAYS works)
+Without `--date`, use the current UTC instant. `--date YYYY-MM-DD` evaluates
+12:00 UTC on that date, recorded in `calculated_at_utc`; it is not local sunrise.
+The date controls both transits and dasha selection. Vimshottari uses the birth
+balance, elapsed time and a 365.25-day year. Do not label a future snapshot as
+today or substitute noon/midnight for an unknown birth time.
 
-Before generating horoscope, get user's birth details:
+## Evidence and answer
 
-```bash
-# Step 1: Try MongoDB FIRST (FAST - 5-20ms)
-MONGO_DATA=$(curl -s --max-time 5 "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata/<USER_ID>")
+Missing rules, unknown signs or unavailable calculators return an error and a
+nonzero CLI exit. Do not interpret an error or repeat the identical failed call.
+With `VEDASTRO_DAILY_ENABLED=1`, the flow requires the configured self-hosted
+`DailyEvidence` endpoint and `VEDASTRO_NATAL_ENABLED=1`. It checks native birth
+and current positions against independent Swiss calculations, verifies the
+clock, dasha and source categories, and validates typed native Kaksha scores.
+An enabled native failure is an error, never a silent legacy fallback. Its
+general house themes are labeled separately from native scores. This does not
+reproduce the website's private interpretation engine or evaluate transit Vedha.
 
-# Extract birth data from MongoDB response
-DOB=$(echo "$MONGO_DATA" | grep -o '"dateOfBirth":"[^"]*"' | cut -d'"' -f4)
-TOB=$(echo "$MONGO_DATA" | grep -o '"timeOfBirth":"[^"]*"' | cut -d'"' -f4)
-PLACE=$(echo "$MONGO_DATA" | grep -o '"birthPlace":"[^"]*"' | cut -d'"' -f4)
+With the daily flag off, the existing Swiss coordinates and `local_daily_rules`
+from `vedic_rules.json` remain available. In either mode,
+`transit_house_reference` is `natal_moon_whole_sign`, not a natal
+placement or an ascendant-relative house.
 
-# If MongoDB has complete birth data, use it
-if [ -n "$DOB" ] && [ -n "$TOB" ] && [ -n "$PLACE" ]; then
-    echo "Found birth data in MongoDB: DOB=$DOB, TOB=$TOB, Place=$PLACE"
-# FALLBACK: If MongoDB doesn't have data, check Mem0 (ALWAYS works!)
-else
-    echo "MongoDB unavailable or incomplete - checking Mem0..."
-    python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<USER_ID>"
-fi
-```
+Answer the daily focus first, then its relevant calculated facts and traditional
+themes. Explain support and caution together. An ordinary answer can use 2-4
+flowing sentences; requested detail may need more. Stop after the answer without
+a repeated conclusion, service offer or routine closing question.
 
-> **✅ SAFE:** If MongoDB is down, Mem0 fallback ALWAYS works! Existing functionality preserved.
+The legacy `prediction` field is traditional rule prose, not verified knowledge
+about the user's health, investments, relationships or future. Do not promise gains,
+medical outcomes, job results, wedding dates or another person's intentions.
+Period names alone do not prove outcomes. Lucky color/number/day lookups are
+cultural suggestions, not event evidence or guaranteed remedies. Numerical
+ephemeris precision does not validate future predictions.
 
-**NOTE: If you ask user for birth details and they provide them, save to BOTH places:**
-```bash
-# Save to MongoDB user_metadata (for fast lookup next time)
-curl -X POST "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata" \
-  -H "Content-Type: application/json" \
-  -d '{"userId": "<USER_ID>", "dateOfBirth": "<DOB>", "timeOfBirth": "<TOB>", "birthPlace": "<PLACE>"}'
+## Existing subscription workflow
 
-# ALSO save to Mem0 (keeps existing Mem0 functionality working!)
-python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "birth details" \
-  --content "DOB: <DOB>, TOB: <TOB>, Place: <PLACE>" \
-  --user-id "<USER_ID>" \
-  --metadata '{"source":"horoscope_skill"}'
-```
-
----
-
-## 📅 Subscribe for Daily Horoscopes
-
-### Subscribe a User
-
-```bash
-python3 ~/.openclaw/skills/horoscope/scheduler.py subscribe \
-  --user-id "+919760347653" \
-  --dob "1990-05-15" \
-  --tob "10:30 AM" \
-  --place "Mumbai" \
-  --language auto \
-  --time "08:00"
-```
-
-**Parameters:**
-- `--user-id`: WhatsApp number (with country code)
-- `--dob`: Date of birth
-- `--tob`: Time of birth
-- `--place`: Birth place
-- `--language`: `english`, `hinglish`, or `auto` (default)
-- `--time`: Preferred delivery time (default: 08:00)
-
-### Unsubscribe a User
+Generating a reading does not authorize a subscription or outbound delivery.
+Use subscription commands only in the existing user-authorized workflow. This
+example ID is synthetic and must not replace the current authenticated user:
 
 ```bash
-python3 ~/.openclaw/skills/horoscope/scheduler.py unsubscribe \
-  --user-id "+919760347653"
-```
-
-### List All Subscribers
-
-```bash
-python3 ~/.openclaw/skills/horoscope/scheduler.py list
-```
-
----
-
-## ⏰ Schedule Daily Horoscope Delivery
-
-### Method 1: Cron Job (Recommended)
-
-Add to crontab (`crontab -e`):
-
-```bash
-# Send daily horoscopes at 8 AM every day
-0 8 * * * /usr/bin/python3 /path/to/openclawforaiastro/skills/horoscope/scheduler.py send
-```
-
-### Method 2: Test Run (Dry Mode)
-
-Preview horoscopes without sending:
-
-```bash
+python3 ~/.openclaw/skills/horoscope/scheduler.py subscribe --user-id "+19995550123" --dob "1990-05-15" --tob "10:30 AM" --place "Mumbai" --language english --time "08:00"
+python3 ~/.openclaw/skills/horoscope/scheduler.py unsubscribe --user-id "+19995550123"
 python3 ~/.openclaw/skills/horoscope/scheduler.py send --dry-run
 ```
 
----
-
-## 🧪 Test Horoscope Generation
-
-```bash
-# Test with sample data
-python3 ~/.openclaw/skills/horoscope/scheduler.py test \
-  --dob "1990-05-15" \
-  --tob "10:30 AM" \
-  --place "Mumbai" \
-  --language english
-```
-
----
-
-## 📊 How It Works (100% Accurate)
-
-### Step 1: Birth Chart Calculation
-- Uses **pyswisseph** (Swiss Ephemeris) - same as NASA
-- Calculates: Moon Sign (Rashi), Nakshatra, Lagna
-- **100% accurate** if birth data is correct
-
-### Step 2: Current Planetary Positions
-- Today's Moon position in zodiac
-- Transit house calculation (from birth Moon)
-- Current Nakshatra
-- **100% accurate** real-time data
-
-### Step 3: Vedic Rules Applied
-- Moon transit effect (12 houses)
-- Nakshatra influence (27 Nakshatras)
-- Current Dasha period
-- Authentic Vedic astrology principles
-
-### Step 4: Prediction Generation
-- Combines all factors
-- Language detection (English/Hinglish)
-- Personalized lucky factors
-
----
-
-## 🎨 Output Format
-
-### English Horoscope Example:
-
-```json
-{
-  "date": "2026-04-13",
-  "birth_moon_sign": "Scorpio",
-  "birth_moon_sign_hindi": "Vrishchik",
-  "birth_nakshatra": "Jyeshtha",
-  "transit_moon_sign": "Leo",
-  "transit_moon_house": 10,
-  "transit_nakshatra": "Purva Phalguni",
-  "prediction": "Career matters take priority today. Recognition at work possible...",
-  "lucky_color": "Red, Black",
-  "lucky_numbers": [8, 9],
-  "lucky_day": "Tuesday, Thursday",
-  "accuracy": "100% - Calculated using Swiss Ephemeris (pyswisseph)"
-}
-```
-
-### WhatsApp Message Format:
-
-```
-Namaste! 🙏
-
-📅 Your Daily Horoscope - 2026-04-13
-
-🌙 Moon Sign: Scorpio (Vrishchik)
-🌟 Nakshatra: Jyeshtha
-🔮 Today's Moon Transit: House 10
-
-✨ Prediction:
-Career matters take priority today. Recognition at work possible...
-[Full prediction text]
-
-🎨 Lucky Color: Red, Black
-🔢 Lucky Numbers: 8, 9
-📆 Lucky Day: Tuesday, Thursday
-
----
-🔥 100% Accurate - Calculated using Swiss Ephemeris
-```
-
----
-
-## 🌍 Language Detection
-
-The system auto-detects user language preference:
-
-**English user input:**
-- "tell me my horoscope"
-- "what's my prediction today"
-- "daily forecast"
-
-**Hinglish user input:**
-- "mera horoscope batao"
-- "aaj ka din kaisa hai"
-- "career kaise rahega"
-
-**Manual override:**
-```bash
---language english  # Force English
---language hinglish  # Force Hinglish
---language auto      # Auto-detect (default)
-```
-
----
-
-## 🔧 Technical Details
-
-### Dependencies
-- ✅ `pyswisseph` - Swiss Ephemeris (already in your kundli skill)
-- ✅ `geopy` - For location coordinates (already installed)
-- ✅ `jyotishganit` - Fallback calculations (already installed)
-
-### Accuracy Guarantee
-- **Planetary positions**: 100% accurate (Swiss Ephemeris)
-- **Birth chart**: 100% accurate (if birth data is correct)
-- **Transit calculations**: 100% accurate (real-time pyswisseph)
-- **Vedic principles**: Authentic ancient texts
-
-### What's Not 100% Predictable
-- **Exact events**: Astrology shows trends, not specific events
-- **Wording**: Different astrologers phrase differently
-- **Timing**: Can predict period (days/weeks), not exact hour
-
----
-
-## 📝 Integration with Mem0 (Optional)
-
-Store user preferences for faster access:
-
-```bash
-# Store user language preference
-python3 ~/.openclaw/skills/mem0/mem0_client.py add \
-  "User prefers Hinglish horoscopes. DOB: 1990-05-15, TOB: 10:30 AM, Place: Mumbai" \
-  --user-id "+919760347653"
-
-# Retrieve user preferences
-python3 ~/.openclaw/skills/mem0/mem0_client.py search \
-  "horoscope preference birth details" \
-  --user-id "+919760347653"
-```
-
----
-
-## 🚀 Production Deployment
-
-### 1. Set Up WhatsApp Integration
-
-Edit `scheduler.py` → `send_whatsapp_message()` function:
-
-```python
-def send_whatsapp_message(phone_number: str, message: str):
-    import requests
-    whatsapp_url = os.getenv("WHATSAPP_API_URL")
-
-    response = requests.post(whatsapp_url, json={
-        "to": phone_number,
-        "message": message,
-        "type": "text"
-    })
-
-    return response.json()
-```
-
-### 2. Set Environment Variables
-
-```bash
-# Add to .env
-WHATSAPP_API_URL=https://your-whatsapp-api.com/send
-MONGO_LOGGER_URL=https://your-mongo-db.com
-```
-
-### 3. Deploy Cron Job
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add this line
-0 8 * * * cd /path/to/openclawforaiastro && /usr/bin/python3 skills/horoscope/scheduler.py send >> /var/log/horoscope.log 2>&1
-```
-
----
-
-## 📈 Scaling for Thousands of Users
-
-This system is designed for unlimited users:
-
-- ✅ **No API costs**: All calculations offline
-- ✅ **No rate limits**: Use pyswisseph locally
-- ✅ **Fast**: < 1 second per horoscope
-- ✅ **Storage**: Simple JSON file (or upgrade to MongoDB)
-- ✅ **Database ready**: Easy migration to MongoDB/PostgreSQL
-
-**Recommended for 1000+ users:**
-- Use MongoDB instead of JSON file
-- Add user batching for cron job
-- Implement queue system for WhatsApp sending
-
----
-
-## 🎯 Use Cases
-
-### 1. AI Agent Response
-When user asks "mera horoscope batao":
-
-```bash
-# Agent calls this
-python3 ~/.openclaw/skills/horoscope/calculate.py \
-  --dob "$USER_DOB" \
-  --tob "$USER_TOB" \
-  --place "$USER_PLACE" \
-  --language auto \
-  --user-input "$USER_MESSAGE"
-```
-
-### 2. Daily Proactive Delivery
-Cron job sends at 8 AM every day automatically
-
-### 3. User Portal Integration
-REST API wrapper for web/mobile apps
-
----
-
-## 🔮 Future Enhancements
-
-- [ ] Weekly horoscope (7-day prediction)
-- [ ] Monthly horoscope (30-day prediction)
-- [ ] Yearly horoscope (Varshaphal)
-- [ ] Love compatibility horoscope
-- [ ] Career-specific horoscope
-- [ ] Health horoscope
-- [ ] Remedies (Upaya) suggestions
-
----
-
-## ❓ FAQ
-
-**Q: Is this really 100% accurate?**
-A: Planetary calculations are 100% accurate (Swiss Ephemeris). Predictions follow authentic Vedic principles. However, astrology shows trends, not exact events.
-
-**Q: Why Moon sign and not Sun sign?**
-A: Vedic astrology uses Moon sign (Rashi) for horoscopes, which changes every 2.5 days. Western astrology uses Sun sign, which changes monthly. Moon sign is more personalized and accurate for daily predictions.
-
-**Q: Can I customize the prediction text?**
-A: Yes! Edit `vedic_rules.json` to modify predictions for each house transit, Nakshatra, and Dasha.
-
-**Q: How many users can this handle?**
-A: Unlimited! No API limits. For 10,000+ users, upgrade from JSON file to MongoDB.
-
-**Q: Do I need internet connection?**
-A: Only for first-time ephemeris download. After that, 100% offline.
-
----
-
-## 📞 Support
-
-For issues or questions, check:
-- `pyswisseph` documentation: https://pypi.org/project/pyswisseph/
-- Swiss Ephemeris: https://www.astro.com/swisseph/
-
----
-
-🔮 **Authentic Vedic Astrology + Modern Technology = 100% Accurate Horoscopes**
+Do not run real subscriber delivery as a quality test. Use synthetic local
+`scheduler.py test --dob ... --tob ... --place ...` inputs instead.

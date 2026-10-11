@@ -301,10 +301,43 @@ class CalculationTests(unittest.TestCase):
         self.assertIn('error', result)
         self.assertNotIn('prediction', result)
 
+    def test_daily_house_count_checks_all_sign_pairs_and_rejects_unknown_signs(self):
+        signs = list(self.h.SIGN_TO_INDEX)
+        for natal, birth_sign in enumerate(signs):
+            for transit, transit_sign in enumerate(signs):
+                self.assertEqual(self.h.get_house_from_sign(transit_sign, birth_sign), (transit - natal) % 12 + 1)
+        for bad in (None, '', 'Unknown', 'aries', 0, False):
+            for args in ((bad, 'Aries'), ('Aries', bad)):
+                with self.subTest(args=args), self.assertRaises(ValueError):
+                    self.h.get_house_from_sign(*args)
+
+    def test_daily_language_detection_uses_words_not_english_substrings(self):
+        for message in ('My career involves chair design.', 'The main chair is important.', 'What should I study?'):
+            self.assertEqual(self.h.detect_language(message), 'english')
+        for message in ('mera horoscope batao', 'aaj ka din kaisa hai', 'career kaise rahega'):
+            self.assertEqual(self.h.detect_language(message), 'hinglish')
+        result = self.h.generate_daily_horoscope('2000-01-01', '12:00', 'Delhi', language='auto', user_input='mera horoscope batao')
+        self.assertEqual(result['language'], 'hinglish')
+        self.assertIn('error', self.h.generate_daily_horoscope('2000-01-01', '12:00', 'Delhi', language='invalid'))
+
+    def test_daily_missing_rules_or_signs_never_return_an_empty_success(self):
+        for rules in ({}, {'moon_transit_effects': {}}, {'moon_transit_effects': {'house_1': {'english': ''}}}):
+            with patch.object(self.h, 'load_rules', return_value=rules):
+                result = self.h.generate_daily_horoscope('2000-01-01', '12:00', 'Delhi')
+            self.assertIn('error', result)
+            self.assertNotIn('prediction', result)
+        with patch.object(self.h, 'get_current_moon_sign', return_value=('Unknown', 1, 'Ashwini')):
+            self.assertNotIn('prediction', self.h.generate_daily_horoscope('2000-01-01', '12:00', 'Delhi'))
+        with patch.object(self.h, 'load_rules', side_effect=ValueError('Daily interpretation rules are unavailable')):
+            self.assertIn('error', self.h.generate_daily_horoscope('2000-01-01', '12:00', 'Delhi'))
+
     def test_default_horoscope_has_no_datetime_scope_error(self):
         result = self.h.generate_daily_horoscope("2000-01-01", "12:00", "Delhi")
         self.assertNotIn("error", result, result)
         self.assertTrue(result["calculated_at_utc"].endswith("Z"))
+        self.assertEqual(result['interpretation_source'], 'local_daily_rules')
+        self.assertEqual(result['transit_house_reference'], 'natal_moon_whole_sign')
+        self.assertEqual(result['lucky_factors_source'], 'local_traditional_lookup_not_event_evidence')
 
     def test_requested_date_controls_transits_and_dasha(self):
         requested = datetime(2030, 5, 6, 12)

@@ -1,0 +1,841 @@
+{
+  "scope": "Fictional local integration fixture; not an account profile",
+  "chart": {
+    "summary": {
+      "lagna": "Taurus",
+      "moon_sign": "Cancer",
+      "nakshatra": "Ashlesha",
+      "nakshatra_note": "This is the Moon's Nakshatra (Janma Nakshatra/birth star). Not Saturn or any other planet.",
+      "current_dasha": "Current Mahadasha: Venus (Ends 2030-07-20T02:47:56.017203Z). Current Antardasha: Mercury (Ends 2029-05-19T23:47:56.017203Z).",
+      "confidence": "high",
+      "ephemeris": "pyswisseph (FREE Swiss Ephemeris) - Primary",
+      "warnings": ["Using pyswisseph with date-specific Lahiri ayanamsa"]
+    },
+    "ai_summary": {
+      "rashi_info": "Rashi (Moon Sign): Cancer (Hindi: Kark). Lagna (Ascendant): Taurus (Hindi: Vrishabh). Nakshatra: Ashlesha Pada 3.",
+      "dasha_info": "Current Mahadasha: Venus (Ends 2030-07-20T02:47:56.017203Z). Current Antardasha: Mercury (Ends 2029-05-19T23:47:56.017203Z).",
+      "planet_positions": [
+        "Sun is in House 10 (Aquarius/Kumbh)",
+        "Moon is in House 3 (Cancer/Kark)",
+        "Mercury is in House 10 (Aquarius/Kumbh)",
+        "Venus is in House 9 (Capricorn/Makar)",
+        "Mars is in House 3 (Cancer/Kark)",
+        "Jupiter is in House 7 (Scorpio/Vrishchik)",
+        "Saturn is in House 10 (Aquarius/Kumbh)",
+        "Rahu is in House 6 (Libra/Tula)",
+        "Ketu is in House 12 (Aries/Mesh)"
+      ],
+      "instructions_for_ai": "Use calculated facts only. Dasha dates are period boundaries, not event forecasts. Image rendering requires all nine planet positions."
+    },
+    "planet_positions": [
+      {
+        "name": "Sun",
+        "tropical_degree": 353.13954967753233,
+        "sidereal_degree": 329.3495493865172,
+        "sign": "Aquarius",
+        "degree_in_sign": 29.349549386517197,
+        "house": 10
+      },
+      {
+        "name": "Moon",
+        "tropical_degree": 137.24026947778688,
+        "sidereal_degree": 113.45026918677175,
+        "sign": "Cancer",
+        "degree_in_sign": 23.45026918677175,
+        "house": 3
+      },
+      {
+        "name": "Mercury",
+        "tropical_degree": 329.00734861952753,
+        "sidereal_degree": 305.2173483285124,
+        "sign": "Aquarius",
+        "degree_in_sign": 5.217348328512401,
+        "house": 10
+      },
+      {
+        "name": "Venus",
+        "tropical_degree": 313.2998000032974,
+        "sidereal_degree": 289.50979971228224,
+        "sign": "Capricorn",
+        "degree_in_sign": 19.509799712282245,
+        "house": 9
+      },
+      {
+        "name": "Mars",
+        "tropical_degree": 133.86243046319032,
+        "sidereal_degree": 110.07243017217519,
+        "sign": "Cancer",
+        "degree_in_sign": 20.07243017217519,
+        "house": 3
+      },
+      {
+        "name": "Jupiter",
+        "tropical_degree": 254.86298938666178,
+        "sidereal_degree": 231.07298909564665,
+        "sign": "Scorpio",
+        "degree_in_sign": 21.072989095646648,
+        "house": 7
+      },
+      {
+        "name": "Saturn",
+        "tropical_degree": 346.00887152194343,
+        "sidereal_degree": 322.2188712309283,
+        "sign": "Aquarius",
+        "degree_in_sign": 22.2188712309283,
+        "house": 10
+      },
+      {
+        "name": "Rahu",
+        "tropical_degree": 216.44571762970733,
+        "sidereal_degree": 192.6557173386922,
+        "sign": "Libra",
+        "degree_in_sign": 12.655717338692199,
+        "house": 6
+      },
+      {
+        "name": "Ketu",
+        "tropical_degree": 36.44571762970736,
+        "sidereal_degree": 12.655717338692227,
+        "sign": "Aries",
+        "degree_in_sign": 12.655717338692227,
+        "house": 12
+      }
+    ],
+    "ayanamsa": {
+      "name": "LAHIRI",
+      "value": 23.790000291015133
+    },
+    "dashas": {
+      "year_days": 365.25,
+      "current": {
+        "mahadashas": {
+          "Venus": {
+            "start": "2010-07-20T02:47:56.017203Z",
+            "end": "2030-07-20T02:47:56.017203Z",
+            "antardashas": {
+              "Mercury": {
+                "start": "2026-07-20T02:47:56.017203Z",
+                "end": "2029-05-19T23:47:56.017203Z"
+              }
+            }
+          }
+        }
+      }
+    },
+    "calculation_source": "pyswisseph",
+    "lagna": "Taurus",
+    "moon_sign": "Cancer",
+    "nakshatra": "Ashlesha",
+    "user_input": {
+      "birth_utc": "1995-03-14T04:45:00Z",
+      "dob": "1995-03-14",
+      "tob": "10:15",
+      "place": "Fictional test location",
+      "coordinates": {
+        "lat": 28.6139,
+        "lon": 77.209
+      },
+      "timezone_offset": 5.5,
+      "ephemeris_used": "pyswisseph (FREE Swiss Ephemeris) - Primary",
+      "pyswisseph_available": true
+    },
+    "calculation_settings": {
+      "ayanamsa": "LAHIRI",
+      "house_system": "whole_sign",
+      "node": "true",
+      "dasha_year_days": 365.25,
+      "engine": "pyswisseph"
+    },
+    "lagna_sidereal_degree": 40.04684143553862
+  },
+  "references": [
+    {
+      "planet_positions": [
+        {
+          "name": "Sun",
+          "tropical_degree": null,
+          "sidereal_degree": 329.34638660653036,
+          "sign": "Aquarius",
+          "degree_in_sign": 29.34638660653036,
+          "house": 10
+        },
+        {
+          "name": "Moon",
+          "tropical_degree": null,
+          "sidereal_degree": 113.44710640678488,
+          "sign": "Cancer",
+          "degree_in_sign": 23.447106406784883,
+          "house": 3
+        },
+        {
+          "name": "Mercury",
+          "tropical_degree": null,
+          "sidereal_degree": 305.2141855485255,
+          "sign": "Aquarius",
+          "degree_in_sign": 5.214185548525506,
+          "house": 10
+        },
+        {
+          "name": "Venus",
+          "tropical_degree": null,
+          "sidereal_degree": 289.50663693229535,
+          "sign": "Capricorn",
+          "degree_in_sign": 19.50663693229535,
+          "house": 9
+        },
+        {
+          "name": "Mars",
+          "tropical_degree": null,
+          "sidereal_degree": 110.06926739218832,
+          "sign": "Cancer",
+          "degree_in_sign": 20.069267392188323,
+          "house": 3
+        },
+        {
+          "name": "Jupiter",
+          "tropical_degree": null,
+          "sidereal_degree": 231.06982631565972,
+          "sign": "Scorpio",
+          "degree_in_sign": 21.069826315659725,
+          "house": 7
+        },
+        {
+          "name": "Saturn",
+          "tropical_degree": null,
+          "sidereal_degree": 322.2157084509414,
+          "sign": "Aquarius",
+          "degree_in_sign": 22.215708450941406,
+          "house": 10
+        },
+        {
+          "name": "Rahu",
+          "tropical_degree": null,
+          "sidereal_degree": 192.65255455870536,
+          "sign": "Libra",
+          "degree_in_sign": 12.652554558705361,
+          "house": 6
+        },
+        {
+          "name": "Ketu",
+          "tropical_degree": null,
+          "sidereal_degree": 12.652554558705333,
+          "sign": "Aries",
+          "degree_in_sign": 12.652554558705333,
+          "house": 12
+        }
+      ],
+      "moon_sign": "Cancer",
+      "moon_degree": 23.447106406784883,
+      "moon_nakshatra": "Ashlesha",
+      "moon_pada": 3,
+      "moon_sidereal_degree": 113.44710640678488,
+      "lagna": "Taurus",
+      "lagna_degree": 10.043678655551737,
+      "ayanamsa_used": "LAHIRI",
+      "ayanamsa_degree": 23.790000291015133,
+      "node_convention": "true",
+      "ephemeris": "pyswisseph (FREE Swiss Ephemeris)"
+    },
+    {
+      "planet_positions": [
+        {
+          "name": "Sun",
+          "tropical_degree": null,
+          "sidereal_degree": 173.9581723603564,
+          "sign": "Virgo",
+          "degree_in_sign": 23.9581723603564,
+          "house": 7
+        },
+        {
+          "name": "Moon",
+          "tropical_degree": null,
+          "sidereal_degree": 183.97785344221188,
+          "sign": "Libra",
+          "degree_in_sign": 3.977853442211881,
+          "house": 8
+        },
+        {
+          "name": "Mercury",
+          "tropical_degree": null,
+          "sidereal_degree": 198.95053759706917,
+          "sign": "Libra",
+          "degree_in_sign": 18.95053759706917,
+          "house": 8
+        },
+        {
+          "name": "Venus",
+          "tropical_degree": null,
+          "sidereal_degree": 192.93279079068023,
+          "sign": "Libra",
+          "degree_in_sign": 12.93279079068023,
+          "house": 8
+        },
+        {
+          "name": "Mars",
+          "tropical_degree": null,
+          "sidereal_degree": 103.45861903262826,
+          "sign": "Cancer",
+          "degree_in_sign": 13.458619032628263,
+          "house": 5
+        },
+        {
+          "name": "Jupiter",
+          "tropical_degree": null,
+          "sidereal_degree": 117.15554685446038,
+          "sign": "Cancer",
+          "degree_in_sign": 27.155546854460383,
+          "house": 5
+        },
+        {
+          "name": "Saturn",
+          "tropical_degree": null,
+          "sidereal_degree": 346.52167368014096,
+          "sign": "Pisces",
+          "degree_in_sign": 16.521673680140964,
+          "house": 1
+        },
+        {
+          "name": "Rahu",
+          "tropical_degree": null,
+          "sidereal_degree": 304.53645776173386,
+          "sign": "Aquarius",
+          "degree_in_sign": 4.536457761733857,
+          "house": 12
+        },
+        {
+          "name": "Ketu",
+          "tropical_degree": null,
+          "sidereal_degree": 124.53645776173386,
+          "sign": "Leo",
+          "degree_in_sign": 4.536457761733857,
+          "house": 6
+        }
+      ],
+      "moon_sign": "Libra",
+      "moon_degree": 3.977853442211881,
+      "moon_nakshatra": "Chitra",
+      "moon_pada": 4,
+      "moon_sidereal_degree": 183.97785344221188,
+      "lagna": "Pisces",
+      "lagna_degree": 16.159838747259357,
+      "ayanamsa_used": "LAHIRI",
+      "ayanamsa_degree": 24.23114761243238,
+      "node_convention": "true",
+      "ephemeris": "pyswisseph (FREE Swiss Ephemeris)"
+    }
+  ],
+  "response": {
+    "Status": "Pass",
+    "Input": {
+      "Ayanamsa": 1
+    },
+    "Payload": {
+      "DailyEvidence": {
+        "schema": "vedastro-daily-evidence-v1",
+        "natal": {
+          "schema": "vedastro-natal-evidence-v1",
+          "birthTime": {
+            "StdTime": "10:15 14/03/1995 +05:30",
+            "Location": {
+              "Name": "Confirmed coordinates",
+              "Longitude": 77.209,
+              "Latitude": 28.6139
+            }
+          },
+          "ascendant": {
+            "Name": "Taurus",
+            "DegreesIn": {
+              "DegreeMinuteSecond": "10\u00b0 2' 36",
+              "TotalDegrees": "10.043333333333333"
+            }
+          },
+          "planets": {
+            "Sun": {
+              "longitude": 329.3463888888889,
+              "sign": "Aquarius",
+              "nakshatra": {
+                "Name": "Poorvabhadra",
+                "Quarter": 3,
+                "DegreesInConstellation": 9.346111111111112
+              }
+            },
+            "Moon": {
+              "longitude": 113.44694444444444,
+              "sign": "Cancer",
+              "nakshatra": {
+                "Name": "Aslesha",
+                "Quarter": 3,
+                "DegreesInConstellation": 6.780277777777778
+              }
+            },
+            "Mars": {
+              "longitude": 110.06916666666666,
+              "sign": "Cancer",
+              "nakshatra": {
+                "Name": "Aslesha",
+                "Quarter": 2,
+                "DegreesInConstellation": 3.402222222222222
+              }
+            },
+            "Mercury": {
+              "longitude": 305.21416666666664,
+              "sign": "Aquarius",
+              "nakshatra": {
+                "Name": "Dhanishta",
+                "Quarter": 4,
+                "DegreesInConstellation": 11.880555555555556
+              }
+            },
+            "Jupiter": {
+              "longitude": 231.06972222222223,
+              "sign": "Scorpio",
+              "nakshatra": {
+                "Name": "Jyesta",
+                "Quarter": 2,
+                "DegreesInConstellation": 4.402777777777778
+              }
+            },
+            "Venus": {
+              "longitude": 289.50666666666666,
+              "sign": "Capricorn",
+              "nakshatra": {
+                "Name": "Sravana",
+                "Quarter": 3,
+                "DegreesInConstellation": 9.506666666666666
+              }
+            },
+            "Saturn": {
+              "longitude": 322.21555555555557,
+              "sign": "Aquarius",
+              "nakshatra": {
+                "Name": "Poorvabhadra",
+                "Quarter": 1,
+                "DegreesInConstellation": 2.2155555555555555
+              }
+            },
+            "Rahu": {
+              "longitude": 192.6525,
+              "sign": "Libra",
+              "nakshatra": {
+                "Name": "Swathi",
+                "Quarter": 2,
+                "DegreesInConstellation": 5.985555555555556
+              }
+            },
+            "Ketu": {
+              "longitude": 12.6525,
+              "sign": "Aries",
+              "nakshatra": {
+                "Name": "Aswini",
+                "Quarter": 4,
+                "DegreesInConstellation": 12.6525
+              }
+            }
+          }
+        },
+        "checkTime": {
+          "StdTime": "12:00 11/10/2026 +00:00",
+          "Location": {
+            "Name": "Confirmed coordinates",
+            "Longitude": 77.209,
+            "Latitude": 28.6139
+          }
+        },
+        "transitHouseReference": "natal_moon_whole_sign",
+        "period": {
+          "PD1": "Venus",
+          "PD2": "Mercury"
+        },
+        "timingContext": {
+          "schema": "vedastro-timing-context-v1",
+          "scope": "current_period_and_transits",
+          "periodRule": {
+            "id": "VenusMercuryPD2",
+            "ratings": {
+              "family": "Good",
+              "relationship": "Good",
+              "study": "Good"
+            }
+          },
+          "transits": {
+            "Jupiter": {
+              "longitude": 117.15555555555555,
+              "sign": "Cancer",
+              "houseFromNatalMoon": 1
+            },
+            "Saturn": {
+              "longitude": 346.52166666666665,
+              "sign": "Pisces",
+              "houseFromNatalMoon": 9
+            }
+          },
+          "obstructionEvaluated": false,
+          "eventPredictionAvailable": false
+        },
+        "transits": {
+          "Sun": {
+            "longitude": 173.95805555555555,
+            "sign": "Virgo",
+            "nakshatra": {
+              "Name": "Chitta",
+              "Quarter": 1,
+              "DegreesInConstellation": 0.6247222222222222
+            },
+            "houseFromNatalMoon": 3
+          },
+          "Moon": {
+            "longitude": 183.97833333333332,
+            "sign": "Libra",
+            "nakshatra": {
+              "Name": "Chitta",
+              "Quarter": 4,
+              "DegreesInConstellation": 10.645
+            },
+            "houseFromNatalMoon": 4
+          },
+          "Mars": {
+            "longitude": 103.45861111111111,
+            "sign": "Cancer",
+            "nakshatra": {
+              "Name": "Pushyami",
+              "Quarter": 4,
+              "DegreesInConstellation": 10.125
+            },
+            "houseFromNatalMoon": 1
+          },
+          "Mercury": {
+            "longitude": 198.95055555555555,
+            "sign": "Libra",
+            "nakshatra": {
+              "Name": "Swathi",
+              "Quarter": 4,
+              "DegreesInConstellation": 12.283888888888889
+            },
+            "houseFromNatalMoon": 4
+          },
+          "Jupiter": {
+            "longitude": 117.15555555555555,
+            "sign": "Cancer",
+            "nakshatra": {
+              "Name": "Aslesha",
+              "Quarter": 4,
+              "DegreesInConstellation": 10.488888888888889
+            },
+            "houseFromNatalMoon": 1
+          },
+          "Venus": {
+            "longitude": 192.93277777777777,
+            "sign": "Libra",
+            "nakshatra": {
+              "Name": "Swathi",
+              "Quarter": 2,
+              "DegreesInConstellation": 6.266111111111111
+            },
+            "houseFromNatalMoon": 4
+          },
+          "Saturn": {
+            "longitude": 346.52166666666665,
+            "sign": "Pisces",
+            "nakshatra": {
+              "Name": "Uttarabhadra",
+              "Quarter": 4,
+              "DegreesInConstellation": 13.188055555555556
+            },
+            "houseFromNatalMoon": 9
+          },
+          "Rahu": {
+            "longitude": 304.5363888888889,
+            "sign": "Aquarius",
+            "nakshatra": {
+              "Name": "Dhanishta",
+              "Quarter": 4,
+              "DegreesInConstellation": 11.203055555555556
+            },
+            "houseFromNatalMoon": 8
+          },
+          "Ketu": {
+            "longitude": 124.5363888888889,
+            "sign": "Leo",
+            "nakshatra": {
+              "Name": "Makha",
+              "Quarter": 2,
+              "DegreesInConstellation": 4.536388888888889
+            },
+            "houseFromNatalMoon": 2
+          }
+        },
+        "gocharaKakshas": {
+          "Sun": {
+            "Sign": "Virgo",
+            "KakshaScore": 1,
+            "KakshaLord": "Moon",
+            "Ashtaka": 4,
+            "Sarvashtaka": 32
+          },
+          "Moon": {
+            "Sign": "Libra",
+            "KakshaScore": 1,
+            "KakshaLord": "Jupiter",
+            "Ashtaka": 3,
+            "Sarvashtaka": 31
+          },
+          "Mars": {
+            "Sign": "Cancer",
+            "KakshaScore": 1,
+            "KakshaLord": "Sun",
+            "Ashtaka": 4,
+            "Sarvashtaka": 27
+          },
+          "Mercury": {
+            "Sign": "Libra",
+            "KakshaScore": 1,
+            "KakshaLord": "Mercury",
+            "Ashtaka": 7,
+            "Sarvashtaka": 31
+          },
+          "Jupiter": {
+            "Sign": "Cancer",
+            "KakshaScore": 0,
+            "KakshaLord": "Ascendant",
+            "Ashtaka": 3,
+            "Sarvashtaka": 27
+          },
+          "Venus": {
+            "Sign": "Libra",
+            "KakshaScore": 0,
+            "KakshaLord": "Sun",
+            "Ashtaka": 4,
+            "Sarvashtaka": 31
+          },
+          "Saturn": {
+            "Sign": "Pisces",
+            "KakshaScore": 0,
+            "KakshaLord": "Venus",
+            "Ashtaka": 3,
+            "Sarvashtaka": 25
+          }
+        },
+        "obstructionEvaluated": false,
+        "eventPredictionAvailable": false
+      }
+    },
+    "CalculationSettings": {
+      "ayanamsa": "LAHIRI",
+      "node": "true",
+      "dasha_year_days": 365.25,
+      "house_system": "vedastro_bhava",
+      "engine": "VedAstro.Library"
+    },
+    "ProviderRevision": "40763952742f76369a505d8db2e9e9fa67f75d78",
+    "ModelCalls": 0
+  },
+  "evidence": {
+    "schema": "reviewed-daily-evidence-v1",
+    "as_of_utc": "2026-10-11T12:00:00+00:00",
+    "input_fingerprint": "0dbf5132869123b8bed9ef78f5f2573f07aab38a49baf1197725b5e4ae121ddf",
+    "provider": "vedastro-local",
+    "source_revision": "40763952742f76369a505d8db2e9e9fa67f75d78",
+    "native_settings": {
+      "ayanamsa": "LAHIRI",
+      "node": "true",
+      "dasha_year_days": 365.25,
+      "house_system": "vedastro_bhava",
+      "engine": "VedAstro.Library"
+    },
+    "verified_against": "pyswisseph",
+    "model_calls": 0,
+    "natal": {
+      "ascendant": {
+        "sign": "Taurus",
+        "degrees_in_sign": 10.043333333333333
+      },
+      "planets": {
+        "Sun": {
+          "longitude": 329.3463888888889,
+          "sign": "Aquarius"
+        },
+        "Moon": {
+          "longitude": 113.44694444444444,
+          "sign": "Cancer"
+        },
+        "Mars": {
+          "longitude": 110.06916666666666,
+          "sign": "Cancer"
+        },
+        "Mercury": {
+          "longitude": 305.21416666666664,
+          "sign": "Aquarius"
+        },
+        "Jupiter": {
+          "longitude": 231.06972222222223,
+          "sign": "Scorpio"
+        },
+        "Venus": {
+          "longitude": 289.50666666666666,
+          "sign": "Capricorn"
+        },
+        "Saturn": {
+          "longitude": 322.21555555555557,
+          "sign": "Aquarius"
+        },
+        "Rahu": {
+          "longitude": 192.6525,
+          "sign": "Libra"
+        },
+        "Ketu": {
+          "longitude": 12.6525,
+          "sign": "Aries"
+        }
+      }
+    },
+    "current_period": {
+      "mahadasha": "Venus",
+      "antardasha": "Mercury",
+      "start": "2010-07-21T15:57:30.150000Z",
+      "end": "2030-07-21T15:57:30.150000Z",
+      "antardasha_start": "2026-07-21T15:57:30.150000Z",
+      "antardasha_end": "2029-05-21T12:57:30.150000Z",
+      "year_days": 365.25
+    },
+    "timing_context": {
+      "schema": "reviewed-timing-context-v1",
+      "as_of_utc": "2026-10-11T12:00:00+00:00",
+      "period_rule_id": "VenusMercuryPD2",
+      "period_ratings": {
+        "family": "Good",
+        "relationship": "Good",
+        "study": "Good"
+      },
+      "period_rule_source_revision": "40763952742f76369a505d8db2e9e9fa67f75d78",
+      "transits": {
+        "Jupiter": {
+          "longitude": 117.15555555555555,
+          "sign": "Cancer",
+          "house_from_natal_moon": 1
+        },
+        "Saturn": {
+          "longitude": 346.52166666666665,
+          "sign": "Pisces",
+          "house_from_natal_moon": 9
+        }
+      },
+      "transit_reference": "natal_moon_sign",
+      "verified_against": "pyswisseph",
+      "obstruction_evaluated": false,
+      "event_prediction_available": false
+    },
+    "transits": {
+      "Sun": {
+        "longitude": 173.95805555555555,
+        "sign": "Virgo",
+        "house_from_natal_moon": 3,
+        "nakshatra": "Chitra",
+        "native_nakshatra_name": "Chitta"
+      },
+      "Moon": {
+        "longitude": 183.97833333333332,
+        "sign": "Libra",
+        "house_from_natal_moon": 4,
+        "nakshatra": "Chitra",
+        "native_nakshatra_name": "Chitta"
+      },
+      "Mars": {
+        "longitude": 103.45861111111111,
+        "sign": "Cancer",
+        "house_from_natal_moon": 1,
+        "nakshatra": "Pushya",
+        "native_nakshatra_name": "Pushyami"
+      },
+      "Mercury": {
+        "longitude": 198.95055555555555,
+        "sign": "Libra",
+        "house_from_natal_moon": 4,
+        "nakshatra": "Swati",
+        "native_nakshatra_name": "Swathi"
+      },
+      "Jupiter": {
+        "longitude": 117.15555555555555,
+        "sign": "Cancer",
+        "house_from_natal_moon": 1,
+        "nakshatra": "Ashlesha",
+        "native_nakshatra_name": "Aslesha"
+      },
+      "Venus": {
+        "longitude": 192.93277777777777,
+        "sign": "Libra",
+        "house_from_natal_moon": 4,
+        "nakshatra": "Swati",
+        "native_nakshatra_name": "Swathi"
+      },
+      "Saturn": {
+        "longitude": 346.52166666666665,
+        "sign": "Pisces",
+        "house_from_natal_moon": 9,
+        "nakshatra": "Uttara Bhadrapada",
+        "native_nakshatra_name": "Uttarabhadra"
+      },
+      "Rahu": {
+        "longitude": 304.5363888888889,
+        "sign": "Aquarius",
+        "house_from_natal_moon": 8,
+        "nakshatra": "Dhanishta",
+        "native_nakshatra_name": "Dhanishta"
+      },
+      "Ketu": {
+        "longitude": 124.5363888888889,
+        "sign": "Leo",
+        "house_from_natal_moon": 2,
+        "nakshatra": "Magha",
+        "native_nakshatra_name": "Makha"
+      }
+    },
+    "kakshas": {
+      "Sun": {
+        "kaksha_lord": "Moon",
+        "kaksha_score": 1,
+        "bhinna_ashtakavarga": 4,
+        "sarva_ashtakavarga": 32
+      },
+      "Moon": {
+        "kaksha_lord": "Jupiter",
+        "kaksha_score": 1,
+        "bhinna_ashtakavarga": 3,
+        "sarva_ashtakavarga": 31
+      },
+      "Mars": {
+        "kaksha_lord": "Sun",
+        "kaksha_score": 1,
+        "bhinna_ashtakavarga": 4,
+        "sarva_ashtakavarga": 27
+      },
+      "Mercury": {
+        "kaksha_lord": "Mercury",
+        "kaksha_score": 1,
+        "bhinna_ashtakavarga": 7,
+        "sarva_ashtakavarga": 31
+      },
+      "Jupiter": {
+        "kaksha_lord": "Ascendant",
+        "kaksha_score": 0,
+        "bhinna_ashtakavarga": 3,
+        "sarva_ashtakavarga": 27
+      },
+      "Venus": {
+        "kaksha_lord": "Sun",
+        "kaksha_score": 0,
+        "bhinna_ashtakavarga": 4,
+        "sarva_ashtakavarga": 31
+      },
+      "Saturn": {
+        "kaksha_lord": "Venus",
+        "kaksha_score": 0,
+        "bhinna_ashtakavarga": 3,
+        "sarva_ashtakavarga": 25
+      }
+    },
+    "kaksha_validation": "native_source_type_range_and_lord_geometry",
+    "transit_house_reference": "natal_moon_whole_sign",
+    "obstruction_evaluated": false,
+    "event_prediction_available": false
+  }
+}

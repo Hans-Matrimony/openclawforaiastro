@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-100% Accurate Vedic Horoscope Engine
+Vedic Daily Horoscope Engine
 Uses Swiss Ephemeris (pyswisseph) for authentic planetary calculations
 Generates daily horoscope predictions in English and Hinglish
 """
@@ -8,6 +8,7 @@ Generates daily horoscope predictions in English and Hinglish
 import sys
 import os
 import json
+import re
 import argparse
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
@@ -53,9 +54,8 @@ def load_rules():
     try:
         with open(RULES_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception as e:
-        print(f"Error loading rules: {e}", file=sys.stderr)
-        return {}
+    except (OSError, ValueError) as error:
+        raise ValueError("Daily interpretation rules are unavailable") from error
 
 
 # Sign to index mapping
@@ -74,8 +74,10 @@ HINDI_RASHI = {
 
 def get_house_from_sign(transit_sign: str, birth_sign: str) -> int:
     """Calculate which house a transit is from birth Moon sign (Whole Sign)."""
-    t_idx = SIGN_TO_INDEX.get(transit_sign, 0)
-    b_idx = SIGN_TO_INDEX.get(birth_sign, 0)
+    if not isinstance(transit_sign, str) or transit_sign not in SIGN_TO_INDEX or not isinstance(birth_sign, str) or birth_sign not in SIGN_TO_INDEX:
+        raise ValueError("Unknown transit or birth Moon sign")
+    t_idx = SIGN_TO_INDEX[transit_sign]
+    b_idx = SIGN_TO_INDEX[birth_sign]
     house = ((t_idx - b_idx) % 12) + 1
     return house
 
@@ -162,7 +164,8 @@ def detect_language(text: str) -> str:
     ]
 
     text_lower = text.lower()
-    hindi_count = sum(1 for word in hindi_words if word in text_lower)
+    tokens = set(re.findall(r"[a-z]+", text_lower))
+    hindi_count = len(tokens.intersection(hindi_words))
 
     # If more than 2 Hindi words detected, it's Hinglish
     if hindi_count >= 2:
@@ -179,7 +182,7 @@ def generate_daily_horoscope(
     user_input: Optional[str] = None
 ) -> Dict:
     """
-    Generate 100% accurate daily horoscope using pyswisseph.
+    Calculate a daily snapshot and separate local traditional interpretations.
 
     Args:
         dob: Date of birth
@@ -192,16 +195,18 @@ def generate_daily_horoscope(
     Returns:
         Dictionary with horoscope prediction
     """
-    rules = load_rules()
-
+    if user_input is not None and not isinstance(user_input, str):
+        return {'error': 'Daily reading user message must be text'}
     # Auto-detect language if not provided
-    if language is None and user_input:
+    if language in (None, 'auto') and user_input:
         language = detect_language(user_input)
-    elif language is None:
+    elif language in (None, 'auto'):
         language = 'english'
 
     # Calculate birth chart (uses pyswisseph)
     try:
+        if language not in ('english', 'hinglish'):
+            raise ValueError('Unsupported daily reading language')
         # Date-only requests use 12:00 UTC as an explicit, reproducible snapshot.
         # Without a date, evaluate the actual current UTC instant.
         as_of = (datetime.strptime(date, "%Y-%m-%d").replace(hour=12) if date
@@ -219,6 +224,38 @@ def generate_daily_horoscope(
         if not birth_moon_sign:
             return {"error": "Could not calculate birth Moon sign. Please check birth details."}
 
+        daily_mode = os.getenv('VEDASTRO_DAILY_ENABLED', '0')
+        if daily_mode not in ('0', '1'):
+            raise ValueError('Invalid native daily-reading configuration')
+        if daily_mode == '1':
+            from daily_provider import daily_evidence
+            from daily_wording import render_daily
+            evidence = daily_evidence(kundli_data, as_of_utc=as_of.replace(tzinfo=timezone.utc),
+                                      reference_calculator=kundli.calculate_kundli_pyswisseph)
+            moon = evidence['transits']['Moon']
+            natal_moon = evidence['natal']['planets']['Moon']['sign']
+            phase = evidence['current_period']
+            # Keep scheduler/result field compatibility; native mode supplies no
+            # invented lucky factors or unreviewed legacy prediction prose.
+            return {
+                'date': evidence['as_of_utc'][:10], 'calculated_at_utc': evidence['as_of_utc'].replace('+00:00', 'Z'),
+                'birth_moon_sign': natal_moon, 'birth_moon_sign_hindi': HINDI_RASHI[natal_moon],
+                'birth_nakshatra': birth_nakshatra, 'lagna': evidence['natal']['ascendant']['sign'],
+                'transit_moon_sign': moon['sign'], 'transit_moon_house': moon['house_from_natal_moon'],
+                'transit_nakshatra': moon['nakshatra'], 'current_dasha': phase['mahadasha'],
+                'language': language, 'prediction': render_daily(evidence, language),
+                'lucky_color': '', 'lucky_numbers': [], 'lucky_day': '',
+                'accuracy': 'Calculated coordinates independently checked; traditional interpretations are not event guarantees',
+                'calculation_method': 'VedAstro.Library, Lahiri, true nodes, Vimshottari 365.25-day year',
+                'interpretation_source': 'reviewed_native_daily_facts_with_general_house_themes',
+                'interpretation_scope': 'traditional_indicators_not_verified_event_outcomes',
+                'transit_house_reference': 'natal_moon_whole_sign', 'evidence': evidence,
+            }
+
+        rules = load_rules()
+        if not isinstance(rules, dict) or not isinstance(rules.get('moon_transit_effects'), dict):
+            raise ValueError('Daily interpretation rules are invalid')
+
         # Get current Moon transit
         transit_moon_sign, transit_degree, transit_nakshatra = get_current_moon_sign(as_of)
 
@@ -231,6 +268,8 @@ def generate_daily_horoscope(
         # Get Moon transit effect
         moon_key = f"house_{transit_house}"
         moon_effect = rules.get("moon_transit_effects", {}).get(moon_key, {})
+        if not isinstance(moon_effect, dict) or not isinstance(moon_effect.get(language), str) or not moon_effect[language].strip():
+            raise ValueError('Daily interpretation for the calculated Moon house is unavailable')
 
         # Get Nakshatra effect
         nakshatra_info = rules.get("nakshatra_effects", {}).get(transit_nakshatra, {})
@@ -296,6 +335,10 @@ def generate_daily_horoscope(
             "accuracy": "Depends on birth input precision and calculation conventions",
             "calculation_method": "pyswisseph, Lahiri, Vimshottari 365.25-day year"
         }
+        result['interpretation_source'] = 'local_daily_rules'
+        result['interpretation_scope'] = 'traditional_themes_not_verified_event_outcomes'
+        result['transit_house_reference'] = 'natal_moon_whole_sign'
+        result['lucky_factors_source'] = 'local_traditional_lookup_not_event_evidence'
 
         return result
 
@@ -353,7 +396,7 @@ def parse_time_local(tob_str: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='100% Accurate Vedic Horoscope')
+    parser = argparse.ArgumentParser(description='Vedic Daily Horoscope Snapshot')
     parser.add_argument('--dob', required=True, help='Date of Birth (YYYY-MM-DD, DD Month YYYY, etc.)')
     parser.add_argument('--tob', required=True, help='Time of Birth (HH:MM or HH:MM AM/PM)')
     parser.add_argument('--place', required=True, help='Place of Birth')
