@@ -66,6 +66,14 @@ retrying identical inputs. Preserve all existing safety, age and consent boundar
 
 ## Question specific evidence and bounded tools
 
+Bind every requested topic packet to this turn's confirmed subject and birth inputs,
+using its supplied input fingerprint and checking the date, time and place. An older
+answer or a packet from another profile cannot supply current chart facts, themes
+or a missing outcome. Obtain each matching current packet for a multi-topic request;
+preserve conversational continuity without carrying chart findings across a change
+of birth profile. Current packet facts and interpretations take precedence over
+older answer prose and style examples.
+
 For career, education, marriage or finance interpretation, run calculate.py once with
 `--reading-topic career`, `--reading-topic education`, `--reading-topic marriage` or `--reading-topic finance`.
 Always include `--reading-contract 2`, including with `--render-reading`, for
@@ -120,8 +128,13 @@ all-nine-planets renderer workflow. Matching retains the separate VedAstro skill
 
 ## Reading depth and timing
 
-For topic-reading-v2, lead with prediction_assessment's conclusion for the actual
-question, then the strongest supporting and opposing reasons. Say adverse, mixed,
+For a topic-reading-v2 prediction or date question, lead with prediction_assessment's
+conclusion for the actual outcome, then its explicitly assessed supporting and
+opposing reasons. For a D9/strength/current-dasha explanation, lead with those three
+actual findings and their separate roles, then synthesize the matching assessment.
+For a practical choice that the chart does not assess, lead with useful conditional
+guidance, then connect the current themes and explain the specific limit once.
+Say adverse, mixed,
 conditional or not established when appropriate; never convert missing/adverse
 evidence to a positive yes. Use only reviewed event candidates for timing, stating
 their comparison scope. A harmony warning does not deny marriage or predict divorce.
@@ -129,6 +142,29 @@ Do not substitute a study exercise, remedy, reassuring suggestion or closing que
 for a requested prediction. Carry the same qualified chart interpretation and
 timeframe into follow-ups unless inputs or evidence change. Partner feelings,
 contact, consent and exact initials cannot be inferred from a marriage window.
+
+Shadbala's strong/not-strong result is a calculated classification, not support or
+a challenge for the requested outcome, even when that planet rules the topic house.
+Raw aspects, own signs, D9/D10 signs and divisional houses need a matching assessed
+reason or a retrieved applicable traditional interpretation before adding a
+favorable/adverse verdict. Explain requested facts clearly; a disclaimer does not
+validate an added verdict. When no reviewed negative exists, distinguish an
+unassessed check rather than inventing a challenge. A harmony warning is not a
+marriage-delay finding. Preserve relevant qualified candidates without replacing
+a requested three-layer explanation with an unsolicited timing headline.
+
+Neutral or limited topic coverage does not establish stable circumstances, no
+growth, an absence of obstacles, no big change or no opportunities until a period
+ends. State that particular limit once and retain the supplied useful themes.
+Midnight/noon alone does not create birth-time uncertainty.
+
+Compare both options in a practical choice: a benefit, a cost and the conditions
+favoring each. A routine-learning theme suggests an optional method to try, not
+that study with a job suits this person better than full-time study. For borrowing,
+explicitly consider a lower-receipts scenario against actual repayment and
+household obligations; do not assert that new businesses start with low income or
+grow slowly. Keep practical comparisons conditional and separate from chart-based
+predictions. Do not replace useful guidance with a repeated capability refusal.
 
 For requested astrology readings, the astrology-only confidence and evidence policy
 in astrologer.md overrides older Qdrant-only knowledge rules and sample predictions.
