@@ -84,6 +84,40 @@ class ExtendedPeriodTests(unittest.TestCase):
                     self.assertEqual(period_status(major,minor,'career',extended=True), 'limited')
         self.assertIsNone(period_status('Sun','Venus','health',extended=True))
 
+    def test_marriage_family_and_relationship_scope_stays_separate_for_all_periods(self):
+        meanings = {'Good': 'supportive', 'Bad': 'challenging',
+                    'Neutral': 'neutral (no clear supportive or adverse indication)'}
+        with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='1'):
+            for major in ORDER:
+                for minor in ORDER:
+                    value, when = period_chart(major, minor)
+                    packet = reading_packet(value, 'marriage', as_of_utc=when, contract_version=2)
+                    ratings = RULES[major + minor + 'PD2']['ratings']
+                    scope = next(note for note in packet['limits'] if note.startswith('Current-period family indications'))
+                    self.assertIn('family indications are ' + meanings[ratings['Family']], scope)
+                    self.assertIn('relationship indications are ' + meanings[ratings['Love']], scope)
+                    self.assertIn('not relationship-only verdicts', scope)
+                    self.assertEqual(packet['prediction_assessment']['current_period']['status'],
+                                     period_status(major, minor, 'marriage', extended=True))
+
+    def test_scope_guidance_does_not_restore_uncertain_or_legacy_period_interpretations(self):
+        value, when = period_chart('Mercury', 'Saturn')
+        with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='1'):
+            v2 = reading_packet(value, 'marriage', as_of_utc=when, contract_version=2)
+            scope = next(note for note in v2['limits'] if note.startswith('Current-period family indications'))
+            self.assertIn('family indications are challenging', scope)
+            self.assertIn('relationship indications are neutral', scope)
+            legacy = reading_packet(value, 'marriage', as_of_utc=when, contract_version=1)
+            self.assertFalse(any(note.startswith('Current-period family indications') for note in legacy['limits']))
+            self.assertFalse(any('overview need not' in note for note in legacy['limits']))
+            value['summary'] = {'warnings': ['Moon is near a boundary']}
+            uncertain = reading_packet(value, 'marriage', as_of_utc=when, contract_version=2)
+            self.assertEqual(uncertain['prediction_assessment']['current_period']['status'], 'unsupported')
+            self.assertFalse(any(note.startswith('Current-period family indications') for note in uncertain['limits']))
+        with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='0'):
+            disabled = reading_packet(value, 'marriage', as_of_utc=when, contract_version=2)
+            self.assertFalse(any(note.startswith('Current-period family indications') for note in disabled['limits']))
+
 
 if __name__ == '__main__':
     unittest.main()

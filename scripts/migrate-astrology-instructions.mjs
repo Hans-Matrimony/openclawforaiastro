@@ -8,8 +8,9 @@ export const REVIEWED_REVISIONS = {
     previous: [
       "3bfa2c4b03400acbb6b34b6e54fd5efdfc33f228d384fc00e7e82bbf4d41b75b",
       "81338ac526bd54527d76b298f253ec027b5fc971caa89fe0e6d2b98ef0dabb65",
+      "d764c1b738f12c52e4c1cee703c421e1ba2e464593d22b305a810a8e3c6fd2a5",
     ],
-    replacement: "d764c1b738f12c52e4c1cee703c421e1ba2e464593d22b305a810a8e3c6fd2a5",
+    replacement: "cd1d11716dea93cb0d584b3a81225ad75d7fedcef12d5bf40b73f62b3e6486b4",
   },
   "SOUL.md": {
     previous: [

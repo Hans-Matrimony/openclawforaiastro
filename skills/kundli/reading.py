@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from vimshottari import current_period, nakshatra_index
 from advanced_facts import advanced_facts
 from prediction_assessment import assess, REVISION, PERIOD_SOURCE
+from period_rules import RULES as PERIOD_RULES
 
 SIGNS = ('Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
          'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces')
@@ -238,6 +239,22 @@ def reading_packet(chart, topic, *, as_of_utc=None, contract_version=1):
             packet['limits'][-1] = 'Native strength and current transit facts are verified separately; obstruction and a full comparison of event-timing methods are not evaluated.'
     elif 'reading_provider_fallback' in chart:
         packet['provider_fallback'] = chart['reading_provider_fallback']
+    if contract_version == 2:
+        packet['limits'].append('Limited or unsupported coverage does not mean adverse prospects; explain the useful available indications without presenting a negative verdict.')
+        packet['limits'].append('Use event candidates only when timing is requested; an overview need not volunteer date ranges or detailed strength scores.')
+        # The combined marriage period label includes family AND relationship.
+        # Put their independently sourced meanings beside the assessment so an
+        # agent cannot mistake a family challenge for a relationship challenge.
+        rule = PERIOD_RULES.get(assessment['current_period']['rule_id']) if topic == 'marriage' and extended else None
+        if rule:
+            meanings = {'Good': 'supportive', 'Bad': 'challenging',
+                        'Neutral': 'neutral (no clear supportive or adverse indication)'}
+            family = meanings[rule['ratings']['Family']]
+            relationship = meanings[rule['ratings']['Love']]
+            packet['limits'].append(f"Current-period family indications are {family}; relationship indications are {relationship}. "
+                                    'Keep these categories separate: the combined current-period status and combined conclusion include family and are not relationship-only verdicts. '
+                                    'Describe natal relationship reasons and the separate period categories rather than treating family challenges as relationship instability. '
+                                    'Natal relationship findings, divisional placement, strength and event candidates have separate roles.')
     if contract_version == 1:
         packet.update(schema='topic-reading-v1', rules_revision='reviewed-placements-v2',
                       period_interpretation_available='timing_context' in packet)
