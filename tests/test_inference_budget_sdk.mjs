@@ -131,6 +131,36 @@ void test(
       );
       assert.equal(runtime.forSession(manager.getSessionId()).attempts, 2);
       assert.equal(runtime.forSession(manager.getSessionId()).blocked, true);
+      const previousBudget = runtime.forSession(manager.getSessionId());
+      const newBudget = runtime.bind({
+        agentId: "astrologer",
+        sessionId: manager.getSessionId(),
+        runId: "next-compaction-run",
+      });
+      // Exercise real SDK summarization-style calls without a new Pi input
+      // hook. The model still has the association from the exhausted old run.
+      const summary = await sdk.completeSimple(
+        session.model,
+        {
+          messages: [
+            { role: "user", content: "Synthetic next-turn summary.", timestamp: Date.now() },
+          ],
+        },
+        { apiKey: "synthetic", maxTokens: 8192 },
+      );
+      assert.equal(summary.stopReason, "stop", summary.errorMessage);
+      assert.equal(requests.length, count + 1);
+      assert.equal(previousBudget.attempts, 2);
+      assert.equal(newBudget.attempts, 1);
+      await session.prompt("Next synthetic question.");
+      assert.equal(requests.length, count + 2);
+      assert.equal(newBudget.attempts, 2);
+      await assert.rejects(session.compact(), /budget|summarization|400/i);
+      assert.equal(
+        requests.length,
+        count + 2,
+        "Fresh-turn compaction and generation still share two requests",
+      );
     } finally {
       session?.dispose();
       globalThis.fetch = originalFetch;

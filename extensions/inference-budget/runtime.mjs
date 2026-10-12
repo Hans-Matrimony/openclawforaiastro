@@ -1,4 +1,31 @@
+import { createHash, randomBytes } from "node:crypto";
 import { ModelBudget, createBudgetTransport } from "./transport.mjs";
+
+export function budgetDiagnostic(budget, sessionId) {
+  const tag = (value) =>
+    typeof value === "string" && value.length
+      ? createHash("sha256").update(value).digest("hex").slice(0, 16)
+      : "none";
+  const reason = new Set([
+    "deadline",
+    "attempts",
+    "input_bytes",
+    "output_tokens",
+    "invalid_payload",
+    "multiple_candidates",
+    "unsupported_api",
+    "unsupported_body",
+  ]);
+  return {
+    run_tag: tag(budget.runId),
+    session_tag: tag(sessionId),
+    attempts: budget.attempts,
+    request_bytes: budget.bytes,
+    reserved_output_tokens: budget.outputTokens,
+    blocked: budget.blocked,
+    reason: reason.has(budget.reason) ? budget.reason : "none",
+  };
+}
 
 export const BUDGET_KEY = Symbol.for("astrofriend.inference-budget.v1");
 export const GUARDED_AGENTS = new Set([
@@ -88,12 +115,20 @@ function stoppedMessage(model, budget, previous) {
   };
 }
 
-function wrapResult(stream, model, budget, compaction) {
+function wrapResult(stream, model, budget, compaction, reportStop) {
   let stopped;
+  let reported = false;
   const final = (message) => {
     if (budget.now() >= budget.deadline && ["error", "aborted"].includes(message?.stopReason)) {
       budget.blocked = true;
       budget.reason ??= "deadline";
+    }
+    if (budget.blocked && !reported) {
+      reported = true;
+      // Diagnostics must never alter the guarded result if a logger fails.
+      try {
+        reportStop();
+      } catch {}
     }
     // Never save a budget-stop message as a conversation summary.
     if (!budget.blocked || compaction) {
@@ -126,6 +161,23 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
   const sessions = new Map();
   const modelBudgets = new WeakMap();
   const registered = new Map();
+  const runtimeTag = randomBytes(8).toString("hex");
+  let diagnosticReporter;
+  function emitDiagnostic(event) {
+    const value = { ...event, runtime_tag: runtimeTag };
+    if (diagnosticReporter) {
+      diagnosticReporter(value);
+    } else {
+      // SDK extension realms must remain observable even when the gateway's
+      // plugin logger belongs to another runtime instance. Only fixed fields,
+      // counters and hashed identifiers enter this event.
+      const name =
+        event.kind === "session_binding_mismatch"
+          ? "inference-budget-binding"
+          : "inference-budget-stop";
+      console.info(`[${name}] ${JSON.stringify(value)}`);
+    }
+  }
   const closed = () => {
     const budget = new ModelBudget({ ...limits, attempts: 0 });
     return budget;
@@ -150,6 +202,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
         return;
       }
       const budget = new ModelBudget(limits);
+      budget.runId = context.runId;
       budget.agentId = context.agentId;
       budget.language = /\[Language:\s*([a-z]+)\]/i.exec(prompt)?.[1]?.toLowerCase() ?? "english";
       entry = { budget, created: now(), sessionIds: new Set() };
@@ -190,15 +243,30 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
         const associated = modelBudgets.get(model);
         const budget = options?.sessionId
           ? (forSession(options.sessionId) ??
-            (associated?.sessionId === options.sessionId ? associated.budget : undefined))
-          : associated?.budget;
+            (associated?.sessionId === options.sessionId ? closed() : undefined))
+          : associated?.sessionId
+            ? (forSession(associated.sessionId) ?? closed())
+            : associated?.budget;
+        // A model association establishes session ownership, not a permanent
+        // allowance. Compaction without sessionId must use that session's
+        // current run; in-flight streams retain the allowance they started with.
         if (!budget) {
           return inner(model, context, options);
         }
         const stream = transport.scope.run({ budget, api: model.api }, () =>
           inner(model, context, options),
         );
-        return wrapResult(stream, model, budget, !options?.sessionId);
+        const sessionId = options?.sessionId ?? associated?.sessionId;
+        return wrapResult(stream, model, budget, !options?.sessionId, () => {
+          const current = forSession(sessionId);
+          emitDiagnostic({
+            ...budgetDiagnostic(budget, sessionId),
+            current_run_tag: current ? budgetDiagnostic(current, sessionId).run_tag : "none",
+            explicit_session: Boolean(options?.sessionId),
+            compaction: !options?.sessionId,
+            selected_budget_is_current: budget === current,
+          });
+        });
       };
       sdk.registerApiProvider(
         {
@@ -211,7 +279,36 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
       registered.set(provider.api, sdk.getApiProvider(provider.api));
     }
   }
-  return { transport, bind, bindModel, forSession, installSdk };
+  return {
+    transport,
+    bind,
+    bindModel,
+    forSession,
+    installSdk,
+    runtimeTag,
+    setDiagnosticReporter: (reporter) => {
+      diagnosticReporter = reporter;
+    },
+    reportSessionBinding: (sessionId, fileSessionId) => {
+      if (!fileSessionId || sessionId === fileSessionId) {
+        return;
+      }
+      const actual = forSession(sessionId),
+        declared = forSession(fileSessionId);
+      const empty = { attempts: 0, bytes: 0, outputTokens: 0, blocked: false };
+      try {
+        emitDiagnostic({
+          kind: "session_binding_mismatch",
+          sdk_session_tag: budgetDiagnostic(actual ?? empty, sessionId).session_tag,
+          file_session_tag: budgetDiagnostic(declared ?? empty, fileSessionId).session_tag,
+          sdk_run_tag: budgetDiagnostic(actual ?? empty, sessionId).run_tag,
+          file_run_tag: budgetDiagnostic(declared ?? empty, fileSessionId).run_tag,
+          sdk_has_run_owner: Boolean(actual),
+          file_has_run_owner: Boolean(declared),
+        });
+      } catch {}
+    },
+  };
 }
 
 export function getBudgetRuntime() {
