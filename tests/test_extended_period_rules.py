@@ -151,6 +151,20 @@ class ExtendedPeriodTests(unittest.TestCase):
                 self.assertNotIn(english, uncertain['text'])
                 self.assertEqual(uncertain['evidence']['prediction_assessment']['current_period']['status'], 'unsupported')
 
+    def test_brief_marriage_overview_keeps_the_actual_planets_signs_and_houses(self):
+        value = reference_chart()
+        when = datetime(2026, 10, 12, tzinfo=timezone.utc)
+        with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='1'):
+            for language, names in (('english', ('Saturn', 'Jupiter', 'Taurus', 'house 7')),
+                                    ('hinglish', ('Shani', 'Guru', 'Vrishabh', 'saatve ghar'))):
+                result = render_reading(value, 'marriage', as_of_utc=when,
+                                        language=language, style='brief', follow_up=False)
+                for name in names:
+                    self.assertIn(name, result['text'])
+                self.assertEqual(result['evidence'], reading_packet(value, 'marriage', as_of_utc=when, contract_version=2))
+                self.assertNotIn('2031', result['text'])
+                self.assertFalse(result['follow_up'])
+
 
 if __name__ == '__main__':
     unittest.main()

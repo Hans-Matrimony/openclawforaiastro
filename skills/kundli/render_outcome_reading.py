@@ -148,8 +148,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
                  'supportive': ('Is reading mein anukool sanket zyada hain.', 'This reading shows more supportive indications.')}[assessment['conclusion']['status']][0 if hinglish else 1]
         parts = [label]
         for reason in natal['reasons'][:3 if style == 'detailed' else 2]:
-            parts.append(_natal_reason(reason, hinglish, compact=style == 'standard') if style != 'brief' else
-                         NATAL_WORDING[reason['id']][1 if hinglish else 0])
+            parts.append(_natal_reason(reason, hinglish, compact=style in ('standard', 'brief')))
         paragraphs.append(' '.join(parts))
     if current['status'] != 'unsupported' and (intent == 'overview' or not windows or style == 'detailed'):
         from period_rules import marriage_period_wording
