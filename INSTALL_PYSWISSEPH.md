@@ -52,6 +52,7 @@ conda install -c conda-forge pyswisseph
 ### Option 4: Use a Linux Environment (RECOMMENDED for production)
 
 pyswisseph builds easily on Linux. Deploy your application on:
+
 - AWS/Google Cloud/Azure Linux servers
 - Docker container with Linux base image
 - WSL (Windows Subsystem for Linux)
@@ -71,6 +72,7 @@ python calculate.py --dob "1999-11-23" --tob "00:00" --place "Ghaziabad"
 ```
 
 **Expected output with pyswisseph:**
+
 ```json
 {
   "summary": {
@@ -81,6 +83,7 @@ python calculate.py --dob "1999-11-23" --tob "00:00" --place "Ghaziabad"
 ```
 
 **Mercury and Mars should now be correct:**
+
 - Mercury: Scorpio (not Libra)
 - Mars: Sagittarius (not Capricorn)
 
@@ -112,12 +115,12 @@ You can test the integration works by checking the output:
 
 ## Summary
 
-| Component | Without pyswisseph | With pyswisseph |
-|-----------|-------------------|-----------------|
-| Moon/Nakshatra | ✅ Correct (with validation) | ✅ 100% correct |
-| Lagna | ✅ Likely correct | ✅ 100% correct |
-| Mercury | ❌ Wrong sign | ✅ 100% correct |
-| Mars | ❌ Wrong sign | ✅ 100% correct |
-| Overall accuracy | ~80% | **100%** |
+| Component        | Without pyswisseph           | With pyswisseph |
+| ---------------- | ---------------------------- | --------------- |
+| Moon/Nakshatra   | ✅ Correct (with validation) | ✅ 100% correct |
+| Lagna            | ✅ Likely correct            | ✅ 100% correct |
+| Mercury          | ❌ Wrong sign                | ✅ 100% correct |
+| Mars             | ❌ Wrong sign                | ✅ 100% correct |
+| Overall accuracy | ~80%                         | **100%**        |
 
 **Install pyswisseph to reach 100% accuracy!**

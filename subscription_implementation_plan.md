@@ -3,24 +3,26 @@
 ## Current System Status
 
 ### ✅ Already Implemented (server.py)
-| Feature | Status | Location |
-|---------|--------|----------|
-| Razorpay subscription creation endpoint | ✅ Complete | `/payments/create-subscription` (lines 1060-1202) |
-| subscription.charged webhook handler | ✅ Complete | `_handle_subscription_charged` (lines 2026-2222) |
-| subscription.cancelled webhook handler | ✅ Complete | `_handle_subscription_cancelled` (lines 2224-2256) |
-| subscription.completed webhook handler | ✅ Complete | `_handle_subscription_completed` (lines 2259-2291) |
-| subscription.failed webhook handler | ✅ Complete | `_handle_subscription_failed` (lines 2294-2312) |
-| Cancel subscription endpoint | ✅ Complete | `/payments/cancel-subscription` (lines 1210-1270) |
-| Duplicate subscription check | ✅ Complete | Lines 1116-1135 |
-| Idempotency for webhook processing | ✅ Complete | Lines 2044-2050 |
+
+| Feature                                 | Status      | Location                                           |
+| --------------------------------------- | ----------- | -------------------------------------------------- |
+| Razorpay subscription creation endpoint | ✅ Complete | `/payments/create-subscription` (lines 1060-1202)  |
+| subscription.charged webhook handler    | ✅ Complete | `_handle_subscription_charged` (lines 2026-2222)   |
+| subscription.cancelled webhook handler  | ✅ Complete | `_handle_subscription_cancelled` (lines 2224-2256) |
+| subscription.completed webhook handler  | ✅ Complete | `_handle_subscription_completed` (lines 2259-2291) |
+| subscription.failed webhook handler     | ✅ Complete | `_handle_subscription_failed` (lines 2294-2312)    |
+| Cancel subscription endpoint            | ✅ Complete | `/payments/cancel-subscription` (lines 1210-1270)  |
+| Duplicate subscription check            | ✅ Complete | Lines 1116-1135                                    |
+| Idempotency for webhook processing      | ✅ Complete | Lines 2044-2050                                    |
 
 ### ❌ Needs Implementation
-| Feature | Status | Location |
-|---------|--------|----------|
-| Razorpay Dashboard Plans | ❌ Missing | Need to create in Razorpay |
-| Auto-pay plans in database | ❌ Missing | Need to add to plans collection |
-| Updated enforcement flow | ❌ Missing | enforcement_buttons.py needs update |
-| User cancel/subscribe commands | ❌ Missing | message_limiter.py needs update |
+
+| Feature                        | Status     | Location                            |
+| ------------------------------ | ---------- | ----------------------------------- |
+| Razorpay Dashboard Plans       | ❌ Missing | Need to create in Razorpay          |
+| Auto-pay plans in database     | ❌ Missing | Need to add to plans collection     |
+| Updated enforcement flow       | ❌ Missing | enforcement_buttons.py needs update |
+| User cancel/subscribe commands | ❌ Missing | message_limiter.py needs update     |
 
 ---
 
@@ -56,18 +58,20 @@
 
 ### Plan Configuration
 
-| Plan Type | Amount | Interval | Total Cycles | Plan ID (from Razorpay) |
-|-----------|--------|----------|--------------|-------------------------|
-| Daily | ₹9 (900 paise) | 1 day | 30 | `plan_ShhNA5PrZsRR96` ✅ |
-| Weekly | ₹49 (4900 paise) | 7 days | 12 | TBD |
-| Monthly | ₹199 (19900 paise) | 30 days | 12 | TBD |
+| Plan Type | Amount             | Interval | Total Cycles | Plan ID (from Razorpay)  |
+| --------- | ------------------ | -------- | ------------ | ------------------------ |
+| Daily     | ₹9 (900 paise)     | 1 day    | 30           | `plan_ShhNA5PrZsRR96` ✅ |
+| Weekly    | ₹49 (4900 paise)   | 7 days   | 12           | TBD                      |
+| Monthly   | ₹199 (19900 paise) | 30 days  | 12           | TBD                      |
 
 ### Actions Required
+
 1. ✅ Daily plan already created: `plan_ShhNA5PrZsRR96`
 2. ⬜ Create Weekly plan in Razorpay Dashboard
 3. ⬜ Create Monthly plan in Razorpay Dashboard
 
 ### How to Create Plans in Razorpay
+
 ```
 1. Go to: https://dashboard.razorpay.com/subscriptions/plans
 2. Click "Create Plan"
@@ -337,12 +341,12 @@ async def handle_cancel_command(user_id: str, phone: str):
 
 ### Event → Action Mapping
 
-| Razorpay Event | Your Handler | Action |
-|----------------|--------------|--------|
-| `subscription.charged` | `_handle_subscription_charged` | Extend endDate by interval (1/7/30 days) |
-| `subscription.cancelled` | `_handle_subscription_cancelled` | Set autoPayEnabled=False |
-| `subscription.completed` | `_handle_subscription_completed` | All cycles done, auto-pay ends |
-| `subscription.failed` | `_handle_subscription_failed` | Log error, Razorpay auto-retries |
+| Razorpay Event           | Your Handler                     | Action                                   |
+| ------------------------ | -------------------------------- | ---------------------------------------- |
+| `subscription.charged`   | `_handle_subscription_charged`   | Extend endDate by interval (1/7/30 days) |
+| `subscription.cancelled` | `_handle_subscription_cancelled` | Set autoPayEnabled=False                 |
+| `subscription.completed` | `_handle_subscription_completed` | All cycles done, auto-pay ends           |
+| `subscription.failed`    | `_handle_subscription_failed`    | Log error, Razorpay auto-retries         |
 
 ### Database Schema for Auto-Pay Subscriptions
 
@@ -410,9 +414,9 @@ curl -X POST http://localhost:8000/payments/create-subscription \
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `.env` | Add Razorpay plan IDs |
-| `hans-ai-subscriptions/add_autopay_plans.py` | Create new file |
-| `hans-ai-whatsapp/app/services/enforcement_buttons.py` | Simplify to one button |
-| `hans-ai-whatsapp/app/services/message_limiter.py` | Add cancel/subscribe commands |
+| File                                                   | Changes                       |
+| ------------------------------------------------------ | ----------------------------- |
+| `.env`                                                 | Add Razorpay plan IDs         |
+| `hans-ai-subscriptions/add_autopay_plans.py`           | Create new file               |
+| `hans-ai-whatsapp/app/services/enforcement_buttons.py` | Simplify to one button        |
+| `hans-ai-whatsapp/app/services/message_limiter.py`     | Add cancel/subscribe commands |

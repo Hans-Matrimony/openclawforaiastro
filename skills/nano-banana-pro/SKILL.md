@@ -32,6 +32,7 @@ This skill is configured to generate **ONLY astrology-related images** for the a
 ## CRITICAL: ALWAYS Check Mem0 First
 
 For EVERY image generation request:
+
 1. **FIRST** search mem0 for user's birth details and preferences:
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details kundli preferences" --user-id "<USER_ID>"
@@ -42,6 +43,7 @@ For EVERY image generation request:
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py add "Kundli chart generated: <FILENAME> for <LAGNA> lagna" --user-id "<USER_ID>"
    ```
+
 - Kundli charts, birth charts, horoscope diagrams
 - Zodiac sign illustrations
 - Planetary position diagrams

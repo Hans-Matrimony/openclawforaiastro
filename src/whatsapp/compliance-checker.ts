@@ -161,7 +161,7 @@ function isWithinQuietHours(options: ComplianceCheckOptions): {
     const currentHour = Number.parseInt(formatter.format(new Date()), 10);
 
     // Quiet hours: 9 PM (21) to 9 AM (9)
-  // Handle wrap-around (e.g., 22 is > 9, so it's in quiet hours)
+    // Handle wrap-around (e.g., 22 is > 9, so it's in quiet hours)
     const inQuietHours = currentHour >= startHour || currentHour < endHour;
 
     return {

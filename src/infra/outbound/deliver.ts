@@ -206,7 +206,8 @@ export async function deliverOutboundPayloads(params: {
   // This prevents violations that lead to account bans
   if (channel === "whatsapp" && !params.skipComplianceCheck) {
     try {
-      const { checkReplyCompliance, checkProactiveCompliance, logComplianceFailure } = await import("../../whatsapp/compliance.js");
+      const { checkReplyCompliance, checkProactiveCompliance, logComplianceFailure } =
+        await import("../../whatsapp/compliance.js");
 
       // Use relaxed checks for replies to user messages, strict checks for proactive messages
       const complianceCheck = params.isReplyToUser

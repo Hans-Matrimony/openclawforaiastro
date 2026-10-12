@@ -9,9 +9,11 @@ The pyswisseph calculation engine was using incorrect planet IDs, causing planet
 ## 🔍 Root Cause
 
 ### Issue 1: Wrong Planet IDs
+
 The PYSWISSEPH_PLANETS constant had incorrect Swiss Ephemeris planet IDs:
 
 **WRONG (Before):**
+
 ```python
 PYSWISSEPH_PLANETS = {
     'Sun': 0, 'Moon': 1, 'Mars': 9, 'Mercury': 2,
@@ -20,6 +22,7 @@ PYSWISSEPH_PLANETS = {
 ```
 
 **Problems:**
+
 - Mars: ID 9 is wrong (should be 4)
 - Venus: ID 6 is wrong (should be 3)
 - Jupiter: ID 4 is wrong (should be 5)
@@ -28,6 +31,7 @@ PYSWISSEPH_PLANETS = {
 - Ketu: ID 11 is wrong (should not be in this dict)
 
 ### Issue 2: Ketu Not Calculated
+
 Ketu was being treated like a normal planet with its own Swiss Ephemeris ID, but Ketu is always exactly 180° opposite Rahu and should be calculated manually.
 
 ---
@@ -35,6 +39,7 @@ Ketu was being treated like a normal planet with its own Swiss Ephemeris ID, but
 ## ✅ The Fix
 
 ### Change 1: Correct Planet IDs
+
 ```python
 # ✅ CORRECT Planet IDs (Ketu removed, handled manually)
 PYSWISSEPH_PLANETS = {
@@ -44,6 +49,7 @@ PYSWISSEPH_PLANETS = {
 ```
 
 **Reference:** Swiss Ephemeris planet IDs are standard:
+
 - SE_SUN = 0
 - SE_MOON = 1
 - SE_MERCURY = 2
@@ -54,6 +60,7 @@ PYSWISSEPH_PLANETS = {
 - SE_MEAN_NODE = 11 (Rahu/Ketu - North Node)
 
 ### Change 2: Manual Ketu Calculation
+
 After calculating all planet positions, add Ketu manually:
 
 ```python
@@ -79,6 +86,7 @@ if rahu_data:
 ## 🧪 Test Results
 
 ### Ketu Calculation Tests
+
 All tests passed:
 
 ```
@@ -114,11 +122,13 @@ Test 5: Real-world example (Rahu in Pisces)
 ## 📊 What This Fixes
 
 ### Before Fix:
+
 - ❌ Wrong planet positions due to incorrect Swiss Ephemeris IDs
 - ❌ Ketu not calculated as 180° opposite Rahu
 - ❌ Planets in wrong signs and houses
 
 ### After Fix:
+
 - ✅ Correct Swiss Ephemeris planet IDs used
 - ✅ Ketu always exactly 180° opposite Rahu
 - ✅ Planets in correct astronomical positions
@@ -131,9 +141,11 @@ Test 5: Real-world example (Rahu in Pisces)
 **Commit:** `240268801`
 
 **Files Modified:**
+
 - [skills/kundli/calculate.py](skills/kundli/calculate.py) - Fixed planet IDs and added Ketu calculation
 
 **Test Files Added:**
+
 - [skills/kundli/test_ketu_calculation.py](skills/kundli/test_ketu_calculation.py) - Ketu calculation tests
 
 **Status:** ✅ **FIXED AND DEPLOYED!**
@@ -145,11 +157,13 @@ Test 5: Real-world example (Rahu in Pisces)
 ### Why Ketu Must Be Calculated Manually
 
 In Vedic astrology:
+
 - **Rahu** = North Lunar Node (ascending node)
 - **Ketu** = South Lunar Node (descending node)
 - They are **always exactly 180° apart**
 
 Swiss Ephemeris only provides Rahu (SE_MEAN_NODE = 11), so we must calculate Ketu manually using the formula:
+
 ```
 Ketu_tropical_degree = (Rahu_tropical_degree + 180) % 360
 ```
@@ -160,17 +174,17 @@ The modulo 360 ensures proper wrap-around at the 0°/360° boundary.
 
 The previous IDs appear to have been confused with a different ephemeris system or were simply incorrect. Swiss Ephemeris uses a specific set of numerical IDs that must be used exactly:
 
-| Planet | Correct ID | Previous ID | Status |
-|--------|-----------|-------------|--------|
-| Sun | 0 | 0 | ✅ Correct |
-| Moon | 1 | 1 | ✅ Correct |
-| Mercury | 2 | 2 | ✅ Correct |
-| Venus | 3 | 6 | ❌ Fixed |
-| Mars | 4 | 9 | ❌ Fixed |
-| Jupiter | 5 | 4 | ❌ Fixed |
-| Saturn | 6 | 7 | ❌ Fixed |
-| Rahu | 11 | 10 | ❌ Fixed |
-| Ketu | N/A | 11 | ✅ Removed |
+| Planet  | Correct ID | Previous ID | Status     |
+| ------- | ---------- | ----------- | ---------- |
+| Sun     | 0          | 0           | ✅ Correct |
+| Moon    | 1          | 1           | ✅ Correct |
+| Mercury | 2          | 2           | ✅ Correct |
+| Venus   | 3          | 6           | ❌ Fixed   |
+| Mars    | 4          | 9           | ❌ Fixed   |
+| Jupiter | 5          | 4           | ❌ Fixed   |
+| Saturn  | 6          | 7           | ❌ Fixed   |
+| Rahu    | 11         | 10          | ❌ Fixed   |
+| Ketu    | N/A        | 11          | ✅ Removed |
 
 ---
 

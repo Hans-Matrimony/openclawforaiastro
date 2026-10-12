@@ -29,6 +29,7 @@ For the `astrologer` agent only, follow the current workspace's conditional memo
 For EVERY incoming user message, you MUST:
 
 1. **ALWAYS search mem0 FIRST** before asking any questions or taking any action:
+
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py search "<relevant_query>" --user-id "<USER_ID>"
    ```
@@ -36,6 +37,7 @@ For EVERY incoming user message, you MUST:
 2. Use the results to personalize your response
 
 3. If user provides NEW information, **IMMEDIATELY** store it in mem0:
+
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py add "<information_to_store>" --user-id "<USER_ID>"
    ```
@@ -46,6 +48,7 @@ For EVERY incoming user message, you MUST:
    ```
 
 **Common Information to Store in Mem0:**
+
 - Birth details (DOB, time, place)
 - Property details for Vastu
 - User preferences (chart style, language, etc.)
@@ -56,6 +59,7 @@ For EVERY incoming user message, you MUST:
 ## Commands
 
 ### Search Memory
+
 Search for relevant memories based on a query and user ID.
 
 ```bash
@@ -64,6 +68,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py search "query string" --user-id "
 ```
 
 ### Add Memory
+
 Store a new memory for a user.
 
 ```bash
@@ -71,6 +76,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py add "User prefers North Indian ch
 ```
 
 ### List Memories
+
 Get all memories for a user.
 
 ```bash
@@ -78,6 +84,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "user123" --limit 
 ```
 
 ### Update Memory
+
 Update an existing memory by its ID. You can update the content, metadata, or both.
 
 ```bash
@@ -92,6 +99,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py update --memory-id "abc123" --con
 ```
 
 ### Delete Memory
+
 Delete a specific memory by its ID.
 
 ```bash
@@ -99,6 +107,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py delete --memory-id "abc123"
 ```
 
 ### Upsert Memory
+
 Add a new memory or update an existing one automatically. Searches for existing memories first, then updates if found or adds if not found.
 
 ```bash
@@ -115,6 +124,7 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py upsert "user preferences" \
 ```
 
 **Response includes:**
+
 - `_upsert`: `"created"` or `"updated"` - indicates what action was taken
 - `_memory_id`: the memory ID for reference
 

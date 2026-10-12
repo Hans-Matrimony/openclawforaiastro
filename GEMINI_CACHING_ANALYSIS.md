@@ -1,11 +1,13 @@
 # Gemini 2.5 Flash Implicit Caching - Implementation Analysis
 
 ## Overview
+
 This document analyzes the **full implementation** of implicit caching optimization for Gemini 2.5 Flash models in OpenClaw.
 
 ## ✅ IMPLEMENTATION COMPLETE (As of 2026-04-21)
 
 The cache-optimized prompt builder now properly reorders all prompt components into three tiers:
+
 1. **Static** (cached across all users)
 2. **Per-User** (cached per user)
 3. **Dynamic** (NOT cached - varies per request)
@@ -209,10 +211,12 @@ The implementation adds visual markers to show cache boundaries:
 ### 1. `src/agents/system-prompt.ts`
 
 **Added:**
+
 - `isGeminiModel(model?: string, provider?: string): boolean` - Improved Gemini detection with regex pattern matching
 - `buildCacheOptimizedSystemPrompt(params): string` - Full cache-optimized prompt builder
 
 **New Implementation:**
+
 ```typescript
 export function buildCacheOptimizedSystemPrompt(params): string {
   // PHASE 1: Extract and compute all values (tooling, config, etc.)
@@ -265,6 +269,7 @@ export function buildCacheOptimizedSystemPrompt(params): string {
 ```
 
 **Improved Model Detection:**
+
 ```typescript
 export function isGeminiModel(model?: string, provider?: string): boolean {
   if (!model && !provider) return false;
@@ -287,6 +292,7 @@ export function isGeminiModel(model?: string, provider?: string): boolean {
 ### 2. `src/agents/cli-runner/helpers.ts`
 
 **Modified:** `buildSystemPrompt()`
+
 ```typescript
 // Extract provider from model string (e.g., "google/gemini-2.5-flash")
 const modelProvider = defaultModelLabel.includes("/") ? defaultModelLabel.split("/")[0] : undefined;
@@ -299,6 +305,7 @@ if (isGeminiModel(params.modelDisplay, modelProvider)) {
 ### 3. `src/agents/pi-embedded-runner/system-prompt.ts`
 
 **Modified:** `buildEmbeddedSystemPrompt()`
+
 ```typescript
 const modelId = params.runtimeInfo.model;
 const providerId = params.runtimeInfo.provider;
@@ -311,6 +318,7 @@ if (isGeminiModel(modelId, providerId)) {
 ### 2. `src/agents/cli-runner/helpers.ts`
 
 **Modified:** `buildSystemPrompt()`
+
 - Now checks if using Gemini model
 - Calls `buildCacheOptimizedSystemPrompt()` for Gemini
 - Falls back to `buildAgentSystemPrompt()` for others
@@ -318,6 +326,7 @@ if (isGeminiModel(modelId, providerId)) {
 ### 3. `src/agents/pi-embedded-runner/system-prompt.ts`
 
 **Modified:** `buildEmbeddedSystemPrompt()`
+
 - Same pattern as cli-runner
 - Checks `runtimeInfo.model` and `runtimeInfo.provider`
 
@@ -328,49 +337,59 @@ if (isGeminiModel(modelId, providerId)) {
 ### ✅ RESOLVED Issues
 
 #### ✅ Issue #1: Dynamic Content in "Stable" Section - FIXED
+
 **Previous:** Dynamic parts were mixed in the middle
 **Current:** All dynamic sections (extraSystemPrompt, reactionGuidance, contextFiles, runtime) are now in the DYNAMIC tier at the end
 
 #### ✅ Issue #2: Minimum Token Threshold - RESOLVED
+
 **Previous:** Minimal prompts might be < 1,024 tokens
 **Current:** Static tier alone is ~1,200-1,800 tokens, well above the threshold
 
 #### ✅ Issue #3: `isGeminiModel()` False Positives - FIXED
+
 **Previous:** Simple substring matching
 **Current:** Regex pattern matching with word boundaries:
+
 ```typescript
 const geminiPattern = /\b(gemini-\d|gemini\d|gemini[./_-])/i;
 ```
 
 #### ✅ Issue #4: Model ID Format - IMPROVED
+
 **Previous:** Only checked model string
 **Current:** Accepts both `model` and `provider` parameters
 
 ### Remaining Considerations
 
 #### Consideration #1: Cache Barrier Token Cost
+
 The cache barrier markers add ~50 tokens per request. This is minimal compared to the cache savings (~60-70% on cached tokens).
 
 #### Consideration #2: Multi-User Cache Isolation
+
 Gemini's cache is per API key, not per user. In multi-user environments:
+
 - Static tier is shared across all users (✅ intended - maximum savings)
 - User tier is cached per user configuration
 - This is the optimal behavior for cost savings
 
 #### Consideration #3: Context Files Size
+
 Large context files can significantly increase the dynamic tier size. For optimal caching:
+
 - Keep context files minimal when possible
 - Consider moving frequently-used content to documentation
 - Cache is still effective for the static + user tiers
 
 ### Known Limitations
 
-| Limitation | Impact | Mitigation |
-|------------|--------|------------|
-| Group chats with varying `extraSystemPrompt` | Breaks user-tier cache | Expected behavior - group context is unique |
-| Per-session `reasoningTagHint` | Breaks user-tier cache | Minimal impact - only when reasoning is enabled |
-| Channel-specific `reactionGuidance` | Breaks user-tier cache | Expected - varies by channel |
-| Large `contextFiles` | Increases uncached tokens | Keep minimal or move to static docs |
+| Limitation                                   | Impact                    | Mitigation                                      |
+| -------------------------------------------- | ------------------------- | ----------------------------------------------- |
+| Group chats with varying `extraSystemPrompt` | Breaks user-tier cache    | Expected behavior - group context is unique     |
+| Per-session `reasoningTagHint`               | Breaks user-tier cache    | Minimal impact - only when reasoning is enabled |
+| Channel-specific `reactionGuidance`          | Breaks user-tier cache    | Expected - varies by channel                    |
+| Large `contextFiles`                         | Increases uncached tokens | Keep minimal or move to static docs             |
 
 ---
 
@@ -379,6 +398,7 @@ Large context files can significantly increase the dynamic tier size. For optima
 ### For Production Deployment
 
 ✅ **Ready for Production:**
+
 - Full prompt component reordering implemented
 - Three-tier cache design (static, user, dynamic)
 - Proper model detection with regex patterns
@@ -397,6 +417,7 @@ Large context files can significantly increase the dynamic tier size. For optima
 ### Monitoring Cache Effectiveness
 
 After deployment, monitor:
+
 1. **Cache hit rate** - Should see 60-75% hit rate on cached tokens
 2. **Cost reduction** - Compare before/after costs
 3. **Latency** - Cached responses should be faster
@@ -425,6 +446,7 @@ After deployment, monitor:
 **Current State:** ✅ **FULL IMPLEMENTATION COMPLETE**
 
 The cache-optimized prompt builder is production-ready with:
+
 - **Proper three-tier cache design**
 - **Static content (~1,500 tokens) cached across all users**
 - **Per-user content (~500 tokens) cached per user**
@@ -433,6 +455,7 @@ The cache-optimized prompt builder is production-ready with:
 **Expected Savings:** 60-70% on cached tokens for Gemini 2.5 Flash models.
 
 **Next Steps:**
+
 1. Deploy to Coolify
 2. Monitor cache hit rates and cost savings
 3. Adjust based on real-world usage patterns

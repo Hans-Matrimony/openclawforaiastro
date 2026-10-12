@@ -5,6 +5,7 @@ Analyzes uploaded PDF documents including astrological charts, horoscopes, and b
 ## Commands
 
 ### Extract Text
+
 Extracts all readable text from PDF.
 
 ```bash
@@ -12,6 +13,7 @@ python3 ~/.openclaw/skills/pdf_analyzer/pdf_client.py extract-text --pdf-path "/
 ```
 
 ### Extract Images (OCR)
+
 Extracts and performs OCR on images within PDF.
 
 ```bash
@@ -19,6 +21,7 @@ python3 ~/.openclaw/skills/pdf_analyzer/pdf_client.py extract-images --pdf-path 
 ```
 
 ### Get Metadata
+
 Gets PDF structure and metadata.
 
 ```bash
@@ -26,6 +29,7 @@ python3 ~/.openclaw/skills/pdf_analyzer/pdf_client.py metadata --pdf-path "/path
 ```
 
 ### Full Analysis
+
 Performs complete analysis (text + images + metadata).
 
 ```bash
@@ -35,6 +39,7 @@ python3 ~/.openclaw/skills/pdf_analyzer/pdf_client.py analyze --pdf-path "/path/
 ## Output Format
 
 JSON output with:
+
 - **text**: Extracted text content from PDF
 - **images_ocr**: OCR'd text from images within PDF
 - **metadata**: PDF properties (pages, author, creation_date, title, etc.)

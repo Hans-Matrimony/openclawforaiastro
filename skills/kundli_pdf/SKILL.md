@@ -22,11 +22,13 @@ This is a **message-based skill** - you do NOT need to execute any scripts.
 **Note:** There is a `trigger_pdf.py` file in this skill directory, but it's just a placeholder for skill detection. You do NOT need to run it.
 
 **When to use this skill:**
+
 - User asks for "kundli pdf" or "generate pdf"
 - User asks for "detailed pdf report" or "send pdf"
 - User asks for "my kundli in pdf format"
 
 **What you need to do:**
+
 1. Check MongoDB API FIRST for user's birth details (FAST!), fallback to Mem0 if needed
 2. In your response, include this line: `PDF_REQUEST: dob=YYYY-MM-DD, tob=HH:MM, place=CITY, name=NAME`
 3. Tell the user their PDF is being generated
@@ -36,6 +38,7 @@ This is a **message-based skill** - you do NOT need to execute any scripts.
 ## What the PDF Contains
 
 The generated PDF includes:
+
 - Birth Charts (Lagna Kundli + Navamsa Chart)
 - Planetary Positions table (all 9 planets with degrees, signs, houses, nakshatras)
 - Life Predictions (Career, Marriage, Health, Wealth)
@@ -70,6 +73,7 @@ If birth details are found (from MongoDB or Mem0), extract them and proceed to S
 > **✅ SAFE:** If MongoDB is down, Mem0 fallback ALWAYS works! Existing functionality preserved.
 
 **NOTE: If you ask user for birth details and they provide them, save to BOTH places:**
+
 ```bash
 # Save to MongoDB user_metadata (for fast lookup next time)
 curl -X POST "https://tkgsogkk4cg4wkgok0cw4gk8.api.hansastro.com/metadata" \
@@ -92,12 +96,14 @@ PDF_REQUEST: dob=<DOB>, tob=<TOB>, place=<PLACE>, name=<NAME>
 ```
 
 **Parameters:**
+
 - `DOB`: Date of birth in YYYY-MM-DD format (e.g., 2002-02-16)
 - `TOB`: Time of birth in HH:MM format (e.g., 00:00)
 - `PLACE`: Place of birth (e.g., Meerut)
 - `NAME`: User's name (optional, defaults to "User")
 
 **Example:**
+
 ```
 PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 ```
@@ -123,6 +129,7 @@ Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄"
 **AI:** (checks mem0, finds birth details)
 
 **AI responds:**
+
 ```
 PDF_REQUEST: dob=2002-02-16, tob=00:00, place=Meerut, name=Vardhan
 
@@ -138,6 +145,7 @@ Please wait 2-3 minutes... I'll send it to your WhatsApp! 📄
 ```
 
 **What happens:**
+
 - Backend detects `PDF_REQUEST:` in the AI's response
 - Backend generates the PDF with all details
 - Backend sends PDF to user's WhatsApp
@@ -156,6 +164,7 @@ That's it! No scripts, no files to execute - just output the message.
 ## Troubleshooting
 
 If PDF generation fails:
+
 1. Verify the PDF_REQUEST format is correct: `PDF_REQUEST: dob=..., tob=..., place=..., name=...`
 2. Check that birth details are correct
 3. Check backend logs for errors

@@ -5,6 +5,7 @@
 The validation function incorrectly validated **Mars** elongation instead of **Venus** elongation.
 
 ### ❌ WRONG CODE (Before)
+
 ```python
 # Mars should never be more than 47 degrees from Sun
 if 'Sun' in planet_positions and 'Mars' in planet_positions:
@@ -14,6 +15,7 @@ if 'Sun' in planet_positions and 'Mars' in planet_positions:
 ```
 
 ### ✅ CORRECT CODE (After)
+
 ```python
 # Venus should never be more than 47 degrees from Sun
 if 'Sun' in planet_positions and 'Venus' in planet_positions:
@@ -25,12 +27,14 @@ if 'Sun' in planet_positions and 'Venus' in planet_positions:
 ## Astronomy Facts
 
 ### Inferior Planets (orbit between Earth and Sun)
+
 - **Mercury**: Max elongation ~28° from Sun
 - **Venus**: Max elongation ~47° from Sun
 
 These planets can never appear far from the Sun because they orbit closer to it.
 
 ### Superior Planets (orbit outside Earth)
+
 - **Mars**: Can be 0-180° from Sun
 - **Jupiter**: Can be 0-180° from Sun
 - **Saturn**: Can be 0-180° from Sun
@@ -40,6 +44,7 @@ These planets can appear on the opposite side of Earth from the Sun (180° separ
 ## Impact of the Bug
 
 ### Before Fix
+
 ```
 Thousands of valid Kundlis got FALSE warnings:
 
@@ -52,6 +57,7 @@ This exceeds maximum elongation of 47°."
 ```
 
 ### After Fix
+
 ```
 Only genuinely impossible positions trigger warnings:
 
@@ -66,6 +72,7 @@ This exceeds maximum elongation of 47°."
 ## Examples
 
 ### ✅ VALID Positions (Should NOT trigger warnings)
+
 ```
 Mars in Sagittarius (120° from Sun in Leo) - NORMAL
 Mars in Aquarius (150° from Sun in Leo) - NORMAL (near opposition)
@@ -74,6 +81,7 @@ Jupiter in Taurus (90° from Sun in Leo) - NORMAL
 ```
 
 ### ❌ INVALID Positions (Should trigger warnings)
+
 ```
 Venus in Aries (90° from Sun in Libra) - IMPOSSIBLE (> 47°)
 Venus in Aquarius (120° from Sun in Leo) - IMPOSSIBLE (> 47°)
@@ -100,13 +108,13 @@ Warnings:
 
 ## Summary
 
-| Component | Before | After |
-|-----------|--------|-------|
-| Mars validation | ❌ Wrong (47° limit) | ✅ Removed (no limit) |
-| Venus validation | ❌ Missing | ✅ Added (47° limit) |
-| Mercury validation | ✅ Correct (28° limit) | ✅ Unchanged |
-| False warnings | Thousands | Zero |
-| Accuracy | Astronomically wrong | Astronomically correct |
+| Component          | Before                 | After                  |
+| ------------------ | ---------------------- | ---------------------- |
+| Mars validation    | ❌ Wrong (47° limit)   | ✅ Removed (no limit)  |
+| Venus validation   | ❌ Missing             | ✅ Added (47° limit)   |
+| Mercury validation | ✅ Correct (28° limit) | ✅ Unchanged           |
+| False warnings     | Thousands              | Zero                   |
+| Accuracy           | Astronomically wrong   | Astronomically correct |
 
 ## Credits
 

@@ -17,14 +17,14 @@ timing claims. The gateway is reachable with the correct request scope header.
 
 ## What is implemented
 
-| Capability | Current local implementation | Remaining limitation |
-| --- | --- | --- |
-| Natal chart | Date-specific Lahiri, whole-sign placements, all nine planets, consistent primary chart and dasha engine | Global birthplace disambiguation is limited; the resolver primarily supports India |
-| Vimshottari | Calculated current major/sub-period boundaries, explicit 365.25-day year convention | A period boundary does not establish an event forecast or VedAstro dasha parity |
-| Kundli images | Existing renderer and all-nine-position media contract retained | End-to-end image delivery was not tested in this text-reading comparison |
-| VedAstro matching | Main astrologer has an opt-in adapter with eight reviewed factor statuses and a rounded percentage | Matching is not general natal interpretation; the inspected testing environment lacks the enabling variables |
-| Topic readings | New local packet with 19 reviewed placement rules and explicit general-symbolism fallback | A deliberately small evidence set, with no verified event timing, divisional strength or aspect interpretation |
-| Companion voice | Existing AGENTS and SOUL files unchanged; Meera/Aarav selection and casual chat retained | Preserving files and one writer sample does not prove all live conversational behavior |
+| Capability        | Current local implementation                                                                             | Remaining limitation                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Natal chart       | Date-specific Lahiri, whole-sign placements, all nine planets, consistent primary chart and dasha engine | Global birthplace disambiguation is limited; the resolver primarily supports India                             |
+| Vimshottari       | Calculated current major/sub-period boundaries, explicit 365.25-day year convention                      | A period boundary does not establish an event forecast or VedAstro dasha parity                                |
+| Kundli images     | Existing renderer and all-nine-position media contract retained                                          | End-to-end image delivery was not tested in this text-reading comparison                                       |
+| VedAstro matching | Main astrologer has an opt-in adapter with eight reviewed factor statuses and a rounded percentage       | Matching is not general natal interpretation; the inspected testing environment lacks the enabling variables   |
+| Topic readings    | New local packet with 19 reviewed placement rules and explicit general-symbolism fallback                | A deliberately small evidence set, with no verified event timing, divisional strength or aspect interpretation |
+| Companion voice   | Existing AGENTS and SOUL files unchanged; Meera/Aarav selection and casual chat retained                 | Preserving files and one writer sample does not prove all live conversational behavior                         |
 
 The separate `astrofriend-backend` already contains a deterministic preflight,
 reading plans, cost metering and some dev-only evidence enrichment. Those features
@@ -107,12 +107,12 @@ request for listening without advice.
 
 ## What the token measurements establish
 
-| Measurement | Before | Final replay | Meaning |
-| --- | ---: | ---: | --- |
-| Astrology chart guide, tokenizer proxy | 5,150 tokens | 2,158 tokens | About 58% less text when this guide is loaded |
-| Career writer input, provider reported | 42,202 tokens | 39,284 tokens | About 6.9% less input in the controlled replay |
+| Measurement                               |        Before |  Final replay | Meaning                                        |
+| ----------------------------------------- | ------------: | ------------: | ---------------------------------------------- |
+| Astrology chart guide, tokenizer proxy    |  5,150 tokens |  2,158 tokens | About 58% less text when this guide is loaded  |
+| Career writer input, provider reported    | 42,202 tokens | 39,284 tokens | About 6.9% less input in the controlled replay |
 | Education writer input, provider reported | 42,213 tokens | 39,294 tokens | About 6.9% less input in the controlled replay |
-| Marriage writer input, provider reported | 42,201 tokens | 39,287 tokens | About 6.9% less input in the controlled replay |
+| Marriage writer input, provider reported  | 42,201 tokens | 39,287 tokens | About 6.9% less input in the controlled replay |
 
 The guide counts use `cl100k_base`, not the DeepSeek tokenizer. The complete replay
 loads seven known prompt documents; it is not a capture of the deployed gateway's
@@ -306,17 +306,17 @@ Final selected regression results: **285 passed, 3 skipped**. The skipped tests
 require the absent cached secondary-engine ephemeris; they are not counted as
 passes. Syntax checks and both repository whitespace checks passed.
 
-| Suite | Passed | Skipped |
-| --- | ---: | ---: |
-| Offline calculations | 36 | 0 |
-| Natal cache | 6 | 0 |
-| Topic evidence | 9 | 0 |
-| Real engine, renderer and calculator parity | 7 | 3 |
-| VedAstro matching adapter | 26 | 0 |
-| Friend, billing, astrology and runtime prompt/config contracts | 63 | 0 |
-| PWA existing Python regression suite, including language repair | 90 | 0 |
-| PWA replay, usage, burst and storage-preflight tests | 40 | 0 |
-| PWA client stream/delivery contracts | 8 | 0 |
+| Suite                                                           | Passed | Skipped |
+| --------------------------------------------------------------- | -----: | ------: |
+| Offline calculations                                            |     36 |       0 |
+| Natal cache                                                     |      6 |       0 |
+| Topic evidence                                                  |      9 |       0 |
+| Real engine, renderer and calculator parity                     |      7 |       3 |
+| VedAstro matching adapter                                       |     26 |       0 |
+| Friend, billing, astrology and runtime prompt/config contracts  |     63 |       0 |
+| PWA existing Python regression suite, including language repair |     90 |       0 |
+| PWA replay, usage, burst and storage-preflight tests            |     40 |       0 |
+| PWA client stream/delivery contracts                            |      8 |       0 |
 
 Separately, four checks against the downloaded pinned runtime detector verified
 the configured breaker, progress-sensitive behavior, distinct calls and disabled
@@ -436,11 +436,11 @@ The dev gateway accepted all three requests after the audit client supplied
 endpoint helper. The earlier 403 was an audit-client omission, not a deficient
 testing token. No permissions, configuration or deployment were changed.
 
-| Question | Deployed dev response finding | Local verified result |
-| --- | --- | --- |
-| Career | Aquarius ascendant, but inferred abilities/preferences and a post-2028 career take-off without verified timing evidence | Aquarius; Mars rules house 10 and occupies house 2; reviewed family-enterprise/trade theme only |
-| Education | Jupiter placed in house 4; inferred focus and patience from period/nakshatra names | Jupiter is in Gemini, house 5. The admitted education factor is Mercury, ruler of house 5, in house 12 |
-| Marriage timing | Pisces ascendant and Mercury as marriage-house ruler, contradicting the same-input career reply; forecast a 2027–2028 window | Aquarius ascendant; Sun rules house 7 and occupies house 1. No supported marriage window is supplied |
+| Question        | Deployed dev response finding                                                                                                | Local verified result                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Career          | Aquarius ascendant, but inferred abilities/preferences and a post-2028 career take-off without verified timing evidence      | Aquarius; Mars rules house 10 and occupies house 2; reviewed family-enterprise/trade theme only        |
+| Education       | Jupiter placed in house 4; inferred focus and patience from period/nakshatra names                                           | Jupiter is in Gemini, house 5. The admitted education factor is Mercury, ruler of house 5, in house 12 |
+| Marriage timing | Pisces ascendant and Mercury as marriage-house ruler, contradicting the same-input career reply; forecast a 2027–2028 window | Aquarius ascendant; Sun rules house 7 and occupies house 1. No supported marriage window is supplied   |
 
 Gateway-reported total token counts were 30,721, 29,754 and 64,656 respectively.
 These are raw gateway counters, not audited dollars or a complete per-model-call

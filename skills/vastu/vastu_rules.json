@@ -317,10 +317,7 @@
     "main_door_opposite_another_door": {
       "severity": "moderate",
       "effects": ["energy_drain", "instability"],
-      "remedies": [
-        "Place a curtain or screen",
-        "Hang a crystal between doors"
-      ]
+      "remedies": ["Place a curtain or screen", "Hang a crystal between doors"]
     }
   },
   "remedies": {

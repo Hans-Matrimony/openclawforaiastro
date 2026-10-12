@@ -12,6 +12,7 @@
 **Problem:** Your `HEARTBEAT.md` documents the 24-hour rule, but the **actual sending code doesn't enforce it**.
 
 **Evidence:**
+
 ```typescript
 // src/infra/heartbeat-runner.ts - NO 24-hour check before sending!
 await deliverOutboundPayloads({
@@ -25,6 +26,7 @@ await deliverOutboundPayloads({
 ```
 
 **What Meta Saw:**
+
 - Your system sent messages to users who hadn't replied in 24+ hours
 - These were free-form messages (not templates)
 - **This is a DIRECT VIOLATION** of Meta's Business Messaging Policy
@@ -41,6 +43,7 @@ await deliverOutboundPayloads({
 **But the code doesn't actually check the window!**
 
 **What Likely Happened:**
+
 1. User messages your bot at 10:00 AM
 2. Bot sends reply (within 24h ✅)
 3. Heartbeat sends nudge at 10:30 AM (within 24h ✅)
@@ -57,6 +60,7 @@ await deliverOutboundPayloads({
 **Your Project:** Has NO template system implementation.
 
 **Evidence from code search:**
+
 ```
 grep -r "template" --include="*.ts" src/
 → Only Line-related templates found

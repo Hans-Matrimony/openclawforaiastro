@@ -13,6 +13,7 @@ metadata:
 **Priority history skill. The astrologer-specific retrieval policy below takes precedence for that agent; logging remains unchanged.**
 
 Use this skill to:
+
 1. **Fetch conversation history** for personalized context
 2. **Store messages** to MongoDB for future reference
 
@@ -33,6 +34,7 @@ For the `astrologer` agent only, follow the current workspace's conditional hist
 For EVERY incoming user message, you MUST:
 
 1. **ALWAYS fetch conversation history FIRST** before responding:
+
    ```bash
    python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "<USER_ID>" --limit 30 --format summary
    ```
@@ -69,11 +71,13 @@ python3 ~/.openclaw/skills/mongo_logger/fetch_history.py --user-id "+91987654321
 ```
 
 **Parameters:**
+
 - **user-id**: User's phone number (with + prefix)
 - **limit**: Number of recent messages (default: 30, recommended: 20-50)
 - **format**: `summary` (for AI reading) or `json` (for data processing)
 
 **Output includes:**
+
 - Recent conversation topics
 - Problems discussed
 - Things to follow up on

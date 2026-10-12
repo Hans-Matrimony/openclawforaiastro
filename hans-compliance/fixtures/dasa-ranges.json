@@ -1,27 +1,24 @@
 {
- "Source": "SYNTHETIC fixture — illustrative values only, NOT a real chart result. Replace with a live DasaAtRange capture before trusting timing accuracy.",
- "Levels": [
-  "Mahadasa",
-  "Bhukti"
- ],
- "Ranges": [
-  {
-   "Lord": "Venus",
-   "Level": "Mahadasa",
-   "From": "2019",
-   "To": "2039"
-  },
-  {
-   "Lord": "Jupiter",
-   "Level": "Bhukti",
-   "From": "Nov 2031",
-   "To": "Jul 2034"
-  },
-  {
-   "Lord": "Saturn",
-   "Level": "Bhukti",
-   "From": "Sep 2027",
-   "To": "Nov 2028"
-  }
- ]
+  "Source": "SYNTHETIC fixture — illustrative values only, NOT a real chart result. Replace with a live DasaAtRange capture before trusting timing accuracy.",
+  "Levels": ["Mahadasa", "Bhukti"],
+  "Ranges": [
+    {
+      "Lord": "Venus",
+      "Level": "Mahadasa",
+      "From": "2019",
+      "To": "2039"
+    },
+    {
+      "Lord": "Jupiter",
+      "Level": "Bhukti",
+      "From": "Nov 2031",
+      "To": "Jul 2034"
+    },
+    {
+      "Lord": "Saturn",
+      "Level": "Bhukti",
+      "From": "Sep 2027",
+      "To": "Nov 2028"
+    }
+  ]
 }

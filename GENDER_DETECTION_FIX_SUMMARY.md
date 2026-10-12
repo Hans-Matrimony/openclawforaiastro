@@ -7,12 +7,14 @@
 **Actual Behavior:** Used **Meera** (Female astrologer) with feminine Hindi verbs
 
 ### Example of Wrong Response (what was happening):
+
 ```
 "Mujhe yaad hai dear, tumne kitni saari baatein share ki thi aur main un sab ke baare mein soch rahi thi."
 "Feminine verbs used: rahi thi, sakti hoon, karungi ❌
 ```
 
 ### What Should Have Happened:
+
 ```
 "Mujhe yaad hai dear, tumne kitni saari baatein share ki thi aur main un sab ke baare mein soch raha tha."
 "Masculine verbs should be: raha tha, sakta hoon, karunga ✅
@@ -51,16 +53,17 @@ gender = unknown  → Meera (Default)
 
 Quick reference showing exact verb differences:
 
-| Scenario | Meera (Male Users) | Aarav (Female Users) |
-|----------|-------------------|---------------------|
+| Scenario           | Meera (Male Users)       | Aarav (Female Users)     |
+| ------------------ | ------------------------ | ------------------------ |
 | "I can understand" | "Main samajh sakti hoon" | "Main samajh sakta hoon" |
-| "I can do" | "Main kar sakti hoon" | "Main kar sakta hoon" |
-| "I will wait" | "Main wait karungi" | "Main wait karunga" |
-| "I can help" | "Madad kar sakti hoon" | "Madad kar sakta hoon" |
+| "I can do"         | "Main kar sakti hoon"    | "Main kar sakta hoon"    |
+| "I will wait"      | "Main wait karungi"      | "Main wait karunga"      |
+| "I can help"       | "Madad kar sakti hoon"   | "Madad kar sakta hoon"   |
 
 ### 3. Updated Example Flows
 
 Added concrete examples showing:
+
 - Example 1: Male user → Meera (feminine verbs)
 - Example 1b: Female user → Aarav (masculine verbs)
 - Example 2: Female user → Aarav (masculine verbs)
@@ -68,6 +71,7 @@ Added concrete examples showing:
 ### 4. Updated Quick Checklist
 
 Added mandatory checks:
+
 - [ ] **DETECTED GENDER from Mem0** (Scan for "Gender:" in memories)
 - [ ] **SET PERSONALITY based on gender** (Male → Meera, Female → Aarav)
 - [ ] **Using correct gendered verbs** (Meera: sakti/sakti hoon, Aarav: sakta/sakta hoon)
@@ -79,12 +83,14 @@ Added mandatory checks:
 ### Test Case 1: Female User (Reena Rani)
 
 **Input:**
+
 ```bash
 # Check Mem0 for user
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<REENA_PHONE>"
 ```
 
 **Expected Output:**
+
 - Should find "Gender: female" in memories
 - Agent should use **Aarav** personality
 - Responses should use masculine verbs
@@ -95,12 +101,14 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<REENA_PHONE>"
 ### Test Case 2: Male User (Vardhan)
 
 **Input:**
+
 ```bash
 # Check Mem0 for user
 python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<VARDHAN_ID>"
 ```
 
 **Expected Output:**
+
 - Should find "Gender: male" in memories
 - Agent should use **Meera** personality
 - Responses should use feminine verbs
@@ -151,11 +159,13 @@ python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<VARDHAN_ID>"
 ## 🚀 Next Steps
 
 1. **Verify Reena Rani's gender is saved in Mem0**
+
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py list --user-id "<REENA_PHONE>"
    ```
 
 2. **If gender missing**, update her profile:
+
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py add "Gender: female" --user-id "<REENA_PHONE>"
    ```

@@ -13,6 +13,7 @@
 ### The Silent Error
 
 **BEFORE (Fixed):**
+
 ```python
 try:
     planets = json.loads(args.planets) if args.planets else []
@@ -21,6 +22,7 @@ except:  # ← SILENTLY catching ALL errors!
 ```
 
 When the JSON parsing failed, the script:
+
 1. ❌ Silently caught the exception
 2. ❌ Defaulted to `planets = []`
 3. ❌ Drew an EMPTY chart (only Lagna ल shown)
@@ -51,6 +53,7 @@ The `--planets` argument must be a **valid JSON array string**:
 ### 1. Un-hide the Error
 
 **AFTER (Fixed):**
+
 ```python
 try:
     planets = json.loads(args.planets) if args.planets else []
@@ -61,6 +64,7 @@ except Exception as e:
 ```
 
 Now when JSON parsing fails, you'll see:
+
 ```
 ⚠️ ERROR PARSING PLANETS: Expecting value: line 1 column 2 (char 1) | Raw input: '[Moon, Sun]'
 ⚠️ TIP: --planets must be valid JSON array, e.g., '["Moon is in House 1"]'
@@ -108,6 +112,7 @@ python test_draw_kundli.py
 ```
 
 This will run 3 tests:
+
 1. ✅ Example Planets - Tests with correct JSON
 2. ✅ Empty Planets - Tests with empty array
 3. ✅ Malformed JSON - Tests error handling
@@ -115,6 +120,7 @@ This will run 3 tests:
 ### Manual Testing
 
 Test with CORRECT format:
+
 ```bash
 python draw_kundli_traditional.py \
   --lagna "Taurus" \
@@ -124,6 +130,7 @@ python draw_kundli_traditional.py \
 ```
 
 Expected output:
+
 ```
 🪐 Parsed 3 planet positions from --planets argument
 🔍 DEBUG: Processing 3 planet positions
@@ -135,6 +142,7 @@ IMAGE_URL: https://i.ibb.co/xxxxx/xxxxx.png
 ```
 
 Test with WRONG format (should show error):
+
 ```bash
 python draw_kundli_traditional.py \
   --lagna "Taurus" \
@@ -144,6 +152,7 @@ python draw_kundli_traditional.py \
 ```
 
 Expected output:
+
 ```
 ⚠️ ERROR PARSING PLANETS: Expecting value: line 1 column 2 (char 1) | Raw input: '[Saturn, Jupiter]'
 ⚠️ TIP: --planets must be valid JSON array, e.g., '["Moon is in House 1"]'
@@ -172,6 +181,7 @@ cd ~/.openclaw/skills/kundli && python3 -u draw_kundli_traditional.py \
 ```
 
 **CRITICAL:**
+
 - ✅ Use SINGLE quotes around the entire `--planets` value
 - ✅ Use DOUBLE quotes around each string inside the array
 - ✅ Properly escape if needed: `'["String with \"quotes\"]'`
@@ -230,19 +240,21 @@ Then pass this EXACT array to draw_kundli_traditional.py.
 
 ## 🎯 Summary
 
-| Issue | Before Fix | After Fix |
-|-------|-----------|-----------|
-| **JSON Error** | Silent failure | Shows error + raw input |
-| **Empty Planets** | No warning | Shows "no planets provided" |
-| **Debug Info** | None | Shows each planet being parsed |
-| **Validation** | None | Checks for non-string items |
-| **Error Message** | Generic | Shows exactly what's wrong |
+| Issue             | Before Fix     | After Fix                      |
+| ----------------- | -------------- | ------------------------------ |
+| **JSON Error**    | Silent failure | Shows error + raw input        |
+| **Empty Planets** | No warning     | Shows "no planets provided"    |
+| **Debug Info**    | None           | Shows each planet being parsed |
+| **Validation**    | None           | Checks for non-string items    |
+| **Error Message** | Generic        | Shows exactly what's wrong     |
 
 **Files Modified:**
+
 - [skills/kundli/draw_kundli_traditional.py](skills/kundli/draw_kundli_traditional.py) - Added error logging
 - [skills/kundli/test_draw_kundli.py](skills/kundli/test_draw_kundli.py) - Test script
 
 **Next Steps:**
+
 1. ✅ Run `python test_draw_kundli.py` to verify
 2. ⏳ Update OpenClaw agent to pass `--planets` correctly
 3. ⏳ Monitor stderr for parsing errors

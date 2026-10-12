@@ -12,7 +12,11 @@ import { runExec } from "../../process/exec.js";
 import { buildTtsSystemPromptHint } from "../../tts/tts.js";
 import { resolveDefaultModelForAgent } from "../model-selection.js";
 import { buildSystemPromptParams } from "../system-prompt-params.js";
-import { buildAgentSystemPrompt, isGeminiModel, buildCacheOptimizedSystemPrompt } from "../system-prompt.js";
+import {
+  buildAgentSystemPrompt,
+  isGeminiModel,
+  buildCacheOptimizedSystemPrompt,
+} from "../system-prompt.js";
 
 const CLI_RUN_QUEUE = new Map<string, Promise<unknown>>();
 
@@ -252,7 +256,9 @@ export function buildSystemPrompt(params: {
 
   // Check if we're using a Gemini model and use cache-optimized version
   // Extract provider from model string if available (e.g., "google/gemini-2.5-flash")
-  const modelProvider = defaultModelLabel.includes("/") ? defaultModelLabel.split("/")[0] : undefined;
+  const modelProvider = defaultModelLabel.includes("/")
+    ? defaultModelLabel.split("/")[0]
+    : undefined;
   if (isGeminiModel(params.modelDisplay, modelProvider)) {
     return buildCacheOptimizedSystemPrompt(buildParams);
   }

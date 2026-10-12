@@ -5,6 +5,7 @@
 The Kundli calculation engine now uses **pyswisseph (FREE Swiss Ephemeris)** with automatic fallback to jyotishganit. This provides **100% professional accuracy at zero cost**.
 
 ### What's Changed:
+
 - ✅ **Primary**: pyswisseph (100% FREE, 100% ACCURATE) - **NOW INTEGRATED**
 - ✅ **Fallback**: jyotishganit (automatic if pyswisseph unavailable)
 - ✅ **Production-ready**: Automatic fallback, clear error handling
@@ -22,6 +23,7 @@ See [PYSWISSEPH_INTEGRATION.md](PYSWISSEPH_INTEGRATION.md) for full details.
 **Website:** https://pyswisseph.github.io/
 
 ### How it works in calculate.py:
+
 ```python
 # calculate.py automatically tries pyswisseph first
 python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
@@ -36,6 +38,7 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ```
 
 ### Fallback behavior:
+
 ```json
 {
   "summary": {
@@ -49,6 +52,7 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ```
 
 ### Why it's best:
+
 - 100% FREE for personal/commercial use
 - Same accuracy as $100+ paid versions
 - Actively maintained
@@ -76,11 +80,13 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ## INSTALLATION
 
 ### For Production (Recommended):
+
 ```bash
 pip install pyswisseph
 ```
 
 ### If Build Fails (Windows without C compiler):
+
 The system will **automatically fall back to jyotishganit**. The system remains functional with ~80% accuracy and validation layers.
 
 ---
@@ -125,12 +131,15 @@ User Request (DOB, Time, Place)
 ## NEXT STEPS
 
 ### Current Status:
+
 ✅ **Production-ready** - Deploy now!
+
 - pyswisseph integration complete
 - Automatic fallback working
 - Output includes ephemeris info
 
 ### Future Enhancements:
+
 - [ ] Complete Lagna calculation using `swe.houses()`
 - [ ] Add Vimshottari Dasha calculation
 - [ ] Add Ashtakvarga charts
@@ -141,10 +150,10 @@ User Request (DOB, Time, Place)
 ## CONCLUSION
 
 ✅ **Done!** The system now has:
+
 - 100% FREE Swiss Ephemeris accuracy (pyswisseph)
 - Automatic fallback to jyotishganit
 - Production-ready error handling
 - Zero budget concerns
 
 **Deploy and use immediately!**
-

@@ -762,7 +762,8 @@ export async function runHeartbeatOnce(opts: {
     // CRITICAL: Heartbeats are proactive messages, so strict checks apply
     if (delivery.channel === "whatsapp") {
       try {
-        const { checkProactiveCompliance, logComplianceFailure } = await import("../whatsapp/compliance.js");
+        const { checkProactiveCompliance, logComplianceFailure } =
+          await import("../whatsapp/compliance.js");
         const complianceCheck = await checkProactiveCompliance(delivery.to, cfg);
 
         if (!complianceCheck.allowed) {

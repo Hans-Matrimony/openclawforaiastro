@@ -62,32 +62,116 @@
     }
   },
   "nakshatra_effects": {
-    "Ashwini": { "theme": "initiator", "favorable": "starting new projects, medical matters", "caution": "impulsiveness" },
-    "Bharani": { "theme": "nurturer", "favorable": "creative work, family matters", "caution": "extremes in behavior" },
-    "Krittika": { "theme": "fighter", "favorable": "courageous acts, competition", "caution": "aggression" },
-    "Rohini": { "theme": "creator", "favorable": "artistic pursuits, romance", "caution": "sensuality" },
+    "Ashwini": {
+      "theme": "initiator",
+      "favorable": "starting new projects, medical matters",
+      "caution": "impulsiveness"
+    },
+    "Bharani": {
+      "theme": "nurturer",
+      "favorable": "creative work, family matters",
+      "caution": "extremes in behavior"
+    },
+    "Krittika": {
+      "theme": "fighter",
+      "favorable": "courageous acts, competition",
+      "caution": "aggression"
+    },
+    "Rohini": {
+      "theme": "creator",
+      "favorable": "artistic pursuits, romance",
+      "caution": "sensuality"
+    },
     "Mrigashira": { "theme": "seeker", "favorable": "research, travel", "caution": "restlessness" },
-    "Ardra": { "theme": "transformer", "favorable": "change, scientific work", "caution": "emotional outbursts" },
-    "Punarvasu": { "theme": "renewer", "favorable": "new beginnings, learning", "caution": "over-optimism" },
-    "Pushya": { "theme": "nourisher", "favorable": "spiritual work, teaching", "caution": "rigidity" },
-    "Ashlesha": { "theme": "entangler", "favorable": "research, occult", "caution": "manipulation" },
+    "Ardra": {
+      "theme": "transformer",
+      "favorable": "change, scientific work",
+      "caution": "emotional outbursts"
+    },
+    "Punarvasu": {
+      "theme": "renewer",
+      "favorable": "new beginnings, learning",
+      "caution": "over-optimism"
+    },
+    "Pushya": {
+      "theme": "nourisher",
+      "favorable": "spiritual work, teaching",
+      "caution": "rigidity"
+    },
+    "Ashlesha": {
+      "theme": "entangler",
+      "favorable": "research, occult",
+      "caution": "manipulation"
+    },
     "Magha": { "theme": "royal", "favorable": "leadership, tradition", "caution": "arrogance" },
     "Purva Phalguni": { "theme": "creative", "favorable": "arts, romance", "caution": "laziness" },
-    "Uttara Phalguni": { "theme": "supporter", "favorable": "partnerships, charity", "caution": "pride" },
-    "Hasta": { "theme": "craftsman", "favorable": "skill-based work, business", "caution": "criticism" },
-    "Chitra": { "theme": "designer", "favorable": "architecture, strategy", "caution": "perfectionism" },
-    "Swati": { "theme": "trader", "favorable": "business, communication", "caution": "independence" },
-    "Vishakha": { "theme": "achiever", "favorable": "ambitious goals, competition", "caution": "stubbornness" },
-    "Anuradha": { "theme": "devotee", "favorable": "friendship, cooperation", "caution": "jealousy" },
+    "Uttara Phalguni": {
+      "theme": "supporter",
+      "favorable": "partnerships, charity",
+      "caution": "pride"
+    },
+    "Hasta": {
+      "theme": "craftsman",
+      "favorable": "skill-based work, business",
+      "caution": "criticism"
+    },
+    "Chitra": {
+      "theme": "designer",
+      "favorable": "architecture, strategy",
+      "caution": "perfectionism"
+    },
+    "Swati": {
+      "theme": "trader",
+      "favorable": "business, communication",
+      "caution": "independence"
+    },
+    "Vishakha": {
+      "theme": "achiever",
+      "favorable": "ambitious goals, competition",
+      "caution": "stubbornness"
+    },
+    "Anuradha": {
+      "theme": "devotee",
+      "favorable": "friendship, cooperation",
+      "caution": "jealousy"
+    },
     "Jyeshtha": { "theme": "elder", "favorable": "protection, leadership", "caution": "dominance" },
     "Mula": { "theme": "root", "favorable": "research, transformation", "caution": "destruction" },
-    "Purva Ashadha": { "theme": "invincible", "favorable": "declarations, travel", "caution": "bluntness" },
-    "Uttara Ashadha": { "theme": "universalist", "favorable": "humanitarian work, teaching", "caution": "detachment" },
-    "Shravana": { "theme": "listener", "favorable": "learning, communication", "caution": "skepticism" },
-    "Dhanishta": { "theme": "wealth", "favorable": "music, wealth creation", "caution": "materialism" },
-    "Shatabhisha": { "theme": "healer", "favorable": "healing, technology", "caution": "isolation" },
-    "Purva Bhadrapada": { "theme": "spiritual warrior", "favorable": "spiritual practice, charity", "caution": "escapism" },
-    "Uttara Bhadrapada": { "theme": "wisher", "favorable": "deep study, meditation", "caution": "laziness" },
+    "Purva Ashadha": {
+      "theme": "invincible",
+      "favorable": "declarations, travel",
+      "caution": "bluntness"
+    },
+    "Uttara Ashadha": {
+      "theme": "universalist",
+      "favorable": "humanitarian work, teaching",
+      "caution": "detachment"
+    },
+    "Shravana": {
+      "theme": "listener",
+      "favorable": "learning, communication",
+      "caution": "skepticism"
+    },
+    "Dhanishta": {
+      "theme": "wealth",
+      "favorable": "music, wealth creation",
+      "caution": "materialism"
+    },
+    "Shatabhisha": {
+      "theme": "healer",
+      "favorable": "healing, technology",
+      "caution": "isolation"
+    },
+    "Purva Bhadrapada": {
+      "theme": "spiritual warrior",
+      "favorable": "spiritual practice, charity",
+      "caution": "escapism"
+    },
+    "Uttara Bhadrapada": {
+      "theme": "wisher",
+      "favorable": "deep study, meditation",
+      "caution": "laziness"
+    },
     "Revati": { "theme": "prosperous", "favorable": "nurturing, arts", "caution": "worry" }
   },
   "dasha_effects": {

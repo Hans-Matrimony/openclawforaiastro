@@ -11,6 +11,7 @@ This guide explains how to integrate and use the new PDF and audio analysis feat
 ## ✅ What's Been Implemented
 
 ### 1. PDF Analyzer Skill
+
 - **Location:** `d:\HansMatrimonyOrg\openclawforaiastro\skills\pdf_analyzer\`
 - **Features:**
   - Extract text from PDFs
@@ -19,6 +20,7 @@ This guide explains how to integrate and use the new PDF and audio analysis feat
   - Full analysis command
 
 ### 2. Audio Analyzer Skill
+
 - **Location:** `d:\HansMatrimonyOrg\openclawforaiastro\skills\audio_analyzer\`
 - **Features:**
   - Emotion detection (stressed, sad, angry, happy, neutral)
@@ -27,17 +29,20 @@ This guide explains how to integrate and use the new PDF and audio analysis feat
   - Remedy suggestions (mantras, prayers)
 
 ### 3. Feature Flags (SAFE ROLLBACK)
+
 - **Location:** `d:\HansMatrimonyOrg\hans-ai-whatsapp\app\config\settings.py`
 - **Flags:**
   - `enable_pdf_analysis: bool = False` (OFF by default)
   - `enable_audio_emotion_detection: bool = False` (OFF by default)
 
 ### 4. Isolated Code Module
+
 - **Location:** `d:\HansMatrimonyOrg\hans-ai-whatsapp\app\services\tasks_pdf_audio.py`
 - **Contains:** `PDFAnalyzer` and `AudioAnalyzer` classes
 - **Safety:** Completely isolated from existing functionality
 
 ### 5. Webhook Enhancement
+
 - **Location:** `d:\HansMatrimonyOrg\hans-ai-whatsapp\whatsapp_webhook.py`
 - **Change:** PDF detection only (non-breaking addition)
 - **Impact:** ZERO - just adds metadata marker
@@ -85,6 +90,7 @@ apt-get install -y tesseract-ocr tesseract-ocr-eng tesseract-ocr-hin poppler-uti
 ### Step 2: Enable Feature Flags
 
 **Option A: Enable via Environment Variables**
+
 ```bash
 # Enable PDF analysis
 export ENABLE_PDF_ANALYSIS=true
@@ -96,6 +102,7 @@ export ENABLE_AUDIO_EMOTION_DETECTION=true
 ```
 
 **Option B: Enable via .env File**
+
 ```bash
 # Add to your .env file
 ENABLE_PDF_ANALYSIS=true
@@ -105,12 +112,14 @@ ENABLE_AUDIO_EMOTION_DETECTION=true
 ### Step 3: Test the Features
 
 **Test PDF Upload:**
+
 1. Send a PDF via WhatsApp to your test number
 2. Check logs for `[PDF Analysis]` prefix
 3. Verify agent acknowledges PDF upload
 4. Ask: "What does this PDF say?"
 
 **Test Audio Emotion:**
+
 1. Send audio: "I'm very stressed about my marriage"
 2. Check logs for `[Audio Analysis]` prefix
 3. Verify agent detects "stressed" emotion
@@ -163,6 +172,7 @@ User sends audio → WhatsApp Webhook → Existing transcription
 ## 🧪 Testing Checklist
 
 ### Before Enabling Features
+
 - [ ] Verify normal WhatsApp messages work
 - [ ] Verify Kundli generation works
 - [ ] Verify audio transcription works (existing)
@@ -171,6 +181,7 @@ User sends audio → WhatsApp Webhook → Existing transcription
 - [ ] Verify Hinglish mode works
 
 ### After Enabling PDF Analysis
+
 - [ ] PDF upload acknowledged by agent
 - [ ] PDF text extraction works
 - [ ] PDF metadata extraction works
@@ -179,6 +190,7 @@ User sends audio → WhatsApp Webhook → Existing transcription
 - [ ] Existing functionality still works
 
 ### After Enabling Audio Analysis
+
 - [ ] Audio transcription still works
 - [ ] Emotion detection works
 - [ ] Astrology question extraction works
@@ -193,6 +205,7 @@ User sends audio → WhatsApp Webhook → Existing transcription
 If ANY issues occur:
 
 ### Quick Disable (Keeps Code)
+
 ```bash
 # Set feature flags to false
 export ENABLE_PDF_ANALYSIS=false
@@ -203,6 +216,7 @@ export ENABLE_AUDIO_EMOTION_DETECTION=false
 ```
 
 ### Complete Removal (Deletes Code)
+
 ```bash
 # Delete the new code module
 rm d:/HansMatrimonyOrg/hans-ai-whatsapp/app/services/tasks_pdf_audio.py
@@ -224,6 +238,7 @@ cp d:/HansMatrimonyOrg/hans-ai-whatsapp/whatsapp_webhook.py.backup_pdf_audio_* \
 **User Action:** Uploads astrological chart PDF
 
 **Agent Response (Hinglish):**
+
 ```
 Arre, maine aapka PDF dekh liya. Yeh document Kundli chart hai.
 
@@ -236,6 +251,7 @@ Koi specific question hai is chart ke baarein?
 ```
 
 **Agent Response (English):**
+
 ```
 I've reviewed your PDF document. This appears to be a birth chart.
 
@@ -252,6 +268,7 @@ Any specific questions about this chart?
 **User Action:** Sends audio "I'm stressed about my marriage"
 
 **Agent Response (Hinglish):**
+
 ```
 Arre, tension mat lo. Main hoon na tumhare saath.
 
@@ -261,6 +278,7 @@ Kuch specific problem hai? Batao.
 ```
 
 **Agent Response (English):**
+
 ```
 I can hear you're stressed about your marriage. Don't worry, I'm here for you.
 
@@ -274,6 +292,7 @@ What's concerning you the most?
 ## 🔍 Monitoring and Logs
 
 ### PDF Analysis Logs
+
 ```
 [PDF Analysis] Processing PDF for user +919876543210, media_id: media_123
 [PDF Analysis] Step 1: Downloading PDF from WhatsApp
@@ -285,6 +304,7 @@ What's concerning you the most?
 ```
 
 ### Audio Analysis Logs
+
 ```
 [Audio Analysis] Performing advanced analysis for user +919876543210
 [Audio Analysis] Analysis complete - Emotion: stressed, Astro Question: true, Language: hinglish

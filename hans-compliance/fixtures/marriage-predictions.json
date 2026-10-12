@@ -1,321 +1,161 @@
 {
- "Source": "VedAstro HoroscopePredictions live capture (rahunova-re/real-horo.json), 2026-10-12",
- "Birth": "19:45 14/06/1996 +05:30 Kanpur (test person)",
- "Ayanamsa": "RAMAN",
- "TotalPredictions": 162,
- "Included": 18,
- "Items": [
-  {
-   "Name": "SeventhBhavaFromLagnaOrMoonAspectedBy9thOrSignOrOtherBenefics",
-   "Description": "Marriage will be happy and the wife a loving and fortunate woman.",
-   "Planets": [
-    "Sun",
-    "Mercury",
-    "Mars"
-   ],
-   "Houses": [
-    "House7",
-    "House12"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Romance",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "Saturn7th_Or_NavamsaLordOf7thMalefic_Or_7thLordOrVenusDepressed_WickedWife",
-   "Description": "The wife will be a wicked woman.",
-   "Planets": [
-    "Saturn",
-    "Mercury",
-    "Jupiter",
-    "Venus"
-   ],
-   "Houses": [
-    "House7"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "SeventhLordAndVenusIn6th_Impotent",
-   "Description": "Causes impotence.",
-   "Planets": [
-    "Mercury",
-    "Venus"
-   ],
-   "Houses": [
-    "House6"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "SexualHealth",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "JupiterAspectSun",
-   "Description": "The partner may be a highly evolved spiritual soul and guide the native.",
-   "Planets": [
-    "Jupiter",
-    "Sun"
-   ],
-   "Houses": [],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Romance",
-    "Spirituality",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "VenusConjunctSun",
-   "Description": "Marriage will be marked by spiritual harmony.",
-   "Planets": [
-    "Venus",
-    "Sun"
-   ],
-   "Houses": [
-    "House6"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Spirituality",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "AfflictedVenusMaritalIssues",
-   "Description": "Gives extramarital affairs. Leads to trouble and controversy due to writing or publishing obscene and degenerate literature.",
-   "Planets": [
-    "Venus"
-   ],
-   "Houses": [
-    "House7"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Romance",
-    "Reputation",
-    "Arts",
-    "Creativity",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "VenusSunAffliction",
-   "Description": "Marriage lacks physical attraction with indifferent attitudes between couple",
-   "Planets": [
-    "Venus",
-    "Sun"
-   ],
-   "Houses": [
-    "House7",
-    "House6"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Romance",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "StrongSaturnAfflictedByRahu",
-   "Description": "Marriage is with a well-to-do but irascible temperamental husband or wife.",
-   "Planets": [
-    "Saturn",
-    "Rahu"
-   ],
-   "Houses": [
-    "House4"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Wealth",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "SaturnStrongInOwnConstellation",
-   "Description": "The partner will later become pious and devoted.",
-   "Planets": [
-    "Saturn"
-   ],
-   "Houses": [],
-   "Zodiacs": [],
-   "Tags": [
-    "Spirituality",
-    "Religion",
-    "Marriage",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "MercuryBeneficiallyDisposed",
-   "Description": "Marriage will be with one highly educated refined and learned.",
-   "Planets": [
-    "Mercury",
-    "Saturn"
-   ],
-   "Houses": [
-    "House6",
-    "House4"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Education",
-    "Learning",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "MaleficOn5thOr7thFromAscOrMoon",
-   "Description": "The native may not marry or if he marries his wife may not live.",
-   "Planets": [
-    "Rahu",
-    "Saturn",
-    "Ketu",
-    "Mercury",
-    "Venus"
-   ],
-   "Houses": [
-    "House5",
-    "House7",
-    "House10",
-    "House12"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Marriage",
-    "Death",
-    "Family",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "TwelfthLordConjoinsSeventhLord_LossThroughPartner",
-   "Description": "Loss of money through the married partner.",
-   "Planets": [
-    "Mars",
-    "Mercury"
-   ],
-   "Houses": [
-    "House12",
-    "House7"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Finance",
-    "Wealth",
-    "Marriage",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "SunIn7th_LiaisonWithBarrenWomen",
-   "Description": "One will have liaison with barren women.",
-   "Planets": [
-    "Sun"
-   ],
-   "Houses": [
-    "House7"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Romance",
-    "Children",
-    "HouseYoga"
-   ]
-  },
-  {
-   "Name": "House1LordInHouse1Fortified",
-   "Description": "The subject lives by his own exertion will have an independent spirit and will have two wives or one married and another illegal. The person becomes famous in his own community and country",
-   "Planets": [],
-   "Houses": [
-    "House1"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Career",
-    "Entrepreneurship",
-    "Marriage",
-    "Romance",
-    "Reputation",
-    "Status",
-    "LordInHouse"
-   ]
-  },
-  {
-   "Name": "House3LordInHouse4",
-   "Description": "life will be happy on the whole. He becomes rich and learned. But the wife will be cruel-hearted and mean.",
-   "Planets": [],
-   "Houses": [
-    "House3",
-    "House4"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "WellBeing",
-    "Wealth",
-    "Learning",
-    "Marriage",
-    "Personality",
-    "LordInHouse"
-   ]
-  },
-  {
-   "Name": "House7LordInHouse6",
-   "Description": "The native may have two marriages with both partners living. One may marry a cousin such as an uncles daughter. If badly afflicted and the karaka Venus is also ill-disposed one may suffer from impotency and many other diseases. The natives wife may be sickly and jealous by nature denying the husband happiness from marriage. If Venus is well placed but the 7th lord is afflicted the native may suffer from piles. If Venus is weak but not afflicted one may desert or lose ones married partner through some indiscreet act.",
-   "Planets": [],
-   "Houses": [
-    "House7",
-    "House6"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Personal",
-    "LordInHouse"
-   ]
-  },
-  {
-   "Name": "House9LordInHouse7",
-   "Description": "The native may go abroad and prosper there. His father may also prosper in foreign lands. He will get a noble and lucky wife. If ascetic yogas are present in the chart the native may seek spiritual guidance and fulfilment abroad. If asubhayogas spoil the ninth lord the father may meet with his death abroad.",
-   "Planets": [],
-   "Houses": [
-    "House9",
-    "House7"
-   ],
-   "Zodiacs": [],
-   "Tags": [
-    "Personal",
-    "LordInHouse"
-   ]
-  },
-  {
-   "Name": "SagittariusRising2",
-   "Description": "Jupiter rules this sign and persons born under this sign will generally be inclined towards corpulence. They possess almond eyes and their hair is brown. They are of a phlegmatic temperament. They are somewhat conventional and sometimes businesslike also. They are prompt and uphold conservative views. They will be attracted towards the study of occult philosophy and sciences. In these departments of knowledge they can acquire mastery. They are too callous and enthusiastic. They hate all external show. They are God-fearing honest humble and free from hypocrisy. They never think of schemes which are calculated to disturb the progress of others. They generally exercise control over their food and drinks but in regard to their relationship with the opposite sex restraint is called for. They are brilliant their manners affable winning and hearts pure. They are prone to be misunderstood unintentionally by others on account of their hastiness in conversation. In their later years they must be careful about their lungs as they are liable to suffer from rheumatic pains and the like. Combinations for political power warranting persons born in this sign will exercise power with firmness and justice and without yielding to corruptive influences.",
-   "Planets": [],
-   "Houses": [
-    "House1"
-   ],
-   "Zodiacs": [
-    "Sagittarius"
-   ],
-   "Tags": [
-    "Personal",
-    "RisingSign"
-   ]
-  }
- ]
+  "Source": "VedAstro HoroscopePredictions live capture (rahunova-re/real-horo.json), 2026-10-12",
+  "Birth": "19:45 14/06/1996 +05:30 Kanpur (test person)",
+  "Ayanamsa": "RAMAN",
+  "TotalPredictions": 162,
+  "Included": 18,
+  "Items": [
+    {
+      "Name": "SeventhBhavaFromLagnaOrMoonAspectedBy9thOrSignOrOtherBenefics",
+      "Description": "Marriage will be happy and the wife a loving and fortunate woman.",
+      "Planets": ["Sun", "Mercury", "Mars"],
+      "Houses": ["House7", "House12"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Romance", "HouseYoga"]
+    },
+    {
+      "Name": "Saturn7th_Or_NavamsaLordOf7thMalefic_Or_7thLordOrVenusDepressed_WickedWife",
+      "Description": "The wife will be a wicked woman.",
+      "Planets": ["Saturn", "Mercury", "Jupiter", "Venus"],
+      "Houses": ["House7"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "HouseYoga"]
+    },
+    {
+      "Name": "SeventhLordAndVenusIn6th_Impotent",
+      "Description": "Causes impotence.",
+      "Planets": ["Mercury", "Venus"],
+      "Houses": ["House6"],
+      "Zodiacs": [],
+      "Tags": ["SexualHealth", "HouseYoga"]
+    },
+    {
+      "Name": "JupiterAspectSun",
+      "Description": "The partner may be a highly evolved spiritual soul and guide the native.",
+      "Planets": ["Jupiter", "Sun"],
+      "Houses": [],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Romance", "Spirituality", "HouseYoga"]
+    },
+    {
+      "Name": "VenusConjunctSun",
+      "Description": "Marriage will be marked by spiritual harmony.",
+      "Planets": ["Venus", "Sun"],
+      "Houses": ["House6"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Spirituality", "HouseYoga"]
+    },
+    {
+      "Name": "AfflictedVenusMaritalIssues",
+      "Description": "Gives extramarital affairs. Leads to trouble and controversy due to writing or publishing obscene and degenerate literature.",
+      "Planets": ["Venus"],
+      "Houses": ["House7"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Romance", "Reputation", "Arts", "Creativity", "HouseYoga"]
+    },
+    {
+      "Name": "VenusSunAffliction",
+      "Description": "Marriage lacks physical attraction with indifferent attitudes between couple",
+      "Planets": ["Venus", "Sun"],
+      "Houses": ["House7", "House6"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Romance", "HouseYoga"]
+    },
+    {
+      "Name": "StrongSaturnAfflictedByRahu",
+      "Description": "Marriage is with a well-to-do but irascible temperamental husband or wife.",
+      "Planets": ["Saturn", "Rahu"],
+      "Houses": ["House4"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Wealth", "HouseYoga"]
+    },
+    {
+      "Name": "SaturnStrongInOwnConstellation",
+      "Description": "The partner will later become pious and devoted.",
+      "Planets": ["Saturn"],
+      "Houses": [],
+      "Zodiacs": [],
+      "Tags": ["Spirituality", "Religion", "Marriage", "HouseYoga"]
+    },
+    {
+      "Name": "MercuryBeneficiallyDisposed",
+      "Description": "Marriage will be with one highly educated refined and learned.",
+      "Planets": ["Mercury", "Saturn"],
+      "Houses": ["House6", "House4"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Education", "Learning", "HouseYoga"]
+    },
+    {
+      "Name": "MaleficOn5thOr7thFromAscOrMoon",
+      "Description": "The native may not marry or if he marries his wife may not live.",
+      "Planets": ["Rahu", "Saturn", "Ketu", "Mercury", "Venus"],
+      "Houses": ["House5", "House7", "House10", "House12"],
+      "Zodiacs": [],
+      "Tags": ["Marriage", "Death", "Family", "HouseYoga"]
+    },
+    {
+      "Name": "TwelfthLordConjoinsSeventhLord_LossThroughPartner",
+      "Description": "Loss of money through the married partner.",
+      "Planets": ["Mars", "Mercury"],
+      "Houses": ["House12", "House7"],
+      "Zodiacs": [],
+      "Tags": ["Finance", "Wealth", "Marriage", "HouseYoga"]
+    },
+    {
+      "Name": "SunIn7th_LiaisonWithBarrenWomen",
+      "Description": "One will have liaison with barren women.",
+      "Planets": ["Sun"],
+      "Houses": ["House7"],
+      "Zodiacs": [],
+      "Tags": ["Romance", "Children", "HouseYoga"]
+    },
+    {
+      "Name": "House1LordInHouse1Fortified",
+      "Description": "The subject lives by his own exertion will have an independent spirit and will have two wives or one married and another illegal. The person becomes famous in his own community and country",
+      "Planets": [],
+      "Houses": ["House1"],
+      "Zodiacs": [],
+      "Tags": [
+        "Career",
+        "Entrepreneurship",
+        "Marriage",
+        "Romance",
+        "Reputation",
+        "Status",
+        "LordInHouse"
+      ]
+    },
+    {
+      "Name": "House3LordInHouse4",
+      "Description": "life will be happy on the whole. He becomes rich and learned. But the wife will be cruel-hearted and mean.",
+      "Planets": [],
+      "Houses": ["House3", "House4"],
+      "Zodiacs": [],
+      "Tags": ["WellBeing", "Wealth", "Learning", "Marriage", "Personality", "LordInHouse"]
+    },
+    {
+      "Name": "House7LordInHouse6",
+      "Description": "The native may have two marriages with both partners living. One may marry a cousin such as an uncles daughter. If badly afflicted and the karaka Venus is also ill-disposed one may suffer from impotency and many other diseases. The natives wife may be sickly and jealous by nature denying the husband happiness from marriage. If Venus is well placed but the 7th lord is afflicted the native may suffer from piles. If Venus is weak but not afflicted one may desert or lose ones married partner through some indiscreet act.",
+      "Planets": [],
+      "Houses": ["House7", "House6"],
+      "Zodiacs": [],
+      "Tags": ["Personal", "LordInHouse"]
+    },
+    {
+      "Name": "House9LordInHouse7",
+      "Description": "The native may go abroad and prosper there. His father may also prosper in foreign lands. He will get a noble and lucky wife. If ascetic yogas are present in the chart the native may seek spiritual guidance and fulfilment abroad. If asubhayogas spoil the ninth lord the father may meet with his death abroad.",
+      "Planets": [],
+      "Houses": ["House9", "House7"],
+      "Zodiacs": [],
+      "Tags": ["Personal", "LordInHouse"]
+    },
+    {
+      "Name": "SagittariusRising2",
+      "Description": "Jupiter rules this sign and persons born under this sign will generally be inclined towards corpulence. They possess almond eyes and their hair is brown. They are of a phlegmatic temperament. They are somewhat conventional and sometimes businesslike also. They are prompt and uphold conservative views. They will be attracted towards the study of occult philosophy and sciences. In these departments of knowledge they can acquire mastery. They are too callous and enthusiastic. They hate all external show. They are God-fearing honest humble and free from hypocrisy. They never think of schemes which are calculated to disturb the progress of others. They generally exercise control over their food and drinks but in regard to their relationship with the opposite sex restraint is called for. They are brilliant their manners affable winning and hearts pure. They are prone to be misunderstood unintentionally by others on account of their hastiness in conversation. In their later years they must be careful about their lungs as they are liable to suffer from rheumatic pains and the like. Combinations for political power warranting persons born in this sign will exercise power with firmness and justice and without yielding to corruptive influences.",
+      "Planets": [],
+      "Houses": ["House1"],
+      "Zodiacs": ["Sagittarius"],
+      "Tags": ["Personal", "RisingSign"]
+    }
+  ]
 }

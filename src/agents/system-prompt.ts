@@ -791,15 +791,36 @@ export function buildCacheOptimizedSystemPrompt(params: {
     sessions_history: "Fetch history for another session/sub-agent",
     sessions_send: "Send a message to another session/sub-agent",
     sessions_spawn: "Spawn a sub-agent session",
-    session_status: "Show a /status-equivalent status card (usage + time + Reasoning/Verbose/Elevated); use for model-use questions (📊 session_status); optional per-session model override",
+    session_status:
+      "Show a /status-equivalent status card (usage + time + Reasoning/Verbose/Elevated); use for model-use questions (📊 session_status); optional per-session model override",
     image: "Analyze an image with the configured image model",
   };
 
   const toolOrder = [
-    "read", "write", "edit", "apply_patch", "grep", "find", "ls", "exec", "process",
-    "web_search", "web_fetch", "browser", "canvas", "nodes", "cron", "message",
-    "gateway", "agents_list", "sessions_list", "sessions_history", "sessions_send",
-    "sessions_spawn", "session_status", "image",
+    "read",
+    "write",
+    "edit",
+    "apply_patch",
+    "grep",
+    "find",
+    "ls",
+    "exec",
+    "process",
+    "web_search",
+    "web_fetch",
+    "browser",
+    "canvas",
+    "nodes",
+    "cron",
+    "message",
+    "gateway",
+    "agents_list",
+    "sessions_list",
+    "sessions_history",
+    "sessions_send",
+    "sessions_spawn",
+    "session_status",
+    "image",
   ];
 
   const rawToolNames = (params.toolNames ?? []).map((tool) => tool.trim());
@@ -1044,7 +1065,7 @@ export function buildCacheOptimizedSystemPrompt(params: {
           params.sandboxInfo.agentWorkspaceMount
             ? ` (mounted at ${params.sandboxInfo.agentWorkspaceMount})`
             : ""
-        }`
+        }`,
       );
     }
     if (params.sandboxInfo.browserBridgeUrl) {
@@ -1063,7 +1084,7 @@ export function buildCacheOptimizedSystemPrompt(params: {
         "Elevated exec is available for this session.",
         "User can toggle with /elevated on|off|ask|full.",
         "You may also send /elevated on|off|ask|full when needed.",
-        `Current elevated level: ${params.sandboxInfo.elevated.defaultLevel} (ask runs exec on host with approvals; full auto-approves).`
+        `Current elevated level: ${params.sandboxInfo.elevated.defaultLevel} (ask runs exec on host with approvals; full auto-approves).`,
       );
     }
     sandboxLines.push("");
@@ -1080,7 +1101,7 @@ export function buildCacheOptimizedSystemPrompt(params: {
   if (userTimezone) {
     userSections.push(
       "If you need the current date, time, or day of week, run session_status (📊 session_status).",
-      ""
+      "",
     );
   }
 
@@ -1088,21 +1109,23 @@ export function buildCacheOptimizedSystemPrompt(params: {
   userSections.push(
     "## Workspace Files (injected)",
     "These user-editable files are loaded by OpenClaw and included below in Project Context.",
-    ""
+    "",
   );
 
   // Reply Tags (static)
   userSections.push(...buildReplyTagsSection(isMinimal));
 
   // Messaging section (per-channel configuration)
-  userSections.push(...buildMessagingSection({
-    isMinimal,
-    availableTools,
-    messageChannelOptions,
-    inlineButtonsEnabled,
-    runtimeChannel,
-    messageToolHints: params.messageToolHints,
-  }));
+  userSections.push(
+    ...buildMessagingSection({
+      isMinimal,
+      availableTools,
+      messageChannelOptions,
+      inlineButtonsEnabled,
+      runtimeChannel,
+      messageToolHints: params.messageToolHints,
+    }),
+  );
 
   // Voice section (per-user configuration)
   userSections.push(...buildVoiceSection({ isMinimal, ttsHint: params.ttsHint }));
@@ -1155,7 +1178,11 @@ export function buildCacheOptimizedSystemPrompt(params: {
       const baseName = normalizedPath.split("/").pop() ?? normalizedPath;
       return baseName.toLowerCase() === "soul.md";
     });
-    dynamicSections.push("# Project Context", "", "The following project context files have been loaded:");
+    dynamicSections.push(
+      "# Project Context",
+      "",
+      "The following project context files have been loaded:",
+    );
     if (hasSoulFile) {
       dynamicSections.push(
         "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",

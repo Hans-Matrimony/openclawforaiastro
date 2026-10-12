@@ -1,8 +1,8 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "experimentalSortImports": {
-    "newlinesBetween": false,
-  },
+  "embeddedLanguageFormatting": "off",
+  // Formatting must preserve the existing module initialization order.
+  "experimentalSortImports": null,
   "experimentalSortPackageJson": {
     "sortScripts": true,
   },
@@ -11,10 +11,27 @@
     "assets/",
     "dist/",
     "docs/_layouts/",
+    "docs/zh-CN/",
     "node_modules/",
     "patches/",
     "pnpm-lock.yaml/",
     "Swabble/",
     "vendor/",
+    // Local birth-chart and memory exports are data, not formatter inputs.
+    // Synthetic fixtures under tests/fixtures remain checked.
+    "tmp_memories.json",
+    "skills/mem0/test_mem.json",
+    "skills/mem0/test_mem_vardhan.json",
+    "skills/mem0/test_mem_final.json",
+    "skills/kundli/test_varanasi.json",
+    "skills/kundli/test_calc_output.json",
+    "skills/kundli/test_calc.json",
+    "skills/kundli/final_test.json",
+    "full_memories.json",
+    "skills/horoscope/subscribed_users.json",
+    "skills/mem0/mem0_db/",
+    "app/whatsapp-support/workspace-astrologer/MEMORY.md",
+    "app/whatsapp-support/workspace-astrologer/USER.md",
+    "app/whatsapp-support/workspace-astrologer/heartbeat-state.json",
   ],
 }

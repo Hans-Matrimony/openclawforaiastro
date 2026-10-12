@@ -15,6 +15,7 @@ Use this skill to retrieve expert astrological knowledge, principles, and remedi
 ## CRITICAL: ALWAYS Check Mem0 First for User Context
 
 For EVERY user message:
+
 1. **FIRST** search mem0 for user's birth details, previous queries, and preferences:
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py search "birth details astrology preferences" --user-id "<USER_ID>"
@@ -25,6 +26,7 @@ For EVERY user message:
 ## Commands
 
 ### Search Knowledge Base
+
 Search for relevant astrology concepts, planetary combinations, or remedies based on a natural language query.
 
 ```bash

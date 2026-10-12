@@ -31,12 +31,14 @@ The Kundli calculation engine now uses **pyswisseph (FREE Swiss Ephemeris)** as 
 ## Features
 
 ### ✅ Primary: pyswisseph (Swiss Ephemeris)
+
 - **Cost**: 100% FREE (no license fees)
 - **Accuracy**: 100% professional-grade
 - **Coverage**: All major planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu)
 - **Ayanamsa**: Lahiri (24.0°), Raman (22.36°), KP (22.26°)
 
 ### ✅ Fallback: jyotishganit
+
 - **Automatic activation**: If pyswisseph not installed or fails
 - **Validation layers**: Nakshatra/pada correction, boundary detection
 - **Planet validation**: Checks Mercury/Mars elongation
@@ -45,6 +47,7 @@ The Kundli calculation engine now uses **pyswisseph (FREE Swiss Ephemeris)** as 
 ## Output Changes
 
 ### New Fields in Output:
+
 ```json
 {
   "summary": {
@@ -62,6 +65,7 @@ The Kundli calculation engine now uses **pyswisseph (FREE Swiss Ephemeris)** as 
 ```
 
 ### When pyswisseph is unavailable:
+
 ```json
 {
   "summary": {
@@ -83,22 +87,26 @@ The Kundli calculation engine now uses **pyswisseph (FREE Swiss Ephemeris)** as 
 ## Installation
 
 ### For Production (Recommended):
+
 ```bash
 pip install pyswisseph
 ```
 
 ### If Build Fails (Windows without C compiler):
+
 The system will automatically fall back to jyotishganit. The system remains functional with ~80% accuracy.
 
 ## Testing
 
 ### Test pyswisseph is working:
+
 ```bash
 cd skills/kundli
 python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ```
 
 ### Expected output with pyswisseph:
+
 ```json
 {
   "summary": {
@@ -109,6 +117,7 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ```
 
 ### Expected output without pyswisseph:
+
 ```json
 {
   "summary": {
@@ -124,6 +133,7 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ## Code Changes Summary
 
 ### calculate.py
+
 1. **Import pyswisseph conditionally** (lines 7-12)
 2. **Added pyswisseph constants** (lines 72-83)
 3. **Added helper functions**:
@@ -142,27 +152,32 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ## Benefits
 
 ### ✅ Budget-Friendly
+
 - No license fees
 - No API costs
 - Works offline
 
 ### ✅ Production-Ready
+
 - Automatic fallback mechanism
 - Clear error handling
 - Transparent ephemeris info in output
 
 ### ✅ Accurate
+
 - pyswisseph: 100% accuracy (Swiss Ephemeris)
 - jyotishganit: ~80% accuracy with validation corrections
 
 ## Known Limitations
 
 ### Lagna Calculation
+
 - pyswisseph Lagna calculation is simplified
 - Currently uses jyotishganit for Lagna even when pyswisseph is available
 - TODO: Implement `swe.houses()` for exact ascendant
 
 ### Build Requirements
+
 - pyswisseph requires C compiler on some systems
 - Windows users may need:
   - Visual Studio Build Tools
@@ -178,6 +193,7 @@ python calculate.py --dob "1999-11-16" --tob "12:00 PM" --place "Delhi"
 ## Conclusion
 
 This integration provides the **best of both worlds**:
+
 - ✅ **100% accuracy** when pyswisseph is available
 - ✅ **~80% accuracy** with jyotishganit fallback
 - ✅ **Zero budget** concerns

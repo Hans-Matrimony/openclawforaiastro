@@ -21,23 +21,23 @@ The compliance system automatically enforces WhatsApp Business policies before A
 
 ## Files Created
 
-| File | Purpose |
-|------|---------|
-| `src/whatsapp/24-hour-check.ts` | 24-hour window enforcement |
-| `src/whatsapp/opt-out-handler.ts` | Opt-out keyword detection & handling |
-| `src/whatsapp/opt-in-tracker.ts` | Opt-in consent tracking |
-| `src/whatsapp/template-messages.ts` | Template message sending |
-| `src/whatsapp/compliance-checker.ts` | Unified compliance checker |
-| `src/whatsapp/compliance.ts` | Main export file |
+| File                                 | Purpose                              |
+| ------------------------------------ | ------------------------------------ |
+| `src/whatsapp/24-hour-check.ts`      | 24-hour window enforcement           |
+| `src/whatsapp/opt-out-handler.ts`    | Opt-out keyword detection & handling |
+| `src/whatsapp/opt-in-tracker.ts`     | Opt-in consent tracking              |
+| `src/whatsapp/template-messages.ts`  | Template message sending             |
+| `src/whatsapp/compliance-checker.ts` | Unified compliance checker           |
+| `src/whatsapp/compliance.ts`         | Main export file                     |
 
 ---
 
 ## Files Modified
 
-| File | Changes |
-|------|---------|
+| File                            | Changes                                                 |
+| ------------------------------- | ------------------------------------------------------- |
 | `src/infra/heartbeat-runner.ts` | Added proactive compliance check before heartbeat sends |
-| `src/infra/outbound/deliver.ts` | Added compliance check before ALL outbound messages |
+| `src/infra/outbound/deliver.ts` | Added compliance check before ALL outbound messages     |
 
 ---
 
@@ -96,21 +96,25 @@ await sendReEngagementTemplate(phoneNumber, "User Name", config);
 ## Compliance Checks Performed
 
 ### 1. Opt-In Verification
+
 - Checks if user has explicitly opted in to receive messages
 - Required for proactive messages
 - Skipped for replies (user's message = consent)
 
 ### 2. Opt-Out Check
+
 - Checks if user has previously opted out
 - Blocks messages to opted-out users
 - Keywords: "stop", "unsubscribe", "don't message", etc.
 
 ### 3. 24-Hour Window Check
+
 - Verifies last user message was within 24 hours
 - Free-form messages only allowed within window
 - Outside window requires template message
 
 ### 4. Quiet Hours Check
+
 - Blocks messages 9 PM - 9 AM IST
 - Configurable timezone support
 
@@ -143,9 +147,9 @@ Hinglish: "शुरू करो", "फिर से भेजो", "मैस�
 
 ## Storage Files
 
-| File | Purpose |
-|------|---------|
-| `~/.openclaw/whatsapp-opt-in.json` | Opt-in records |
+| File                                | Purpose         |
+| ----------------------------------- | --------------- |
+| `~/.openclaw/whatsapp-opt-in.json`  | Opt-in records  |
 | `~/.openclaw/whatsapp-opt-out.json` | Opt-out records |
 
 ---
@@ -244,6 +248,7 @@ Before re-applying to WhatsApp Business Cloud API:
 ## Support
 
 For issues or questions:
+
 - Check logs in: `/tmp/openclaw/openclaw-YYYY-MM-DD.log`
 - Look for subsystem: `whatsapp/24-hour-window`, `whatsapp/opt-out`, `whatsapp/compliance`
 - Review compliance failures in log output

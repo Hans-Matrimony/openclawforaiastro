@@ -15,6 +15,7 @@ Use this skill to search the live internet for recent planetary transit news (Go
 ## CRITICAL: ALWAYS Check Mem0 First
 
 For EVERY user message before web search:
+
 1. **FIRST** search mem0 for existing information and user context:
    ```bash
    python3 ~/.openclaw/skills/mem0/mem0_client.py search "user queries astrology interests birth details" --user-id "<USER_ID>"
@@ -27,11 +28,13 @@ For EVERY user message before web search:
    ```
 
 ## Restriction
+
 This tool is **STRICTLY** for astrology-related queries. Non-astrological searches will be rejected by the system.
 
 ## Commands
 
 ### Search the Web
+
 Search for a specific query and retrieve the top results.
 
 ```bash

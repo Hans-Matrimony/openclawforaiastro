@@ -108,6 +108,7 @@ Found and removed duplicate `moon_planet` extraction block (was repeated twice).
 ## Results
 
 ### Before Fix
+
 ```
 Nakshatra: Ashwini ❌
 Moon degree: 0.00° (data error)
@@ -116,6 +117,7 @@ Contradiction: Sun rules Krittika, but Nakshatra says Ashwini
 ```
 
 ### After Fix
+
 ```
 Nakshatra: Krittika ✅
 Moon degree: 28.72° (actual data)
@@ -142,6 +144,7 @@ $ python tests/test_ephemeris_accuracy.py
 ## What's Fixed vs What Remains
 
 ### ✅ FIXED
+
 - Moon sign: Correct
 - Nakshatra: Correct (Krittika, not Ashwini)
 - Lagna: Correct
@@ -149,6 +152,7 @@ $ python tests/test_ephemeris_accuracy.py
 - Data integrity: Fixed (0.00° bug eliminated)
 
 ### ❌ REMAINING (requires pyswisseph)
+
 - Mercury: Libra (should be Scorpio)
 - Mars: Capricorn (should be Sagittarius)
 

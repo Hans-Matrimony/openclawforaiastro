@@ -85,10 +85,7 @@
               "dignity": "neutral",
               "planetTattva": "Air",
               "rashiTattva": "Earth",
-              "friendlyTattvas": [
-                "Fire",
-                "Air"
-              ]
+              "friendlyTattvas": ["Fire", "Air"]
             },
             "conjuncts": [],
             "aspects": {
@@ -116,18 +113,11 @@
               ],
               "receives": []
             },
-            "hasLordshipHouses": [
-              9,
-              10
-            ]
+            "hasLordshipHouses": [9, 10]
           }
         ],
         "aspectsReceived": [],
-        "purposes": [
-          "Dharma",
-          "Kendra",
-          "Trikona"
-        ],
+        "purposes": ["Dharma", "Kendra", "Trikona"],
         "signDegrees": 11.210876866473114,
         "nakshatra": "Rohini",
         "pada": 1,
@@ -188,17 +178,9 @@
               "dignity": "neutral",
               "planetTattva": "Ether",
               "rashiTattva": "Air",
-              "friendlyTattvas": [
-                "Air",
-                "Fire",
-                "Water",
-                "Earth",
-                "Ether"
-              ]
+              "friendlyTattvas": ["Air", "Fire", "Water", "Earth", "Ether"]
             },
-            "conjuncts": [
-              "Rahu"
-            ],
+            "conjuncts": ["Rahu"],
             "aspects": {
               "gives": [
                 {
@@ -233,10 +215,7 @@
                 }
               ]
             },
-            "hasLordshipHouses": [
-              8,
-              11
-            ]
+            "hasLordshipHouses": [8, 11]
           },
           {
             "@type": "PlanetPosition",
@@ -264,14 +243,9 @@
               "dignity": "neutral",
               "planetTattva": "Air",
               "rashiTattva": "Air",
-              "friendlyTattvas": [
-                "Fire",
-                "Air"
-              ]
+              "friendlyTattvas": ["Fire", "Air"]
             },
-            "conjuncts": [
-              "Jupiter"
-            ],
+            "conjuncts": ["Jupiter"],
             "aspects": {
               "gives": [
                 {
@@ -307,9 +281,7 @@
             "aspect_type": "4"
           }
         ],
-        "purposes": [
-          "Artha"
-        ]
+        "purposes": ["Artha"]
       },
       {
         "@type": "House",
@@ -330,10 +302,7 @@
             "aspect_type": "3"
           }
         ],
-        "purposes": [
-          "Kama",
-          "Upachaya"
-        ]
+        "purposes": ["Kama", "Upachaya"]
       },
       {
         "@type": "House",
@@ -358,10 +327,7 @@
             "aspect_type": "9"
           }
         ],
-        "purposes": [
-          "Moksha",
-          "Kendra"
-        ]
+        "purposes": ["Moksha", "Kendra"]
       },
       {
         "@type": "House",
@@ -382,10 +348,7 @@
             "aspect_type": "7"
           }
         ],
-        "purposes": [
-          "Dharma",
-          "Trikona"
-        ]
+        "purposes": ["Dharma", "Trikona"]
       },
       {
         "@type": "House",
@@ -410,11 +373,7 @@
             "aspect_type": "5"
           }
         ],
-        "purposes": [
-          "Artha",
-          "Trik",
-          "Upachaya"
-        ]
+        "purposes": ["Artha", "Trik", "Upachaya"]
       },
       {
         "@type": "House",
@@ -431,10 +390,7 @@
             "aspect_type": "7"
           }
         ],
-        "purposes": [
-          "Kama",
-          "Kendra"
-        ]
+        "purposes": ["Kama", "Kendra"]
       },
       {
         "@type": "House",
@@ -471,13 +427,7 @@
               "dignity": "neutral",
               "planetTattva": "Ether",
               "rashiTattva": "Fire",
-              "friendlyTattvas": [
-                "Air",
-                "Fire",
-                "Water",
-                "Earth",
-                "Ether"
-              ]
+              "friendlyTattvas": ["Air", "Fire", "Water", "Earth", "Ether"]
             },
             "conjuncts": [],
             "aspects": {
@@ -507,10 +457,7 @@
             "aspect_type": "7"
           }
         ],
-        "purposes": [
-          "Moksha",
-          "Trik"
-        ]
+        "purposes": ["Moksha", "Trik"]
       },
       {
         "@type": "House",
@@ -567,10 +514,7 @@
               "dignity": "neutral",
               "planetTattva": "Air",
               "rashiTattva": "Earth",
-              "friendlyTattvas": [
-                "Fire",
-                "Air"
-              ]
+              "friendlyTattvas": ["Fire", "Air"]
             },
             "conjuncts": [],
             "aspects": {
@@ -582,17 +526,11 @@
               ],
               "receives": []
             },
-            "hasLordshipHouses": [
-              2,
-              5
-            ]
+            "hasLordshipHouses": [2, 5]
           }
         ],
         "aspectsReceived": [],
-        "purposes": [
-          "Dharma",
-          "Trikona"
-        ]
+        "purposes": ["Dharma", "Trikona"]
       },
       {
         "@type": "House",
@@ -649,14 +587,9 @@
               "dignity": "neutral",
               "planetTattva": "Fire",
               "rashiTattva": "Air",
-              "friendlyTattvas": [
-                "Air",
-                "Fire"
-              ]
+              "friendlyTattvas": ["Air", "Fire"]
             },
-            "conjuncts": [
-              "Venus"
-            ],
+            "conjuncts": ["Venus"],
             "aspects": {
               "gives": [
                 {
@@ -679,9 +612,7 @@
                 }
               ]
             },
-            "hasLordshipHouses": [
-              4
-            ]
+            "hasLordshipHouses": [4]
           },
           {
             "@type": "PlanetPosition",
@@ -729,14 +660,9 @@
               "dignity": "neutral",
               "planetTattva": "Water",
               "rashiTattva": "Air",
-              "friendlyTattvas": [
-                "Earth",
-                "Water"
-              ]
+              "friendlyTattvas": ["Earth", "Water"]
             },
-            "conjuncts": [
-              "Sun"
-            ],
+            "conjuncts": ["Sun"],
             "aspects": {
               "gives": [
                 {
@@ -759,10 +685,7 @@
                 }
               ]
             },
-            "hasLordshipHouses": [
-              1,
-              6
-            ]
+            "hasLordshipHouses": [1, 6]
           }
         ],
         "aspectsReceived": [
@@ -779,10 +702,7 @@
             "aspect_type": "9"
           }
         ],
-        "purposes": [
-          "Artha",
-          "Kendra"
-        ]
+        "purposes": ["Artha", "Kendra"]
       },
       {
         "@type": "House",
@@ -839,14 +759,9 @@
               "dignity": "neutral",
               "planetTattva": "Water",
               "rashiTattva": "Water",
-              "friendlyTattvas": [
-                "Earth",
-                "Water"
-              ]
+              "friendlyTattvas": ["Earth", "Water"]
             },
-            "conjuncts": [
-              "Mars"
-            ],
+            "conjuncts": ["Mars"],
             "aspects": {
               "gives": [
                 {
@@ -856,9 +771,7 @@
               ],
               "receives": []
             },
-            "hasLordshipHouses": [
-              3
-            ]
+            "hasLordshipHouses": [3]
           },
           {
             "@type": "PlanetPosition",
@@ -906,14 +819,9 @@
               "dignity": "neutral",
               "planetTattva": "Fire",
               "rashiTattva": "Water",
-              "friendlyTattvas": [
-                "Air",
-                "Fire"
-              ]
+              "friendlyTattvas": ["Air", "Fire"]
             },
-            "conjuncts": [
-              "Moon"
-            ],
+            "conjuncts": ["Moon"],
             "aspects": {
               "gives": [
                 {
@@ -939,17 +847,11 @@
               ],
               "receives": []
             },
-            "hasLordshipHouses": [
-              12,
-              7
-            ]
+            "hasLordshipHouses": [12, 7]
           }
         ],
         "aspectsReceived": [],
-        "purposes": [
-          "Kama",
-          "Upachaya"
-        ]
+        "purposes": ["Kama", "Upachaya"]
       },
       {
         "@type": "House",
@@ -966,10 +868,7 @@
             "aspect_type": "5"
           }
         ],
-        "purposes": [
-          "Moksha",
-          "Trik"
-        ]
+        "purposes": ["Moksha", "Trik"]
       }
     ]
   },

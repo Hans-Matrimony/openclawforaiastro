@@ -9,8 +9,8 @@
  * This module enforces the 24-hour window check before ANY outbound message.
  */
 
-import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import type { OpenClawConfig } from "../config/config.js";
+import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -42,8 +42,8 @@ export async function check24HourWindow(
 
   // Find the session key for this phone number
   // Session keys format: agent:astrologer:whatsapp:+919876543210
-  const sessionKey = Object.keys(store).find((key) =>
-    key.includes("whatsapp") && key.includes(phoneNumber),
+  const sessionKey = Object.keys(store).find(
+    (key) => key.includes("whatsapp") && key.includes(phoneNumber),
   );
 
   if (!sessionKey) {

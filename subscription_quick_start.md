@@ -3,6 +3,7 @@
 ## Good News: Already Implemented! ✅
 
 Your codebase already has the auto-pay subscription flow implemented in:
+
 - `hans-ai-subscriptions/server.py` - Webhook handlers, create/cancel subscription endpoints
 - `hans-ai-whatsapp/app/services/enforcement_buttons.py` - `send_enforcement_with_subscription_flow()` method
 
@@ -18,6 +19,7 @@ Create weekly and monthly plans:
 2. Click "Create Plan" for each:
 
 **Weekly Plan:**
+
 - Name: Weekly ₹49 Auto-Pay
 - Amount: 4900 (₹49)
 - Interval: 1
@@ -25,6 +27,7 @@ Create weekly and monthly plans:
 - Total Cycles: 12
 
 **Monthly Plan:**
+
 - Name: Monthly ₹199 Auto-Pay
 - Amount: 19900 (₹199)
 - Interval: 1
@@ -56,11 +59,13 @@ python add_autopay_plans.py
 **Change in `hans-ai-whatsapp/app/services/tasks.py`:**
 
 Find these 3 locations and replace:
+
 - Line ~2493
 - Line ~2637
 - Line ~2832
 
 **FROM:**
+
 ```python
 success = await _razorpay_whatsapp_payment.send_enforcement_with_razorpay_buttons(
     phone=phone,
@@ -74,6 +79,7 @@ success = await _razorpay_whatsapp_payment.send_enforcement_with_razorpay_button
 ```
 
 **TO:**
+
 ```python
 success = await _razorpay_whatsapp_payment.send_enforcement_with_subscription_flow(
     phone=phone,
@@ -189,33 +195,35 @@ if user_message.lower() in ["status", "subscription status"]:
 
 ## Files Modified
 
-| File | Change |
-|------|--------|
-| `.env` | Add RAZORPAY_DAILY_PLAN_ID, etc. |
-| `hans-ai-subscriptions/add_autopay_plans.py` | Created (run once) |
-| `hans-ai-whatsapp/app/services/tasks.py` | 3 function call changes |
+| File                                         | Change                           |
+| -------------------------------------------- | -------------------------------- |
+| `.env`                                       | Add RAZORPAY_DAILY_PLAN_ID, etc. |
+| `hans-ai-subscriptions/add_autopay_plans.py` | Created (run once)               |
+| `hans-ai-whatsapp/app/services/tasks.py`     | 3 function call changes          |
 
 ---
 
 ## Webhook Events (Already Handled)
 
-| Event | Handler | Action |
-|-------|---------|--------|
-| subscription.charged | `_handle_subscription_charged` | Extend endDate |
-| subscription.cancelled | `_handle_subscription_cancelled` | Stop auto-pay |
+| Event                  | Handler                          | Action          |
+| ---------------------- | -------------------------------- | --------------- |
+| subscription.charged   | `_handle_subscription_charged`   | Extend endDate  |
+| subscription.cancelled | `_handle_subscription_cancelled` | Stop auto-pay   |
 | subscription.completed | `_handle_subscription_completed` | All cycles done |
-| subscription.failed | `_handle_subscription_failed` | Log error |
+| subscription.failed    | `_handle_subscription_failed`    | Log error       |
 
 ---
 
 ## What's Different: Old vs New
 
 **Old Flow (One-Time Payment):**
+
 - User pays ₹19 → Gets 1 day
 - Tomorrow: Must pay again manually
 - 7 messages sent (intro + 3 buttons + 3 QR codes)
 
 **New Flow (Auto-Pay Subscription):**
+
 - User authorizes ₹9/day → Gets 1 day
 - Tomorrow: ₹9 auto-charged → Access extended automatically
 - 3 messages sent (intro + 3 buttons + footer)
