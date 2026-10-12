@@ -3,6 +3,11 @@
 Fixture-based compliance harness for the HANS astrologer Reading Output Contract
 (`hans-astro-workspace/SOUL.md`).
 
+This is a separate fixture contract. The deployed Docker astrologer uses
+`app/whatsapp-support/workspace-astrologer/`; it does not copy this SOUL file or
+the `hans-compliance` harness. A passing mock run does not establish the deployed
+agent's answer quality or validate the example predictions.
+
 ## Why this exists
 
 The 12-Oct-2026 WhatsApp chat showed the bot leaking tool-report language
@@ -25,6 +30,9 @@ node hans-compliance/tools/make-fixtures.mjs <rahunova-re-dir> hans-compliance/f
 # self-test the validators (no API key needed)
 node hans-compliance/run.mjs --mock
 
+# regression checks for scenario selection (mock mode only)
+node --test hans-compliance/run.test.mjs
+
 # live contract test against DeepSeek
 DEEPSEEK_API_KEY=sk-... node hans-compliance/run.mjs --model deepseek-chat
 
@@ -38,20 +46,20 @@ placement-free reply.
 
 ## Checks
 
-| Check | Applies to | Fails when |
-|---|---|---|
-| shape | reading | reading/verdict/follow-up parts missing |
-| reading-words | reading | outside 40-130 (warn outside 60-105) |
-| reading-sentences | reading | fewer than 2 or more than 5 |
-| first-sentence-direct | reading | opener has no answer keyword/year |
-| verdict | reading | missing, >10 words, phrased as question, or labelled |
-| follow-up | reading | missing, >16 words, or repeats the original question |
-| no-leaks | all | Shadbala/VedAstro/field names/tool names/hedges present |
-| no-summary-label | all | "in summary/overall/bottom line/..." present |
-| plain-text | all | markdown headers, bold, bullets, or emoji present |
-| one-window | timing | 4+ month-year tokens (two windows) or none |
-| mixed-balance | reading | warn-only: no favorable or no caution term |
-| routine-short / no-placements | routine | reply too long or contains placements |
+| Check                         | Applies to | Fails when                                              |
+| ----------------------------- | ---------- | ------------------------------------------------------- |
+| shape                         | reading    | reading/verdict/follow-up parts missing                 |
+| reading-words                 | reading    | outside 40-130 (warn outside 60-105)                    |
+| reading-sentences             | reading    | fewer than 2 or more than 5                             |
+| first-sentence-direct         | reading    | opener has no answer keyword/year                       |
+| verdict                       | reading    | missing, >10 words, phrased as question, or labelled    |
+| follow-up                     | reading    | missing, >16 words, or repeats the original question    |
+| no-leaks                      | all        | Shadbala/VedAstro/field names/tool names/hedges present |
+| no-summary-label              | all        | "in summary/overall/bottom line/..." present            |
+| plain-text                    | all        | markdown headers, bold, bullets, or emoji present       |
+| one-window                    | timing     | 4+ month-year tokens (two windows) or none              |
+| mixed-balance                 | reading    | warn-only: no favorable or no caution term              |
+| routine-short / no-placements | routine    | reply too long or contains placements                   |
 
 ## Fixture provenance
 
