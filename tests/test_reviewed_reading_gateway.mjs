@@ -148,6 +148,7 @@ void test(
           OPENCLAW_CONFIG_PATH: configPath,
           KUNDLI_NATAL_CACHE_PATH: path.join(state, "cache/kundli.sqlite3"),
           VEDASTRO_READING_MODE: "off",
+          ASTROFRIEND_EXTENDED_PERIOD_RULES: "1",
         },
         stdio: ["ignore", "ignore", "ignore"],
         windowsHide: true,
@@ -159,10 +160,16 @@ void test(
     });
     const closed = new Promise((resolve) => child.once("close", resolve));
     const url = `http://127.0.0.1:${port}/astrofriend/reading`;
-    const request = (method, body, authorization = `Bearer ${token}`) =>
+    const request = (method, body, authorization = `Bearer ${token}`, contractVersion) =>
       fetch(url, {
         method,
-        headers: { authorization, "content-type": "application/json" },
+        headers: {
+          authorization,
+          "content-type": "application/json",
+          ...(contractVersion === undefined
+            ? {}
+            : { "x-astro-reading-contract": String(contractVersion) }),
+        },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         signal: AbortSignal.timeout(35000),
       });
@@ -229,6 +236,38 @@ void test(
         fingerprints.add(result.evidence.input_fingerprint);
       }
       assert.equal(fingerprints.size, 1);
+      const rules = JSON.parse(
+        await fs.readFile(path.join(root, "skills/kundli/period_rules.json"), "utf8"),
+      ).rules;
+      const labels = { Good: "supportive", Bad: "challenging", Neutral: "neutral" };
+      const subjects = new Set();
+      for (const birth of [
+        { dob: "2001-01-03", tob: "05:00", place: "Delhi" },
+        { dob: "2002-02-16", tob: "00:00", place: "Meerut" },
+      ]) {
+        for (const language of ["english", "hinglish"]) {
+          const input = { ...birth, topic: "marriage", language, intent: "overview" };
+          const response = await request("POST", input, undefined, 2);
+          const result = await response.json();
+          assert.equal(response.status, 200, result.error ?? "Synthetic contract-2 reading failed");
+          assert.equal(validReadingResult(result, input, 2), true);
+          assert.equal(result.schema, "reviewed-reading-v2");
+          const ruleId = result.evidence.prediction_assessment.current_period.rule_id;
+          const family = labels[rules[ruleId].ratings.Family];
+          const relationship = labels[rules[ruleId].ratings.Love];
+          const expected =
+            family === relationship
+              ? language === "english"
+                ? `family and relationship indications are ${family}`
+                : `family aur relationship ke sanket ${family} hain`
+              : language === "english"
+                ? `family indications are ${family}, while relationship indications are ${relationship}`
+                : `family ke sanket ${family} hain, jabki relationship ke sanket ${relationship} hain`;
+          assert.ok(result.text.includes(expected));
+          subjects.add(result.evidence.input_fingerprint);
+        }
+      }
+      assert.equal(subjects.size, 2);
     } finally {
       child.kill();
       await closed;

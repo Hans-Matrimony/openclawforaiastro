@@ -52,6 +52,18 @@ class ExtendedPeriodTests(unittest.TestCase):
                             self.assertEqual(result['model_calls'], 0)
                             self.assertTrue(result['text'].strip())
                             self.assertNotIn('will definitely', result['text'])
+                            if topic == 'marriage':
+                                meanings = {'Good': 'supportive', 'Bad': 'challenging', 'Neutral': 'neutral'}
+                                ratings = RULES[major + minor + 'PD2']['ratings']
+                                family, relationship = meanings[ratings['Family']], meanings[ratings['Love']]
+                                if family == relationship:
+                                    expected = (f'family and relationship indications are {family}' if language == 'english' else
+                                                f'family aur relationship ke sanket {family} hain')
+                                else:
+                                    expected = (f'family indications are {family}, while relationship indications are {relationship}'
+                                                if language == 'english' else
+                                                f'family ke sanket {family} hain, jabki relationship ke sanket {relationship} hain')
+                                self.assertIn(expected, result['text'])
 
     def test_legacy_contract_and_default_flag_are_unchanged(self):
         when = datetime(2026,10,8,tzinfo=timezone.utc)
@@ -117,6 +129,27 @@ class ExtendedPeriodTests(unittest.TestCase):
         with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='0'):
             disabled = reading_packet(value, 'marriage', as_of_utc=when, contract_version=2)
             self.assertFalse(any(note.startswith('Current-period family indications') for note in disabled['limits']))
+
+    def test_rendered_marriage_periods_do_not_conflate_family_and_relationship(self):
+        examples = (
+            ('Mercury', 'Saturn', 'family indications are challenging, while relationship indications are neutral',
+             'family ke sanket challenging hain, jabki relationship ke sanket neutral hain'),
+            ('Venus', 'Moon', 'family indications are supportive, while relationship indications are challenging',
+             'family ke sanket supportive hain, jabki relationship ke sanket challenging hain'),
+        )
+        with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='1'):
+            for major, minor, english, hinglish in examples:
+                value, when = period_chart(major, minor)
+                for language, expected in (('english', english), ('hinglish', hinglish)):
+                    result = render_reading(value, 'marriage', as_of_utc=when, language=language)
+                    self.assertIn(expected, result['text'])
+                    self.assertNotIn('relationship outlook is mixed', result['text'])
+                    self.assertNotIn('Relationship ka outlook mixed', result['text'])
+                    self.assertEqual(result['evidence'], reading_packet(value, 'marriage', as_of_utc=when, contract_version=2))
+                value['summary'] = {'warnings': ['Moon is near a boundary']}
+                uncertain = render_reading(value, 'marriage', as_of_utc=when)
+                self.assertNotIn(english, uncertain['text'])
+                self.assertEqual(uncertain['evidence']['prediction_assessment']['current_period']['status'], 'unsupported')
 
 
 if __name__ == '__main__':

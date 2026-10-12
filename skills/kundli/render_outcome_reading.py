@@ -152,7 +152,12 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
                          NATAL_WORDING[reason['id']][1 if hinglish else 0])
         paragraphs.append(' '.join(parts))
     if current['status'] != 'unsupported' and (intent == 'overview' or not windows or style == 'detailed'):
-        if current['mahadasha'] == 'Venus' and (current['antardasha'], topic) in PERIOD_WORDING:
+        from period_rules import marriage_period_wording
+        scoped_marriage = (marriage_period_wording(current['rule_id'], hinglish)
+                           if topic == 'marriage' and packet['rules_revision'] == 'reviewed-outcomes-v3' else None)
+        if scoped_marriage is not None:
+            wording = scoped_marriage
+        elif current['mahadasha'] == 'Venus' and (current['antardasha'], topic) in PERIOD_WORDING:
             wording = PERIOD_WORDING[(current['antardasha'], topic)][1 if hinglish else 0]
         else:
             from period_rules import period_wording

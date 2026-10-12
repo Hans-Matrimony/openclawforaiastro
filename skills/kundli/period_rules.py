@@ -48,6 +48,20 @@ def marriage_rule(major, minor, *, extended=False):
     return RULES.get(major + minor + 'PD2', {}).get('marriage_event') is True
 
 
+def marriage_period_wording(rule_id, hinglish=False):
+    """Keep source family and relationship categories separate in replies."""
+    row = RULES.get(rule_id)
+    if row is None:
+        return None
+    family, relationship = row['ratings']['Family'], row['ratings']['Love']
+    labels = {'Good': 'supportive', 'Bad': 'challenging', 'Neutral': 'neutral'}
+    if family == relationship:
+        return (f'Is daur mein family aur relationship ke sanket {labels[family]} hain.' if hinglish else
+                f'During this period, family and relationship indications are {labels[family]}.')
+    return (f'Is daur mein family ke sanket {labels[family]} hain, jabki relationship ke sanket {labels[relationship]} hain.' if hinglish else
+            f'During this period, family indications are {labels[family]}, while relationship indications are {labels[relationship]}.')
+
+
 def period_wording(topic, status, hinglish=False):
     """Explain a traditional category without promising an event."""
     if topic == 'career':
