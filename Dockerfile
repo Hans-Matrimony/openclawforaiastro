@@ -90,7 +90,10 @@ COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md \
     app/whatsapp-support/workspace-astrologer/TOOLS.md \
     app/whatsapp-support/workspace-astrologer/TOOL_REFERENCE.md /app/bootstrap/workspace-astrologer/
 COPY .pi/prompts/astrologer.md /app/bootstrap/.pi/prompts/astrologer.md
+COPY app/whatsapp-support/workspace-astrologer/AGENTS.md \
+    app/whatsapp-support/workspace-astrologer/SOUL.md /app/bootstrap/instruction-source/
 COPY scripts/bootstrap-astrology-assets.mjs /app/bootstrap-astrology-assets.mjs
+COPY scripts/astrology-instruction-manifest.mjs /app/astrology-instruction-manifest.mjs
 COPY scripts/validate-inference-budget.mjs /app/validate-inference-budget.mjs
 COPY scripts/configure-control-ui.mjs /app/configure-control-ui.mjs
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/

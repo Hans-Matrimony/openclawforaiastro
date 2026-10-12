@@ -30,6 +30,7 @@ log_startup "[startup] OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
 node "$APP_DIR/configure-control-ui.mjs"
 node "$APP_DIR/bootstrap-astrology-assets.mjs"
 node "$APP_DIR/configure-mcp-runtime.mjs"
+node "$APP_DIR/astrology-instruction-manifest.mjs"
 node "$APP_DIR/validate-inference-budget.mjs" "$(npm root -g)/openclaw/package.json"
 
 if [ -f "$CONFIG_SOURCE" ]; then
