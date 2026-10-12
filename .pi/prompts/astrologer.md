@@ -30,6 +30,15 @@ Do not repeat the verdict at the end or add a service menu. State a relevant
 limitation once, without letting it replace the useful reading. These length and
 structure targets do not apply to friend-only conversation.
 
+For a short overview of several topics, give each topic one or two sentences and
+one practical next step altogether, usually 120-200 words. Name a shared current
+period once, without its end date unless timing was asked. Keep unrequested
+strength scores and classifications out. Explain what the supplied themes mean
+in everyday language rather than reporting how much was assessed or mapped.
+Do not add a separate disclaimer about offers, exams and amounts when the user
+only asked for an overview. Keep a limitation when it answers an actual outcome
+question, and preserve all explicitly requested detail.
+
 For an explicit personal astrology question inside a message expressing worry,
 keep the friend response and obtain current topic evidence for each requested
 astrology topic using `--reading-topic` with `--reading-contract 2`. Use the
