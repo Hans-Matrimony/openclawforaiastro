@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { migrateAstrologyInstructions } from "./migrate-astrology-instructions.mjs";
 
-// Copy only release-managed code and guides. Never replace memories, sessions,
-// caches, credentials, or the friend persona files in a mounted state directory.
+// This asset list copies release-managed code and guides, never memories,
+// sessions, caches, credentials or persona files. The separate migration below
+// updates only explicitly reviewed persona revisions, preserving customized files.
 export const ASTROLOGY_ASSETS = [
   ...[
     "calculate.py",
@@ -84,8 +86,9 @@ export function bootstrapAstrologyAssets(appDir, stateDir) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  bootstrapAstrologyAssets(
-    process.env.OPENCLAW_APP_DIR || "/app",
-    process.env.OPENCLAW_STATE_DIR || "/app/.openclaw",
-  );
+  const appDir = process.env.OPENCLAW_APP_DIR || "/app";
+  const stateDir = process.env.OPENCLAW_STATE_DIR || "/app/.openclaw";
+  bootstrapAstrologyAssets(appDir, stateDir);
+  const migrations = migrateAstrologyInstructions(appDir, stateDir);
+  console.log(`[astrology-instruction-migration] ${JSON.stringify(migrations)}`);
 }
