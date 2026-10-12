@@ -1,0 +1,123 @@
+{
+ "Source": "VedAstro AllPlanetData live capture (rahunova-re/real-planets.json), 2026-10-12",
+ "Birth": "19:45 14/06/1996 +05:30 Kanpur (test person)",
+ "Planets": {
+  "Sun": {
+   "sign": {
+    "Name": "Gemini",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "1° 25' 50",
+     "TotalDegrees": "1.4305555555555556"
+    }
+   },
+   "house": "House7",
+   "nakshatra": null,
+   "dignity": "Friendly",
+   "retrograde": "False"
+  },
+  "Moon": {
+   "sign": {
+    "Name": "Taurus",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "14° 50' 45",
+     "TotalDegrees": "14.845833333333333"
+    }
+   },
+   "house": "House6",
+   "nakshatra": null,
+   "dignity": "Exalted",
+   "retrograde": "False"
+  },
+  "Mars": {
+   "sign": {
+    "Name": "Taurus",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "9° 3' 34",
+     "TotalDegrees": "9.059444444444445"
+    }
+   },
+   "house": "House6",
+   "nakshatra": null,
+   "dignity": "Enemy",
+   "retrograde": "False"
+  },
+  "Mercury": {
+   "sign": {
+    "Name": "Taurus",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "8° 26' 48",
+     "TotalDegrees": "8.446666666666667"
+    }
+   },
+   "house": "House6",
+   "nakshatra": null,
+   "dignity": "Neutral",
+   "retrograde": "False"
+  },
+  "Jupiter": {
+   "sign": {
+    "Name": "Sagittarius",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "22° 50' 20",
+     "TotalDegrees": "22.83888888888889"
+    }
+   },
+   "house": "House1",
+   "nakshatra": null,
+   "dignity": "OwnSign",
+   "retrograde": "True"
+  },
+  "Venus": {
+   "sign": {
+    "Name": "Taurus",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "25° 16' 37",
+     "TotalDegrees": "25.276944444444446"
+    }
+   },
+   "house": "House6",
+   "nakshatra": null,
+   "dignity": "OwnSign",
+   "retrograde": "True"
+  },
+  "Saturn": {
+   "sign": {
+    "Name": "Pisces",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "14° 4' 8",
+     "TotalDegrees": "14.068888888888889"
+    }
+   },
+   "house": "House4",
+   "nakshatra": null,
+   "dignity": "Friendly",
+   "retrograde": "False"
+  },
+  "Rahu": {
+   "sign": {
+    "Name": "Virgo",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "21° 18' 43",
+     "TotalDegrees": "21.311944444444446"
+    }
+   },
+   "house": "House10",
+   "nakshatra": null,
+   "dignity": "Moolatrikona",
+   "retrograde": "False"
+  },
+  "Ketu": {
+   "sign": {
+    "Name": "Pisces",
+    "DegreesIn": {
+     "DegreeMinuteSecond": "21° 18' 42",
+     "TotalDegrees": "21.311666666666667"
+    }
+   },
+   "house": "House4",
+   "nakshatra": null,
+   "dignity": "Moolatrikona",
+   "retrograde": "False"
+  }
+ }
+}
