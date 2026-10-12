@@ -38,6 +38,13 @@ void test(
       const data = JSON.parse(body);
       const serialized = JSON.stringify(data.messages);
       const marker = [...serialized.matchAll(/AFTEST:([a-z0-9-]+)/g)].at(-1)?.[1] ?? "unknown";
+      const currentStart = data.messages.findLastIndex((message) => message.role === "user");
+      const currentToolResults = data.messages
+        .slice(currentStart + 1)
+        .filter((message) => message.role === "tool").length;
+      const previousToolResults = data.messages
+        .slice(0, currentStart)
+        .filter((message) => message.role === "tool").length;
       requests.push({
         marker,
         tokens: data.max_tokens ?? data.max_completion_tokens,
@@ -45,6 +52,8 @@ void test(
         userTurns: data.messages.filter((message) => message.role === "user").length,
         bytes: Buffer.byteLength(body),
         summaryPresent: serialized.includes("AFSUMMARY:earlier-preferences"),
+        currentToolResults,
+        previousToolResults,
       });
       if (marker === "retries") {
         res.writeHead(503, { "content-type": "application/json" });
@@ -55,7 +64,8 @@ void test(
         );
         return;
       }
-      const loop = marker.startsWith("loop");
+      const chartRead = marker.startsWith("chart-history-") && currentToolResults === 0;
+      const loop = marker.startsWith("loop") || chartRead;
       const delta = loop
         ? {
             role: "assistant",
@@ -67,7 +77,10 @@ void test(
                 function: {
                   name: "read",
                   arguments: JSON.stringify({
-                    path: path.join(state, `missing-${requests.length}`),
+                    path: path.join(
+                      state,
+                      chartRead ? "synthetic-chart-history.txt" : `missing-${requests.length}`,
+                    ),
                   }),
                 },
               },
@@ -118,7 +131,9 @@ void test(
               reasoning: false,
               input: ["text"],
               cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-              contextWindow: 32000,
+              // Synthetic chart exchanges exercise the transport's smaller
+              // input cap without triggering an unrelated automatic summary.
+              contextWindow: 131072,
               maxTokens: 8192,
             },
           ],
@@ -289,8 +304,36 @@ void test(
         assert.ok(sent[0].bytes < 196608);
         console.log(`Post-compaction PWA history turn ${turn - 7}/4 passed`);
       }
+      await fs.writeFile(
+        path.join(state, "synthetic-chart-history.txt"),
+        "synthetic chart evidence\n".repeat(2100),
+      );
+      const chartSession = `agent:astrologer_pwa:budget-chart-history:${randomUUID()}`;
+      for (let turn = 0; turn < 5; turn++) {
+        const marker = `chart-history-${turn}`;
+        assert.match(
+          await invoke(marker, {
+            agent: "astrologer_pwa",
+            sessionKey: chartSession,
+            content: "x".repeat(35000),
+          }),
+          /friendly chat/,
+        );
+        const sent = requests.filter((request) => request.marker === marker);
+        assert.equal(sent.length, 2, "Each current chart exchange reaches a final answer");
+        assert.ok(sent.every((request) => request.previousToolResults === 0));
+        assert.equal(sent[0].currentToolResults, 0);
+        assert.equal(
+          sent[1].currentToolResults,
+          1,
+          "Current chart evidence remains in the answer request",
+        );
+        assert.ok(sent.every((request) => request.bytes < 196608));
+        console.log(`Bounded PWA chart-history turn ${turn + 1}/5 passed`);
+      }
     } catch (error) {
       // Only synthetic requests are used by this isolated process.
+      console.error("Synthetic request observations:", JSON.stringify(requests.slice(-12)));
       console.error(output.replaceAll(token, "[redacted]"));
       throw error;
     } finally {

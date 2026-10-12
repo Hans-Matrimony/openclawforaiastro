@@ -24,7 +24,7 @@ void test("startup shim validation permits quote formatting but rejects other co
 
 const body = JSON.stringify({ messages: [{ role: "user", content: "hello" }], max_tokens: 9999 });
 
-void test("PWA history retains complete recent turns and the current tool exchange without mutating stored history", () => {
+void test("PWA history retains recent text and the current tool exchange without mutating stored history", () => {
   const messages = [];
   for (let index = 0; index < 7; index++) {
     messages.push({ role: "user", content: `turn-${index}` });
@@ -40,7 +40,13 @@ void test("PWA history retains complete recent turns and the current tool exchan
   const bounded = recentPwaContext(context, "astrologer_pwa");
   assert.equal(bounded.systemPrompt, context.systemPrompt);
   assert.equal(bounded.tools, context.tools);
-  assert.deepEqual(bounded.messages, messages.slice(16));
+  assert.deepEqual(bounded.messages, [
+    messages[16],
+    messages[19],
+    messages[20],
+    messages[23],
+    ...messages.slice(24),
+  ]);
   assert.equal(messages.length, 28);
   assert.equal(bounded.messages.at(-2).toolCallId, "call-6");
   assert.equal(recentPwaContext(context, "astrologer"), context);
@@ -48,7 +54,7 @@ void test("PWA history retains complete recent turns and the current tool exchan
   assert.equal(
     recentPwaContext({ ...context, messages: messages.slice(-12) }, "astrologer_pwa").messages
       .length,
-    12,
+    8,
   );
 });
 
@@ -68,7 +74,8 @@ void test("PWA context hook retains summaries and does not count custom messages
   const context = { sessionManager: { getSessionId: () => "pwa" } };
   const runtime = { forSession: () => ({ agentId: "astrologer_pwa" }) };
   const result = pwaContext(event, context, runtime);
-  assert.deepEqual(result.messages, [summary, branch, ...messages.slice(11)]);
+  const recent = [messages[11], messages[13], messages[15], messages[17], ...messages.slice(19)];
+  assert.deepEqual(result.messages, [summary, branch, ...recent]);
   assert.equal(result.messages.filter((message) => message.role === "user").length, 3);
   assert.equal(result.messages.at(-1).toolCallId, "call-4");
   assert.deepEqual(messages, original);
@@ -76,7 +83,7 @@ void test("PWA context hook retains summaries and does not count custom messages
   const withNewerBranch = { ...event, messages: [...messages, newerBranch] };
   assert.deepEqual(pwaContext(withNewerBranch, context, runtime).messages, [
     summary,
-    ...messages.slice(11),
+    ...recent,
     newerBranch,
   ]);
   assert.equal(
@@ -84,6 +91,93 @@ void test("PWA context hook retains summaries and does not count custom messages
     undefined,
   );
   assert.equal(pwaContext(event, context, { forSession: () => undefined }), undefined);
+});
+
+void test("old PWA chart packets do not exhaust the input cap after a current tool result", () => {
+  const currentQuestion = {
+    role: "user",
+    content: "Current question with server-owned recent text",
+  };
+  const currentCall = { role: "assistant", content: [{ type: "toolCall", id: "current" }] };
+  const currentResult = { role: "toolResult", toolCallId: "current", content: "c".repeat(50000) };
+  const oldAnswer = {
+    role: "assistant",
+    content: [
+      { type: "text", text: "Earlier answer remains available for follow-ups" },
+      { type: "toolCall", id: "old-two" },
+    ],
+  };
+  const context = {
+    systemPrompt: "s".repeat(60000),
+    messages: [
+      { role: "user", content: "Earlier question" },
+      { role: "assistant", content: [{ type: "toolCall", id: "old-one" }] },
+      { role: "toolResult", toolCallId: "old-one", content: "a".repeat(60000) },
+      { role: "user", content: "Earlier follow-up" },
+      oldAnswer,
+      { role: "toolResult", toolCallId: "old-two", content: "b".repeat(60000) },
+      currentQuestion,
+      currentCall,
+      currentResult,
+    ],
+  };
+  const stored = structuredClone(context);
+  const payload = (value) =>
+    JSON.stringify({
+      messages: [{ role: "system", content: value.systemPrompt }, ...value.messages],
+      max_tokens: 2048,
+    });
+  assert.throws(
+    () => boundPayload(payload(context), "openai-completions", new ModelBudget()),
+    /budget exhausted/,
+  );
+  const bounded = recentPwaContext(context, "astrologer_pwa");
+  const budget = new ModelBudget();
+  boundPayload(payload(bounded), "openai-completions", budget);
+  assert.equal(budget.attempts, 1);
+  assert.ok(budget.bytes < 120000);
+  assert.deepEqual(bounded.messages.slice(-3), [currentQuestion, currentCall, currentResult]);
+  assert.deepEqual(bounded.messages[2].content, [
+    { type: "text", text: oldAnswer.content[0].text },
+  ]);
+  assert.deepEqual(context, stored);
+  assert.equal(recentPwaContext(context, "astrologer"), context);
+  assert.equal(recentPwaContext(context, "reply_repair"), context);
+  assert.equal(
+    recentPwaContext({ messages: [currentQuestion, currentCall, currentResult] }, "astrologer_pwa")
+      .messages.length,
+    3,
+  );
+});
+
+void test("a compacted PWA prefix cannot retain an old tool result before its only current user turn", () => {
+  const summary = { role: "compactionSummary", summary: "Earlier preferences" };
+  const question = { role: "user", content: "Current question" };
+  const call = { role: "assistant", content: [{ type: "toolCall", id: "current" }] };
+  const result = { role: "toolResult", toolCallId: "current", content: "Current evidence" };
+  const context = {
+    messages: [
+      summary,
+      { role: "assistant", content: [{ type: "toolCall", id: "old" }] },
+      { role: "toolResult", toolCallId: "old", content: "Old evidence" },
+      question,
+      call,
+      result,
+    ],
+  };
+  assert.deepEqual(recentPwaContext(context, "astrologer_pwa").messages, [
+    summary,
+    question,
+    call,
+    result,
+  ]);
+  assert.equal(context.messages.length, 6);
+  const noUser = { messages: context.messages.slice(0, 3) };
+  assert.equal(recentPwaContext(noUser, "astrologer_pwa"), noUser);
+  assert.equal(
+    recentPwaContext({ messages: [question, call, result] }, "astrologer_pwa").messages[1],
+    call,
+  );
 });
 
 void test("eight long PWA turns reach the guarded SDK after preconversion trimming with fresh budgets", async () => {

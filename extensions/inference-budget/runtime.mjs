@@ -39,7 +39,8 @@ const RETENTION_MS = 3600000;
 const CAPACITY = 4096;
 // PWA requests already carry their bounded, server-owned recent conversation.
 // This runs on AgentMessages before Pi converts summaries/custom messages to
-// role=user. Keep complete turns and the latest summaries of earlier history.
+// role=user. Retain recent conversation text and summaries, but only the current
+// turn's tool exchange: earlier full chart packets can exhaust the input cap.
 export function recentPwaContext(context, agentId) {
   if (agentId !== "astrologer_pwa" || !Array.isArray(context?.messages)) {
     return context;
@@ -50,11 +51,33 @@ export function recentPwaContext(context, agentId) {
       starts.push(index);
     }
   }
-  if (starts.length <= 3) {
+  if (starts.length === 0) {
     return context;
   }
-  const start = starts.at(-3);
-  const retained = context.messages.slice(start);
+  const start = starts[Math.max(0, starts.length - 3)];
+  const currentStart = starts.at(-1);
+  const retained = context.messages.slice(start).flatMap((message, offset) => {
+    if (start + offset >= currentStart) {
+      return [message];
+    }
+    if (message.role === "toolResult") {
+      return [];
+    }
+    if (message.role === "assistant" && Array.isArray(message.content)) {
+      const content = message.content.filter((part) => part.type !== "toolCall");
+      if (content.length !== message.content.length) {
+        return content.length ? [{ ...message, content }] : [];
+      }
+    }
+    return [message];
+  });
+  if (
+    start === 0 &&
+    retained.length === context.messages.length &&
+    retained.every((message, index) => message === context.messages[index])
+  ) {
+    return context;
+  }
   const retainedSummaryRoles = new Set(
     retained
       .filter((message) => ["compactionSummary", "branchSummary"].includes(message.role))
