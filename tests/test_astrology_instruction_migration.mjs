@@ -127,3 +127,25 @@ void test("pre-existing stage file is preserved when exclusive staging fails", (
   assert.equal(fs.readFileSync(stage, "utf8"), "Existing stage must survive");
   assert.ok(fs.readFileSync(f.target("AGENTS.md")).equals(original));
 });
+
+void test("multiple reviewed predecessors preserve the actual matched original", (t) => {
+  const f = fixture(t),
+    originals = {};
+  for (const [name, revision] of Object.entries(f.revisions)) {
+    originals[name] = fs.readFileSync(f.target(name));
+    revision.previous = [
+      instructionHash(Buffer.from("Another reviewed predecessor")),
+      revision.previous,
+    ];
+  }
+  const rows = migrateAstrologyInstructions(f.app, f.state, f.revisions);
+  assert.ok(rows.every((row) => row.status === "reviewed_revision_migrated"));
+  for (const [name, original] of Object.entries(originals)) {
+    const backup = path.join(
+      f.state,
+      "instruction-backups",
+      name + "." + instructionHash(original),
+    );
+    assert.ok(fs.readFileSync(backup).equals(original));
+  }
+});

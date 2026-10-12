@@ -5,12 +5,18 @@ import path from "node:path";
 const MAX_BYTES = 128 * 1024;
 export const REVIEWED_REVISIONS = {
   "AGENTS.md": {
-    previous: "3bfa2c4b03400acbb6b34b6e54fd5efdfc33f228d384fc00e7e82bbf4d41b75b",
-    replacement: "81338ac526bd54527d76b298f253ec027b5fc971caa89fe0e6d2b98ef0dabb65",
+    previous: [
+      "3bfa2c4b03400acbb6b34b6e54fd5efdfc33f228d384fc00e7e82bbf4d41b75b",
+      "81338ac526bd54527d76b298f253ec027b5fc971caa89fe0e6d2b98ef0dabb65",
+    ],
+    replacement: "d764c1b738f12c52e4c1cee703c421e1ba2e464593d22b305a810a8e3c6fd2a5",
   },
   "SOUL.md": {
-    previous: "a787b8079c8066fdb628b2da56018ba4ecbf924722924b16c422fa8542a45f8f",
-    replacement: "51f9f0c3d5561a23a2ca29f9a32799b45b2d49b37d1ff9d5046b1747ce75cbc5",
+    previous: [
+      "a787b8079c8066fdb628b2da56018ba4ecbf924722924b16c422fa8542a45f8f",
+      "51f9f0c3d5561a23a2ca29f9a32799b45b2d49b37d1ff9d5046b1747ce75cbc5",
+    ],
+    replacement: "1231d9b3fc50a4bdb02de01c0a1be6b7f33997b6bba341251a7ab0ea8f1e97b8",
   },
 };
 
@@ -60,7 +66,8 @@ export function migrateAstrologyInstructions(appDir, stateDir, revisions = REVIE
       report.push({ file: name, status: "already_current" });
       continue;
     }
-    if (current !== revision.previous) {
+    const predecessors = Array.isArray(revision.previous) ? revision.previous : [revision.previous];
+    if (!predecessors.includes(current)) {
       report.push({ file: name, status: "customized_preserved" });
       continue;
     }
@@ -69,7 +76,13 @@ export function migrateAstrologyInstructions(appDir, stateDir, revisions = REVIE
     if (instructionHash(replacement) !== revision.replacement) {
       throw new Error("Unreviewed bundled astrology instruction revision");
     }
-    plans.push({ name, target, original, replacement, revision });
+    plans.push({
+      name,
+      target,
+      original,
+      replacement,
+      revision: { ...revision, previous: current },
+    });
   }
   // Validate both plans and preserve both original files before replacing any.
   const backupDir = path.resolve(stateDir, "instruction-backups");
