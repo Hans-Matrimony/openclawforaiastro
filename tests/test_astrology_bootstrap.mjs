@@ -65,6 +65,37 @@ void test("persistent skill updates include matching, horoscope and deterministi
   assert.ok(!ASTROLOGY_ASSETS.includes("skills/horoscope/subscribed_users.json"));
 });
 
+void test("personal state is excluded from image builds while required release assets remain available", () => {
+  const ignored = new Set(
+    fs
+      .readFileSync(new URL("../.dockerignore", import.meta.url), "utf8")
+      .split(/\r?\n/u)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#")),
+  );
+  const privateState = [
+    "skills/horoscope/subscribed_users.json",
+    "app/whatsapp-support/workspace-astrologer/MEMORY.md",
+    "app/whatsapp-support/workspace-astrologer/USER.md",
+    "app/whatsapp-support/workspace-astrologer/heartbeat-state.json",
+    "app/whatsapp-support/workspace-astrologer/memories/",
+  ];
+  for (const file of privateState) {
+    assert.ok(ignored.has(file), file);
+    const asset = file.replace("app/whatsapp-support/", "");
+    assert.ok(!ASTROLOGY_ASSETS.includes(asset), file);
+  }
+  for (const asset of ASTROLOGY_ASSETS) {
+    const source = asset.startsWith("workspace-") ? "app/whatsapp-support/" + asset : asset;
+    assert.ok(
+      !privateState.some(
+        (file) => file === source || (file.endsWith("/") && source.startsWith(file)),
+      ),
+      source,
+    );
+  }
+});
+
 void test("incomplete image fails before copying release assets", (t) => {
   const { app, state } = fixture(t);
   fs.unlinkSync(path.join(app, "bootstrap", ASTROLOGY_ASSETS.at(-1)));

@@ -50,6 +50,13 @@ skills/kundli/meerut_kundli.json
 skills/kundli/current_dasha.json
 skills/mem0/mem0_db/
 
+# Personal runtime state belongs in persistent volumes, never image layers.
+skills/horoscope/subscribed_users.json
+app/whatsapp-support/workspace-astrologer/MEMORY.md
+app/whatsapp-support/workspace-astrologer/USER.md
+app/whatsapp-support/workspace-astrologer/heartbeat-state.json
+app/whatsapp-support/workspace-astrologer/memories/
+
 # build artifacts
 dist
 **/dist
