@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+const read = (path) =>
+  readFileSync(new URL(`../${path}`, import.meta.url), "utf8").replace(/\s+/gu, " ");
 const prompt = read(".pi/prompts/astrologer.md");
 const soul = read("app/whatsapp-support/workspace-astrologer/SOUL.md");
 const guardrails = read("app/whatsapp-support/workspace-astrologer/GUARDRAILS.md");
@@ -103,24 +104,32 @@ void test("free-trial instructions defer billing support in all three documents"
     /For cancellation, renewal, payment-status, or already-paid access questions, follow SUBSCRIPTION & PAYMENT QUESTIONS above instead/,
   );
   assert.doesNotMatch(prompt, /WHENEVER USER ASKS ABOUT PRICE\/FREE\/PAYMENT\/CHARGES/);
-  for (const content of [soul, guardrails]) {
-    assert.match(
-      content,
-      /For cancellation, renewal, payment-status, or already-paid access questions, follow SUBSCRIPTION & PAYMENT QUESTIONS in astrologer.md instead/,
-    );
-    assert.match(content, /All specific billing claims must follow its verified-information rules/);
-  }
+  assert.match(
+    guardrails,
+    /For cancellation, renewal, payment-status, or already-paid access questions, follow SUBSCRIPTION & PAYMENT QUESTIONS in astrologer.md instead/,
+  );
+  assert.match(
+    guardrails,
+    /All specific billing claims must follow its verified-information rules/,
+  );
+  assert.match(soul, /Pricing answers describe the verified trial\/subscription limits/);
+  assert.match(
+    soul,
+    /Never say completely free, invent an amount\/renewal date or confuse a cancellation request with confirmed cancellation/,
+  );
 });
 
 void test("existing free-trial explanation and paid-access guards remain", () => {
   assert.match(prompt, /User gets some FREE messages to start/);
   assert.match(prompt, /Subscription option appears for unlimited chatting/);
-  for (const content of [soul, guardrails]) {
-    assert.match(
-      content,
-      /If the user says they already paid, subscribed, payment is done, access is not working, or they are being asked to pay again/,
-    );
-  }
+  assert.match(
+    guardrails,
+    /If the user says they already paid, subscribed, payment is done, access is not working, or they are being asked to pay again/,
+  );
+  assert.match(
+    soul,
+    /Already-paid access confusion needs an access\/status answer without a new payment pitch/,
+  );
 });
 
 void test("deployment still includes the main prompt and astrologer workspace", () => {

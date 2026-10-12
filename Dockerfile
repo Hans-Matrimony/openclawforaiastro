@@ -87,6 +87,7 @@ COPY skills/mongo_logger/logger_client.py skills/mongo_logger/fetch_history.py \
     skills/mongo_logger/service_auth.py /app/bootstrap/skills/mongo_logger/
 COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md \
     app/whatsapp-support/workspace-astrologer/WORKFLOW.md \
+    app/whatsapp-support/workspace-astrologer/GUARDRAILS.md \
     app/whatsapp-support/workspace-astrologer/TOOLS.md \
     app/whatsapp-support/workspace-astrologer/TOOL_REFERENCE.md /app/bootstrap/workspace-astrologer/
 COPY .pi/prompts/astrologer.md /app/bootstrap/.pi/prompts/astrologer.md

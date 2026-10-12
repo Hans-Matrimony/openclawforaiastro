@@ -15,6 +15,14 @@ const FILES = [
   ],
   ["astrologer.md", ".pi/prompts/astrologer.md", ".pi/prompts/astrologer.md"],
 ];
+const TOOL_GUIDANCE = [
+  ["TOOLS.md", "workspace-astrologer/TOOLS.md", "workspace-astrologer/TOOLS.md"],
+  [
+    "TOOL_REFERENCE.md",
+    "workspace-astrologer/TOOL_REFERENCE.md",
+    "workspace-astrologer/TOOL_REFERENCE.md",
+  ],
+];
 
 function fingerprint(root, relative) {
   const file = path.resolve(root, relative);
@@ -82,21 +90,26 @@ export function instructionManifest(config, appDir, stateDir) {
     prompt_text_included: false,
     system_prompt_injection_verified: false,
     files: [],
+    tool_guidance: [],
   };
   if (matched) {
-    for (const [file, activePath, bundledPath] of FILES) {
-      const active = fingerprint(stateDir, activePath);
-      const bundled = fingerprint(path.join(appDir, "bootstrap"), bundledPath);
-      manifest.files.push({
-        file,
-        active,
-        bundled,
-        matches_bundled:
-          active.status === "available" &&
-          bundled.status === "available" &&
-          active.sha256_lf === bundled.sha256_lf,
+    const inspectFiles = (entries) =>
+      entries.map(([file, activePath, bundledPath]) => {
+        const active = fingerprint(stateDir, activePath);
+        const bundled = fingerprint(path.join(appDir, "bootstrap"), bundledPath);
+        return {
+          file,
+          active,
+          bundled,
+          matches_bundled:
+            active.status === "available" &&
+            bundled.status === "available" &&
+            active.sha256_lf === bundled.sha256_lf,
+        };
       });
-    }
+    manifest.files = inspectFiles(FILES);
+    // Add metadata separately so existing five-file consumers stay compatible.
+    manifest.tool_guidance = inspectFiles(TOOL_GUIDANCE);
   }
   return manifest;
 }

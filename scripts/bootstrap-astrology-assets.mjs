@@ -43,7 +43,7 @@ export const ASTROLOGY_ASSETS = [
   ...["logger_client.py", "fetch_history.py", "service_auth.py"].map(
     (name) => `skills/mongo_logger/${name}`,
   ),
-  ...["KUNDLI_RESPONSE.md", "WORKFLOW.md", "TOOLS.md", "TOOL_REFERENCE.md"].map(
+  ...["KUNDLI_RESPONSE.md", "WORKFLOW.md", "GUARDRAILS.md", "TOOLS.md", "TOOL_REFERENCE.md"].map(
     (name) => `workspace-astrologer/${name}`,
   ),
   ".pi/prompts/astrologer.md",

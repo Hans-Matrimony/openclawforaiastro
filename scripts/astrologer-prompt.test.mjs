@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+// Inspect rendered wording, independent of equivalent Markdown line wrapping.
+const read = (path) =>
+  readFileSync(new URL(`../${path}`, import.meta.url), "utf8").replace(/\s+/gu, " ");
 const main = read(".pi/prompts/astrologer.md");
 const workspace = "app/whatsapp-support/workspace-astrologer/";
 const documents = [
@@ -46,16 +48,16 @@ const rules = [
     /Respect a user's refusal or beliefs, avoid repeating earlier remedies, and never promise an outcome/,
   ],
   [
-    "complete answers and goodbye need no follow-up",
-    /Ask at most one useful follow-up question[\s\S]*user wants brevity, declines questions, or says goodbye/,
+    "completed astrology readings end without unsolicited offers or closing questions",
+    /Once the requested prediction and its relevant reasons are answered, stop[\s\S]*Do not append an offer[\s\S]*Ask only when missing or conflicting inputs actually prevent answering[\s\S]*preserve ordinary friend conversation/,
   ],
   [
     "birth forms are exempt from the follow-up limit",
     /A required birth-detail form is not a conversational follow-up; keep its existing format/,
   ],
   [
-    "helpful curiosity can follow a complete answer",
-    /A relevant question can follow a complete answer; do not add one merely to prolong the chat/,
+    "ordinary conversation retains useful curiosity without prolonging the chat",
+    /Ask at most one relevant question when it helps the user[\s\S]*Do not repeat answered questions or add one only to extend the conversation/,
   ],
   [
     "useful remedies are offered proactively",
@@ -95,25 +97,35 @@ for (const [name, pattern] of rules) {
   void test(name, () => assert.match(main, pattern));
 }
 
-void test("main workspace guides consistently permit optional remedies and follow-ups", () => {
+void test("workspace guides separate completed readings from useful friend questions and missing inputs", () => {
   for (const name of documents.filter((name) => name !== "USER.md")) {
     const content = read(workspace + name);
     assert.match(content, /optional remedy|optional-remedy|remedies are optional/i, name);
-    assert.match(content, /at most one useful (?:follow-up|question)/i, name);
-    assert.match(content, /unsupported/i, name);
+    assert.match(content, /complete astrology readings? ends?(?: naturally)? after/i, name);
+    assert.match(
+      content,
+      /Ordinary friend conversation.{0,55}(?:one useful question|one relevant question)/i,
+      name,
+    );
+    assert.match(
+      content,
+      /Ask only for (?:inputs needed|necessary missing inputs)|Necessary missing-input clarifications/i,
+      name,
+    );
+    assert.match(content, /unsupported|Do not invent/i, name);
     assert.doesNotMatch(content, /(?:skip|skipping) it when the answer is complete/i, name);
   }
 });
 
-void test("warm examples cover emotion, good news, remedies, listening and natural endings", () => {
+void test("compact friend guidance retains listening, celebration, correction and natural endings", () => {
   const soul = read(workspace + "SOUL.md");
   for (const phrase of [
-    "Close-Friend Rhythm",
-    "Interview kal hai",
-    "I got the job!",
-    "Padhai se pehle koi simple upay",
-    "Please just listen, no advice",
-    "bas yahi poochna tha",
+    "Notice expressed feelings without inventing distress",
+    "Good news deserves a natural celebration",
+    "a user who only wants listening needs listening",
+    "Friend conversation does not require astrology",
+    "Skip questions after an explicit refusal or goodbye",
+    "A newer user correction wins over an old memory",
   ]) {
     assert.ok(soul.includes(phrase), phrase);
   }

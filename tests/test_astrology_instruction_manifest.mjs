@@ -58,7 +58,39 @@ void test("foreign or ambiguous workspaces produce no file fingerprints", (t) =>
     const result = instructionManifest({ agents: { list } }, f.app, f.state);
     assert.equal(result.configured_workspace_matches_expected, false);
     assert.deepEqual(result.files, []);
+    assert.deepEqual(result.tool_guidance, []);
   }
+});
+
+void test("tool index metadata detects mounted drift without exposing guidance or changing files", (t) => {
+  const f = fixture(t);
+  const name = "workspace-astrologer/TOOLS.md";
+  const active = path.join(f.state, name);
+  const bundled = path.join(f.app, "bootstrap", name);
+  for (const file of [active, bundled]) {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, "Synthetic tool guidance\r\n");
+  }
+  const before = fs.readFileSync(active);
+  const first = instructionManifest(f.config, f.app, f.state);
+  assert.equal(first.files.length, 5);
+  assert.deepEqual(
+    first.tool_guidance.map((row) => row.file),
+    ["TOOLS.md", "TOOL_REFERENCE.md"],
+  );
+  assert.equal(first.tool_guidance[0].matches_bundled, true);
+  assert.equal(first.tool_guidance[0].active.words, 3);
+  assert.ok(!JSON.stringify(first).includes("Synthetic tool guidance"));
+  assert.ok(fs.readFileSync(active).equals(before));
+  fs.writeFileSync(active, "Stale mounted tool guidance");
+  assert.equal(
+    instructionManifest(f.config, f.app, f.state).tool_guidance[0].matches_bundled,
+    false,
+  );
+  fs.writeFileSync(active, Buffer.alloc(512 * 1024 + 1));
+  const oversized = instructionManifest(f.config, f.app, f.state).tool_guidance[0].active;
+  assert.equal(oversized.status, "too_large");
+  assert.equal(oversized.sha256_lf, undefined);
 });
 
 void test("bounded reader rejects oversized files and directories", (t) => {
