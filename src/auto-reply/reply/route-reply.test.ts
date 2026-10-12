@@ -28,6 +28,13 @@ const mocks = vi.hoisted(() => ({
   sendMessageTelegram: vi.fn(async () => ({ messageId: "m1", chatId: "c1" })),
   sendMessageWhatsApp: vi.fn(async () => ({ messageId: "m1", toJid: "jid" })),
   deliverOutboundPayloads: vi.fn(),
+  checkProactiveCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+}));
+
+vi.mock("../../whatsapp/compliance.js", () => ({
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  checkProactiveCompliance: mocks.checkProactiveCompliance,
+  logComplianceFailure: vi.fn(),
 }));
 
 vi.mock("../../discord/send.js", () => ({
@@ -324,6 +331,23 @@ describe("routeReply", () => {
       "hi",
       expect.objectContaining({ accountId: "acc-1", verbose: false }),
     );
+  });
+
+  it("reports denied WhatsApp delivery without calling the sender", async () => {
+    mocks.sendMessageWhatsApp.mockClear();
+    mocks.checkProactiveCompliance.mockResolvedValueOnce({
+      allowed: false,
+      reason: "Fixture opted out",
+    });
+    const result = await routeReply({
+      payload: { text: "must not send" },
+      channel: "whatsapp",
+      to: "+15551234567",
+      cfg: {},
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("Fixture opted out");
+    expect(mocks.sendMessageWhatsApp).not.toHaveBeenCalled();
   });
 
   it("routes MS Teams via proactive sender", async () => {

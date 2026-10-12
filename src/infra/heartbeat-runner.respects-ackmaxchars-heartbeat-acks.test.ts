@@ -14,6 +14,12 @@ import { createPluginRuntime } from "../plugins/runtime/index.js";
 import { createTestRegistry } from "../test-utils/channel-plugins.js";
 import { runHeartbeatOnce } from "./heartbeat-runner.js";
 
+vi.mock("../whatsapp/compliance.js", () => ({
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  checkProactiveCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  logComplianceFailure: vi.fn(),
+}));
+
 // Avoid pulling optional runtime deps during isolated runs.
 vi.mock("jiti", () => ({ createJiti: () => () => ({}) }));
 

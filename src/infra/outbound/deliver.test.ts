@@ -13,6 +13,16 @@ import {
 
 const mocks = vi.hoisted(() => ({
   appendAssistantMessageToSessionTranscript: vi.fn(async () => ({ ok: true, sessionFile: "x" })),
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  checkProactiveCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  logComplianceFailure: vi.fn(),
+}));
+
+// Delivery fixtures use explicit consent rather than a developer's local store.
+vi.mock("../../whatsapp/compliance.js", () => ({
+  checkReplyCompliance: mocks.checkReplyCompliance,
+  checkProactiveCompliance: mocks.checkProactiveCompliance,
+  logComplianceFailure: mocks.logComplianceFailure,
 }));
 
 vi.mock("../../config/sessions.js", async () => {
@@ -30,6 +40,13 @@ const { deliverOutboundPayloads, normalizeOutboundPayloads } = await import("./d
 describe("deliverOutboundPayloads", () => {
   beforeEach(() => {
     setActivePluginRegistry(defaultRegistry);
+    mocks.checkReplyCompliance
+      .mockReset()
+      .mockResolvedValue({ allowed: true, reason: "Fixture consent" });
+    mocks.checkProactiveCompliance
+      .mockReset()
+      .mockResolvedValue({ allowed: true, reason: "Fixture consent" });
+    mocks.logComplianceFailure.mockClear();
   });
 
   afterEach(() => {
@@ -165,6 +182,48 @@ describe("deliverOutboundPayloads", () => {
 
     expect(sendWhatsApp).toHaveBeenCalledTimes(2);
     expect(results.map((r) => r.messageId)).toEqual(["w1", "w2"]);
+  });
+
+  it.each([false, true])("blocks a denied WhatsApp send (reply=%s)", async (isReplyToUser) => {
+    const denial = { allowed: false, reason: "Fixture opted out" };
+    const check = isReplyToUser ? mocks.checkReplyCompliance : mocks.checkProactiveCompliance;
+    check.mockResolvedValueOnce(denial);
+    const sendWhatsApp = vi.fn();
+    await expect(
+      deliverOutboundPayloads({
+        cfg: {},
+        channel: "whatsapp",
+        to: "+1555",
+        isReplyToUser,
+        payloads: [{ text: "must not send" }],
+        deps: { sendWhatsApp },
+      }),
+    ).rejects.toThrow("WhatsApp compliance check failed: Fixture opted out");
+    expect(check).toHaveBeenCalledWith("+1555", {});
+    expect(sendWhatsApp).not.toHaveBeenCalled();
+    expect(mocks.logComplianceFailure).toHaveBeenCalledWith("+1555", denial, "outbound");
+  });
+
+  it("reports a denied best-effort send without delivering", async () => {
+    mocks.checkProactiveCompliance.mockResolvedValueOnce({
+      allowed: false,
+      reason: "Fixture outside window",
+    });
+    const sendWhatsApp = vi.fn();
+    const onError = vi.fn();
+    const result = await deliverOutboundPayloads({
+      cfg: {},
+      channel: "whatsapp",
+      to: "+1555",
+      bestEffort: true,
+      payloads: [{ text: "must not send" }],
+      deps: { sendWhatsApp },
+      onError,
+    });
+    expect(result).toEqual([]);
+    expect(sendWhatsApp).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledOnce();
+    expect(onError.mock.calls[0]?.[0]).toBeInstanceOf(Error);
   });
 
   it("respects newline chunk mode for WhatsApp", async () => {

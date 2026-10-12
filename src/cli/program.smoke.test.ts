@@ -50,6 +50,8 @@ vi.mock("../gateway/call.js", () => ({
   }),
 }));
 vi.mock("./deps.js", () => ({ createDefaultDeps: () => ({}) }));
+// Command wiring tests must not discover a developer's installed plugins.
+vi.mock("./plugin-registry.js", () => ({ ensurePluginRegistryLoaded: vi.fn() }));
 
 const { buildProgram } = await import("./program.js");
 

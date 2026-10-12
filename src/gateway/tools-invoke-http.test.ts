@@ -200,6 +200,13 @@ describe("POST /tools/invoke", () => {
 
       expect(res.status).toBe(200);
       expect(pluginHandler).not.toHaveBeenCalled();
+
+      // Prove the supplied plugin fixture is active, rather than silently lost
+      // when gateway startup or tool discovery loads a different registry.
+      const pluginRes = await fetch(`http://127.0.0.1:${port}/test-plugin`);
+      expect(pluginRes.status).toBe(418);
+      expect(await pluginRes.text()).toBe("plugin");
+      expect(pluginHandler).toHaveBeenCalledTimes(1);
     } finally {
       await server.close();
       resetTestPluginRegistry();

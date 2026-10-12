@@ -1,8 +1,14 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createOpenClawCodingTools } from "./pi-tools.js";
+
+// Filesystem path tests must not discover host plugins after changing cwd.
+vi.mock("../plugins/tools.js", () => ({
+  resolvePluginTools: () => [],
+  getPluginToolMeta: () => undefined,
+}));
 
 async function withTempDir<T>(prefix: string, fn: (dir: string) => Promise<T>) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), prefix));

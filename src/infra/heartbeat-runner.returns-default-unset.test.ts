@@ -27,6 +27,12 @@ import {
 } from "./heartbeat-runner.js";
 import { resolveHeartbeatDeliveryTarget } from "./outbound/targets.js";
 
+vi.mock("../whatsapp/compliance.js", () => ({
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  checkProactiveCompliance: vi.fn(async () => ({ allowed: true, reason: "Fixture consent" })),
+  logComplianceFailure: vi.fn(),
+}));
+
 // Avoid pulling optional runtime deps during isolated runs.
 vi.mock("jiti", () => ({ createJiti: () => () => ({}) }));
 

@@ -145,7 +145,13 @@ describe("QmdMemoryManager", () => {
     const target = path.join(workspaceDir, "target.md");
     await fs.writeFile(target, "ok", "utf-8");
     const link = path.join(workspaceDir, "link.md");
-    await fs.symlink(target, link);
+    if (process.platform === "win32") {
+      const directoryTarget = path.join(workspaceDir, "linked-directory");
+      await fs.mkdir(directoryTarget);
+      await fs.symlink(directoryTarget, link, "junction");
+    } else {
+      await fs.symlink(target, link);
+    }
     await expect(manager.readFile({ relPath: "qmd/workspace/link.md" })).rejects.toThrow(
       "path required",
     );

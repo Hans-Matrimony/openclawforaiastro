@@ -79,7 +79,12 @@ describe("media server", () => {
   it("blocks symlink escaping outside media dir", async () => {
     const target = path.join(process.cwd(), "package.json"); // outside MEDIA_DIR
     const link = path.join(MEDIA_DIR, "link-out");
-    await fs.symlink(target, link);
+    if (process.platform === "win32") {
+      // Directory junctions do not require permission to create file symlinks.
+      await fs.symlink(path.join(process.cwd(), "src"), link, "junction");
+    } else {
+      await fs.symlink(target, link);
+    }
 
     const server = await startMediaServer(0, 5_000);
     const port = (server.address() as AddressInfo).port;

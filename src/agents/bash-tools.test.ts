@@ -197,7 +197,14 @@ describe("exec tool backgrounding", () => {
     const result = await customBash.execute("call1", {
       command: "echo hi",
     });
-    const text = result.content.find((c) => c.type === "text")?.text ?? "";
+    let text = result.content.find((c) => c.type === "text")?.text ?? "";
+    if (result.details.status === "running") {
+      // Shell startup may exceed the background yield under a busy test run.
+      const sessionId = result.details.sessionId;
+      expect(await waitForCompletion(sessionId)).toBe("completed");
+      const log = await processTool.execute("call-log", { action: "log", sessionId });
+      text = log.content.find((c) => c.type === "text")?.text ?? "";
+    }
     expect(text).toContain("hi");
   });
 

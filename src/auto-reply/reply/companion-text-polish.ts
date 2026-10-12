@@ -3,12 +3,28 @@
  * Prompts alone do not stop em-dashes or a few robotic phrases — normalize at send time.
  */
 
+import { parseFenceSpans } from "../../markdown/fences.js";
+
+function transformProse(text: string, transform: (prose: string) => string): string {
+  let cursor = 0;
+  let result = "";
+  for (const span of parseFenceSpans(text)) {
+    result += transform(text.slice(cursor, span.start)) + text.slice(span.start, span.end);
+    cursor = span.end;
+  }
+  return result + transform(text.slice(cursor));
+}
+
 /** Em-dash, en-dash, and " word - word " punctuation (not hyphenated compounds like Ketu-Venus). */
 export function stripCompanionDashPunctuation(text: string): string {
-  let out = text.replace(/\s*[\u2014\u2013]\s*/g, ", ");
-  out = out.replace(/([\p{L}\p{N}])\s+-\s+([\p{L}\p{N}])/gu, "$1, $2");
-  out = out.replace(/,\s*,/g, ",");
-  out = out.replace(/\s{2,}/g, " ");
+  const out = transformProse(text, (prose) =>
+    prose
+      .replace(/[\t ]*[\u2014\u2013][\t ]*/g, ", ")
+      .replace(/([\p{L}\p{N}])[\t ]+-[\t ]+([\p{L}\p{N}])/gu, "$1, $2")
+      .replace(/,[\t ]*,/g, ",")
+      // Preserve paragraph breaks, list indentation, and Markdown hard breaks.
+      .replace(/(\S)[\t ]{2,}(?=\S)/g, "$1 "),
+  );
   return out.trim();
 }
 
@@ -22,12 +38,13 @@ const BANNED_PHRASE_REPLACEMENTS: Array<{ pattern: RegExp; replacement: string }
 ];
 
 export function softenBannedCompanionPhrases(text: string): string {
-  let out = text;
-  for (const { pattern, replacement } of BANNED_PHRASE_REPLACEMENTS) {
-    out = out.replace(pattern, replacement);
-  }
-  out = out.replace(/^\s*,\s*/gm, "");
-  out = out.replace(/\s{2,}/g, " ");
+  const out = transformProse(text, (prose) => {
+    let softened = prose;
+    for (const { pattern, replacement } of BANNED_PHRASE_REPLACEMENTS) {
+      softened = softened.replace(pattern, replacement);
+    }
+    return softened.replace(/^[\t ]*,[\t ]*/gm, "").replace(/(\S)[\t ]{2,}(?=\S)/g, "$1 ");
+  });
   return out.trim();
 }
 

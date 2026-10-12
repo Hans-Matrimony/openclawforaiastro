@@ -188,6 +188,15 @@ export const resetTestPluginRegistry = () => {
   setActivePluginRegistry(pluginRegistryState.registry);
 };
 
+// Gateway tests supply their own registries; discovering installed plugins here
+// overwrites those fixtures and synchronously compiles unrelated host extensions.
+vi.mock("../plugins/loader.js", () => ({
+  loadOpenClawPlugins: () => {
+    setActivePluginRegistry(pluginRegistryState.registry);
+    return pluginRegistryState.registry;
+  },
+}));
+
 const testConfigRoot = {
   value: path.join(os.tmpdir(), `openclaw-gateway-test-${process.pid}-${crypto.randomUUID()}`),
 };
