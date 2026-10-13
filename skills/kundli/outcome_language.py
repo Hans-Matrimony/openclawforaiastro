@@ -140,6 +140,15 @@ PERIOD_WORDING = {
     ('Venus', 'career'): ('The current period supports success and earnings, without guaranteeing an individual job result.', 'Maujooda period success aur earning ke liye anukool hai, bina individual job result ko pakka kiye.'),
 }
 
+# Ordinary overviews retain the reviewed period meaning without introducing
+# an unasked hiring, promotion or admission question. Detailed/timing replies
+# continue to use PERIOD_WORDING and the event assessment's limits.
+OVERVIEW_PERIOD_WORDING = {
+    ('Moon', 'career'): ('This period mentions gains.', 'Is period mein gains ka zikr hai.'),
+    **{key: tuple(text.split('. ', 1)[0] + '.' for text in PERIOD_WORDING[key])
+       for key in (('Moon', 'education'), ('Jupiter', 'education'), ('Jupiter', 'career'))},
+}
+
 NATAL_WORDING = {
     'SaturnIn7thNotLagnaLord': ('There is an adverse traditional indication for relationship harmony.', 'Relationship harmony ke liye ek pratikool traditional sanket hai.'),
     'JupiterInHouse7': ('There is a supportive traditional relationship indication.', 'Relationship ke liye ek anukool traditional sanket hai.'),

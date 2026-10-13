@@ -6,7 +6,7 @@ Every personalized sentence comes from the verified packet's reviewed rules.
 from reading import reading_packet
 from outcome_language import (
     english_theme, hinglish_theme, HINGLISH_PLANETS, HINGLISH_SIGNS, HINGLISH_HOUSE_NAMES,
-    PERIOD_WORDING, NATAL_WORDING,
+    PERIOD_WORDING, OVERVIEW_PERIOD_WORDING, NATAL_WORDING,
 )
 from datetime import datetime, timezone, timedelta
 import re
@@ -178,7 +178,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         if scoped_marriage is not None:
             wording = scoped_marriage
         elif current['mahadasha'] == 'Venus' and (current['antardasha'], topic) in PERIOD_WORDING:
-            wording = PERIOD_WORDING[(current['antardasha'], topic)][1 if hinglish else 0]
+            key = (current['antardasha'], topic)
+            wordings = OVERVIEW_PERIOD_WORDING if intent == 'overview' and style != 'detailed' else {}
+            wording = wordings.get(key, PERIOD_WORDING[key])[1 if hinglish else 0]
         else:
             from period_rules import period_wording
             wording = period_wording(topic, current['status'], hinglish)
