@@ -7,6 +7,24 @@ from render_outcome_reading import render_reading
 
 
 class MarriageConversationTests(unittest.TestCase):
+    def test_brief_and_detailed_timing_keep_natural_qualification_and_same_facts(self):
+        for language in ('english', 'hinglish'):
+            kwargs = dict(language=language, intent='timing',
+                          as_of_utc=datetime(2026, 10, 13, tzinfo=timezone.utc))
+            standard = render_reading(reference_chart(), 'marriage', **kwargs)
+            for style in ('brief', 'detailed'):
+                result = render_reading(reference_chart(), 'marriage', style=style, **kwargs)
+                self.assertEqual(result['evidence'], standard['evidence'])
+                self.assertIn('anukool dikhta hai' if language == 'hinglish' else 'looks more favorable', result['text'])
+                self.assertNotRegex(result['text'], r'conditional sanket|pakki date nahi|conditional, not a fixed')
+                self.assertNotIn('Iska aadhar', result['text'])
+                if style == 'brief':
+                    self.assertEqual(result['text'].count('.'), 1)
+                else:
+                    for value in (('Guru', 'Shani', 'Shukra', 'tanav', 'Kumbh') if language == 'hinglish'
+                                  else ('Jupiter', 'Saturn', 'Venus', 'strain', 'Aquarius')):
+                        self.assertIn(value, result['text'])
+
     def test_standard_timing_uses_two_complete_bubbles_without_repeating_verdict(self):
         for language in ('english', 'hinglish'):
             with self.subTest(language=language):

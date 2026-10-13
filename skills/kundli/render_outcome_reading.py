@@ -62,8 +62,6 @@ def _factor_reason(factor, topic, hinglish, compact=False):
         return (f"Shaadi ke swami {HINGLISH_PLANETS[fact['planet']]} {HINGLISH_SIGNS[fact['sign']]} ke {HINGLISH_HOUSE_NAMES[fact['house']]} ghar mein hain; unka sanket ghar aur saath rehne ki comfort se juda hai."
                 if hinglish else f"{fact['planet']}, your marriage-house ruler, is in {fact['sign']} in house {fact['house']}, linking the relationship reading with home and comfort in living together.")
     text = hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False)
-    if not compact:
-        return text + _basis(factor['fact'], hinglish)
     # Remove presentation filler only; never infer a new talent, trait or outcome.
     for prefix in ('Aapki career reading mein ', 'Aapki education reading mein ',
                    'Aapki relationship reading mein ', 'Aapki reading mein '):
@@ -81,6 +79,10 @@ def _factor_reason(factor, topic, hinglish, compact=False):
         if text.startswith(report):
             text = conversational + text[len(report):]
             break
+    if hinglish:
+        # Translate the existing theme, not the user's abilities or future.
+        text = text.replace(' ka sambandh aata hai.', ' par zor hai.')
+        text = text.replace(' ka theme hai.', ' ka pehlu khaas hai.')
     return text.rstrip('.') + ' — ' + _conversational_basis(factor['fact'], hinglish) + '.'
 
 
@@ -153,38 +155,28 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         if windows:
             primary = windows[0]
             dates = f"{_month(primary['start'])} se {_month(primary['end'])}" if hinglish else f"{_month(primary['start'])} to {_month(primary['end'])}"
-            if primary['priority'] == 2:
-                lead = f"Is dasha-based reading mein shaadi ke liye zyada anukool window {dates} hai."
-                english = f"In this comparison of dasha periods, the more supportive marriage window is {dates}."
-            else:
-                lead = f"Is dasha-based reading mein shaadi ka ek sambhavit period {dates} hai."
-                english = f"This dasha reading indicates a possible marriage period of {dates}."
             major = HINGLISH_PLANETS[primary['mahadasha']] if hinglish else primary['mahadasha']
             minor = HINGLISH_PLANETS[primary['antardasha']] if hinglish else primary['antardasha']
-            paragraphs.append((lead + f" Yeh {major} {minor} period ka conditional sanket hai, shaadi ki pakki date nahi."
-                               if hinglish else english + f" It comes from the {major} {minor} period and is conditional, not a fixed wedding date."))
-            if style == 'standard':
-                if primary['priority'] == 2:
-                    paragraphs[-1] = (f"Aapki shaadi ke liye {dates} ka {major}-{minor} daur zyada anukool dikhta hai."
-                                      if hinglish else f"The {major}-{minor} period from {dates} looks more favorable for marriage in this dasha reading.")
-                else:
-                    paragraphs[-1] = (f"Shaadi ka ek sambhavit daur {dates} hai, {major}-{minor} dasha ke hisaab se."
-                                      if hinglish else f"The {major}-{minor} dasha points to a possible marriage period from {dates}.")
+            # All lengths use the same natural qualification. Detail belongs
+            # in the explanation, not in a second boilerplate disclaimer.
+            if primary['priority'] == 2:
+                paragraphs.append(f"Aapki shaadi ke liye {dates} ka {major}-{minor} daur zyada anukool dikhta hai."
+                                  if hinglish else f"The {major}-{minor} period from {dates} looks more favorable for marriage in this dasha reading.")
+            else:
+                paragraphs.append(f"Shaadi ka ek sambhavit daur {dates} hai, {major}-{minor} dasha ke hisaab se."
+                                  if hinglish else f"The {major}-{minor} dasha points to a possible marriage period from {dates}.")
             if len(windows) > 1 and style != 'brief':
                 other = windows[1]
                 dates = f"{_month(other['start'])} se {_month(other['end'])}" if hinglish else f"{_month(other['start'])} to {_month(other['end'])}"
                 if other['priority'] < primary['priority']:
-                    alternative = (f"{dates} mein bhi shaadi ka sanket hai, par is comparison mein yeh kam anukool hai."
-                                   if hinglish else f"Another indicated period is {dates}; it has less support in this comparison.")
-                    if style == 'standard':
-                        alternative = (f"{dates} mein bhi shaadi ka sanket hai, lekin support kam hai." if hinglish else
-                                       f"{dates} also carries a marriage indication, with less support in this comparison.")
+                    alternative = (f"{dates} mein bhi shaadi ka sanket hai, lekin support kam hai." if hinglish else
+                                   f"{dates} also carries a marriage indication, with less support in this comparison.")
                 else:
                     alternative = f"Ek aur sambhavit period {dates} hai." if hinglish else f"Another indicated period is {dates}."
                 paragraphs[-1] += ' ' + alternative
             # Standard wording already qualifies this as a possible or more
             # favorable dasha period. Do not repeat a certainty disclaimer.
-            # Brief/detailed answers retain their explicit scope above.
+            # The evidence retains the complete conditional event assessment.
         else:
             target = {'marriage': ('shaadi', 'marriage'), 'career': ('job ya promotion', 'job or promotion'),
                       'education': ('admission ya exam result', 'admission or exam result'),
@@ -205,12 +197,14 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         # into marriage denial or inferring a new delay. Other rule sets keep
         # their existing individual reasons and polarity label.
         by_id = {reason['id']: reason['fact'] for reason in natal['reasons'][:2]}
-        if (style == 'standard' and topic == 'marriage'
+        if (style in ('standard', 'detailed') and topic == 'marriage'
                 and set(by_id) == {'SaturnIn7thNotLagnaLord', 'JupiterInHouse7'}):
             saturn, jupiter = by_id['SaturnIn7thNotLagnaLord'], by_id['JupiterInHouse7']
             if saturn['house'] == jupiter['house'] == 7 and saturn['sign'] == jupiter['sign']:
                 parts = ([f"{HINGLISH_SIGNS[jupiter['sign']]} ke saatve ghar mein Guru rishte ke liye sahyog ka sanket dete hain, jabki wahin Shani tanav dikhate hain."] if hinglish else
                          [f"Jupiter in {jupiter['sign']} in house 7 indicates support for the relationship, while Saturn there indicates strain."])
+                if style == 'detailed':
+                    parts.extend(_natal_reason(reason, hinglish, compact=True) for reason in natal['reasons'][2:3])
                 combined_marriage_reasons = True
         paragraphs.append(' '.join(parts))
     if current['status'] != 'unsupported' and (intent == 'overview' or not windows or style == 'detailed'):
@@ -257,7 +251,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             if identity in used:
                 continue
             used.add(identity)
-            extras.append(_factor_reason(factor, topic, hinglish, compact=style == 'standard'))
+            extras.append(_factor_reason(factor, topic, hinglish, compact=True))
             if len(extras) >= extra_limit:
                 break
         if extras:

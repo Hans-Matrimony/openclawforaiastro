@@ -82,9 +82,8 @@ def native_supporting_detail(packet, hi, detailed=True):
         if detailed and (ruler['divisional_own_sign'] or ruler['same_d1_divisional_sign'] or dignity['own_sign'] or dignity['exaltation_sign']):
             detail += (' Rashi mein achhi placement aur poori planetary strength alag checks hain.' if hi else
                        ' A favorable sign placement and overall planetary strength are separate checks.')
-    if detailed and packet['topic'] == 'marriage':
-        detail += (' Inse partner ka swabhav ya shaadi ka result tay nahi hota.' if hi else
-                   ' These do not establish a partner\'s character or the outcome of a marriage.')
+    # The strength explanation above already distinguishes a planet's strength
+    # from a favorable outcome. Do not append an unrelated partner disclaimer.
     warning = boundary_warning(packet, hi)
     if warning:
         detail += ' ' + warning
