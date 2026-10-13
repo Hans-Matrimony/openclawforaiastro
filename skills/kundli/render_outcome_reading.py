@@ -9,6 +9,27 @@ from outcome_language import (
     PERIOD_WORDING, NATAL_WORDING,
 )
 from datetime import datetime, timezone, timedelta
+import re
+
+
+def _chat_paragraphs(paragraphs, limit=340):
+    """Keep sentence boundaries below the existing client's word-cut threshold.
+
+    Do not abbreviate dates, omit adverse findings, or split decimal strengths.
+    An unusually long single sentence stays intact for the client's fallback.
+    """
+    result = []
+    for paragraph in paragraphs:
+        sentences = re.split(r'(?<=[.!?])\s+', paragraph.strip())
+        chunk = ''
+        for sentence in sentences:
+            if chunk and len(chunk) + len(sentence) + 1 > limit:
+                result.append(chunk)
+                chunk = ''
+            chunk = (chunk + ' ' + sentence).strip()
+        if chunk:
+            result.append(chunk)
+    return result
 
 
 def _month(value):
@@ -59,8 +80,8 @@ def _natal_reason(reason, hinglish, compact=False):
     if compact:
         names = HINGLISH_PLANETS if hinglish else {fact['planet']: fact['planet']}
         meanings = {
-            'SaturnIn7thNotLagnaLord': ('relationship harmony mein tanav', 'strain in relationship harmony'),
-            'JupiterInHouse7': ('relationship ke liye support', 'support for the relationship'),
+            'SaturnIn7thNotLagnaLord': ('rishte mein tanav', 'strain in the relationship'),
+            'JupiterInHouse7': ('rishte ke liye sahyog', 'support for the relationship'),
             'House7LordInHouse4': ('ghar aur saath rehne ke comfort', 'home and comfort in living together'),
         }
         meaning = meanings[reason['id']][0 if hinglish else 1]
@@ -218,8 +239,10 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             factor_paragraph = next(p for p in paragraphs if p.startswith(extras[0]))
             paragraphs.remove(factor_paragraph)
             paragraphs.insert(0, factor_paragraph)
-        if len(paragraphs) > 2:
-            paragraphs = [paragraphs[0], ' '.join(paragraphs[1:])]
+        # Do not merge every remaining fact into one oversized paragraph:
+        # the PWA splits it at an arbitrary word (e.g. "Shadbala assessment").
+        # Preserve the answer/evidence sections and every complete sentence.
+        paragraphs = _chat_paragraphs(paragraphs)
     if style == 'brief':
         warning = paragraphs[-1] if any('boundary' in p for p in paragraphs[-1:]) else None
         paragraphs = [' '.join(paragraphs[:1 if intent == 'timing' and windows else 2])]

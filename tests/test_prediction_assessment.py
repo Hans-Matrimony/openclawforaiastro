@@ -32,6 +32,37 @@ def reference_chart():
 
 
 class PredictionTests(unittest.TestCase):
+    def test_standard_outcome_bubbles_keep_sentences_and_evidence(self):
+        from unittest.mock import patch
+        packet = self.packet()
+        packet['provider'] = {'name': 'vedastro-local'}
+        for language in ('english', 'hinglish'):
+            detail = ('VedAstro ke Shadbala assessment mein Shukra ko strong maana gaya hai.'
+                      if language == 'hinglish' else
+                      "VedAstro's Shadbala assessment classifies Venus as strong.")
+            with patch('render_outcome_reading.reading_packet', return_value=packet), \
+                    patch('render_reading.native_supporting_detail', return_value=detail):
+                result = render_reading(reference_chart(), 'marriage', language=language,
+                                        intent='timing', style='standard')
+            bubbles = result['text'].split('\n\n')
+            self.assertTrue(all(len(bubble) <= 360 for bubble in bubbles))
+            self.assertTrue(all(bubble.endswith('.') for bubble in bubbles))
+            self.assertTrue(any(detail in bubble for bubble in bubbles))
+            self.assertIn('2031', result['text'])
+            self.assertIn('2027', result['text'])
+            self.assertIn('conditional', result['text'])
+            self.assertIn('tanav' if language == 'hinglish' else 'strain', result['text'])
+            self.assertEqual(result['evidence'], packet)
+
+    def test_bubble_packing_preserves_decimal_values_and_all_sentences(self):
+        from render_outcome_reading import _chat_paragraphs
+        sentences = ['Shadbala is 6.25 rupas.', 'A complete supporting explanation.'] * 12
+        text = ' '.join(sentences)
+        bubbles = _chat_paragraphs([text])
+        self.assertEqual(' '.join(bubbles), text)
+        self.assertTrue(all(len(bubble) <= 340 for bubble in bubbles))
+        self.assertEqual(' '.join(bubbles).count('6.25'), 12)
+
     def test_native_v2_keeps_strength_divisions_and_rejects_provider_prose(self):
         from test_reading_provider import ProviderTests, WHEN
         from render_reading import render_reading as render_contract
