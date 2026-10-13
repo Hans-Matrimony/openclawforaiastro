@@ -78,7 +78,11 @@ class ProviderTests(unittest.TestCase):
         rendered = render_reading(result, 'finance', contract_version=2, as_of_utc=self.when)
         self.assertEqual(rendered['evidence']['advanced']['topic_ruler']['rules_house'], 2)
         self.assertEqual(rendered['evidence']['prediction_assessment']['event']['windows'], [])
-        self.assertIn('Shadbala', rendered['text'])
+        self.assertNotIn('Shadbala', rendered['text'])
+        detailed = render_reading(result, 'finance', contract_version=2,
+                                  as_of_utc=self.when, style='detailed')
+        self.assertIn('Shadbala', detailed['text'])
+        self.assertEqual(rendered['evidence'], detailed['evidence'])
         self.data['topicHouse'] = 7
         with self.assertRaises(MatchError):
             use_reading_provider(self.chart, 'finance', as_of_utc=self.when, env=self.env,

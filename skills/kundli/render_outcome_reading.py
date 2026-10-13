@@ -189,7 +189,13 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         minor = HINGLISH_PLANETS[current['antardasha']] if hinglish else current['antardasha']
         lead = (f"Abhi {major} mahadasha mein {minor} antardasha chal rahi hai. " if hinglish else
                 f"You are currently in the {major} major period and {minor} subperiod. ")
-        paragraphs.append(lead + wording + (f" Yeh period {_month(current['end'])} tak hai." if hinglish else f" This period runs until {_month(current['end'])}."))
+        # An ordinary overview needs the period's meaning, not an unsolicited
+        # deadline. Detailed and timing answers retain the labelled boundary.
+        boundary = ''
+        if style != 'standard' or intent == 'timing':
+            boundary = (f" Yeh period {_month(current['end'])} tak hai." if hinglish else
+                        f" This period runs until {_month(current['end'])}.")
+        paragraphs.append(lead + wording + boundary)
         if timing_limit:
             paragraphs[-1] += ' ' + timing_limit
             timing_limit = None
@@ -216,15 +222,12 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         factor = packet['factors'][0]
         # Brief direction readings must retain the reason before period context.
         paragraphs.insert(0, _factor_reason(factor, topic, hinglish, compact=True))
-    if style != 'brief' and packet.get('provider', {}).get('name') == 'vedastro-local':
+    if style == 'detailed' and packet.get('provider', {}).get('name') == 'vedastro-local':
         from render_reading import native_supporting_detail
-        detail = native_supporting_detail(packet, hinglish, detailed=style == 'detailed')
-        if style == 'standard':
-            detail = detail.replace('; yeh aapki ability ya failure ka faisla nahi hai', '').replace('; this does not measure your ability or predict failure', '')
-        if style == 'standard' and paragraphs:
-            paragraphs[-1] += ' ' + detail
-        else:
-            paragraphs.append(detail)
+        # Raw strength/divisional facts are still present in the packet. They
+        # are not an assessed reason for the outcome and need not pad a short
+        # answer. Explicit detailed readings continue to show their nuance.
+        paragraphs.append(native_supporting_detail(packet, hinglish, detailed=True))
     # Full analysis limits remain in evidence. Surface a limitation only when it
     # affects this answer (timing above, uncertain birth input below), not as filler.
     if any(isinstance(warning, str) and warning.startswith('Moon is ') and 'boundary' in warning

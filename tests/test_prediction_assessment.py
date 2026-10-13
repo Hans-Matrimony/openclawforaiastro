@@ -41,18 +41,35 @@ class PredictionTests(unittest.TestCase):
                       if language == 'hinglish' else
                       "VedAstro's Shadbala assessment classifies Venus as strong.")
             with patch('render_outcome_reading.reading_packet', return_value=packet), \
-                    patch('render_reading.native_supporting_detail', return_value=detail):
+                    patch('render_reading.native_supporting_detail', return_value=detail) as supporting_detail:
                 result = render_reading(reference_chart(), 'marriage', language=language,
                                         intent='timing', style='standard')
             bubbles = result['text'].split('\n\n')
             self.assertTrue(all(len(bubble) <= 360 for bubble in bubbles))
             self.assertTrue(all(bubble.endswith('.') for bubble in bubbles))
-            self.assertTrue(any(detail in bubble for bubble in bubbles))
+            supporting_detail.assert_not_called()
+            self.assertNotIn('Shadbala', result['text'])
             self.assertIn('2031', result['text'])
             self.assertIn('2027', result['text'])
             self.assertIn('conditional', result['text'])
             self.assertIn('tanav' if language == 'hinglish' else 'strain', result['text'])
             self.assertEqual(result['evidence'], packet)
+
+    def test_overview_keeps_period_meaning_without_an_unasked_deadline(self):
+        from unittest.mock import patch
+        for language in ('english', 'hinglish'):
+            for topic in ('career', 'education', 'finance'):
+                packet = self.packet(topic)
+                with patch('render_outcome_reading.reading_packet', return_value=packet):
+                    overview = render_reading(reference_chart(), topic, language=language)
+                    detailed = render_reading(reference_chart(), topic, language=language, style='detailed')
+                    timing = render_reading(reference_chart(), topic, language=language, intent='timing')
+                self.assertNotIn('September 2027', overview['text'])
+                self.assertIn('September 2027', detailed['text'])
+                self.assertIn('September 2027', timing['text'])
+                self.assertIn('Chandra' if language == 'hinglish' else 'Moon', overview['text'])
+                self.assertEqual(overview['evidence'], detailed['evidence'])
+                self.assertEqual(overview['evidence'], timing['evidence'])
 
     def test_bubble_packing_preserves_decimal_values_and_all_sentences(self):
         from render_outcome_reading import _chat_paragraphs
@@ -77,6 +94,10 @@ class PredictionTests(unittest.TestCase):
             self.assertIn('divisional_sign', result['evidence']['advanced']['topic_ruler'])
             self.assertNotIn('tomorrow', result['text'])
             self.assertNotIn('Description', str(result['evidence']['provider']['strength']))
+            if style == 'detailed':
+                self.assertIn('Shadbala', result['text'])
+            else:
+                self.assertNotIn('Shadbala', result['text'])
 
     def packet(self, topic='marriage', when=None, value=None):
         return reading_packet(value or reference_chart(), topic,
