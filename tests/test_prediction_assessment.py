@@ -98,6 +98,19 @@ class PredictionTests(unittest.TestCase):
             self.assertNotIn('after 30', text)
             self.assertNotIn('will definitely', text)
 
+    def test_ranking_method_does_not_assert_a_subject_placement(self):
+        seventh = self.packet()['prediction_assessment']['event']
+        value = reference_chart()
+        jupiter = next(p for p in value['planet_positions'] if p['name'] == 'Jupiter')
+        jupiter.update(house=1, sign='Scorpio', sidereal_degree=218.16571850119072)
+        first = self.packet(value=value)['prediction_assessment']['event']
+        self.assertEqual(seventh['windows'][0]['priority'], 2)
+        self.assertTrue(all(w['priority'] == 1 for w in first['windows']))
+        self.assertEqual(first['windows'][0]['rule_id'], 'VenusMarsPD2')
+        self.assertEqual(seventh['ranking_basis'], first['ranking_basis'])
+        self.assertNotIn('Jupiter', first['ranking_basis'])
+        self.assertEqual(first['windows'], sorted(first['windows'], key=lambda w: w['start']))
+
     def test_adverse_positive_and_unavailable_periods_do_not_become_reassurance(self):
         bad = self.packet('marriage', datetime(2025, 10, 8, tzinfo=timezone.utc))
         self.assertEqual(bad['prediction_assessment']['current_period']['status'], 'adverse')

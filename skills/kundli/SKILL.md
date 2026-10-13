@@ -42,6 +42,12 @@ intent without inventing job, promotion, admission or exam dates. The result con
 reviewed wording, not a translation model. Other languages and friend conversation
 handling retain their existing paths.
 
+Use `prediction_assessment.event.windows[].start` and `.end` for each candidate
+interval. `period_start` is the underlying dasha start, not an earlier candidate
+start. Ranking descriptions are method metadata, never proof of this subject's
+planetary placement. Check `chart_facts` for actual positions and do not turn
+lists of alternative rule conditions into simultaneous occupied houses.
+
 The packet contains `chart_facts`, `current_period`, `settings`, an input fingerprint,
 and at most three `factors` with checked placements and reviewed traditional themes.
 For v2, use `prediction_assessment` to answer the actual outcome before advice:

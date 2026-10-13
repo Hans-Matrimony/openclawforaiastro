@@ -119,7 +119,9 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
             'current_period': period, 'event': {'status': event_status, 'windows': windows[:2],
                 'scope': 'selected_marriage_period_rules' if topic == 'marriage' else 'event_timing_not_reviewed',
                 'search_end': horizon.isoformat() + 'Z',
-                'ranking_basis': 'Jupiter period with natal Jupiter in seventh precedes other reviewed candidates'
+                # Describe ordering, not a placement that may be false for this
+                # subject. Candidate priority is computed from actual facts above.
+                'ranking_basis': 'Descending declared candidate priority, then ascending candidate start; priority is not a probability'
                                  if topic == 'marriage' else None},
             'limits': ['Traditional indications are not calibrated probabilities.',
                        'An adverse harmony indication does not mean marriage is denied or divorce is certain.',
