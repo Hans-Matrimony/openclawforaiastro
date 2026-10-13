@@ -192,7 +192,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         # An ordinary overview needs the period's meaning, not an unsolicited
         # deadline. Detailed and timing answers retain the labelled boundary.
         boundary = ''
-        if style != 'standard' or intent == 'timing':
+        if style == 'detailed' or intent == 'timing':
             boundary = (f" Yeh period {_month(current['end'])} tak hai." if hinglish else
                         f" This period runs until {_month(current['end'])}.")
         paragraphs.append(lead + wording + boundary)

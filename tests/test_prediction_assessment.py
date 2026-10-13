@@ -62,9 +62,12 @@ class PredictionTests(unittest.TestCase):
                 packet = self.packet(topic)
                 with patch('render_outcome_reading.reading_packet', return_value=packet):
                     overview = render_reading(reference_chart(), topic, language=language)
+                    brief = render_reading(reference_chart(), topic, language=language, style='brief')
                     detailed = render_reading(reference_chart(), topic, language=language, style='detailed')
                     timing = render_reading(reference_chart(), topic, language=language, intent='timing')
                 self.assertNotIn('September 2027', overview['text'])
+                self.assertNotIn('September 2027', brief['text'])
+                self.assertLessEqual(len(brief['text']), len(overview['text']))
                 self.assertIn('September 2027', detailed['text'])
                 self.assertIn('September 2027', timing['text'])
                 self.assertIn('Chandra' if language == 'hinglish' else 'Moon', overview['text'])
