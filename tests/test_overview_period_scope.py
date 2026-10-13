@@ -16,7 +16,7 @@ class OverviewPeriodScopeTests(unittest.TestCase):
                             answer = render_reading(reference_chart(), topic, language=language,
                                 style=style, as_of_utc=datetime(year, 10, 13, tzinfo=timezone.utc))
                             self.assertNotRegex(answer['text'], r'admission|exam|job offer|promotion')
-                            self.assertIn('gain' if topic == 'career' else 'knowledge', answer['text'])
+                            self.assertIn('gain' if topic == 'career' else 'knowledge', answer['text'].lower())
                             self.assertIn('Chandra' if year == 2026 and language == 'hinglish' else
                                           'Guru' if language == 'hinglish' else
                                           'Moon' if year == 2026 else 'Jupiter', answer['text'])

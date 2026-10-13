@@ -73,7 +73,28 @@ def _factor_reason(factor, topic, hinglish, compact=False):
                             'marriage': 'Rishte mein ', 'finance': 'Paise ke maamle mein '}[topic]
             text = topic_prefix + text
             break
+    for report, conversational in (('Padhai ki reading mein ', 'Padhai mein '),
+                                    ('Paise ki reading mein ', 'Paise ke maamle mein '),
+                                    ('Shaadi ki reading mein ', 'Rishte mein '),
+                                    ('Rishte ki reading mein ', 'Rishte mein '),
+                                    ('Career ki reading mein ', 'Career mein ')):
+        if text.startswith(report):
+            text = conversational + text[len(report):]
+            break
     return text.rstrip('.') + ' — ' + _conversational_basis(factor['fact'], hinglish) + '.'
+
+
+def _reviewed_next_step(factor, topic, hinglish):
+    """Use only the optional action already reviewed for this exact factor.
+
+    A suggested activity is not evidence of aptitude, a prediction or a remedy
+    guaranteed to alter an event. Fall back to no advice for other rule shapes.
+    """
+    theme = hinglish_theme if hinglish else english_theme
+    finding = theme(factor, topic=topic, include_advice=False)
+    complete = theme(factor, topic=topic, include_advice=True)
+    prefix = finding + ' '
+    return complete[len(prefix):] if complete.startswith(prefix) else ''
 
 
 def _natal_reason(reason, hinglish, compact=False):
@@ -268,6 +289,12 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             factor_paragraph = next(p for p in paragraphs if p.startswith(extras[0]))
             paragraphs.remove(factor_paragraph)
             paragraphs.insert(0, factor_paragraph)
+        if intent == 'overview' and packet['factors']:
+            # One relevant practical option gives a direction reading substance
+            # without padding it with additional, unassessed chart claims.
+            step = _reviewed_next_step(packet['factors'][0], topic, hinglish)
+            if step and not any(step in paragraph for paragraph in paragraphs):
+                paragraphs.append(step)
         # Do not merge every remaining fact into one oversized paragraph:
         # the PWA splits it at an arbitrary word (e.g. "Shadbala assessment").
         # Preserve the answer/evidence sections and every complete sentence.

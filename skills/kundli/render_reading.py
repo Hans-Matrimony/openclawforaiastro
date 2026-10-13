@@ -51,10 +51,8 @@ def native_supporting_detail(packet, hi, detailed=True):
     if detail:
         detail += '.'
         if detailed:
-            detail += (' Yeh birth chart ka ek aur division hai; sirf is rashi se partner ka swabhav ya koi result tay nahi hota.' if hi else
-                       ' This is another division of the birth chart; this sign alone does not establish a partner\'s character or an outcome.') if packet['topic'] == 'marriage' else (
-                       ' Yeh birth chart ka ek aur division hai; ise main chart ke saath samjha jaata hai, apne aap mein ability ka test nahi.' if hi else
-                       ' This is another division of the birth chart, read alongside the main chart rather than as a test of ability.')
+            detail += (' Is division ko main chart ke saath padha jaata hai.' if hi else
+                       ' This division is read alongside the main chart.')
     dignity = ruler['d1_dignity']
     if dignity['own_sign']:
         detail += (f' {planet} main chart mein apni rashi mein hain.' if hi else f' {planet} occupies its own sign in the main chart.')
@@ -84,6 +82,9 @@ def native_supporting_detail(packet, hi, detailed=True):
         if detailed and (ruler['divisional_own_sign'] or ruler['same_d1_divisional_sign'] or dignity['own_sign'] or dignity['exaltation_sign']):
             detail += (' Rashi mein achhi placement aur poori planetary strength alag checks hain.' if hi else
                        ' A favorable sign placement and overall planetary strength are separate checks.')
+    if detailed and packet['topic'] == 'marriage':
+        detail += (' Inse partner ka swabhav ya shaadi ka result tay nahi hota.' if hi else
+                   ' These do not establish a partner\'s character or the outcome of a marriage.')
     warning = boundary_warning(packet, hi)
     if warning:
         detail += ' ' + warning

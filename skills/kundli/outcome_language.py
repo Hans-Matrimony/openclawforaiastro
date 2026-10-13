@@ -144,9 +144,10 @@ PERIOD_WORDING = {
 # an unasked hiring, promotion or admission question. Detailed/timing replies
 # continue to use PERIOD_WORDING and the event assessment's limits.
 OVERVIEW_PERIOD_WORDING = {
-    ('Moon', 'career'): ('This period mentions gains.', 'Is period mein gains ka zikr hai.'),
+    ('Moon', 'career'): ('Gains are indicated during this period.', 'Is daur mein gains ke sanket hain.'),
     **{key: tuple(text.split('. ', 1)[0] + '.' for text in PERIOD_WORDING[key])
-       for key in (('Moon', 'education'), ('Jupiter', 'education'), ('Jupiter', 'career'))},
+       for key in (('Moon', 'education'), ('Jupiter', 'education'), ('Jupiter', 'career'),
+                   ('Moon', 'finance'), ('Jupiter', 'finance'), ('Venus', 'finance'))},
 }
 
 NATAL_WORDING = {
