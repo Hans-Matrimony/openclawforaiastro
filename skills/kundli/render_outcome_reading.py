@@ -59,7 +59,7 @@ def _conversational_basis(fact, hinglish):
 def _factor_reason(factor, topic, hinglish, compact=False):
     if compact and topic == 'marriage' and factor['id'] == 'House7LordInHouse4':
         fact = factor['fact']
-        return (f"Shaadi ke swami {HINGLISH_PLANETS[fact['planet']]} {HINGLISH_SIGNS[fact['sign']]} ke {HINGLISH_HOUSE_NAMES[fact['house']]} ghar mein hain; unka sanket ghar aur saath rehne ki comfort se juda hai."
+        return (f"Shaadi ke swami {HINGLISH_PLANETS[fact['planet']]} {HINGLISH_SIGNS[fact['sign']]} ke {HINGLISH_HOUSE_NAMES[fact['house']]} ghar mein hain; yahan ghar aur saath rehne ke sukoon par zor hai."
                 if hinglish else f"{fact['planet']}, your marriage-house ruler, is in {fact['sign']} in house {fact['house']}, linking the relationship reading with home and comfort in living together.")
     text = hinglish_theme(factor, topic=topic, include_advice=False) if hinglish else english_theme(factor, topic=topic, include_advice=False)
     # Remove presentation filler only; never infer a new talent, trait or outcome.
@@ -105,6 +105,8 @@ def _natal_reason(reason, hinglish, compact=False):
     if reason['id'] not in ('SaturnIn7thNotLagnaLord', 'JupiterInHouse7', 'House7LordInHouse4'):
         return NATAL_WORDING[reason['id']][1 if hinglish else 0] + _basis(fact, hinglish)
     if compact:
+        if reason['id'] == 'House7LordInHouse4':
+            return _factor_reason(reason, 'marriage', hinglish, compact=True)
         names = HINGLISH_PLANETS if hinglish else {fact['planet']: fact['planet']}
         meanings = {
             'SaturnIn7thNotLagnaLord': ('rishte mein tanav', 'strain in the relationship'),

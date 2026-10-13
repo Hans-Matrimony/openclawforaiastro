@@ -21,6 +21,7 @@ class MarriageConversationTests(unittest.TestCase):
                 if style == 'brief':
                     self.assertEqual(result['text'].count('.'), 1)
                 else:
+                    self.assertIn('Shaadi ke swami Shukra' if language == 'hinglish' else 'marriage-house ruler', result['text'])
                     for value in (('Guru', 'Shani', 'Shukra', 'tanav', 'Kumbh') if language == 'hinglish'
                                   else ('Jupiter', 'Saturn', 'Venus', 'strain', 'Aquarius')):
                         self.assertIn(value, result['text'])
