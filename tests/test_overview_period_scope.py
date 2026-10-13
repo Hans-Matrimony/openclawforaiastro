@@ -11,7 +11,7 @@ class OverviewPeriodScopeTests(unittest.TestCase):
         for year in (2026, 2032):
             for topic in ('career', 'education'):
                 for language in ('english', 'hinglish'):
-                    for style in ('standard', 'brief'):
+                    for style in ('standard', 'brief', 'detailed'):
                         with self.subTest(year=year, topic=topic, language=language, style=style):
                             answer = render_reading(reference_chart(), topic, language=language,
                                 style=style, as_of_utc=datetime(year, 10, 13, tzinfo=timezone.utc))
@@ -28,7 +28,8 @@ class OverviewPeriodScopeTests(unittest.TestCase):
                 overview = render_reading(reference_chart(), topic, **kwargs)
                 detailed = render_reading(reference_chart(), topic, style='detailed', **kwargs)
                 timing = render_reading(reference_chart(), topic, intent='timing', **kwargs)
-                self.assertIn('promotion' if topic == 'career' else 'exam', detailed['text'])
+                self.assertNotRegex(detailed['text'], r'admission|exam|job offer|promotion')
+                self.assertIn('September 2027', detailed['text'])
                 self.assertIn('nahi' if language == 'hinglish' else 'not', timing['text'])
                 self.assertEqual(overview['evidence'], detailed['evidence'])
                 self.assertEqual(overview['evidence'], timing['evidence'])

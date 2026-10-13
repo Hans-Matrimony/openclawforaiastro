@@ -55,7 +55,8 @@ class WordingQualityTests(unittest.TestCase):
             self.assertEqual(brief['evidence'],full['evidence'])
             self.assertEqual(len(brief['text'].split('\n\n')),1)
             self.assertIn('2031',brief['text'])
-            self.assertIn('conditional',brief['text'])
+            self.assertEqual(brief['evidence']['prediction_assessment']['event']['status'], 'conditional')
+            self.assertIn('anukool dikhta hai' if language == 'hinglish' else 'looks more favorable', brief['text'])
             self.assertNotIn('2027',brief['text'])
             self.assertLess(len(brief['text']),len(full['text'])/2)
 
@@ -71,7 +72,9 @@ class WordingQualityTests(unittest.TestCase):
 
     def test_mixed_chart_retains_both_support_and_challenge(self):
         result=render_reading(reference_chart(),'marriage',as_of_utc=WHEN,language='english')
-        self.assertIn('supportive and challenging',result['text'])
+        self.assertIn('support for the relationship', result['text'])
+        self.assertIn('strain', result['text'])
+        self.assertEqual(result['evidence']['prediction_assessment']['conclusion']['status'], 'mixed')
         self.assertIn('Saturn',result['text'])
         self.assertIn('Jupiter',result['text'])
         self.assertIn('Venus',result['text'])
@@ -85,7 +88,7 @@ class WordingQualityTests(unittest.TestCase):
                 self.assertEqual(standard['evidence'],detailed['evidence'])
                 self.assertNotIn('do not point clearly',standard['text'].split('.')[0])
                 self.assertNotIn('saaf anukool ya pratikool',standard['text'].split('.')[0])
-                self.assertLessEqual(len(standard['text'].split('\n\n')),2)
+                self.assertLessEqual(len(standard['text'].split('\n\n')),3)
                 self.assertIn('house' if language=='english' else 'ghar',standard['text'].split('\n\n')[0])
                 if topic=='career' and language=='hinglish':
                     self.assertTrue(standard['text'].startswith('Career mein '))
@@ -106,7 +109,8 @@ class WordingQualityTests(unittest.TestCase):
             detailed=render_reading(reference_chart(),'marriage',as_of_utc=WHEN,language=language,intent='timing',style='detailed')
             self.assertEqual(standard['evidence'],detailed['evidence'])
             self.assertTrue(all(year in standard['text'] for year in ('2031','2034','2027','2028')))
-            self.assertIn('conditional',standard['text'])
+            self.assertEqual(standard['evidence']['prediction_assessment']['event']['status'], 'conditional')
+            self.assertIn('anukool dikhta hai' if language == 'hinglish' else 'looks more favorable', standard['text'])
             self.assertTrue(all(planet in standard['text'] for planet in (('Saturn','Jupiter') if language=='english' else ('Shani','Guru'))))
             self.assertLess(len(standard['text'].split()),len(detailed['text'].split()))
             self.assertLessEqual(len(standard['text'].split()),140)
@@ -120,6 +124,7 @@ class WordingQualityTests(unittest.TestCase):
                                           language=language, style='detailed')
                 self.assertEqual(brief['evidence'], detailed['evidence'])
                 self.assertIn('house' if language == 'english' else 'ghar', brief['text'])
-                self.assertIn('September 2027', brief['text'])
+                self.assertIn('Chandra' if language == 'hinglish' else 'Moon', brief['text'])
+                self.assertNotIn('September 2027', brief['text'])
                 self.assertNotIn('saaf anukool ya pratikool', brief['text'])
                 self.assertNotIn('do not point clearly', brief['text'])

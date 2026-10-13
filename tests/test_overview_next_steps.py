@@ -18,6 +18,10 @@ class OverviewNextStepsTests(unittest.TestCase):
                 step = _reviewed_next_step(answer['evidence']['factors'][0], topic, language == 'hinglish')
                 if step:
                     self.assertEqual(answer['text'].count(step), 1)
+                    self.assertEqual(detailed['text'].count(step), 1)
+                if topic != 'marriage':
+                    self.assertNotIn('Abhi ' if language == 'hinglish' else 'You are currently',
+                                     detailed['text'].split('\n\n')[0])
                 for bubble in answer['text'].split('\n\n'):
                     self.assertTrue(bubble.endswith('.'))
                     self.assertLessEqual(len(bubble), 360)

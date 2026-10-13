@@ -217,7 +217,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             wording = scoped_marriage
         elif current['mahadasha'] == 'Venus' and (current['antardasha'], topic) in PERIOD_WORDING:
             key = (current['antardasha'], topic)
-            wordings = OVERVIEW_PERIOD_WORDING if intent == 'overview' and style != 'detailed' else {}
+            # Asking for detail about a topic is not an event-date question.
+            # Keep the same scoped period meaning at every overview length.
+            wordings = OVERVIEW_PERIOD_WORDING if intent == 'overview' else {}
             wording = wordings.get(key, PERIOD_WORDING[key])[1 if hinglish else 0]
         else:
             from period_rules import period_wording
@@ -278,7 +280,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         # Warnings are intentionally not interpolated: upstream data can contain prose.
         paragraphs.append('Chandra ki placement boundary ke paas hai; birth time uncertain ho toh pehle confirm karein.'
                           if hinglish else 'The Moon is near a placement boundary; confirm an uncertain birth time before relying on it.')
-    if style == 'standard':
+    if style in ('standard', 'detailed'):
         # A direction question should lead with its chart-supported direction,
         # not a generic absence-of-certainty sentence. Mixed/adverse labels stay.
         if intent == 'overview' and not natal['reasons'] and extras:
@@ -294,7 +296,8 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         # Do not merge every remaining fact into one oversized paragraph:
         # the PWA splits it at an arbitrary word (e.g. "Shadbala assessment").
         # Preserve the answer/evidence sections and every complete sentence.
-        paragraphs = _chat_paragraphs(paragraphs)
+        if style == 'standard':
+            paragraphs = _chat_paragraphs(paragraphs)
     if style == 'brief':
         warning = paragraphs[-1] if any('boundary' in p for p in paragraphs[-1:]) else None
         paragraphs = [' '.join(paragraphs[:1 if intent == 'timing' and windows else 2])]
