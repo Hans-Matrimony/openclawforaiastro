@@ -182,9 +182,9 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
                 else:
                     alternative = f"Ek aur sambhavit period {dates} hai." if hinglish else f"Another indicated period is {dates}."
                 paragraphs[-1] += ' ' + alternative
-            if style == 'standard':
-                paragraphs[-1] += (' Yeh dasha ke sanket hain, shaadi ki pakki tareekh nahi.' if hinglish else
-                                   ' These are dasha-based possibilities, not a fixed wedding date.')
+            # Standard wording already qualifies this as a possible or more
+            # favorable dasha period. Do not repeat a certainty disclaimer.
+            # Brief/detailed answers retain their explicit scope above.
         else:
             target = {'marriage': ('shaadi', 'marriage'), 'career': ('job ya promotion', 'job or promotion'),
                       'education': ('admission ya exam result', 'admission or exam result'),

@@ -24,7 +24,9 @@ class MarriageConversationTests(unittest.TestCase):
                 for name in (('Guru', 'Shani', 'Shukra', 'Vrishabh', 'Kumbh', 'tanav') if language == 'hinglish'
                              else ('Jupiter', 'Saturn', 'Venus', 'Taurus', 'Aquarius', 'strain')):
                     self.assertIn(name, text)
-                self.assertEqual(text.count('pakki tareekh nahi' if language == 'hinglish' else 'not a fixed wedding date'), 1)
+                self.assertIn('anukool dikhta hai' if language == 'hinglish' else 'looks more favorable', text)
+                self.assertNotIn('pakki tareekh nahi' if language == 'hinglish' else 'not a fixed wedding date', text)
+                self.assertEqual(result['evidence']['prediction_assessment']['event']['status'], 'conditional')
                 self.assertEqual(result['evidence'], detailed['evidence'])
                 self.assertEqual(result['model_calls'], 0)
 

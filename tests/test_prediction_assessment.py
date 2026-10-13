@@ -51,7 +51,7 @@ class PredictionTests(unittest.TestCase):
             self.assertNotIn('Shadbala', result['text'])
             self.assertIn('2031', result['text'])
             self.assertIn('2027', result['text'])
-            self.assertIn('pakki tareekh nahi' if language == 'hinglish' else 'not a fixed wedding date', result['text'])
+            self.assertIn('anukool dikhta hai' if language == 'hinglish' else 'looks more favorable', result['text'])
             self.assertIn('tanav' if language == 'hinglish' else 'strain', result['text'])
             self.assertEqual(result['evidence'], packet)
 
@@ -147,7 +147,7 @@ class PredictionTests(unittest.TestCase):
             self.assertNotIn('probability', window)
         for language in ('english', 'hinglish'):
             text = render_reading(reference_chart(), 'marriage', language=language, intent='timing')['text']
-            self.assertIn('pakki tareekh nahi' if language == 'hinglish' else 'not a fixed wedding date', text)
+            self.assertIn('anukool dikhta hai' if language == 'hinglish' else 'looks more favorable', text)
             self.assertIn('2031', text)
             self.assertIn('2027', text)
             self.assertNotIn('after 30', text)
