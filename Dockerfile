@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     python3 \
     python3-pip \
+    python3-venv \
     build-essential \
     curl \
     git \
@@ -21,6 +22,12 @@ RUN pnpm add grammy @aws-sdk/client-bedrock
 
 # python deps
 RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client --break-system-packages
+
+# Pin new evidence dependencies in a separate interpreter so enabling this
+# route does not upgrade or change the legacy calculator's Python packages.
+RUN python3 -m venv /opt/astrology-response-python \
+    && /opt/astrology-response-python/bin/python -m pip install \
+    pyswisseph==2.10.3.2 timezonefinder==9.0.0 tzdata==2026.4
 
 # ❌ REMOVE UI BUILD (this was breaking everything)
 
@@ -57,6 +64,15 @@ COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrolo
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
+COPY app/astrologer-prompt-profiles/ /app/astrologer-prompt-profiles/
+COPY scripts/install-astrologer-prompts.mjs /app/install-astrologer-prompts.mjs
+# The optional response path has its own immutable assets, outside mounted
+# legacy skill/persona state. It cannot overwrite memories or credentials.
+COPY extensions/astrology-response/ /app/extensions/astrology-response/
+COPY extensions/reviewed-reading/route.mjs /app/extensions/reviewed-reading/route.mjs
+COPY skills/kundli/response_evidence.py skills/kundli/response_contract.py skills/kundli/response_calculations.py skills/kundli/response_marriage_timing.py skills/kundli/timing_periods.py skills/kundli/vimshottari.py skills/kundli/topic_rules.py skills/kundli/separation_rules.py skills/kundli/natal_cache.py skills/kundli/cities_india.json skills/kundli/verify_response_runtime.py /app/astrology-response/kundli/
+RUN /opt/astrology-response-python/bin/python /app/astrology-response/kundli/verify_response_runtime.py
+COPY app/astrology-response-writer/ /app/astrology-response/writer/
 COPY scripts/start-openclaw-gateway.sh /app/start-openclaw-gateway.sh
 COPY scripts/openclaw-docker-wrapper.sh /app/bin/openclaw
 
@@ -66,6 +82,7 @@ RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json \
     && ln -sf /app/bin/openclaw /app/node_modules/.bin/openclaw
 
 ENV OPENCLAW_STATE_DIR=/app/.openclaw
+ENV ASTROFRIEND_RESPONSE_PYTHON=/opt/astrology-response-python/bin/python
 ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
 ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
 ENV HOME=/app

@@ -1,0 +1,6 @@
+{
+  "id": "astrology-response",
+  "name": "Astrology response evidence",
+  "description": "Opt-in, authenticated natal evidence without persona hooks or inference.",
+  "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
+}

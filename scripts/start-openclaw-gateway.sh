@@ -25,9 +25,8 @@ log_startup "[startup] HOME=$HOME"
 log_startup "[startup] OPENCLAW_CONFIG_PATH=$OPENCLAW_CONFIG_PATH"
 log_startup "[startup] OPENCLAW_STATE_DIR=$OPENCLAW_STATE_DIR"
 
-if [ -f "$CONFIG_SOURCE" ]; then
-  cp "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json"
-  chmod 600 "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json" 2>/dev/null || true
+if [ -f "$APP_DIR/install-astrologer-prompts.mjs" ]; then
+  node "$APP_DIR/install-astrologer-prompts.mjs"
 fi
 
 if [ -d "$APP_DIR/bootstrap/workspace-tarot-reader" ]; then
@@ -38,6 +37,14 @@ node - "$OPENCLAW_CONFIG_PATH" <<'NODE'
 const fs = require("node:fs");
 const configPath = process.argv[2];
 const cfg = JSON.parse(fs.readFileSync(configPath, "utf8"));
+// Data routes are opt-in independently of PWA mode; no global persona hook.
+const responseRoutesEnabled = String(process.env.ASTROFRIEND_ASTROLOGY_RESPONSE_ROUTES_ENABLED).toLowerCase() === "true";
+cfg.plugins ??= {};
+cfg.plugins.entries ??= {};
+if (cfg.plugins.entries["astrology-response"]?.enabled !== responseRoutesEnabled) {
+  cfg.plugins.entries["astrology-response"] = { ...cfg.plugins.entries["astrology-response"], enabled: responseRoutesEnabled };
+  fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2) + "\n");
+}
 const agents = new Set((cfg.agents?.list ?? []).map((agent) => agent?.id));
 const tarotBindings = (cfg.bindings ?? []).filter((binding) => {
   const match = binding?.match;
@@ -58,6 +65,11 @@ if (tarotBindings.length === 0) {
 console.log(`[startup] OpenClaw config: ${configPath}`);
 console.log(`[startup] tarot_reader test bindings: ${tarotBindings.length}`);
 NODE
+
+if [ -f "$CONFIG_SOURCE" ]; then
+  cp "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json"
+  chmod 600 "$CONFIG_SOURCE" "$OPENCLAW_STATE_DIR/openclaw.json" 2>/dev/null || true
+fi
 
 if [ "$#" -gt 0 ]; then
   exec "$@"

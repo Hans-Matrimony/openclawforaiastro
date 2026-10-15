@@ -1,0 +1,70 @@
+{
+  "schema": "astrofriend-prompt-profiles-v1",
+  "managed_files": {
+    "workspace-astrologer/AGENTS.md": {
+      "legacy_sha256": "887313244e16c83bb5d6ae0ac69da84b8218d3495074aca54bf7b6f94b9c3a77",
+      "legacy_chars": 30877,
+      "legacy_bytes": 31474,
+      "compact_sha256": "3e68a42cbbd099cc4639d0e5498ee7f04e0e4595156adae9c13ac44e5d80c5a6",
+      "compact_chars": 9777,
+      "compact_bytes": 9921
+    },
+    "workspace-astrologer/SOUL.md": {
+      "legacy_sha256": "a787b8079c8066fdb628b2da56018ba4ecbf924722924b16c422fa8542a45f8f",
+      "legacy_chars": 30534,
+      "legacy_bytes": 30875,
+      "compact_sha256": "61b3f7c19cece8be5213079fa1b4c3fe53c53f56688cea6c53edbd7c97405bd2",
+      "compact_chars": 1028,
+      "compact_bytes": 1028
+    },
+    "workspace-astrologer/TOOLS.md": {
+      "legacy_sha256": "03846a5871b11f2eeea299379e55b09e7c0dfd4d7b12d21c09b0ce6bbb3cf403",
+      "legacy_chars": 10190,
+      "legacy_bytes": 10293,
+      "compact_sha256": "63d53035bd4ab66698640148f4ed760bc053f840d4b6b59c293ccc18c3e24ab1",
+      "compact_chars": 3317,
+      "compact_bytes": 3319
+    },
+    "workspace-astrologer/WORKFLOW.md": {
+      "legacy_sha256": "e52ab8a8ba685175d9c381865ca4fa73978909121d603dd8a2bcc9cb7e5cfddc",
+      "legacy_chars": 16831,
+      "legacy_bytes": 17073,
+      "compact_sha256": "b16d590927684a0e5090ee2394f3b3bae2e6c66dda2db4503e331a44419dcd5e",
+      "compact_chars": 2787,
+      "compact_bytes": 2787
+    },
+    "workspace-astrologer/GUARDRAILS.md": {
+      "legacy_sha256": "0bc72300daa484e1ec606065486b755a59fb4caf79cfa2eb0e42768e3354b1eb",
+      "legacy_chars": 20178,
+      "legacy_bytes": 20654,
+      "compact_sha256": "b9b724baa413417cf19139a0e6722c82f796979ae2cc1a0170589f1d2e2e8e0a",
+      "compact_chars": 3930,
+      "compact_bytes": 3930
+    },
+    "workspace-astrologer/KUNDLI_RESPONSE.md": {
+      "legacy_sha256": "8cfee4f60952e569a1f4fc794d90623f6fa38df13f1ba566bb2933a94bc0fd08",
+      "legacy_chars": 19325,
+      "legacy_bytes": 19366,
+      "compact_sha256": "5dff81fc85ec1f010d75d43f4a6b22fc233f696209d7ee4e7411cc55960b85ab",
+      "compact_chars": 1937,
+      "compact_bytes": 1937
+    },
+    ".pi/prompts/astrologer.md": {
+      "legacy_sha256": "a2829f9d3dc8f299f2763d33bc61b5b32136b3798b2dad8dd27428dc85a378d6",
+      "legacy_chars": 29192,
+      "legacy_bytes": 30430,
+      "compact_sha256": "78f54fd9989ac8a99955dd1bb687b67a241ba23951eb43c768bb6623fee5446e",
+      "compact_chars": 1829,
+      "compact_bytes": 1829
+    },
+    "workspace-astrologer-preview/AGENTS.md": {
+      "legacy_sha256": "4a7d986a41e566d1fe38c6293117a54e00a785a1ea01460d35e3c3cf0c8ea0e0",
+      "legacy_chars": 5512,
+      "legacy_bytes": 5512,
+      "compact_sha256": "01fe884b647a21577015e08a1f44dcdc764dd7136ae065d72c4740c62d96cd1a",
+      "compact_chars": 2350,
+      "compact_bytes": 2352
+    }
+  },
+  "policy": "Replace only known stock prompt versions; never overwrite unknown customizations or user data."
+}

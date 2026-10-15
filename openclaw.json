@@ -548,6 +548,18 @@
         },
         "tools": {
           "profile": "messaging",
+          "loopDetection": {
+            "enabled": true,
+            "historySize": 40,
+            "warningThreshold": 10,
+            "criticalThreshold": 20,
+            "globalCircuitBreakerThreshold": 30,
+            "detectors": {
+              "genericRepeat": true,
+              "knownPollNoProgress": true,
+              "pingPong": true
+            }
+          },
           "alsoAllow": [
             "exec",
             "read",
@@ -639,6 +651,20 @@
         "tools": {
           "profile": "messaging",
           "alsoAllow": []
+        }
+      },
+      {
+        "id": "astrology_response_writer",
+        "name": "Astrology response writer",
+        "workspace": "/app/astrology-response/writer",
+        "model": {
+          "primary": "deepseek/deepseek-v4-flash"
+        },
+        "skills": [],
+        "tools": {
+          "deny": [
+            "*"
+          ]
         }
       }
     ]
@@ -911,7 +937,15 @@
       },
       "whatsapp": {
         "enabled": false
+      },
+      "astrology-response": {
+        "enabled": false
       }
+    },
+    "load": {
+      "paths": [
+        "/app/extensions/astrology-response"
+      ]
     }
   }
 }

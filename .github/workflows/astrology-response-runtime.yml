@@ -1,0 +1,69 @@
+name: Astrology response image
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - Dockerfile
+      - openclaw.json
+      - extensions/astrology-response/**
+      - extensions/reviewed-reading/route.mjs
+      - skills/kundli/**
+      - app/astrology-response-writer/**
+      - app/astrologer-prompt-profiles/**
+      - app/whatsapp-support/workspace-astrologer/**
+      - app/whatsapp-support/workspace-astrologer-preview/**
+      - .pi/prompts/astrologer.md
+      - scripts/install-astrologer-prompts.mjs
+      - scripts/verify-native-loop-guard.mjs
+      - scripts/verify-prompt-startup.mjs
+      - tests/test_compact_prompts.mjs
+      - tests/test_astrologer_prompt_contracts.mjs
+      - scripts/astrologer-prompt.test.mjs
+      - scripts/billing-prompt.test.mjs
+      - scripts/verify-astrology-response-gateway.mjs
+      - scripts/start-openclaw-gateway.sh
+      - scripts/openclaw-docker-wrapper.sh
+      - tests/test_response_evidence_route.mjs
+      - .github/workflows/astrology-response-runtime.yml
+
+permissions:
+  contents: read
+
+jobs:
+  image-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build without publishing
+        run: docker build --tag astrofriend-response-check .
+      - name: Verify compact prompts, mounted migration and rollback
+        run: >-
+          docker run --rm --network none --entrypoint node
+          -v "$PWD:/checks:ro" -w /checks
+          astrofriend-response-check --test tests/test_compact_prompts.mjs
+          tests/test_astrologer_prompt_contracts.mjs scripts/astrologer-prompt.test.mjs scripts/billing-prompt.test.mjs
+      - name: Verify native configuration and progress-aware loop guard
+        run: >-
+          docker run --rm --network none --entrypoint node
+          -v "$PWD/scripts/verify-native-loop-guard.mjs:/checks/guard.mjs:ro"
+          astrofriend-response-check /checks/guard.mjs
+      - name: Verify actual startup with persistent prompts and protected state
+        run: node scripts/verify-prompt-startup.mjs astrofriend-response-check
+      - name: Verify the isolated evidence assets in the built image
+        run: >-
+          docker run --rm --entrypoint /opt/astrology-response-python/bin/python
+          astrofriend-response-check /app/astrology-response/kundli/verify_response_runtime.py
+      - name: Verify real middleware authentication without model requests
+        run: >-
+          docker run --rm --entrypoint node
+          -v "$PWD/scripts/verify-astrology-response-gateway.mjs:/checks/verify.mjs:ro"
+          astrofriend-response-check /checks/verify.mjs
+      - name: Verify real native chart and marriage-screen calculations
+        run: >-
+          docker run --rm --network none
+          --env PYTHONPATH=/usr/local/lib/python3.11/dist-packages
+          --entrypoint /opt/astrology-response-python/bin/python
+          -v "$PWD:/checks:ro" -w /checks astrofriend-response-check
+          -m unittest discover -s tests -p test_response_evidence.py -v
