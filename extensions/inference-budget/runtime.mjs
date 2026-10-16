@@ -32,6 +32,8 @@ export const GUARDED_AGENTS = new Set([
   "astrologer",
   "astrologer_pwa",
   "reply_repair",
+  "provider_selector",
+  "provider_renderer",
   "astrologer_preview",
   "astrologer_preview_fast",
 ]);
@@ -224,7 +226,18 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
       if (runs.size >= CAPACITY) {
         return;
       }
-      const budget = new ModelBudget(limits);
+      const isolatedProvider = ["provider_selector", "provider_renderer"].includes(context.agentId);
+      const budget = new ModelBudget(
+        isolatedProvider
+          ? {
+              ...limits,
+              attempts: 1,
+              outputTokens: 2048,
+              totalOutputTokens: 2048,
+              durationMs: 40000,
+            }
+          : limits,
+      );
       budget.runId = context.runId;
       budget.agentId = context.agentId;
       budget.language = /\[Language:\s*([a-z]+)\]/i.exec(prompt)?.[1]?.toLowerCase() ?? "english";

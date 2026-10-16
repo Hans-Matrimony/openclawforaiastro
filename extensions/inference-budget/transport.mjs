@@ -72,6 +72,17 @@ export function boundPayload(body, api, budget) {
     if (!Array.isArray(payload.messages)) {
       budget.stop("invalid_payload");
     }
+    if (["provider_selector", "provider_renderer"].includes(budget.agentId)) {
+      if (payload.model !== "google/gemini-3.8-flash") {
+        budget.stop("invalid_payload");
+      }
+      // These isolated stages use the frozen experiment's OpenRouter settings.
+      // Apply at the actual HTTP boundary, independent of gateway reasoning defaults.
+      payload.reasoning = { effort: "low" };
+      delete payload.reasoning_effort;
+      payload.temperature = 0;
+      payload.response_format = { type: "json_object" };
+    }
     const key = "max_completion_tokens" in payload ? "max_completion_tokens" : "max_tokens";
     tokens = cappedOutput(payload[key], cap);
     delete payload.max_tokens;

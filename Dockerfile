@@ -98,6 +98,9 @@ COPY scripts/migrate-astrology-instructions.mjs /app/migrate-astrology-instructi
 COPY scripts/astrology-instruction-manifest.mjs /app/astrology-instruction-manifest.mjs
 COPY scripts/validate-inference-budget.mjs /app/validate-inference-budget.mjs
 COPY scripts/configure-control-ui.mjs /app/configure-control-ui.mjs
+COPY scripts/configure-provider-render.mjs /app/configure-provider-render.mjs
+COPY app/whatsapp-support/workspace-provider-selector/ /app/bootstrap/workspace-provider-selector/
+COPY app/whatsapp-support/workspace-provider-renderer/ /app/bootstrap/workspace-provider-renderer/
 COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
 COPY app/whatsapp-support/workspace-reply-repair/ /app/.openclaw/workspace-reply-repair/
 COPY app/whatsapp-support/workspace-reply-repair/ /app/bootstrap/workspace-reply-repair/

@@ -7,6 +7,10 @@ import { migrateAstrologyInstructions } from "./migrate-astrology-instructions.m
 // sessions, caches, credentials or persona files. The separate migration below
 // updates only explicitly reviewed persona revisions, preserving customized files.
 export const ASTROLOGY_ASSETS = [
+  ...["workspace-provider-selector", "workspace-provider-renderer"].flatMap((workspace) => [
+    `${workspace}/AGENTS.md`,
+    `${workspace}/.pi/extensions/astrofriend-budget.ts`,
+  ]),
   ...[
     "calculate.py",
     "reading.py",

@@ -8,6 +8,8 @@ const AGENTS = new Set([
   "astrologer",
   "astrologer_pwa",
   "reply_repair",
+  "provider_selector",
+  "provider_renderer",
   "astrologer_preview",
   "astrologer_preview_fast",
 ]);

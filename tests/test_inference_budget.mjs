@@ -9,6 +9,35 @@ import {
 } from "../extensions/inference-budget/transport.mjs";
 import { validateBudgetConfig, validateBudgetShim } from "../scripts/validate-inference-budget.mjs";
 
+void test("provider stages pin actual reasoning and JSON payload without changing other agents", () => {
+  const input = { model: "google/gemini-3.8-flash", messages: [], reasoning_effort: "high" };
+  for (const id of ["provider_selector", "provider_renderer"]) {
+    const budget = new ModelBudget();
+    budget.agentId = id;
+    const output = JSON.parse(boundPayload(JSON.stringify(input), "openai-completions", budget));
+    assert.deepEqual(output.reasoning, { effort: "low" });
+    assert.deepEqual(output.response_format, { type: "json_object" });
+    assert.equal(output.temperature, 0);
+    assert.equal(output.reasoning_effort, undefined);
+    const invalid = new ModelBudget();
+    invalid.agentId = id;
+    assert.throws(
+      () =>
+        boundPayload(
+          JSON.stringify({ ...input, model: "different" }),
+          "openai-completions",
+          invalid,
+        ),
+      /budget exhausted/,
+    );
+  }
+  const ordinary = JSON.parse(
+    boundPayload(JSON.stringify(input), "openai-completions", new ModelBudget()),
+  );
+  assert.equal(ordinary.reasoning_effort, "high");
+  assert.equal(ordinary.response_format, undefined);
+});
+
 void test("startup shim validation permits quote formatting but rejects other code or paths", () => {
   const single = "export { default } from '../../../runtime/inference-budget/pi-extension.mjs';";
   validateBudgetShim(single);
