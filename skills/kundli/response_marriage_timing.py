@@ -134,6 +134,79 @@ def month_label(month):
     return f'{calendar.month_name[number]} {year}'
 
 
+def previous_simple_timing_sentences(screen, language):
+    """Original local simple wording, admitted only for saved-response replay."""
+    hi = language == 'hinglish'
+    if screen['status'] == 'not_supported_for_minor':
+        return timing_sentences(screen, language, 'marriage_simple')
+    candidates = [month_label(w['month']) for w in screen['months'] if w['kind'] == 'aligned'][:3]
+    if candidates:
+        months = (candidates[0] if len(candidates) == 1 else
+                  ', '.join(candidates[:-1]) + (' aur ' if hi else ' and ') + candidates[-1])
+        return ([f'Aapki kundli ke hisaab se {months} mein shaadi ka mauka ban sakta hai.',
+                 'Isse shaadi ki pakki tareekh tay nahi hoti.'] if hi else
+                [f'Your kundli suggests marriage could be possible in {months}.',
+                 "It doesn't confirm an exact wedding date."])
+    if screen['status'] == 'mixed_only':
+        return (['Aapki kundli mein agle do saal ke liye shaadi ke sanket mile-jule hain.',
+                 'Isliye abhi kisi ek mahine ko saaf taur par nahi chuna ja sakta.'] if hi else
+                ['Your kundli has mixed signs for marriage over the next two years.',
+                 'Some support marriage and others do not, so no particular month stands out.'])
+    return (['Agle do saal ke liye aapki kundli mein shaadi ka koi saaf samay saamne nahi aaya.',
+             'Iska matlab yeh nahi ki is dauran shaadi nahi ho sakti.'] if hi else
+            ['Your kundli does not show a clear time for marriage in the next two years.',
+             'Marriage could still happen during that time.'])
+
+
+def simple_timing_sentences(screen, language):
+    return delivery_timing_sentences(screen, language, 'marriage_simple')
+
+
+def delivery_timing_sentences(screen, language, scope='timing_context'):
+    """Answer first, with certainty bounded to the checked chart interpretation.
+
+    Keep the canonical v5 evidence below stable for gateway compatibility.
+    An absent or mixed window cannot establish that a marriage will not happen.
+    """
+    if screen['status'] == 'not_supported_for_minor':
+        return timing_sentences(screen, language, scope)
+    hi = language == 'hinglish'
+    candidates = [month_label(w['month']) for w in screen['months'] if w['kind'] == 'aligned'][:3]
+    if screen['status'] == 'candidate_months' and candidates:
+        months = (candidates[0] if len(candidates) == 1 else
+                  ', '.join(candidates[:-1]) + (' aur ' if hi else ' and ') + candidates[-1])
+        answer = (f'Haan, aapki kundli mein shaadi ke yog dikh rahe hain. {months} ka samay shaadi ke liye anukool dikh raha hai.' if hi else
+                  f'Yes, your kundli shows support for marriage. This reading highlights {months} as favourable for marriage.')
+        if scope == 'marriage_simple':
+            answer = (f'Haan, aapki kundli mein {months} ka samay shaadi ke liye anukool dikh raha hai.' if hi else
+                      f'Yes, your kundli points to {months} as favourable for marriage.')
+    elif screen['status'] == 'mixed_only':
+        answer = ('Aapki kundli mein agle do saal ke andar shaadi ka koi saaf samay nahi nikal raha; shaadi ke paksh aur vipaksh, dono tarah ke sanket hain.' if hi else
+                  'Your kundli does not identify a clear marriage period in the next two years; the supporting and opposing signs are mixed.')
+    else:
+        answer = ('Aapki kundli ki is jaanch mein agle do saal ke andar shaadi ka koi saaf samay nahi mila.' if hi else
+                  'This reading of your kundli does not identify a clear marriage period in the next two years.')
+    if scope == 'marriage_simple':
+        if screen['status'] == 'candidate_months' and candidates:
+            next_step = ('Rishta aage badhane ki planning mein in mahino ko dhyaan mein rakh sakte hain.' if hi else
+                         'You can keep these months in mind when planning marriage discussions.')
+        else:
+            next_step = ('Iska matlab shaadi se inkaar nahi hai; is jaanch se bas uska samay saaf nahi hota.' if hi else
+                         'This does not rule out marriage; it means the timing is unclear.')
+        return [answer, next_step]
+    reason = ('Shaadi se judi dasha, Guru-Shani ke gochar aur D9 ke sanket ko saath dekhkar yeh nateeja aaya hai.' if hi else
+              'This reading combines marriage-related dasha periods, Jupiter and Saturn transits, and selected D9 conditions.')
+    if scope == 'marriage_why':
+        rule = ('Mahina chunne ke liye shaadi se judi dasha aur Guru-Shani ka support ek saath, ek se zyada baar milna zaroori hai. Virodhi sanket wale mahine saaf maukon mein shaamil nahi hain.' if hi else
+                'A month is selected only when marriage-related dasha periods and Jupiter/Saturn transits support it together on repeated observations. Months with opposing conditions are excluded from the clear opportunities.')
+        return [answer, rule]
+    if scope == 'marriage_detail':
+        detail = ('Ismein MD/AD/PD ka saatve ghar se sambandh aur 730 din ke andar har saat din ke gochar dekhe gaye hain. Poora Shadbala calculate nahi hua hai. Chune gaye mahine in observations ka saar hain; har din ka alag muhurat nahi nikala gaya hai.' if hi else
+                  'The scan checks seventh-house links in MD/AD/PD and samples transits every seven days within 730 days. Full Shadbala is not computed. The selected months summarize these observations; individual wedding dates have not been assessed.')
+        return [answer, reason, detail]
+    return [answer, reason]
+
+
 def timing_sentences(screen, language, scope='timing_context'):
     hi = language == 'hinglish'
     candidates = [month_label(w['month']) for w in screen['months'] if w['kind'] == 'aligned'][:3]

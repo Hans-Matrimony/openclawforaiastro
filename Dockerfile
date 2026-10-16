@@ -70,7 +70,7 @@ COPY scripts/install-astrologer-prompts.mjs /app/install-astrologer-prompts.mjs
 # legacy skill/persona state. It cannot overwrite memories or credentials.
 COPY extensions/astrology-response/ /app/extensions/astrology-response/
 COPY extensions/reviewed-reading/route.mjs /app/extensions/reviewed-reading/route.mjs
-COPY skills/kundli/response_evidence.py skills/kundli/response_contract.py skills/kundli/response_calculations.py skills/kundli/response_marriage_timing.py skills/kundli/timing_periods.py skills/kundli/vimshottari.py skills/kundli/topic_rules.py skills/kundli/separation_rules.py skills/kundli/natal_cache.py skills/kundli/cities_india.json skills/kundli/verify_response_runtime.py /app/astrology-response/kundli/
+COPY skills/kundli/response_evidence.py skills/kundli/response_contract.py skills/kundli/response_calculations.py skills/kundli/response_marriage_timing.py skills/kundli/response_consultation_wording.py skills/kundli/timing_periods.py skills/kundli/vimshottari.py skills/kundli/topic_rules.py skills/kundli/separation_rules.py skills/kundli/natal_cache.py skills/kundli/cities_india.json skills/kundli/verify_response_runtime.py /app/astrology-response/kundli/
 RUN /opt/astrology-response-python/bin/python /app/astrology-response/kundli/verify_response_runtime.py
 COPY app/astrology-response-writer/ /app/astrology-response/writer/
 COPY scripts/start-openclaw-gateway.sh /app/start-openclaw-gateway.sh

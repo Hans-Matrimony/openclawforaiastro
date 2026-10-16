@@ -131,6 +131,8 @@ void test("PWA copy of the contract and its rule dependencies retain parity", ()
   for (const name of [
     "response_contract.py",
     "response_calculations.py",
+    "response_marriage_timing.py",
+    "response_consultation_wording.py",
     "topic_rules.py",
     "separation_rules.py",
   ]) {
@@ -139,6 +141,7 @@ void test("PWA copy of the contract and its rule dependencies retain parity", ()
       read(new URL(`../skills/kundli/${name}`, import.meta.url)),
       read(new URL(`../../AstroFriend_pwa/backend/app/services/${name}`, import.meta.url)),
     );
+    assert.ok(read(new URL("../Dockerfile", import.meta.url)).includes(`skills/kundli/${name}`));
   }
 });
 

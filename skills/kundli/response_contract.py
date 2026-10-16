@@ -13,11 +13,13 @@ from zoneinfo import ZoneInfo
 try:
     from .topic_rules import SIGNS, PLANETS, HINDI_NAMES, HOUSE_NAMES, THEMES, assess_topic
     from .response_calculations import derived_facts
-    from .response_marriage_timing import assess_marriage, timing_sentences, MARRIAGE_SCOPES
+    from .response_consultation_wording import topic_options, compact_timing_sentences
+    from .response_marriage_timing import assess_marriage, timing_sentences, delivery_timing_sentences, previous_simple_timing_sentences, MARRIAGE_SCOPES
 except ImportError:
     from topic_rules import SIGNS, PLANETS, HINDI_NAMES, HOUSE_NAMES, THEMES, assess_topic
     from response_calculations import derived_facts
-    from response_marriage_timing import assess_marriage, timing_sentences, MARRIAGE_SCOPES
+    from response_consultation_wording import topic_options, compact_timing_sentences
+    from response_marriage_timing import assess_marriage, timing_sentences, delivery_timing_sentences, previous_simple_timing_sentences, MARRIAGE_SCOPES
 
 SCHEMA = 'astrology-evidence-v1'
 REVISION = 'response-consultation-v5'
@@ -245,12 +247,41 @@ def claims_for(chart, topic, language, scope='overview', calculations=None):
     return claims, fallback, assessment
 
 
-def claims_for_persona(evidence, persona):
-    """Restrict style without changing chart facts or mutating signed evidence."""
+def _persona_claims(evidence, persona):
     voice = persona.strip().casefold() if isinstance(persona, str) else ''
     start, end = {'meera': (0, 2), 'aarav': (2, 4)}.get(voice, (0, 4))
     return [{'id': claim['id'], 'options': claim['options'][start:end]}
             for claim in evidence['allowed_claims']]
+
+
+def _marriage_delivery(evidence):
+    return (evidence.get('rules_revision') == REVISION and evidence.get('topic') == 'marriage'
+            and evidence.get('scope') in MARRIAGE_SCOPES)
+
+
+def _topic_delivery(evidence):
+    return (evidence.get('rules_revision') == REVISION and evidence.get('topic') in TOPICS
+            and evidence.get('scope') in ('overview', 'simple', 'why'))
+
+
+def claims_for_persona(evidence, persona):
+    """Restrict style without changing chart facts or mutating signed evidence."""
+    claims = _persona_claims(evidence, persona)
+    if _topic_delivery(evidence):
+        options = topic_options(evidence, PLAIN_THEMES, LABELS, SECONDARY_LABELS)
+        if len(options) != len(claims):
+            raise ValueError('Incomplete topic reading')
+        return _persona_claims(dict(evidence, allowed_claims=[
+            {'id': claim['id'], 'options': texts} for claim, texts in zip(claims, options)]), persona)
+    if _marriage_delivery(evidence):
+        sentences = delivery_timing_sentences(evidence['calculations']['marriage_timing'], evidence['language'], evidence['scope'])
+        if evidence['scope'] == 'timing_context':
+            sentences = compact_timing_sentences(evidence['calculations']['marriage_timing'], evidence['language'], sentences)
+        if len(sentences) != len(claims):
+            raise ValueError('Incomplete marriage reading')
+        return [{'id': claim['id'], 'options': [text] * len(claim['options'])}
+                for claim, text in zip(claims, sentences)]
+    return claims
 
 
 def fallback_for_persona(evidence, persona):
@@ -262,11 +293,31 @@ def accepted_text(text, evidence, persona):
     """Validate any claim count without constructing a Cartesian product."""
     if not isinstance(text, str):
         return False
-    if text == fallback_for_persona(evidence, persona):
-        return True
     parts = text.split('\n\n')
-    claims = claims_for_persona(evidence, persona)
-    return len(parts) == len(claims) and all(part in claim['options'] for part, claim in zip(parts, claims))
+    def matches(claims):
+        return (text == ' '.join(claim['options'][0] for claim in claims) or
+                (len(parts) == len(claims) and all(part in claim['options'] for part, claim in zip(parts, claims))))
+    if matches(claims_for_persona(evidence, persona)):
+        return True
+    # Existing completed v5 reservations must replay without another writer
+    # call. Admit only their exact original reviewed wording, in claim order.
+    if not (_marriage_delivery(evidence) or _topic_delivery(evidence)):
+        return False
+    original = _persona_claims(evidence, persona)
+    if matches(original):
+        return True
+    if _marriage_delivery(evidence):
+        previous = delivery_timing_sentences(evidence['calculations']['marriage_timing'], evidence['language'], evidence['scope'])
+        if len(previous) == len(original) and matches([
+                {'id': claim['id'], 'options': [sentence] * len(claim['options'])}
+                for claim, sentence in zip(original, previous)]):
+            return True
+    if evidence['scope'] == 'marriage_simple':
+        previous = previous_simple_timing_sentences(evidence['calculations']['marriage_timing'], evidence['language'])
+        return len(previous) == len(original) and matches([
+            {'id': claim['id'], 'options': [sentence] * len(claim['options'])}
+            for claim, sentence in zip(original, previous)])
+    return False
 
 
 def evidence_result(request, birth, chart, as_of=None, sky=None, timing_samples=None):
