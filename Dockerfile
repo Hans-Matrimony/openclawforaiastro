@@ -78,7 +78,7 @@ COPY skills/kundli/prediction_assessment.py skills/kundli/outcome_language.py sk
     skills/kundli/draw_kundli_traditional.py \
     skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
     /app/bootstrap/skills/kundli/
-COPY skills/vedastro/vedastro_client.py skills/vedastro/natal_client.py skills/vedastro/SKILL.md /app/bootstrap/skills/vedastro/
+COPY skills/vedastro/vedastro_client.py skills/vedastro/natal_client.py skills/vedastro/summary_client.py skills/vedastro/SKILL.md /app/bootstrap/skills/vedastro/
 COPY skills/horoscope/calculate.py skills/horoscope/scheduler.py skills/horoscope/vedic_rules.json \
     skills/horoscope/daily_provider.py skills/horoscope/daily_wording.py skills/horoscope/vedha_geometry.py \
     skills/horoscope/SKILL.md /app/bootstrap/skills/horoscope/

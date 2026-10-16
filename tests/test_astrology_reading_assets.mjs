@@ -5,6 +5,22 @@ import { ASTROLOGY_ASSETS } from "../scripts/bootstrap-astrology-assets.mjs";
 
 const read = (file) => readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
 
+void test("all bootstrapped skill files are explicitly included in the immutable image source", () => {
+  const dockerfile = read("Dockerfile").replace(/\\\r?\n/g, " ");
+  const copies = dockerfile.split(/\r?\n/).filter((line) => line.startsWith("COPY "));
+  for (const file of ASTROLOGY_ASSETS.filter((file) => file.startsWith("skills/"))) {
+    const destination = `/app/bootstrap/${file.slice(0, file.lastIndexOf("/") + 1)}`;
+    assert.ok(
+      copies.some(
+        (line) =>
+          line.split(/\s+/).includes(file) &&
+          [destination, `/app/bootstrap/${file}`].includes(line.trim().split(/\s+/).at(-1)),
+      ),
+      file,
+    );
+  }
+});
+
 void test("reading release includes every required asset and refreshes mounted state", () => {
   for (const file of [
     "calculate.py",
