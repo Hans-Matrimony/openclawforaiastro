@@ -76,6 +76,14 @@ EDUCATION_OPTIONS = {
 }
 
 
+MARRIAGE_OPTIONS = {
+    6: ('For a prospective match, discuss how you would share everyday responsibilities and handle disagreements when routines clash.',
+        'Rishta dekhte waqt baat karein ki roz ki zimmedariyan kaise baantenge aur routine ko lekar matbhed ho toh kaise suljhayenge.'),
+    7: ('For a prospective match, discuss how you both make decisions and resolve differences; cooperation needs room for both people\'s preferences.',
+        'Rishta dekhte waqt samjhein ki aap dono faisle aur matbhed kaise sambhalte hain; saath chalne mein dono ki pasand ko jagah milni chahiye.'),
+}
+
+
 def hinglish_theme(factor, *, topic=None, include_advice=True):
     if factor['source'] == 'local_house_symbolism':
         from topic_wording import topic_house_wording
@@ -83,6 +91,8 @@ def hinglish_theme(factor, *, topic=None, include_advice=True):
                 'Is placement ka sambandh ' + HINGLISH_HOUSES[factor['fact']['house']] + ' se hai.')
         if topic == 'education' and include_advice:
             text += ' ' + EDUCATION_OPTIONS[factor['fact']['house']][1]
+        if topic == 'marriage' and include_advice and factor['fact']['house'] in MARRIAGE_OPTIONS:
+            text += ' ' + MARRIAGE_OPTIONS[factor['fact']['house']][1]
         return text
     if factor['id'] not in HINGLISH_THEMES:
         from reading_language import conversational_theme
@@ -99,6 +109,8 @@ def english_theme(factor, *, topic=None, include_advice=True):
                 'This placement connects with ' + HOUSE_SYMBOLS[factor['fact']['house']] + '.')
         if topic == 'education' and include_advice:
             text += ' ' + EDUCATION_OPTIONS[factor['fact']['house']][0]
+        if topic == 'marriage' and include_advice and factor['fact']['house'] in MARRIAGE_OPTIONS:
+            text += ' ' + MARRIAGE_OPTIONS[factor['fact']['house']][0]
         return text
     if factor['id'] not in ENGLISH_THEMES:
         from reading_language import conversational_theme
