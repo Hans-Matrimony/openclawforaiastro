@@ -525,7 +525,13 @@ export function calculateReading(value, run = execFile, contractVersion = 1) {
 
 export function createReadingHandler(
   calculate = calculateReading,
-  { validate = validateReadingInput, maxBody = MAX_BODY, concurrency = { active: 0 } } = {},
+  {
+    validate = validateReadingInput,
+    maxBody = MAX_BODY,
+    concurrency = { active: 0 },
+    failureStatus = 422,
+    failureCode = "birth_details_unresolved",
+  } = {},
 ) {
   return async (req, res) => {
     const send = (status, body) => {
@@ -578,7 +584,7 @@ export function createReadingHandler(
         send(200, await calculate(value, undefined, contractVersion));
       } catch {
         // Never expose child output, birth details or filesystem information.
-        send(422, { error: "birth_details_unresolved" });
+        send(failureStatus, { error: failureCode });
       }
     } catch {
       send(400, { error: "invalid_reading_request" });
