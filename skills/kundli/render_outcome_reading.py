@@ -223,7 +223,13 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
             wording = wordings.get(key, PERIOD_WORDING[key])[1 if hinglish else 0]
         else:
             from period_rules import period_wording
-            wording = period_wording(topic, current['status'], hinglish)
+            # The extended table has no career-specific outcome category.
+            # Keep its calculated period context in an overview, without
+            # introducing an unasked job-date question. Timing replies still
+            # explain the limit explicitly; reviewed Venus meanings above stay.
+            wording = ('' if topic == 'career' and intent == 'overview'
+                       and current['status'] == 'limited' else
+                       period_wording(topic, current['status'], hinglish))
         if timing_limit:
             # The single timing qualification below replaces repeated result limits.
             wording = wording.split('. ', 1)[0].rstrip('.') + '.'
@@ -237,7 +243,7 @@ def render_reading(chart, topic, *, as_of_utc=None, language='english', intent='
         if style == 'detailed' or intent == 'timing':
             boundary = (f" Yeh period {_month(current['end'])} tak hai." if hinglish else
                         f" This period runs until {_month(current['end'])}.")
-        paragraphs.append(lead + wording + boundary)
+        paragraphs.append((lead + wording + boundary).strip())
         if timing_limit:
             paragraphs[-1] += ' ' + timing_limit
             timing_limit = None

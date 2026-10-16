@@ -11,6 +11,26 @@ WHEN=datetime(2026,10,9,tzinfo=timezone.utc)
 
 
 class WordingQualityTests(unittest.TestCase):
+    def test_career_overview_keeps_period_without_unasked_job_timing_limit(self):
+        import os
+        from unittest.mock import patch
+        from test_extended_period_rules import period_chart
+        for major, minor in (('Rahu', 'Venus'), ('Mercury', 'Saturn')):
+            value, when = period_chart(major, minor)
+            with patch.dict(os.environ, ASTROFRIEND_EXTENDED_PERIOD_RULES='1'):
+                for language in ('english', 'hinglish'):
+                    for style in ('standard', 'detailed'):
+                        overview = render_reading(value, 'career', as_of_utc=when,
+                                                  language=language, style=style)
+                        timing = render_reading(value, 'career', as_of_utc=when,
+                                                language=language, style=style, intent='timing')
+                        self.assertEqual(overview['evidence'], timing['evidence'])
+                        self.assertIn('mahadasha' if language == 'hinglish' else 'major period', overview['text'])
+                        self.assertNotIn('job ya promotion', overview['text'])
+                        self.assertNotIn('job or promotion', overview['text'])
+                        self.assertIn('timeframe' if language == 'english' else 'waqt', timing['text'])
+                        self.assertTrue(overview['evidence']['factors'])
+
     def test_new_occupational_examples_require_the_exact_planet_house(self):
         for planet, house, identity, direction in (
                 ('Mercury', 4, 'MercuryInHouse4', 'education'),
