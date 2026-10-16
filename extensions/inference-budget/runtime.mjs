@@ -140,10 +140,21 @@ function stoppedMessage(model, budget, previous) {
   };
 }
 
-function wrapResult(stream, model, budget, compaction, reportStop) {
+function wrapResult(stream, model, budget, compaction, reportStop, reportCompletion) {
   let stopped;
   let reported = false;
+  let completionReported = false;
+  const observeCompletion = (message) => {
+    if (completionReported) {
+      return;
+    }
+    completionReported = true;
+    try {
+      reportCompletion(message);
+    } catch {}
+  };
   const final = (message) => {
+    observeCompletion(message);
     if (budget.now() >= budget.deadline && ["error", "aborted"].includes(message?.stopReason)) {
       budget.blocked = true;
       budget.reason ??= "deadline";
@@ -164,6 +175,9 @@ function wrapResult(stream, model, budget, compaction, reportStop) {
   return {
     async *[Symbol.asyncIterator]() {
       for await (const event of stream) {
+        if (event.type === "done") {
+          observeCompletion(event.message);
+        }
         if (event.type === "error") {
           final(event.error);
         }
@@ -199,7 +213,9 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
       const name =
         event.kind === "session_binding_mismatch"
           ? "inference-budget-binding"
-          : "inference-budget-stop";
+          : event.kind === "provider_completion"
+            ? "provider-completion"
+            : "inference-budget-stop";
       console.info(`[${name}] ${JSON.stringify(value)}`);
     }
   }
@@ -293,16 +309,39 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
           inner(model, context, options),
         );
         const sessionId = options?.sessionId ?? associated?.sessionId;
-        return wrapResult(stream, model, budget, !options?.sessionId, () => {
-          const current = forSession(sessionId);
-          emitDiagnostic({
-            ...budgetDiagnostic(budget, sessionId),
-            current_run_tag: current ? budgetDiagnostic(current, sessionId).run_tag : "none",
-            explicit_session: Boolean(options?.sessionId),
-            compaction: !options?.sessionId,
-            selected_budget_is_current: budget === current,
-          });
-        });
+        return wrapResult(
+          stream,
+          model,
+          budget,
+          !options?.sessionId,
+          () => {
+            const current = forSession(sessionId);
+            emitDiagnostic({
+              ...budgetDiagnostic(budget, sessionId),
+              current_run_tag: current ? budgetDiagnostic(current, sessionId).run_tag : "none",
+              explicit_session: Boolean(options?.sessionId),
+              compaction: !options?.sessionId,
+              selected_budget_is_current: budget === current,
+            });
+          },
+          (message) => {
+            if (!["provider_selector", "provider_renderer"].includes(budget.agentId)) {
+              return;
+            }
+            const count = (value) => (Number.isSafeInteger(value) && value >= 0 ? value : -1);
+            const reasons = ["stop", "length", "toolUse", "error", "aborted"];
+            emitDiagnostic({
+              kind: "provider_completion",
+              agent: budget.agentId,
+              run_tag: budgetDiagnostic(budget, sessionId).run_tag,
+              session_tag: budgetDiagnostic(budget, sessionId).session_tag,
+              stop_reason: reasons.includes(message?.stopReason) ? message.stopReason : "unknown",
+              input_tokens: count(message?.usage?.input),
+              output_tokens: count(message?.usage?.output),
+              total_tokens: count(message?.usage?.totalTokens),
+            });
+          },
+        );
       };
       sdk.registerApiProvider(
         {

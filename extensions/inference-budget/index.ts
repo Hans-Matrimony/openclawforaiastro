@@ -10,7 +10,9 @@ export default {
       const name =
         event.kind === "session_binding_mismatch"
           ? "inference-budget-binding"
-          : "inference-budget-stop";
+          : event.kind === "provider_completion"
+            ? "provider-completion"
+            : "inference-budget-stop";
       api.logger.info(`[${name}] ${JSON.stringify(event)}`);
     });
     api.on("before_model_resolve", (event, context) => {
