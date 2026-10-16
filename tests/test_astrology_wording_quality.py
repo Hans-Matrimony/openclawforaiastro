@@ -26,11 +26,16 @@ class WordingQualityTests(unittest.TestCase):
                                          language='english', style='detailed')
                 self.assertIn(identity, [f['id'] for f in matched['evidence']['factors']])
                 self.assertIn(direction.lower(), matched['text'].lower())
-                self.assertIn('occupational examples', matched['text'])
+                self.assertIn('directions you could explore', matched['text'])
+                self.assertIn('depending on your interests and qualifications', matched['text'])
+                self.assertNotIn('occupational examples', matched['text'])
                 self.assertNotIn('will become', matched['text'])
                 hi = render_reading(selected, topic, as_of_utc=WHEN,
                                     language='hinglish', style='detailed')
-                self.assertIn('examples', hi['text'])
+                self.assertIn('options dekh sakte hain', hi['text'])
+                self.assertIn('apni pasand aur qualifications ke hisaab se', hi['text'])
+                self.assertNotIn('ability ka test nahi', hi['text'])
+                self.assertEqual(matched['evidence'], hi['evidence'])
                 for other_house in (house % 12 + 1, (house - 2) % 12 + 1):
                     absent = reading_packet(chart(0, planet, other_house), topic, contract_version=2)
                     self.assertNotIn(identity, [f['id'] for f in absent['factors']])
