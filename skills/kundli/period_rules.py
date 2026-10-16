@@ -65,8 +65,8 @@ def marriage_period_wording(rule_id, hinglish=False):
 def period_wording(topic, status, hinglish=False):
     """Explain a traditional category without promising an event."""
     if topic == 'career':
-        return ('Is period table se job ya promotion ka saaf nateeja nahi nikalta; career ki reading mein ghar ke sanket bhi dekhein.' if hinglish else
-                'The reviewed period categories do not establish a job or promotion outcome; consider the career-house indications as well.')
+        return ('Career ki disha samajhne ke liye kundli ke gharon ko bhi dekhein; sirf is dasha se job ya promotion ka waqt tay nahi hota.' if hinglish else
+                'Your career-house indications help explain which directions to explore; this dasha alone does not tell us when a job or promotion will happen.')
     targets = {'marriage': ('family aur relationship', 'family and relationship'),
                'education': ('padhai', 'study'), 'finance': ('paise aur savings', 'money and savings')}
     hi, en = targets[topic]
