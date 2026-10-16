@@ -106,7 +106,11 @@ export function installPrompts(bundle, stateDir, profile = "compact", { write } 
         const current = fs.existsSync(target) ? fs.readFileSync(target, "utf8") : null;
         if (
           current !== null &&
-          ![f.entry.legacy_sha256, f.entry.compact_sha256].includes(digest(current))
+          ![
+            f.entry.legacy_sha256,
+            f.entry.compact_sha256,
+            ...(f.entry.previous_stock_sha256 ?? []),
+          ].includes(digest(current))
         ) {
           throw new Error("Customized prompt");
         }

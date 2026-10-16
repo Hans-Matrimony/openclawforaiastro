@@ -21,6 +21,7 @@ import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
 import { resolveOpenClawAgentDir } from "../../agent-paths.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
+import { wrapAstrologerReadingStream } from "../../astrologer-reading-stream.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
 import { createCacheTrace } from "../../cache-trace.js";
 import {
@@ -518,6 +519,16 @@ export async function runEmbeddedAttempt(
         params.modelId,
         params.streamParams,
       );
+
+      if (
+        /(?:^|[/\\])workspace-astrologer(?:-preview)?[/\\]?$/u.test(params.workspaceDir) &&
+        process.env.ASTROFRIEND_READING_STYLE_GUARD !== "0"
+      ) {
+        activeSession.agent.streamFn = wrapAstrologerReadingStream(
+          activeSession.agent.streamFn ?? streamSimple,
+          params.prompt,
+        );
+      }
 
       if (cacheTrace) {
         cacheTrace.recordStage("session:loaded", {

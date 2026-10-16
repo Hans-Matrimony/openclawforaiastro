@@ -64,3 +64,5 @@ probability of marriage success. Disabled/error/incomplete results have no score
 Repeat readings: retain supported facts with the same birth and method. Fresh
 calculations or corrections can revise them; explain only the actual change.
 Do not shame repeated questions or preserve an unsupported earlier prediction.
+
+Before sending a reading, apply AGENTS.md Reading output contract: direct first sentence, strongest supported factors, plain prose and a clean ending. Clarify genuinely missing context once instead of guessing.

@@ -30,3 +30,5 @@ their own lines. Do not expose scripts, data blocks or placeholders. An image
 claim requires an actual artifact; an uncalculated D1 copy is not a divisional
 chart. Birth-detail collection forms and media markers are allowed format
 exceptions to ordinary plain conversation.
+
+Apply AGENTS.md Reading output contract: normal readings use 60-90 words (maximum 105), answer first, 2-3 supported factors and at most one optional supported remedy clause. Bare facts need only their answer. No recap, service menu or invitation. Requested detailed readings and artifact markers retain complete content.

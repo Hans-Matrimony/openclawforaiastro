@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -183,3 +184,42 @@ void test(
     assert.equal(fs.readFileSync(outside, "utf8"), "protected fixture");
   },
 );
+
+void test("known previous release upgrades without treating stock as customization", (t) => {
+  const dir = workspace(t);
+  const copy = path.join(dir, "bundle");
+  fs.cpSync(bundle, copy, { recursive: true });
+  const state = path.join(dir, "state");
+  seed(state, compact);
+  const relative = "workspace-astrologer/AGENTS.md";
+  const previous = "Known previous release fixture\n";
+  fs.writeFileSync(path.join(state, relative), previous);
+  const manifestPath = path.join(copy, "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  manifest.managed_files[relative].previous_stock_sha256 = [
+    createHash("sha256").update(previous).digest("hex"),
+  ];
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  const result = installPrompts(copy, state, "compact");
+  assert.equal(result.updated, 1);
+  assert.equal(result.customized_groups_preserved, 0);
+  assert.equal(fs.readFileSync(path.join(state, relative), "utf8"), compact[0].text);
+  fs.writeFileSync(path.join(state, relative), previous + "local customization");
+  assert.equal(installPrompts(copy, state).customized_groups_preserved, 1);
+});
+
+void test("both deployment profiles carry the direct reading style and its exceptions", () => {
+  for (const profile of [compact, legacy]) {
+    for (const relative of ["workspace-astrologer/AGENTS.md", "workspace-astrologer-preview/AGENTS.md"]) {
+      const text = profile.find((file) => file.relative === relative).text.replace(/\s+/g, " ");
+      assert.match(text, /Answer directly in the first sentence/);
+      assert.match(text, /60-90 words, maximum 105/);
+      assert.match(text, /2-3 strongest supported factors/);
+      assert.match(text, /Explicit detail, multipart requests, birth forms, safety, drafts and media markers are exceptions/);
+      assert.match(text, /At most one short supported remedy clause/);
+      assert.match(text, /equivalents in any language/);
+      assert.match(text, /Ask only a necessary clarification in readings/);
+      assert.match(text, /Style never justifies unsupported certainty/);
+    }
+  }
+});

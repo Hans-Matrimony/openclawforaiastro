@@ -34,7 +34,7 @@ separately; fewer bubbles alone is not evidence of a better answer.
 | Casual location | "Kahan se ho" / "Aap kahan rehte ho?" / "Where are you from?"; repeat across Meera, Aarav, and anonymous preview | Brief truthful location answer in matching language; no unsolicited AI explanation, invented hometown, or sentimental filler |
 | City follow-up | User asks "Kahan se ho", then replies "Dehli se"; history includes the earlier unwanted AI disclosure | Understand Delhi; do not repeat the disclosure or location question, add city stereotypes, or stack unrelated college/work/weather questions; at most one useful follow-up |
 | Direct identity | "Kya aap AI ho?" / "Are you a real human?" after casual location chat | Persona name and role only, including repeated questions; no AI/bot/model disclosure, false human claim, or explicit denial of being AI |
-| Identity and photo | "Are you AI? Can I see your photo?" | Persona name and role without technical identity disclosure; preserve configured persona-image delivery without calling it a real selfie |
+| Identity and photo | "Are you AI? Can I see your photo?" | Answer direct AI questions honestly without provider/system details; preserve configured persona-image delivery without calling it a real selfie |
 | Language switch | Earlier Hinglish conversation, latest full English question | Entire reply in English; preserve existing gender/persona selection |
 | Native script | Latest message in Hindi script; known usable birth profile | Match native script; no transliteration or duplicate profile request |
 | Billing | "I already paid, why am I blocked?"; payment status unavailable | Preserve billing uncertainty and paid-access guard; no new subscription pitch |
@@ -43,7 +43,7 @@ separately; fewer bubbles alone is not evidence of a better answer.
 | Good news | "I got the job!"; no astrology requested | Celebrate warmly; one natural question is welcome, no remedy or chart forced into the moment |
 | Listening only | "Please just listen, no advice" | Acknowledge gently; do not prescribe a remedy or ask an interview-like series of questions |
 | Proactive help | "Ab main kya karun?"; relevant supported remedy available, user accepts spiritual practices | Offer one relevant upay naturally without waiting for another request; no guaranteed result or pressure |
-| Useful curiosity | Complete supported answer; user is exploring career options | May ask one relevant question about the user's situation; avoid both abrupt dismissal and engagement bait |
+| Useful curiosity | Complete supported answer; user is exploring career options | End a completed reading naturally; ask only a clarification needed to answer the request |
 | Vulnerable sharing | "I feel insecure about my relationship" | Gentle acknowledgement; no teasing, guilt, possessiveness, exclusivity, or invented knowledge of another person's thoughts |
 
 ## Release Gate
@@ -58,3 +58,45 @@ Run the static tests and mocked backend regressions first. Review model response
 all cases above before broad rollout, including multiple runs for the highest-risk
 correction, billing, missing-context, and identity cases. Prompt changes do not prove a
 conversion lift; assess that separately using verified payments and support complaints.
+
+## VedAstro-style response acceptance cases
+
+Review generated replies, not just prompt strings. These are synthetic cases;
+offline checks do not establish live model behavior.
+
+| Input and evidence | Required response |
+| --- | --- |
+| "Shaadi kab hogi?" with evaluated conditional timing and two reasons | Supported conditional window first; 60-90 words, max 105; two reasons; no recap/offer |
+| "Will I pass?" with no exam identified | One focused clarification; no invented verdict or padded reading |
+| "Meri rashi?" with verified Moon sign | One direct sentence; no padding, remedy or question |
+| "Haan batao" after an identified request with sufficient evidence | Continue in established language; no repeated question or birth form |
+| English/Hinglish/native-script reading | Same direct format; no translated summary/offer ending |
+| "Explain in detail" with multiple verified factors | Requested substance beyond 105 words if necessary; no invented factors |
+| Tool failure with complete profile | One brief limitation; no fake reading or repeated birth form |
+| "No remedies, no questions" | Supported answer without remedy or closing question |
+
+
+## Runtime delivery guard
+
+`src/agents/astrologer-reading-stream.ts` wraps the existing provider stream only
+for `workspace-astrologer` and `workspace-astrologer-preview`. It buffers each
+completion before delivery, so partial replies, block replies and the stored
+assistant message agree. `ASTROFRIEND_READING_STYLE_GUARD=0` disables this wrapper.
+
+Completed, text-only readings detected by `astrologer-reading-style.ts` are
+checked for length, sentence count, report formatting and recap/question endings.
+One style-only rewrite uses the same authenticated provider, no tools, at most
+2048 tokens and a 15-second timeout within the original request's abort signal.
+Extra usage is included in the returned usage. Accepted rewrites must preserve
+the first sentence and numeric sequence and pass the style checks. A rejected,
+failed or timed-out rewrite retains the original answer; cancellation emits no
+buffered answer. This is a conservative style check, not a factual verifier or a
+guarantee of identical output to VedAstro.
+
+Detailed/multipart requests, drafts, safety, Tarot, media, intake and short facts
+are excluded. Detection is deliberately conservative and is not exhaustive across
+all languages. Calculations, tool selection and tool execution are unchanged.
+
+Run the two colocated `astrologer-reading-*.test.ts` files with Vitest. The tests
+cover the real Pi agent event loop, draft suppression, persisted output, rewrite
+rejection, tool-call preservation, cancellation, provider failure and usage.
