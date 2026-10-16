@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
+import { providerMessages } from "./provider-envelope.mjs";
 
 export const DEFAULT_LIMITS = Object.freeze({
   attempts: 6,
@@ -74,6 +75,17 @@ export function boundPayload(body, api, budget) {
     }
     if (["provider_selector", "provider_renderer"].includes(budget.agentId)) {
       if (payload.model !== "google/gemini-3.8-flash") {
+        budget.stop("invalid_payload");
+      }
+      try {
+        const isolated = providerMessages(payload.messages, budget.agentId);
+        if (isolated) {
+          payload.messages = isolated;
+          delete payload.tools;
+          delete payload.tool_choice;
+          budget.providerEnvelopeApplied = true;
+        }
+      } catch {
         budget.stop("invalid_payload");
       }
       // These isolated stages use the frozen experiment's OpenRouter settings.

@@ -45,7 +45,10 @@ void test("reading release includes every required asset and refreshes mounted s
   assert.ok(ASTROLOGY_ASSETS.includes("workspace-astrologer/KUNDLI_RESPONSE.md"));
   assert.ok(
     ASTROLOGY_ASSETS.every(
-      (file) => !/AGENTS\.md|SOUL\.md|memories|credentials|cache\//u.test(file),
+      (file) =>
+        ["workspace-provider-selector/AGENTS.md", "workspace-provider-renderer/AGENTS.md"].includes(
+          file,
+        ) || !/AGENTS\.md|SOUL\.md|memories|credentials|cache\//u.test(file),
     ),
   );
   assert.match(

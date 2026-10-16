@@ -53,7 +53,7 @@ export const ASTROLOGY_ASSETS = [
     (name) => `workspace-astrologer/${name}`,
   ),
   ".pi/prompts/astrologer.md",
-  ...["transport.mjs", "runtime.mjs", "pi-extension.mjs"].map(
+  ...["transport.mjs", "runtime.mjs", "pi-extension.mjs", "provider-envelope.mjs"].map(
     (name) => `runtime/inference-budget/${name}`,
   ),
   ...["workspace-astrologer", "workspace-reply-repair", "workspace-astrologer-preview"].map(

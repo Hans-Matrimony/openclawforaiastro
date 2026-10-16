@@ -333,6 +333,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
             emitDiagnostic({
               kind: "provider_completion",
               agent: budget.agentId,
+              stage_envelope_applied: budget.providerEnvelopeApplied === true,
               run_tag: budgetDiagnostic(budget, sessionId).run_tag,
               session_tag: budgetDiagnostic(budget, sessionId).session_tag,
               stop_reason: reasons.includes(message?.stopReason) ? message.stopReason : "unknown",

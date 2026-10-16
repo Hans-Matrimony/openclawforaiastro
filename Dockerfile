@@ -66,7 +66,7 @@ COPY skills/ /app/.openclaw/skills/
 COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
 COPY extensions/inference-budget/ /app/extensions/inference-budget/
 COPY extensions/inference-budget/transport.mjs extensions/inference-budget/runtime.mjs \
-    extensions/inference-budget/pi-extension.mjs /app/bootstrap/runtime/inference-budget/
+    extensions/inference-budget/pi-extension.mjs extensions/inference-budget/provider-envelope.mjs /app/bootstrap/runtime/inference-budget/
 COPY app/whatsapp-support/workspace-astrologer/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer/.pi/extensions/
 COPY app/whatsapp-support/workspace-reply-repair/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-reply-repair/.pi/extensions/
 COPY app/whatsapp-support/workspace-astrologer-preview/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer-preview/.pi/extensions/
