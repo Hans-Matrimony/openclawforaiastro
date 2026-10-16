@@ -100,3 +100,34 @@ all languages. Calculations, tool selection and tool execution are unchanged.
 Run the two colocated `astrologer-reading-*.test.ts` files with Vitest. The tests
 cover the real Pi agent event loop, draft suppression, persisted output, rewrite
 rejection, tool-call preservation, cancellation, provider failure and usage.
+
+
+## Pinned npm runtime deployment
+
+The Docker image runs OpenClaw 2026.3.28 from npm; repository `src` changes alone
+are not executable deployment changes. The separate `reading-guard-build` stage
+transpiles the two guard modules and ships them with the `astrologer-reading`
+plugin. It does not replace or patch the installed OpenClaw package.
+
+Startup runs `configure-reading-guard.mjs` to assign dedicated provider aliases
+only to `astrologer`, `astrologer_preview` and `astrologer_preview_fast`. Primary
+and fallback API endpoints, model IDs, key references and explicit model options
+are copied from their existing configurations. Tarot, the response writer and
+other agents retain their original routes. The plugin manifest declares provider
+ownership, which is required for the pinned runtime to select its wrapper.
+The pinned wrapper hook omits `workspaceDir`; scope therefore comes from the
+dedicated aliases, with an additional workspace check when the runtime supplies it.
+
+Configured API-key references are reused. ZAI environment credentials are mapped
+by name without printing or hard-coding their value. Auth-profile-only provider
+setups require an explicit API-key mapping before enabling these aliases; startup
+fails clearly if that mapping is missing. Custom session model overrides to an
+original, non-guarded provider are outside this configuration's coverage.
+`ASTROFRIEND_READING_STYLE_GUARD=0` restores original routes on startup and disables
+the plugin. Provider aliases are reserved for these astrology agents.
+
+The Docker build runs `verify-reading-guard-gateway.mjs` with fake credentials,
+a loopback model and a separate temporary state directory. It verifies a real
+pinned gateway loads the plugin, performs one rewrite without tools, suppresses
+the draft over HTTP streaming, persists the reviewed message, and leaves Tarot
+output unchanged. A failed smoke test prevents the new image from being built.

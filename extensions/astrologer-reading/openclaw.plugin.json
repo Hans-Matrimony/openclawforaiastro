@@ -1,0 +1,13 @@
+{
+  "id": "astrologer-reading",
+  "name": "Astrologer reading delivery",
+  "description": "Scoped reading validation before model output is delivered or persisted.",
+  "providers": [
+    "astrofriend-reading-deepseek",
+    "astrofriend-reading-groq",
+    "astrofriend-reading-google",
+    "astrofriend-reading-openai",
+    "astrofriend-reading-zai"
+  ],
+  "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
+}

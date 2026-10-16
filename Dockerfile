@@ -1,3 +1,10 @@
+FROM node:22-bookworm-slim AS reading-guard-build
+WORKDIR /build
+RUN npm install --ignore-scripts --no-audit --no-fund typescript@5.9.3
+COPY src/agents/astrologer-reading-style.ts src/agents/astrologer-reading-stream.ts /build/src/
+COPY scripts/build-reading-guard.mjs /build/build-reading-guard.mjs
+RUN node /build/build-reading-guard.mjs /build/src /build/output
+
 FROM node:22-bookworm-slim
 
 RUN apt-get update && apt-get install -y \
@@ -66,6 +73,13 @@ COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
 COPY app/astrologer-prompt-profiles/ /app/astrologer-prompt-profiles/
 COPY scripts/install-astrologer-prompts.mjs /app/install-astrologer-prompts.mjs
+COPY extensions/astrologer-reading/ /app/extensions/astrologer-reading/
+COPY --from=reading-guard-build /build/output/ /app/extensions/astrologer-reading/
+COPY scripts/configure-reading-guard.mjs /app/configure-reading-guard.mjs
+COPY scripts/verify-reading-guard-gateway.mjs /app/verify-reading-guard-gateway.mjs
+# Fail the image build if the pinned runtime cannot load or apply the guard.
+# Uses only synthetic credentials, a loopback model and an isolated state dir.
+RUN node /app/verify-reading-guard-gateway.mjs /app/extensions/astrologer-reading
 # The optional response path has its own immutable assets, outside mounted
 # legacy skill/persona state. It cannot overwrite memories or credentials.
 COPY extensions/astrology-response/ /app/extensions/astrology-response/

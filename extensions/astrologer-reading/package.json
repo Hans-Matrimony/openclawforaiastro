@@ -1,0 +1,10 @@
+{
+  "name": "@astrofriend/astrologer-reading",
+  "private": true,
+  "type": "module",
+  "openclaw": {
+    "extensions": [
+      "./index.mjs"
+    ]
+  }
+}
