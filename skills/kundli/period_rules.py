@@ -71,16 +71,16 @@ def period_wording(topic, status, hinglish=False):
                'education': ('padhai', 'study'), 'finance': ('paise aur savings', 'money and savings')}
     hi, en = targets[topic]
     if status == 'mixed':
-        return (f'Traditional period table mein {hi} ke support aur rukawat, dono ke sanket hain; decisions mein dono ko dhyan mein rakhein.' if hinglish else
-                f'The traditional period table has both supportive and challenging indications for {en}; take both into account when planning.')
+        return (f'Is daur mein {hi} ke liye support aur rukawat, dono ke sanket hain; planning mein dono ko dhyan mein rakhein.' if hinglish else
+                f'This period brings both supportive and challenging indications for {en}; allow for both when planning.')
     if status == 'supportive':
-        return (f'Traditional period table mein {hi} ke anukool sanket hain. Is support ko practical planning aur apni koshish ke saath dekhein.' if hinglish else
-                f'The traditional period table is supportive of {en}. Treat that as context for practical planning and effort.')
+        return (f'Is daur mein {hi} ke anukool sanket hain. Apni planning aur koshish jaari rakhein.' if hinglish else
+                f'This period has supportive indications for {en}. Keep working on your plans alongside that support.')
     if status == 'adverse':
-        return (f'Traditional period table mein {hi} ke liye rukawat ke sanket hain. Jaldbazi se bachkar planning aur expectations par dhyan dein.' if hinglish else
-                f'The traditional period table indicates challenges around {en}. Avoid rushing and pay attention to planning and expectations.')
-    return (f'Traditional period table mein {hi} ke liye koi saaf anukool ya pratikool sanket nahi hai.' if hinglish else
-            f'The traditional period table has no clear supportive or adverse indication for {en}.')
+        return (f'Is daur mein {hi} ke liye rukawat ke sanket hain. Jaldbazi se bachkar planning aur expectations par dhyan dein.' if hinglish else
+                f'This period indicates challenges around {en}. Avoid rushing and pay attention to planning and expectations.')
+    return (f'Is daur mein {hi} ke sanket na saaf anukool hain, na pratikool.' if hinglish else
+            f'The indications for {en} in this period are neither clearly supportive nor adverse.')
 
 
 def valid_window_rule(window, *, extended=False):
