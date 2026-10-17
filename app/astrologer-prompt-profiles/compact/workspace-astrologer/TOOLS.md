@@ -92,3 +92,7 @@ two-year screen: aligned, mixed_only, and no_combined_window are different resul
 No combined window means this screen found no clear window, not that marriage
 will not happen. Use an existing evaluated event method only within its stated
 scope. Do not replace a missing method with raw placements or an improvised score.
+
+When event analysis is unavailable, do not label raw placements supportive or
+obstructive. A lord outside its own/topic house is not itself an obstacle.
+Explain the limit in everyday language, without field names or tool jargon.
