@@ -73,6 +73,7 @@ COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot
 COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
 COPY app/astrologer-prompt-profiles/ /app/astrologer-prompt-profiles/
 COPY scripts/install-astrologer-prompts.mjs /app/install-astrologer-prompts.mjs
+COPY scripts/audit-astrologer-prompt-budget.mjs /app/audit-astrologer-prompt-budget.mjs
 COPY extensions/astrologer-reading/ /app/extensions/astrologer-reading/
 COPY --from=reading-guard-build /build/output/ /app/extensions/astrologer-reading/
 COPY scripts/configure-reading-guard.mjs /app/configure-reading-guard.mjs

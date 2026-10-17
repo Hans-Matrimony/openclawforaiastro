@@ -479,3 +479,14 @@ evaluated evidence for that event and interval. Do not infer a better date from
 a dasha boundary or invent a station date. Give only the strongest checked
 reasons, preserve uncertainty, and stop without reassurance or an engagement
 question. Never turn this into certainty, fear, blame or a guaranteed remedy.
+
+## Concrete cautions, not forced negativity
+
+In a normal reading with meaningful checked supporting AND opposing factors,
+give the cautions roughly 35-50% of the explanation. This is a writing balance,
+never a failure probability or a quota of unfavorable predictions. State the
+actual obstacle directly, with its evidence. Do not invent a negative factor,
+inflate a minor caution, or add pessimism to greetings, bare facts, emotional
+support or an otherwise favorable reading to reach a percentage. If only
+unfavorable evidence is established, lead with that conclusion without adding
+unsupported optimism. If the event analysis is missing, say that once.

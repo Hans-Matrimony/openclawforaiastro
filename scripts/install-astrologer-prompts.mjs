@@ -154,8 +154,8 @@ export function installPrompts(bundle, stateDir, profile = "compact", { write } 
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  // Changing the chat policy requires explicit opt-in, just like the reader.
-  const profile = (process.env.ASTROFRIEND_PROMPT_PROFILE || "legacy").trim().toLowerCase();
+  // Compact is the production default; legacy remains an explicit rollback.
+  const profile = (process.env.ASTROFRIEND_PROMPT_PROFILE || "compact").trim().toLowerCase();
   const app = process.env.OPENCLAW_APP_DIR || "/app";
   try {
     console.log(

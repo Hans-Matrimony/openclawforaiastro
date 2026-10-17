@@ -29,6 +29,10 @@ if [ -f "$APP_DIR/install-astrologer-prompts.mjs" ]; then
   node "$APP_DIR/install-astrologer-prompts.mjs"
 fi
 
+if [ -f "$APP_DIR/audit-astrologer-prompt-budget.mjs" ]; then
+  node "$APP_DIR/audit-astrologer-prompt-budget.mjs" "$OPENCLAW_CONFIG_PATH"
+fi
+
 if [ -f "$APP_DIR/configure-reading-guard.mjs" ]; then
   node "$APP_DIR/configure-reading-guard.mjs" "$OPENCLAW_CONFIG_PATH"
 fi

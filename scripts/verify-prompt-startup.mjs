@@ -93,8 +93,8 @@ try {
   checked(["volume", "create", "--label", `astrofriend.verification=${job}`, volume]);
   created = true;
   container(["--entrypoint", "node"], ["-e", seed]);
-  // With no rollout setting, startup retains the prior policy.
-  container([], ["node", "-e", verify("legacy")]);
+  // With no rollout setting, known stock prompts migrate to compact.
+  container([], ["node", "-e", verify("compact")]);
   for (const profile of ["compact", "legacy", "compact", "legacy"]) {
     const output = container(
       ["--env", `ASTROFRIEND_PROMPT_PROFILE=${profile}`],

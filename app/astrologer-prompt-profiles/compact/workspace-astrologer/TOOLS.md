@@ -74,3 +74,21 @@ A successful tool exit does not prove the correct location was selected. Stop
 the reading on a location mismatch. Check date-specific motion and positions;
 never extend one sampled transit across an unchecked interval. Use only this
 profile's results, not scratch files or another profile's dasha tables.
+
+## Check arithmetic and event scope
+
+Compute a relative whole-sign house as ((target_sign_index - reference_sign_index)
+mod 12) + 1; never count mentally in the final answer. Pisces is sixth from Libra,
+not twelfth. Compute extrema from the whole returned table before saying
+highest/lowest. Do not compare a supplemental engine score with primary-engine
+houses unless their birth data and methods have been verified as consistent.
+
+The existing strict evidence CLI is /app/astrology-response/kundli/response_evidence.py,
+run with /opt/astrology-response-python/bin/python and its documented JSON stdin
+schema. Prefer the application's verified evidence packet when supplied. Its
+career periods explicitly mark event_timing as not_evaluated: this cannot justify
+job success/failure, likelihood, or a new date. Marriage timing has its own bounded
+two-year screen: aligned, mixed_only, and no_combined_window are different results.
+No combined window means this screen found no clear window, not that marriage
+will not happen. Use an existing evaluated event method only within its stated
+scope. Do not replace a missing method with raw placements or an improvised score.
