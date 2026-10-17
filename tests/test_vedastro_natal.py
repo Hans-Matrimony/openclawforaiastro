@@ -48,6 +48,40 @@ class NatalClientTests(unittest.TestCase):
         self.assertNotIn('not-forwarded', json.dumps(self.transport.call_args.args))
         self.assertNotIn('BirthTime', json.dumps(result))
 
+    def test_raman_requires_matching_settings_and_has_distinct_fingerprint(self):
+        from engine_profile import RAMAN
+        lahiri = self.call()
+        self.env.update(VEDASTRO_NATIVE_PROFILE='raman360',
+                        VEDASTRO_NATIVE_PROFILE_ENVIRONMENT='development')
+        self.raw['CalculationSettings'] = RAMAN.native_settings()
+        self.raw['Input']['Ayanamsa'] = 3
+        raman = self.call()
+        self.assertEqual(self.transport.call_args.args[1]['Ayanamsa'], 'RAMAN')
+        self.assertEqual(raman['calculation_settings']['dasha_year_days'], 360)
+        self.assertNotEqual(raman['input_fingerprint'], lahiri['input_fingerprint'])
+        self.raw['Input']['Ayanamsa'] = 1
+        self.error('calculation_conflict')
+
+    def test_cross_profile_payload_is_rejected(self):
+        from engine_profile import RAMAN
+        self.raw['CalculationSettings'] = RAMAN.native_settings()
+        self.raw['Input']['Ayanamsa'] = 3
+        self.error('calculation_conflict')
+        self.env.update(VEDASTRO_NATIVE_PROFILE='raman360',
+                        VEDASTRO_NATIVE_PROFILE_ENVIRONMENT='development')
+        self.raw['CalculationSettings'] = m.SETTINGS.copy()
+        self.raw['Input']['Ayanamsa'] = 1
+        self.error('calculation_conflict')
+
+    def test_invalid_profile_never_calls_provider(self):
+        for profile, environment in [('raman360', 'production'), ('raman360', ''),
+                                     ('unknown', 'development')]:
+            with self.subTest(profile=profile, environment=environment):
+                self.env.update(VEDASTRO_NATIVE_PROFILE=profile,
+                                VEDASTRO_NATIVE_PROFILE_ENVIRONMENT=environment)
+                self.error('invalid_calculation_profile')
+        self.transport.assert_not_called()
+
     def test_disabled_never_calls_provider(self):
         self.env['VEDASTRO_NATAL_ENABLED'] = '0'
         self.error('natal_provider_disabled')

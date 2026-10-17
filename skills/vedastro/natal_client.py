@@ -11,6 +11,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, build_opener
 from vedastro_client import MatchError, NoRedirect, birth, number
+from engine_profile import configured_profile
 
 REVISION = '40763952742f76369a505d8db2e9e9fa67f75d78'
 SETTINGS = {'ayanamsa': 'LAHIRI', 'node': 'true', 'dasha_year_days': 365.25,
@@ -78,6 +79,10 @@ def configuration(env):
 def natal_evidence(payload, env=None, transport=None):
     env = os.environ if env is None else env
     base, token = configuration(env)
+    try:
+        profile = configured_profile(env)
+    except ValueError:
+        raise MatchError('invalid_calculation_profile') from None
     if not isinstance(payload, dict) or set(payload) != {'birth'}:
         raise MatchError('invalid_birth_details')
     value = birth(payload['birth'])
@@ -85,16 +90,18 @@ def natal_evidence(payload, env=None, transport=None):
         raise MatchError('unsupported_polar_location')
     body = {'time': {'StdTime': value['std_time'], 'Location': {
         'Name': 'Confirmed birth coordinates', 'Latitude': value['latitude'], 'Longitude': value['longitude']}},
-        'Ayanamsa': 'LAHIRI'}
+        'Ayanamsa': profile.ayanamsa}
     raw = (transport or fetch_natal)(base + '/Calculate/NatalEvidence', body, token)
-    return normalize_natal(raw, value)
+    return normalize_natal(raw, value, env=env)
 
 
-def normalize_natal(raw, value):
+def normalize_natal(raw, value, *, env=None):
     try:
+        profile = configured_profile(env)
+        settings = profile.native_settings()
         if (raw['Status'] != 'Pass' or raw['ProviderRevision'] != REVISION
-                or raw['CalculationSettings'] != SETTINGS or type(raw['ModelCalls']) is not int or raw['ModelCalls'] != 0
-                or type(raw['Input']['Ayanamsa']) is not int or raw['Input']['Ayanamsa'] != 1):
+                or raw['CalculationSettings'] != settings or type(raw['ModelCalls']) is not int or raw['ModelCalls'] != 0
+                or type(raw['Input']['Ayanamsa']) is not int or raw['Input']['Ayanamsa'] != profile.ayanamsa_code):
             raise MatchError('calculation_conflict')
         data = raw['Payload']['NatalEvidence']
         if data['schema'] != 'vedastro-natal-evidence-v1' or data['birthTime']['StdTime'] != value['std_time']:
@@ -118,9 +125,9 @@ def normalize_natal(raw, value):
         raise
     except (KeyError, TypeError, ValueError, OverflowError):
         raise MatchError('provider_invalid_response') from None
-    fingerprint = hashlib.sha256(json.dumps([value, SETTINGS, REVISION], sort_keys=True).encode()).hexdigest()
+    fingerprint = hashlib.sha256(json.dumps([value, settings, REVISION], sort_keys=True).encode()).hexdigest()
     return {'status': 'ok', 'operation': 'natal-evidence', 'provider': 'vedastro-local',
-            'provider_revision': REVISION, 'calculation_settings': SETTINGS.copy(),
+            'provider_revision': REVISION, 'calculation_settings': settings,
             'input_fingerprint': fingerprint, 'model_calls': 0,
             'generated_at': datetime.now(timezone.utc).isoformat(),
             'data': {'ascendant': ascendant, 'planets': planets},

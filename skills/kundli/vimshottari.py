@@ -1,4 +1,4 @@
-"""Vimshottari periods from sidereal Moon longitude, using a 365.25-day year."""
+"""Vimshottari periods with explicit, validated year-length conventions."""
 
 from bisect import bisect_right
 from datetime import datetime, timedelta
@@ -19,11 +19,15 @@ def nakshatra_index(longitude):
     return bisect_right(NAKSHATRA_STARTS, longitude) - 1
 
 
-def current_period(birth_utc, moon_longitude, as_of_utc):
+def current_period(birth_utc, moon_longitude, as_of_utc, *, year_days=None):
     """Return the active maha/antardasha, accounting for the balance at birth.
 
     Inputs are naive UTC datetimes. Periods are half-open: [start, end).
+    Default behavior remains 365.25 days; Raman callers must explicitly use 360.
     """
+    year_days = YEAR_DAYS if year_days is None else year_days
+    if type(year_days) not in (int, float) or year_days not in (360, 365.25):
+        raise ValueError("Unsupported dasha year convention")
     star = nakshatra_index(moon_longitude)
     if any(not isinstance(value, datetime) or value.tzinfo is not None
            for value in (birth_utc, as_of_utc)):
@@ -32,12 +36,12 @@ def current_period(birth_utc, moon_longitude, as_of_utc):
         raise ValueError("Dasha date cannot precede birth")
     index = star % 9
     elapsed = (moon_longitude - NAKSHATRA_STARTS[star]) / NAKSHATRA_SPAN
-    start = birth_utc - timedelta(days=elapsed * YEARS[index] * YEAR_DAYS)
+    start = birth_utc - timedelta(days=elapsed * YEARS[index] * year_days)
     # Skip whole cycles before scanning at most nine major periods.
-    cycle = timedelta(days=120 * YEAR_DAYS)
+    cycle = timedelta(days=120 * year_days)
     start += ((as_of_utc - start) // cycle) * cycle
     for _ in range(9):
-        end = start + timedelta(days=YEARS[index] * YEAR_DAYS)
+        end = start + timedelta(days=YEARS[index] * year_days)
         if as_of_utc < end:
             break
         start = end
@@ -46,14 +50,14 @@ def current_period(birth_utc, moon_longitude, as_of_utc):
     for offset in range(9):
         sub_index = (index + offset) % 9
         sub_end = (end if offset == 8 else sub_start + timedelta(
-            days=YEARS[index] * YEARS[sub_index] / 120 * YEAR_DAYS))
+            days=YEARS[index] * YEARS[sub_index] / 120 * year_days))
         if as_of_utc < sub_end:
             return {
                 "mahadasha": ORDER[index], "antardasha": ORDER[sub_index],
                 "start": start.isoformat() + "Z", "end": end.isoformat() + "Z",
                 "antardasha_start": sub_start.isoformat() + "Z",
                 "antardasha_end": sub_end.isoformat() + "Z",
-                "year_days": YEAR_DAYS,
+                "year_days": year_days,
             }
         sub_start = sub_end
     raise ValueError("Unable to locate active dasha")
