@@ -44,6 +44,7 @@ except ImportError as e:
         calculate_kundli = None
 
 from vimshottari import current_period
+from reading_provider import configured_profile
 
 # Load Vedic rules
 RULES_FILE = os.path.join(SCRIPT_DIR, 'vedic_rules.json')
@@ -106,8 +107,8 @@ def get_current_moon_sign(as_of_utc=None) -> tuple:
         xx, ret = swe.calc_ut(jd, 1)  # 1 = Moon
         tropical_degree = xx[0] % 360
 
-        # Apply Lahiri Ayanamsa
-        swe.set_sid_mode(swe.SIDM_LAHIRI)
+        # Apply the explicitly configured process profile.
+        swe.set_sid_mode(configured_profile().ayanamsa_code)
         ayanamsa = swe.get_ayanamsa_ut(jd)
         sidereal_degree = (tropical_degree - ayanamsa) % 360
 
@@ -140,11 +141,12 @@ def get_current_dasha_info(birth_dt: datetime, as_of_utc=None) -> Dict:
         raise ValueError("Swiss Ephemeris is required for dasha calculation")
     hour = birth_dt.hour + birth_dt.minute / 60 + birth_dt.second / 3600
     jd = swe.julday(birth_dt.year, birth_dt.month, birth_dt.day, hour)
-    swe.set_sid_mode(swe.SIDM_LAHIRI)
+    profile = configured_profile()
+    swe.set_sid_mode(profile.ayanamsa_code)
     moon, _ = swe.calc_ut(jd, swe.MOON)
     longitude = (moon[0] - swe.get_ayanamsa_ut(jd)) % 360
     return current_period(birth_dt, longitude,
-                          as_of_utc or datetime.now(timezone.utc).replace(tzinfo=None))
+                          as_of_utc or datetime.now(timezone.utc).replace(tzinfo=None), year_days=profile.year_days)
 
 
 def detect_language(text: str) -> str:
@@ -246,7 +248,7 @@ def generate_daily_horoscope(
                 'language': language, 'prediction': render_daily(evidence, language),
                 'lucky_color': '', 'lucky_numbers': [], 'lucky_day': '',
                 'accuracy': 'Calculated coordinates independently checked; traditional interpretations are not event guarantees',
-                'calculation_method': 'VedAstro.Library, Lahiri, true nodes, Vimshottari 365.25-day year',
+                'calculation_method': f"VedAstro.Library, {evidence['native_settings']['ayanamsa'].title()}, true nodes, Vimshottari {evidence['native_settings']['dasha_year_days']:g}-day year",
                 'interpretation_source': 'reviewed_native_daily_facts_with_general_house_themes',
                 'interpretation_scope': 'traditional_indicators_not_verified_event_outcomes',
                 'transit_house_reference': 'natal_moon_whole_sign', 'evidence': evidence,
@@ -333,7 +335,7 @@ def generate_daily_horoscope(
             "lucky_numbers": lucky_numbers,
             "lucky_day": lucky_day,
             "accuracy": "Depends on birth input precision and calculation conventions",
-            "calculation_method": "pyswisseph, Lahiri, Vimshottari 365.25-day year"
+            "calculation_method": f"pyswisseph, {configured_profile().ayanamsa.title()}, Vimshottari {configured_profile().year_days:g}-day year"
         }
         result['interpretation_source'] = 'local_daily_rules'
         result['interpretation_scope'] = 'traditional_themes_not_verified_event_outcomes'

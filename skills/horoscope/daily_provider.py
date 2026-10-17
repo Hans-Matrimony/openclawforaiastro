@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 
-from reading_provider import finite, minute_time, SIGNS, STARS
+from reading_provider import finite, minute_time, SIGNS, STARS, configured_profile
 from natal_client import REVISION, SETTINGS, PLANETS, configuration, fetch_natal, normalize_natal
 from reading import verified_positions
 from timing_context import verified_timing_context
@@ -34,9 +34,15 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
     if vedha_flag not in ('0','1'):
         raise MatchError('provider_invalid_configuration')
     include_vedha = vedha_flag == '1'
+    try:
+        profile = configured_profile(env)
+    except ValueError:
+        raise MatchError('provider_invalid_configuration') from None
     base, token = configuration(env)
     verified_positions(chart)
-    if chart['calculation_source'] != 'pyswisseph' or chart['calculation_settings']['node'] != 'true':
+    if (chart['calculation_source'] != 'pyswisseph' or chart['calculation_settings']['node'] != 'true'
+            or chart['calculation_settings']['ayanamsa'] != profile.ayanamsa
+            or chart['calculation_settings']['dasha_year_days'] != profile.year_days):
         raise MatchError('calculation_conflict')
     try:
         value = chart['user_input']
@@ -59,13 +65,13 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
             raise MatchError('invalid_birth_details')
         check_time = when.strftime('%H:%M %d/%m/%Y +00:00')
         location = {'Name': 'Confirmed coordinates', 'Latitude': latitude, 'Longitude': longitude}
-        body = {'time': {'StdTime': std_time, 'Location': location}, 'Ayanamsa': 'LAHIRI',
+        body = {'time': {'StdTime': std_time, 'Location': location}, 'Ayanamsa': profile.ayanamsa,
                 'checkTime': {'StdTime': check_time, 'Location': location}}
         if include_vedha:
             body['includeVedha'] = True
         raw = (transport or fetch_natal)(base + '/Calculate/DailyEvidence', body, token)
         data = raw['Payload']['DailyEvidence']
-        natal = normalize_natal({**raw, 'Payload': {'NatalEvidence': data['natal']}}, expected)['data']
+        natal = normalize_natal({**raw, 'Payload': {'NatalEvidence': data['natal']}}, expected, env=env)['data']
         if (data['schema'] != 'vedastro-daily-evidence-v1' or data['checkTime']['StdTime'] != check_time
                 or data['transitHouseReference'] != 'natal_moon_whole_sign'
                 or data['obstructionEvaluated'] is not include_vedha or data['eventPredictionAvailable'] is not False
@@ -83,8 +89,8 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
             spec.loader.exec_module(module)
             reference_calculator = module.calculate_kundli_pyswisseph
         birth_ref = reference_calculator(birth_utc.astimezone(timezone.utc).replace(tzinfo=None),
-                                         latitude, longitude, sidereal_reference=True)
-        transit_ref = reference_calculator(when.replace(tzinfo=None), latitude, longitude, sidereal_reference=True)
+                                         latitude, longitude, sidereal_reference=True, ayanamsa_name=profile.ayanamsa)
+        transit_ref = reference_calculator(when.replace(tzinfo=None), latitude, longitude, sidereal_reference=True, ayanamsa_name=profile.ayanamsa)
         natal_asc = SIGNS.index(natal['ascendant']['sign']) * 30 + natal['ascendant']['degrees_in_sign']
         reference_asc = SIGNS.index(birth_ref['lagna']) * 30 + birth_ref['lagna_degree']
         if abs((natal_asc - reference_asc + 180) % 360 - 180) > 0.002:
@@ -93,7 +99,7 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
             if abs((row['sidereal_degree'] - natal['planets'][row['name']]['longitude'] + 180) % 360 - 180) > 0.002:
                 raise MatchError('calculation_conflict')
         phase = current_period(birth_utc.astimezone(timezone.utc).replace(tzinfo=None),
-                               natal['planets']['Moon']['longitude'], when.replace(tzinfo=None))
+                               natal['planets']['Moon']['longitude'], when.replace(tzinfo=None), year_days=profile.year_days)
         if data['period'] != {'PD1': phase['mahadasha'], 'PD2': phase['antardasha']}:
             raise MatchError('calculation_conflict')
         context = verified_timing_context(data['timingContext'], phase, natal['planets']['Moon']['longitude'],
@@ -130,13 +136,13 @@ def daily_evidence(chart, *, as_of_utc=None, env=None, transport=None, reference
                                  'bhinna_ashtakavarga': score['Ashtaka'], 'sarva_ashtakavarga': score['Sarvashtaka']}
         if abs((transits['Rahu']['longitude'] - transits['Ketu']['longitude']) % 360 - 180) > 0.001:
             raise MatchError('calculation_conflict')
-        fingerprint_inputs = [expected, check_time, SETTINGS, REVISION]
+        fingerprint_inputs = [expected, check_time, profile.native_settings(), REVISION]
         vedha = normalize_vedha(data['gocharaVedha'],transits) if include_vedha else None
         if include_vedha:
             fingerprint_inputs.append({'includeVedha':True})
         result = {'schema': 'reviewed-daily-evidence-v1', 'as_of_utc': when.isoformat(),
                 'input_fingerprint': hashlib.sha256(json.dumps(fingerprint_inputs, sort_keys=True).encode()).hexdigest(),
-                'provider': 'vedastro-local', 'source_revision': REVISION, 'native_settings': SETTINGS.copy(),
+                'provider': 'vedastro-local', 'source_revision': REVISION, 'native_settings': profile.native_settings(),
                 'verified_against': 'pyswisseph', 'model_calls': 0, 'natal': natal,
                 'current_period': phase, 'timing_context': context, 'transits': transits, 'kakshas': kakshas,
                 'kaksha_validation': 'native_source_type_range_and_lord_geometry',

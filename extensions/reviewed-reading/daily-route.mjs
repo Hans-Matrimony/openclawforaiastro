@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import path from "node:path";
 import { createReadingHandler } from "./route.mjs";
 import { validVedhaGeometry } from "./vedha-geometry.mjs";
+import { matchesCalculationProfile } from "./calculation-profile.mjs";
 
 const SIGNS = [
   "Aries",
@@ -85,9 +86,8 @@ export function validDailyEvidence(e, value, now = Date.now()) {
         ? stamp !== Date.parse(value.date + "T12:00:00Z")
         : Math.abs(now - stamp) > 120000) ||
       !sameKeys(s, ["ayanamsa", "node", "dasha_year_days", "house_system", "engine"]) ||
-      s.ayanamsa !== "LAHIRI" ||
+      !matchesCalculationProfile(s) ||
       s.node !== "true" ||
-      s.dasha_year_days !== 365.25 ||
       s.house_system !== "vedastro_bhava" ||
       s.engine !== "VedAstro.Library" ||
       !sameKeys(e.natal.planets, PLANETS) ||
@@ -142,7 +142,7 @@ export function validDailyEvidence(e, value, now = Date.now()) {
     return (
       PLANETS.includes(e.current_period.mahadasha) &&
       PLANETS.includes(e.current_period.antardasha) &&
-      e.current_period.year_days === 365.25 &&
+      e.current_period.year_days === s.dasha_year_days &&
       e.timing_context.event_prediction_available === false &&
       e.timing_context.obstruction_evaluated === false &&
       e.timing_context.as_of_utc === e.as_of_utc

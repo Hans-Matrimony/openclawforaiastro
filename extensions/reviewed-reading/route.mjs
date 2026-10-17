@@ -1,6 +1,7 @@
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { periodStatus, validWindowRule, revisions } from "./period-rules.mjs";
+import { matchesCalculationProfile } from "./calculation-profile.mjs";
 
 const MAX_BODY = 4096;
 const MAX_CONCURRENT = 2;
@@ -97,10 +98,9 @@ export function validReadingProvider(evidence) {
     provider.verified_against === "pyswisseph" &&
     provider.topic === evidence.topic &&
     provider.native_settings?.engine === "VedAstro.Library" &&
-    provider.native_settings.ayanamsa === "LAHIRI" &&
+    matchesCalculationProfile(provider.native_settings) &&
     provider.native_settings.house_system === "vedastro_bhava" &&
     provider.native_settings.node === "true" &&
-    provider.native_settings.dasha_year_days === 365.25 &&
     Object.keys(provider.native_settings).length === 5 &&
     provider.strength?.native_house_system === "vedastro_bhava" &&
     provider.strength.planet === provider.topic_ruler &&
@@ -127,11 +127,10 @@ function validLegacyResult(result, value) {
     result.model_tokens === 0 &&
     evidence?.schema === "topic-reading-v1" &&
     ["reviewed-placements-v1", "reviewed-placements-v2"].includes(evidence.rules_revision) &&
-    evidence.settings?.ayanamsa === "LAHIRI" &&
+    matchesCalculationProfile(evidence.settings) &&
     evidence.settings?.house_system === "whole_sign" &&
     validReadingProvider(evidence) &&
     evidence.settings?.node === "true" &&
-    evidence.settings?.dasha_year_days === 365.25 &&
     typeof evidence.input_fingerprint === "string" &&
     /^[a-f0-9]{64}$/u.test(evidence.input_fingerprint) &&
     validReadingTimingContext(evidence) &&
@@ -397,10 +396,9 @@ function validOutcomeResult(result, value) {
     validReadingProvider(evidence) &&
     (evidence.timing_context === undefined ||
       validReadingTimingContext({ ...evidence, period_interpretation_available: true })) &&
-    evidence.settings?.ayanamsa === "LAHIRI" &&
+    matchesCalculationProfile(evidence.settings) &&
     evidence.settings?.house_system === "whole_sign" &&
     evidence.settings?.node === "true" &&
-    evidence.settings?.dasha_year_days === 365.25 &&
     (result.style ?? "standard") === (value.style ?? "standard") &&
     (result.follow_up ?? true) === (value.follow_up ?? true) &&
     typeof result.text === "string" &&
