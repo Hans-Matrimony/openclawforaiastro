@@ -1,7 +1,7 @@
 """Small, question-specific reading packet; no LLM calls.
 
 Reviewed paraphrases of VedAstro's classical placement entries. Conditions are
-checked against a verified Lahiri whole-sign chart, not an upstream AI summary.
+checked against a verified configured-profile whole-sign chart, not an upstream AI summary.
 See VEDASTRO-MIT.txt. Themes are interpretations, never measured outcomes.
 """
 import hashlib
@@ -13,6 +13,7 @@ from vimshottari import current_period, nakshatra_index
 from advanced_facts import advanced_facts
 from prediction_assessment import assess, REVISION, PERIOD_SOURCE
 from period_rules import RULES as PERIOD_RULES
+from reading_provider import configured_profile
 
 SIGNS = ('Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
          'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces')
@@ -90,10 +91,11 @@ def verified_positions(chart):
     if not isinstance(chart, dict) or chart.get('calculation_source') not in ('pyswisseph', 'vedastro-local'):
         raise ValueError('Reviewed readings require a verified primary chart')
     if chart['calculation_source'] == 'vedastro-local':
-        from reading_provider import REVISION, SETTINGS
+        from reading_provider import REVISION
         provider = chart.get('reading_provider', {})
         if (provider.get('name') != 'vedastro-local' or provider.get('source_revision') != REVISION
-                or provider.get('verified_against') != 'pyswisseph' or provider.get('native_settings') != SETTINGS):
+                or provider.get('verified_against') != 'pyswisseph'
+                or provider.get('native_settings') != configured_profile().native_settings()):
             raise ValueError('Unverified VedAstro chart')
     lagna = chart.get('lagna')
     positions = chart.get('planet_positions')
@@ -151,17 +153,21 @@ def reading_packet(chart, topic, *, as_of_utc=None, contract_version=1):
                           'traditional_theme': f'The topic ruler connects to general house symbolism: {HOUSE_SYMBOLS[fact["house"]]}.',
                           'source': 'local_house_symbolism'})
     # Include at most three relevant factors, rather than the entire corpus.
-    settings = {'ayanamsa': 'LAHIRI', 'house_system': 'whole_sign', 'node': 'true',
-                'dasha_year_days': 365.25, 'engine': 'pyswisseph'}
+    profile = configured_profile()
+    settings = {'ayanamsa': profile.ayanamsa, 'house_system': 'whole_sign', 'node': 'true',
+                'dasha_year_days': profile.year_days, 'engine': 'pyswisseph'}
     supplied_settings = chart.get('calculation_settings', {})
     if not isinstance(supplied_settings, dict):
         raise ValueError('Invalid reading settings')
+    if profile.ayanamsa != 'LAHIRI' and not {
+            'ayanamsa', 'house_system', 'node', 'dasha_year_days', 'engine'} <= supplied_settings.keys():
+        raise ValueError('Non-default readings require explicit calculation settings')
     settings.update(supplied_settings)
     remote = chart['calculation_source'] == 'vedastro-local'
-    if (settings['ayanamsa'] != 'LAHIRI' or settings['house_system'] != 'whole_sign'
+    if (settings['ayanamsa'] != profile.ayanamsa or settings['house_system'] != 'whole_sign'
             or settings['node'] not in ('true', 'mean')
             or settings['engine'] != ('VedAstro.Library' if remote else 'pyswisseph')
-            or type(settings['dasha_year_days']) not in (int, float) or settings['dasha_year_days'] != 365.25):
+            or type(settings['dasha_year_days']) not in (int, float) or settings['dasha_year_days'] != profile.year_days):
         raise ValueError('Unsupported reading settings')
     birth = chart.get('user_input')
     if not isinstance(birth, dict) or not isinstance(birth.get('coordinates'), dict):
@@ -189,7 +195,7 @@ def reading_packet(chart, topic, *, as_of_utc=None, contract_version=1):
         raise ValueError('Reading timestamp must be timezone-aware')
     as_of = as_of.astimezone(timezone.utc)
     # Refresh time-dependent periods even if the caller supplies an older chart.
-    period = current_period(birth_utc, degrees['Moon'], as_of.replace(tzinfo=None))
+    period = current_period(birth_utc, degrees['Moon'], as_of.replace(tzinfo=None), year_days=profile.year_days)
     active = {'mahadashas': {period['mahadasha']: {
         'start': period['start'], 'end': period['end'],
         'antardashas': {period['antardasha']: {
@@ -202,7 +208,7 @@ def reading_packet(chart, topic, *, as_of_utc=None, contract_version=1):
     lords = {house: LORDS[(asc + house - 1) % 12] for house in range(1, 13)}
     extended = contract_version == 2 and os.getenv('ASTROFRIEND_EXTENDED_PERIOD_RULES', '0') == '1'
     assessment = assess(positions, lords, topic, birth_utc, degrees['Moon'], as_of,
-                        uncertain_birth=uncertain_birth, extended=extended)
+                        uncertain_birth=uncertain_birth, extended=extended, year_days=profile.year_days)
     packet = {
         'schema': 'topic-reading-v2', 'rules_revision': 'reviewed-outcomes-v3' if extended else REVISION,
         'topic': topic, 'input_fingerprint': fingerprint,

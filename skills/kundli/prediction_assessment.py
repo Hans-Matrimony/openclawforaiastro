@@ -34,7 +34,7 @@ def _reason(rule_id, status, planet, positions, rules_house=None):
     return {'id': rule_id, 'status': status, 'fact': fact, 'source': HOROSCOPE_SOURCE}
 
 
-def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_birth=False, extended=False):
+def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_birth=False, extended=False, year_days=365.25):
     """Called only after reading_packet has verified the complete chart and inputs."""
     reasons = []
     if topic == 'marriage':
@@ -55,7 +55,7 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
     statuses = {r['status'] for r in reasons}
     natal_status = ('mixed' if statuses == {'supportive', 'adverse'} else
                     next(iter(statuses)) if statuses else 'limited')
-    current = current_period(birth_utc, moon_degree, as_of.replace(tzinfo=None))
+    current = current_period(birth_utc, moon_degree, as_of.replace(tzinfo=None), year_days=year_days)
     reviewed = period_status(current['mahadasha'], current['antardasha'], topic, extended=extended)
     if uncertain_birth:
         reviewed = None
@@ -79,7 +79,7 @@ def assess(positions, lords, topic, birth_utc, moon_degree, as_of, *, uncertain_
     if (topic == 'marriage' and (extended or relevant_major) and not uncertain_birth
             and as_of.replace(tzinfo=None) >= adult_from):
         for _ in range(81):
-            candidate = current_period(birth_utc, moon_degree, cursor)
+            candidate = current_period(birth_utc, moon_degree, cursor, year_days=year_days)
             start = datetime.fromisoformat(candidate['antardasha_start'].replace('Z', '+00:00')).replace(tzinfo=None)
             end = datetime.fromisoformat(candidate['antardasha_end'].replace('Z', '+00:00')).replace(tzinfo=None)
             if start >= horizon:

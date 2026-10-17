@@ -269,7 +269,7 @@ The default calculate.py response contains `summary`, `ai_summary`, `lagna`, `mo
 - **ai_summary.planet_positions**: All nine placements, formatted for the existing image tool.
 - **summary.current_dasha**: Current Vimshottari Mahadasha and Antardasha.
 
-With `--full`, the Swiss Ephemeris path also returns numeric `planet_positions`, date-specific `ayanamsa`, and `dashas.current.mahadashas`. Vimshottari uses the birth Moon position, its remaining period balance, and a 365.25-day year. Period timestamps are UTC.
+With `--full`, the Swiss Ephemeris path also returns numeric `planet_positions`, date-specific `ayanamsa`, and `dashas.current.mahadashas`. Vimshottari uses the birth Moon position, its remaining period balance, and the configured year length: 365.25 days by default, or 360 days for the explicitly gated development Raman profile. Read the returned settings; do not mix profiles or change deployment settings from a chat request. Period timestamps are UTC.
 
 Extended legacy data, including panchanga, is optional and lives under `supplemental_jyotishganit`. It uses independent calculation conventions: never substitute its signs or dashas for the primary summary or combine the two charts into one reading. If that engine fails, `supplemental_error` explains why the extra data is absent; the primary chart remains usable. On the jyotishganit fallback path, the full raw chart belongs to that engine instead, as indicated by `user_input.ephemeris_used`.
 

@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from vimshottari import current_period, nakshatra_index
 from natal_cache import cached_natal
+from reading_provider import configured_profile
 from geopy.geocoders import Nominatim
 
 # Dependencies are installed at build time; imports must not mutate the runtime.
@@ -510,6 +511,9 @@ def validate_planet_positions(chart_data):
 
 def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy_full=False, node_convention='true',
                      latitude=None, longitude=None, utc_offset=None):
+    profile = configured_profile()
+    if profile.ayanamsa != 'LAHIRI' and (legacy_full or include_supplemental or os.getenv('KUNDLI_ALLOW_LEGACY_FALLBACK') == '1'):
+        raise ValueError('Legacy chart modes require the Lahiri calculation profile')
     # ✅ FIX #3: get_coordinates now raises ValueError if place not found
     # No more silent Delhi fallback
     if (latitude is None) != (longitude is None):
@@ -570,7 +574,7 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
                         raise ValueError('Invalid cached sign degree')
                 if not math.isclose(value['moon_degree'], moon['sidereal_degree'] % 30, abs_tol=1e-9):
                     raise ValueError('Conflicting cached Moon degree')
-                if (value['node_convention'] != node_convention or value['ayanamsa_used'] != 'LAHIRI'
+                if (value['node_convention'] != node_convention or value['ayanamsa_used'] != profile.ayanamsa
                         or type(value['ayanamsa_degree']) not in (int, float)
                         or not math.isfinite(value['ayanamsa_degree'])):
                     raise ValueError('Conflicting cached calculation settings')
@@ -583,9 +587,9 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
             revision = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
             pyswisseph_data = cached_natal(
                 {'utc': utc_dt.isoformat(), 'lat': lat, 'lon': lon, 'node': node_convention,
-                 'ayanamsa': 'LAHIRI', 'houses': 'whole_sign', 'revision': revision,
+                 'ayanamsa': profile.ayanamsa, 'houses': 'whole_sign', 'revision': revision,
                  'engine': str(getattr(swe, 'version', 'unknown')), 'ephemeris': ephe_revision},
-                lambda: calculate_kundli_pyswisseph(utc_dt, lat, lon, node_convention=node_convention),
+                lambda: calculate_kundli_pyswisseph(utc_dt, lat, lon, ayanamsa_name=profile.ayanamsa, node_convention=node_convention),
                 validate_natal)
             using_pyswisseph = True
             ephemeris_info = "pyswisseph (FREE Swiss Ephemeris) - Primary"
@@ -596,12 +600,12 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
 
     if using_pyswisseph:
         period = current_period(utc_dt, pyswisseph_data['moon_sidereal_degree'],
-                                datetime.now(timezone.utc).replace(tzinfo=None))
+                                datetime.now(timezone.utc).replace(tzinfo=None), year_days=profile.year_days)
         # Full and compact output must share one engine. Do not attach raw
         # jyotishganit placements or dashas to a Swiss Ephemeris summary.
         chart_data = {
             'planet_positions': pyswisseph_data['planet_positions'],
-            'ayanamsa': {'name': 'LAHIRI', 'value': pyswisseph_data['ayanamsa_degree']},
+            'ayanamsa': {'name': profile.ayanamsa, 'value': pyswisseph_data['ayanamsa_degree']},
             'dashas': {'year_days': period['year_days'], 'current': {'mahadashas': {
                 period['mahadasha']: {
                     'start': period['start'], 'end': period['end'],
@@ -826,7 +830,7 @@ def calculate_kundli(dob_str, tob_str, place, include_supplemental=False, legacy
     }
     if using_pyswisseph:
         final_output['calculation_settings'] = {
-            'ayanamsa': 'LAHIRI', 'house_system': 'whole_sign',
+            'ayanamsa': profile.ayanamsa, 'house_system': 'whole_sign',
             'node': node_convention, 'dasha_year_days': period['year_days'],
             'engine': 'pyswisseph',
         }

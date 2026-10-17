@@ -53,7 +53,7 @@ replace the existing kundli/horoscope chat routes.
 Pass a JSON object with one `birth` field through stdin. Its fields are `date`,
 `time`, `latitude`, `longitude`, `timezone` and `time_precision`, using the same
 validation requirements above. The adapter checks the pinned engine revision,
-Lahiri/true-node/365.25-day settings, echoed time/coordinates, all nine planets,
+the configured ayanamsa/true-node/year-length settings, echoed time/coordinates, all nine planets,
 sign consistency and opposite nodes before returning data. Raw provider prose
 and identifying location labels are omitted. It makes one bounded HTTP request,
 with no hosted fallback, automatic retries, LLM calls or new persistence.

@@ -13,6 +13,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'vedastro'))
 from natal_client import REVISION, SETTINGS, configuration, fetch_natal, normalize_natal
+from engine_profile import configured_profile
 from vedastro_client import MatchError
 from advanced_facts import divisional_sign
 from vimshottari import current_period, nakshatra_index
@@ -52,9 +53,12 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
     timing_mode = env.get('VEDASTRO_TIMING_CONTEXT_ENABLED', '0')
     if timing_mode not in ('0', '1'):
         raise ValueError('Invalid timing context configuration')
+    profile = configured_profile(env)
     from reading import verified_positions
     verified_positions(chart)
-    if chart['calculation_source'] != 'pyswisseph' or chart['calculation_settings']['node'] != 'true':
+    if (chart['calculation_source'] != 'pyswisseph' or chart['calculation_settings']['node'] != 'true'
+            or chart['calculation_settings']['ayanamsa'] != profile.ayanamsa
+            or chart['calculation_settings']['dasha_year_days'] != profile.year_days):
         raise MatchError('calculation_conflict')
     try:
         base, token = configuration(env)
@@ -76,7 +80,7 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
             from calculate import calculate_kundli_pyswisseph
             reference_calculator = calculate_kundli_pyswisseph
         reference = reference_calculator(birth_utc.astimezone(timezone.utc).replace(tzinfo=None),
-            latitude, longitude, sidereal_reference=True)
+            latitude, longitude, sidereal_reference=True, ayanamsa_name=profile.ayanamsa)
         basis = deepcopy(chart)
         basis.update(planet_positions=reference['planet_positions'], lagna=reference['lagna'],
                      moon_sign=next(p['sign'] for p in reference['planet_positions'] if p['name'] == 'Moon'),
@@ -92,11 +96,11 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
         when = minute_time(as_of_utc or datetime.now(timezone.utc))
         check = when.strftime('%H:%M %d/%m/%Y +00:00')
         location = {'Name': 'Confirmed birth coordinates', 'Latitude': latitude, 'Longitude': longitude}
-        body = {'time': {'StdTime': std_time, 'Location': location}, 'Ayanamsa': 'LAHIRI',
+        body = {'time': {'StdTime': std_time, 'Location': location}, 'Ayanamsa': profile.ayanamsa,
                 'topic': topic, 'checkTime': {'StdTime': check, 'Location': location}}
         raw = (transport or fetch_natal)(base + '/Calculate/ReadingEvidence', body, token)
         evidence = raw['Payload']['ReadingEvidence']
-        normalized = normalize_natal({**raw, 'Payload': {'NatalEvidence': evidence['natal']}}, expected)
+        normalized = normalize_natal({**raw, 'Payload': {'NatalEvidence': evidence['natal']}}, expected, env=env)
         remote = normalized['data']
         if (evidence['schema'] != 'vedastro-reading-evidence-v1' or evidence['topic'] != topic
                 or evidence['interpretationHouseSystem'] != 'whole_sign'
@@ -132,7 +136,7 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
         if strength['meetsEngineStrengthTest'] != strength_test:
             raise MatchError('calculation_conflict')
         phase = current_period(birth_utc.astimezone(timezone.utc).replace(tzinfo=None),
-                               remote['planets']['Moon']['longitude'], when.replace(tzinfo=None))
+                               remote['planets']['Moon']['longitude'], when.replace(tzinfo=None), year_days=profile.year_days)
         if evidence['period'] != {'PD1': phase['mahadasha'], 'PD2': phase['antardasha']}:
             raise MatchError('calculation_conflict')
         result = basis
@@ -142,10 +146,10 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
         result.update(calculation_source='vedastro-local', lagna_sidereal_degree=remote_asc,
                       moon_sign=remote['planets']['Moon']['sign'],
                       nakshatra=STARS[nakshatra_index(remote['planets']['Moon']['longitude'])])
-        result['calculation_settings'] = {'ayanamsa': 'LAHIRI', 'house_system': 'whole_sign',
-            'node': 'true', 'dasha_year_days': 365.25, 'engine': 'VedAstro.Library', 'source_revision': REVISION}
+        result['calculation_settings'] = {'ayanamsa': profile.ayanamsa, 'house_system': 'whole_sign',
+            'node': 'true', 'dasha_year_days': profile.year_days, 'engine': 'VedAstro.Library', 'source_revision': REVISION}
         result['reading_provider'] = {'name': 'vedastro-local', 'source_revision': REVISION,
-            'verified_against': 'pyswisseph', 'native_settings': SETTINGS.copy(), 'as_of_utc': when.isoformat(),
+            'verified_against': 'pyswisseph', 'native_settings': profile.native_settings(), 'as_of_utc': when.isoformat(),
             'topic': topic, 'topic_ruler': owner, 'native_d9_sign': evidence['navamsaSign'],
             'strength': {'planet': owner, 'total_virupas': total, 'total_rupas': total / 60,
                          'components_virupas': parts, 'native_house_system': 'vedastro_bhava',
@@ -153,7 +157,7 @@ def use_reading_provider(chart, topic, *, as_of_utc=None, env=None, transport=No
         if timing_mode == '1':
             from timing_context import verified_timing_context
             current_reference = reference_calculator(when.replace(tzinfo=None), latitude, longitude,
-                                                     sidereal_reference=True)
+                                                     sidereal_reference=True, ayanamsa_name=profile.ayanamsa)
             result['reading_provider']['timing_context'] = verified_timing_context(
                 evidence['timingContext'], phase, remote['planets']['Moon']['longitude'],
                 current_reference['planet_positions'], when, finite)
