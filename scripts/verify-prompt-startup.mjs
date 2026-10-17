@@ -42,6 +42,9 @@ function container(args, command, expectedCode = 0) {
     `type=volume,source=${volume},target=/state`,
     "--env",
     "OPENCLAW_STATE_DIR=/state",
+    // Exercise provider routing without real credentials; networking is disabled.
+    "--env",
+    "ZAI_API_KEY=synthetic-startup-test-key",
     ...args,
     image,
     ...command,
