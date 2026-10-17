@@ -62,3 +62,15 @@ meet a style target or claim a generated image is a human selfie.
 Tool failure: explain the unavailable result briefly in the selected language.
 Do not repeatedly dispatch the same failed call, run a substitute unverified
 calculator or fall back to invented chart, billing, memory or media facts.
+
+## Verify the calculation input before interpreting
+
+Validate returned birthplace coordinates against the requested city before using
+a chart. For an unambiguous Indian city in cities_india.json, use its exact city
+key (for example Delhi, not Delhi, India) when calling calculate.py. The current
+lookup matches exact keys and otherwise appends India for geocoding. Do not drop
+region or country information for ambiguous places; clarify or verify instead.
+A successful tool exit does not prove the correct location was selected. Stop
+the reading on a location mismatch. Check date-specific motion and positions;
+never extend one sampled transit across an unchecked interval. Use only this
+profile's results, not scratch files or another profile's dasha tables.

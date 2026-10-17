@@ -44,4 +44,14 @@ describe("astrologer reading style", () => {
     expect(canAcceptReadingRewrite(reading + " In 2027.", reading)).toBe(false);
     expect(canAcceptReadingRewrite(reading, "")).toBe(false);
   });
+  it("preserves an unfavorable verdict instead of softening it to mixed or favorable", () => {
+    const adverse =
+      "Yeh factor anukool nahi hai. Saturn ki checked sign dignity is reading mein kamzor hai, isliye is factor ko supportive kehna sahi nahi hoga. Yeh sirf isi chart factor ka assessment hai, kisi job ke pakke failure ya kisi nayi tareekh ka nateeja nahi.";
+    expect(canAcceptReadingRewrite(adverse + " Would you like more?", adverse)).toBe(true);
+    for (const softened of ["Result mixed hai.", "Yeh factor anukool hai."]) {
+      expect(
+        canAcceptReadingRewrite(adverse, adverse.replace("Yeh factor anukool nahi hai.", softened)),
+      ).toBe(false);
+    }
+  });
 });
