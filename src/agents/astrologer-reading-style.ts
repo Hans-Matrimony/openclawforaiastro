@@ -1,4 +1,20 @@
 /** Keep this contract independent of providers and astrology calculations. */
+export function removeRedundantTimingDisclaimer(prompt: string, text: string): string {
+  // Preserve answers specifically about certainty, including the user's quoted line.
+  if (/guarantee|certain|pakka|pakki|sure|disclaimer|matlab/iu.test(prompt)) return text;
+  // Only remove the stock clause when uncertainty already precedes it. Never
+  // erase an evidence limitation following a semicolon, or a standalone warning.
+  return text
+    .replace(
+      /([.!?]\s+|\n+)(?:Yeh|Ye) (?:ek )?sambhavit (?:mauke hain|samay[- ]khand hai), (?:koi )?pakki (?:shaadi ki )?tareekh nahi[.;]\s*/giu,
+      (match, boundary: string, offset: number) => {
+        const before = text.slice(0, offset);
+        return /\bdikh (?:raha|rahi|rahe)|\bho sak(?:ta|ti|te)\b/iu.test(before) ? boundary : match;
+      },
+    )
+    .trimEnd();
+}
+
 export function readingStyleIssues(text: string): string[] {
   const issues: string[] = [];
   if (!text.trim()) issues.push("empty");

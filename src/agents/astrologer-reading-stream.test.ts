@@ -48,6 +48,24 @@ function provider(responses: AssistantMessage[]) {
   });
 }
 describe("reading delivery guard", () => {
+  it("delivers and persists timing text without the redundant clause or another model call", async () => {
+    const clean =
+      "December se February ka samay shaadi ke liye anukool dikh raha hai. Saturn aur Jupiter ke checked transit factors is interval mein saath aate hain, aur yeh reading unhi factors tak seemit hai, poori grah-bal jaanch abhi ismein shaamil nahi hai.";
+    const base = provider([message(clean + " Yeh sambhavit mauke hain, pakki tareekh nahi.")]);
+    const agent = new Agent({
+      initialState: { model },
+      streamFn: wrapAstrologerReadingStream(base, "Shaadi kab?"),
+    });
+    const deltas: string[] = [];
+    agent.subscribe((event) => {
+      if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta")
+        deltas.push(event.assistantMessageEvent.delta);
+    });
+    await agent.prompt("Shaadi kab?");
+    expect(deltas).toEqual([clean]);
+    expect(agent.state.messages.at(-1)?.content).toEqual([{ type: "text", text: clean }]);
+    expect(base).toHaveBeenCalledTimes(1);
+  });
   it("delivers and records the reviewed response through the actual agent loop", async () => {
     const base = provider([message(reading + " Would you like more?"), message(reading)]);
     const agent = new Agent({

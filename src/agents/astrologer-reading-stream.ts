@@ -4,6 +4,7 @@ import {
   canAcceptReadingRewrite,
   isNormalAstrologyReading,
   readingStyleIssues,
+  removeRedundantTimingDisclaimer,
   READING_REWRITE_PROMPT,
 } from "./astrologer-reading-style.js";
 
@@ -96,6 +97,21 @@ export function wrapAstrologerReadingStream(base: StreamFn, prompt: string): Str
         } catch {
           // Style failure must not lose a valid answer or cause another tool run.
         }
+      }
+      if (
+        message.stopReason === "stop" &&
+        blocks.length === 1 &&
+        !message.content.some((block) => block.type === "toolCall") &&
+        isNormalAstrologyReading(prompt, draft)
+      ) {
+        message = {
+          ...message,
+          content: message.content.map((block) =>
+            block.type === "text"
+              ? { ...block, text: removeRedundantTimingDisclaimer(prompt, block.text) }
+              : block,
+          ),
+        };
       }
       if (options?.signal?.aborted) {
         message = {

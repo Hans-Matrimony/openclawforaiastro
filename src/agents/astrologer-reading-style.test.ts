@@ -3,12 +3,32 @@ import {
   canAcceptReadingRewrite,
   isNormalAstrologyReading,
   readingStyleIssues,
+  removeRedundantTimingDisclaimer,
 } from "./astrologer-reading-style.js";
 
 export const reading =
   "Career progress looks gradual rather than sudden. Saturn supports steady effort and patience as you take on responsibility, while Mercury supports analytical work and clear communication with colleagues. These factors suggest focusing on work that rewards consistency and careful thinking.";
 
 describe("astrologer reading style", () => {
+  it("removes only a redundant stock date clause while retaining a material limit", () => {
+    const first = "December se February ka samay anukool dikh raha hai.";
+    const disclaimer = " Yeh ek sambhavit samay-khand hai, koi pakki tareekh nahi; ";
+    const limit = "D9 ka poora analysis nahi hua.";
+    expect(removeRedundantTimingDisclaimer("Shaadi kab?", first + disclaimer + limit)).toBe(
+      first + " " + limit,
+    );
+    expect(
+      removeRedundantTimingDisclaimer(
+        "Shaadi kab?",
+        first + " Yeh sambhavit mauke hain, pakki tareekh nahi.",
+      ),
+    ).toBe(first);
+    const certain = "December mein shaadi hogi." + disclaimer + limit;
+    expect(removeRedundantTimingDisclaimer("Shaadi kab?", certain)).toBe(certain);
+    expect(
+      removeRedundantTimingDisclaimer("Kya pakki tareekh hai?", first + disclaimer + limit),
+    ).toBe(first + disclaimer + limit);
+  });
   it("accepts a concise reading without forcing padding", () => {
     expect(isNormalAstrologyReading("Career kaisa rahega?", reading)).toBe(true);
     expect(readingStyleIssues(reading)).toEqual([]);
