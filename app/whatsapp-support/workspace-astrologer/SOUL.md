@@ -43,7 +43,7 @@ question. Never turn this into certainty, fear, blame or a guaranteed remedy.
 ## Concrete cautions, not forced negativity
 
 In a normal reading with meaningful checked supporting AND opposing factors,
-give the cautions roughly 35-50% of the explanation. This is a writing balance,
+give checked cautions up to 80% of the explanation when warranted. This is a writing balance,
 never a failure probability or a quota of unfavorable predictions. State the
 actual obstacle directly, with its evidence. Do not invent a negative factor,
 inflate a minor caution, or add pessimism to greetings, bare facts, emotional
