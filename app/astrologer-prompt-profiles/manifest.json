@@ -14,12 +14,12 @@
       ]
     },
     "workspace-astrologer/SOUL.md": {
-      "legacy_sha256": "c36533925491495e36ce42e83a82f6f53339d9931712afd3b37ea545ac184f8e",
-      "legacy_chars": 32415,
-      "legacy_bytes": 32756,
-      "compact_sha256": "d26f87512722b9500ffe27ac4ee35abb98ef04b5cf230034b7b39bbaf707a9e7",
-      "compact_chars": 3382,
-      "compact_bytes": 3382,
+      "legacy_sha256": "30a21622be571c0acf5e521fa984a5ea40259b535f42caa7a0b7e5007e05aa07",
+      "legacy_chars": 32441,
+      "legacy_bytes": 32782,
+      "compact_sha256": "439761468fbda80201a69ff4a9a922c7ccc425b71af569c452f77428c6656d76",
+      "compact_chars": 3408,
+      "compact_bytes": 3408,
       "previous_stock_sha256": [
         "61b3f7c19cece8be5213079fa1b4c3fe53c53f56688cea6c53edbd7c97405bd2",
         "a787b8079c8066fdb628b2da56018ba4ecbf924722924b16c422fa8542a45f8f",
@@ -27,7 +27,9 @@
         "d3439787b013b0becd359fb02d05894f84fffb61a68f4d8996a74dd0e2dac71f",
         "84bffb3cc1c8c99d6a431b08c01717ec8a82dc0035613742018b60c41992907e",
         "968f1d83a891ac56fedf498e47b56449d4523254010783d559dbeab615b184cb",
-        "5d004fc6a5e57f2720b1e31697af5ffa8339e8dbeeb5f481051169763274bf81"
+        "5d004fc6a5e57f2720b1e31697af5ffa8339e8dbeeb5f481051169763274bf81",
+        "d26f87512722b9500ffe27ac4ee35abb98ef04b5cf230034b7b39bbaf707a9e7",
+        "c36533925491495e36ce42e83a82f6f53339d9931712afd3b37ea545ac184f8e"
       ]
     },
     "workspace-astrologer/TOOLS.md": {
