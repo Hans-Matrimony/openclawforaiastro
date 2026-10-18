@@ -9,6 +9,8 @@
   "ignorePatterns": [
     "apps/",
     "assets/",
+    // Preserve the supplied direct engine and captured schemas byte-for-byte.
+    "extensions/reviewed-reading/direct/assets/",
     "dist/",
     "docs/_layouts/",
     "docs/zh-CN/",

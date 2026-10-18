@@ -3,12 +3,19 @@ import { createDailyHandler } from "./daily-route.mjs";
 import { createReadingHandler } from "./route.mjs";
 import { createReviewHandler } from "./verifier.mjs";
 import { createSummaryHandler } from "./summary-route.mjs";
+import { createDirectHandler } from "./direct-route.mjs";
 
 export default {
   id: "reviewed-reading",
   register(api: OpenClawPluginApi) {
     // Both calculation routes share the existing two-process ceiling.
     const concurrency = { active: 0 };
+    api.registerHttpRoute({
+      path: "/astrofriend/direct-answer",
+      auth: "gateway",
+      match: "exact",
+      handler: createDirectHandler(undefined, { concurrency }),
+    });
     api.registerHttpRoute({
       path: "/astrofriend/provider-summary",
       auth: "gateway",
