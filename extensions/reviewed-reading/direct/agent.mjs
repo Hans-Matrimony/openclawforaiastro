@@ -246,7 +246,9 @@ export async function directAnswer(
       isStressConcern(value.query);
     let finalReply = formatted;
     if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
-      if (canAskFollowup(formatted, value, completed)) {
+      // Companionship follows ordinary replies too; it is not chart-tool evidence.
+      // The existing chart requirement above remains independent and unchanged.
+      if (canAskFollowup(formatted, value, !clarification)) {
         finalReply = await contextualClosing(formatted, value, {
           facts: context.memoryFacts,
           redact: (text) => redactIdentity(text, value.user_id),

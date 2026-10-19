@@ -3,6 +3,52 @@ import test from "node:test";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 
+void test("reported ordinary questions reach companion writer without chart calls", async () => {
+  for (const query of [
+    "educaiotn ke baare main batao",
+    "thodi pareshani hai paiso ko leke kab poori hogi",
+  ]) {
+    let calls = 0;
+    const result = await directAnswer(
+      {
+        user_id: "synthetic-companion-routing",
+        query,
+        language: "hinglish",
+        birth: {},
+        history: [],
+      },
+      {
+        env: {
+          OPENROUTER_API_KEY: "test",
+          VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "1",
+          VEDASTRO_DIRECT_REPLY_CACHE: "0",
+        },
+        makeMemory: () => ({ read: async () => [] }),
+        makeTools: () => async () => {
+          assert.fail("No chart tool in this routing fixture");
+        },
+        fetchImpl: async () =>
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  finish_reason: "stop",
+                  message: {
+                    content:
+                      ++calls === 1 ? "Existing answer." : "Aaram se batao, jo mann mein hai.",
+                  },
+                },
+              ],
+              usage: { cost: 0 },
+            }),
+          ),
+      },
+    );
+    assert.equal(calls, 2);
+    assert.equal(result.reply, "Existing answer. Aaram se batao, jo mann mein hai.");
+  }
+});
+
 void test("reported education and money questions retain companionship on writer failure", async () => {
   for (const [query, closing] of [
     [
