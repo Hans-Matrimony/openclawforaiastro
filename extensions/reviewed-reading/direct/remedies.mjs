@@ -72,6 +72,9 @@ export function remedySearchQuery(value) {
 }
 
 export function normalizeRemedies(value) {
+  if (value?.status === "empty" && Array.isArray(value.sources) && !value.sources.length) {
+    return { status: "empty", sources: [] };
+  }
   if (value?.status !== "available" || !Array.isArray(value.sources)) {
     return { status: "unavailable", sources: [] };
   }
@@ -79,6 +82,28 @@ export function normalizeRemedies(value) {
   let size = 0;
   for (const row of value.sources.slice(0, 5)) {
     if (!row || typeof row !== "object" || Array.isArray(row) || !Object.keys(row).length) {
+      continue;
+    }
+    const text = [
+      row.text,
+      row.content,
+      row.page_content,
+      row.category,
+      row.topic,
+      row.type,
+      ...(Array.isArray(row.remedies) ? row.remedies : []),
+    ]
+      .filter((part) => typeof part === "string")
+      .join(" ");
+    if (
+      !(
+        Array.isArray(row.remedies) &&
+        row.remedies.some((item) => typeof item === "string" && item.trim())
+      ) &&
+      !/\b(?:remed(?:y|ies)|mantra|prayer|chant\w*|worship|puja|pooja|donat\w*|upaa?y\w*)\b|उपाय|मंत्र|जाप|पूजा/i.test(
+        text,
+      )
+    ) {
       continue;
     }
     const bytes = Buffer.byteLength(
@@ -107,7 +132,16 @@ export function retrieveRemedies(query, { env = process.env, signal, run = execF
     run(
       env.VEDASTRO_DIRECT_PYTHON || "python3",
       [script, "search", query, "--limit", "5"],
-      { env, signal, timeout: 25000, maxBuffer: 65536, windowsHide: true },
+      {
+        env: {
+          ...env,
+          QDRANT_COLLECTION: env.VEDASTRO_DIRECT_QDRANT_COLLECTION || "astrology_remedies",
+        },
+        signal,
+        timeout: 25000,
+        maxBuffer: 65536,
+        windowsHide: true,
+      },
       (error, stdout) => {
         try {
           const rows = error ? null : JSON.parse(stdout);

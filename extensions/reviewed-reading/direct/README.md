@@ -125,9 +125,17 @@ of the final bubble. The existing explanation and verdict remain; missing-detail
 questions, errors, death-date questions, structured output and explicit requests
 for no follow-up are excluded. A trailing question does not exempt an otherwise
 ungrounded reading from chart-tool checks.
+If the writer omits the closing, a local language-matched question is appended
+without rewriting the answer or adding a model call. Existing closing questions
+are preserved, and the same exclusions apply to this fallback.
 
 Explicit remedy requests retrieve up to five passages using the existing
-`skills/qdrant/qdrant_client.py` and its `astrology_knowledge` collection. It needs
+`skills/qdrant/qdrant_client.py` and the dev `astrology_remedies` collection.
+The dev collection contains remedy-bearing reference records copied with their
+existing vectors. Structured `remedies` lists are retained alongside passage text.
+Set `VEDASTRO_DIRECT_QDRANT_COLLECTION` to use another verified collection. This
+override applies only to the direct flow; the shared client's legacy default
+is unchanged. It needs
 `QDRANT_URL`, `QDRANT_API_KEY` and `OPENAI_API_KEY` (the collection's existing
 `text-embedding-3-small` embedding model). Only fixed topic labels are sent for
 embedding, not birth details, identifiers or raw conversation history. Current
@@ -136,7 +144,9 @@ recent relevant user topic. A short “haan batao” or “yes please” also re
 when it accepts the immediately preceding remedy offer. Ordinary readings and explicit refusals of remedies
 do not retrieve. Retrieved data is bounded, quoted as untrusted reference material
 and never treated as personal chart evidence or instructions. Missing credentials,
-empty results and retrieval errors are reported to the writer without invented
-remedies. The response includes content-free `answer_remedy_status` and
+empty results, references without remedy content and retrieval errors return a
+localized availability message before any model call, preventing unsupported
+remedy generation. The PWA dev adapter accepts this specific zero-call result.
+The response includes content-free `answer_remedy_status` and
 `answer_remedy_sources` diagnostics on remedy turns. No remedy is stored as a
 user fact in Mem0 by this integration.

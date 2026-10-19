@@ -224,7 +224,7 @@ void test("generic first answer is withheld and corrected with chart tools, with
       return reply(expected);
     },
   });
-  assert.equal(result.reply, expected);
+  assert.equal(result.reply, expected + " Iske baare mein thoda aur bataun?");
   assert.equal(result.answer_model_calls, 3);
   assert.deepEqual(result.answer_reading_tools, ["get_horoscope_predictions"]);
 });
