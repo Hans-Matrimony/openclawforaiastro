@@ -38,12 +38,12 @@ const makeMemory = (id) => ({
 });
 
 void test("supplied prompt, schemas and fallback engine remain identical to the pinned source", () => {
-  const assets = new URL("../extensions/reviewed-reading/direct/assets/", import.meta.url);
+  const assets = new URL("../extensions/reviewed-reading/direct/assets/dev-v2/", import.meta.url);
   const provenance = JSON.parse(
     fs.readFileSync(new URL("provenance.json", assets), "utf8").replace(/^\uFEFF/, ""),
   );
-  assert.equal(provenance.source_revision, "07abaeb040f5bd17e96a5796d963d23d37441fa4");
-  assert.equal(provenance.files.length, 9);
+  assert.equal(provenance.source_revision, "c7d63bb92bfb35bf11a8a4748b40a9afd22cc742");
+  assert.equal(provenance.files.length, 6);
   for (const file of provenance.files) {
     assert.equal(
       createHash("sha256")
@@ -68,7 +68,9 @@ void test("source final reply and its paragraph boundaries are returned byte-for
       assert.equal(body.temperature, 0.7);
       assert.equal(body.max_tokens, 4096);
       assert.equal(body.model, "qwen/qwen3-next-80b-a3b-instruct");
-      assert.ok(body.messages[0].content.includes("Today's date is 2026-10-18"));
+      assert.ok(body.messages[0].content.includes("Today's date is 2026-10-17"));
+      assert.ok(body.messages[0].content.includes("# Friend Mode"));
+      assert.ok(body.messages[0].content.includes("1-3 SHORT WhatsApp-style messages"));
       assert.ok(body.messages[1].content.includes("Only facts for alice"));
       assert.equal(body.messages.at(-1).content, value.query);
       assert.equal(body.messages[2].content, value.history[0].text);
@@ -228,7 +230,7 @@ void test("chart transport carries birth/question data without memory or model c
   const requests = [];
   const execute = createTools({
     memory: makeMemory("dev:alice"),
-    env,
+    env: { ...env, VEDASTRO_DIRECT_USE_LOCAL_ENGINE: "0" },
     fetchImpl: async (url, options) => {
       requests.push({ url, options });
       const request = JSON.parse(options.body);
@@ -258,7 +260,7 @@ void test("the source local-engine fallback receives the same reading inputs por
   let argumentsSeen;
   const execute = createTools({
     memory: makeMemory("dev:alice"),
-    env,
+    env: { ...env, VEDASTRO_DIRECT_USE_LOCAL_ENGINE: "0" },
     birth: value.birth,
     fetchImpl: async () => {
       throw new Error("Synthetic upstream outage");

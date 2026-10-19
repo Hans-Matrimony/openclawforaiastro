@@ -1,0 +1,30 @@
+{
+  "source_branch": "Dev",
+  "source_revision": "c7d63bb92bfb35bf11a8a4748b40a9afd22cc742",
+  "files": [
+    {
+      "path": "engine.mjs",
+      "sha256": "fad1b19acc77294a071f5e2558e5fbfaf89d086f39e08cb7e9bd6f73ed2f2d7e"
+    },
+    {
+      "path": "system-prompt.txt",
+      "sha256": "0c380a2e51179c329726171fb47c02a4c5e87dc4c70064054fb2120f0ef7f6ef"
+    },
+    {
+      "path": "tools-captured.json",
+      "sha256": "58946e45b2a49dbe3140c17fd2c41706af956501123fa60b1bd9d348798a111d"
+    },
+    {
+      "path": "server.mjs",
+      "sha256": "410c9d110b38cf69d939664e55b25d8044d1c777594ca68a079210b19b17c35c"
+    },
+    {
+      "path": "config.example.json",
+      "sha256": "1605ce87b664f19d9e9b40156879ac9b076d96f2a6e7ea3694841bf3cafe2f50"
+    },
+    {
+      "path": "friend-mode.txt",
+      "sha256": "86a76ea87b7bf9fde8f23ad7b50f58503784c36da3493a3a9f7d2a62272af2ed"
+    }
+  ]
+}

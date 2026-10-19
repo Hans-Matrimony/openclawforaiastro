@@ -1,9 +1,11 @@
 # Direct answer integration
 
-This development-only route uses the supplied AstroChat prompt, tool schemas and
-local engine from source revision `07abaeb040f5bd17e96a5796d963d23d37441fa4`.
-`assets/provenance.json` records the unchanged source assets. The original source
-repository remains untouched.
+This development-only route uses the AstroChat `Dev` branch at source revision
+`c7d63bb92bfb35bf11a8a4748b40a9afd22cc742`. Its prompt, schemas, server reference
+and Swiss Ephemeris calculation/judgment engine are preserved in `assets/dev-v2`.
+That directory's `provenance.json` records their hashes. `friend-mode.txt` is the
+exact appended prompt extracted from the source server. The original source
+repository remains untouched; the earlier source assets remain for comparison.
 
 `POST /astrofriend/direct-answer` requires gateway authentication. Enable it with
 `VEDASTRO_DIRECT_DEV_ENABLED=1` and `VEDASTRO_DIRECT_ENVIRONMENT=development`.
@@ -20,14 +22,23 @@ cannot choose a different memory account. Memory identity and credentials are
 excluded from model and chart-tool payloads. The source schema's `memory_text`
 argument is honoured; there is no shared in-process user store.
 
-The source's chart tools call VedAstro's public MCP service, with the supplied
-local Python engine as fallback. Its existing automatically generated Horary
-number behavior is retained. The local fallback uses `python3` in the container;
-`VEDASTRO_DIRECT_PYTHON` can select another interpreter. Neither path proves
-exact parity with the website or its private calculation settings.
+As in the source Dev server, chart tools default to the local `sweph` engine:
+natal chart, Ashtakavarga, dasha/antardasha, transit and area judgment signals,
+horary and matching. Its exact `sweph` version is pinned and locked in the asset
+package; the container installs it and checks a real chart during the build.
+The adapter normalizes saved ISO birth dates and 12-hour clock input before
+calling the unchanged source engine. Local failures remain failures; there is
+no automatic switch to different calculations. The source city table uses
+fixed timezone offsets and its horary method automatically generates a number
+when omitted. These source limitations are retained, not certified as website
+equivalence. `VEDASTRO_DIRECT_USE_LOCAL_ENGINE=0` explicitly selects the previous
+MCP-first/Python-fallback transport for comparison. The Python path uses
+`VEDASTRO_DIRECT_PYTHON` or `python3`.
 
-The source prompt, temperature, tool registry and five-iteration limit are
-retained. The stale hardcoded date is refreshed at runtime. HTTP/model retries
+The source prompt plus Friend Mode, temperature, tool registry and five-iteration
+limit are retained. Friend Mode requests short conversational messages separated
+by blank lines. The source's fixed date is retained unchanged, as requested;
+`get_current_datetime` supplies live time when called. HTTP/model retries
 are disabled to avoid duplicate paid requests. Responses use the final model
 text directly: no second summarizer, selector, verdict, translation repair or
 additional answer-writing prompt is run. Ordinary user-memory/tool calls remain

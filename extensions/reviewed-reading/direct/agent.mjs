@@ -1,12 +1,6 @@
-import fs from "node:fs";
-import { fileURLToPath } from "node:url";
 import { createMemory } from "./memory.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
-
-const PROMPT = fs.readFileSync(
-  fileURLToPath(new URL("./assets/system-prompt.txt", import.meta.url)),
-  "utf8",
-);
+import { SOURCE_PROMPT, SOURCE_CONFIG } from "./source-contract.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -36,13 +30,8 @@ export async function directAnswer(
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
   const facts = (await memory.read()).map((text) => redactIdentity(text, value.user_id));
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
-  const date = now().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-  const prompt = PROMPT.replace(
-    /Today's date is \d{4}-\d{2}-\d{2}/,
-    "Today's date is " + date,
-  ).replace(/Current year is \d{4}/, "Current year is " + date.slice(0, 4));
   const messages = [
-    { role: "system", content: prompt },
+    { role: "system", content: SOURCE_PROMPT },
     {
       role: "system",
       content:
@@ -63,7 +52,7 @@ export async function directAnswer(
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
-      model: env.VEDASTRO_DIRECT_MODEL || "qwen/qwen3-next-80b-a3b-instruct",
+      model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
       tools: TOOLS,
       tool_choice: "auto",

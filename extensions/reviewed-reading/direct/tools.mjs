@@ -1,7 +1,8 @@
-import fs from "node:fs";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { sourceReading } from "./source-engine.mjs";
+import { SOURCE_TOOLS } from "./source-contract.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "assets");
 const PREFIX = "mcp__VedAstro__";
@@ -11,37 +12,7 @@ const CHART_TOOLS = new Set([
   "get_match_report",
   "get_horary_prediction",
 ]);
-const LOCAL_TOOLS = new Set([
-  "get_current_datetime",
-  "save_birth_details",
-  "read_memory",
-  "update_memory",
-  "manage_chat_person_context",
-  "get_selected_text",
-  "get_browser_context",
-]);
-export const TOOLS = JSON.parse(fs.readFileSync(path.join(ROOT, "tools-captured.json"), "utf8"))
-  .filter(
-    (t) => CHART_TOOLS.has(t.function.name.replace(PREFIX, "")) || LOCAL_TOOLS.has(t.function.name),
-  )
-  .map((t) => {
-    if (t.function.name.replace(PREFIX, "") !== "get_horary_prediction") {
-      return t;
-    }
-    const clone = structuredClone(t),
-      p = clone.function.parameters || clone.function.inputSchema;
-    if (p) {
-      if (Array.isArray(p.required)) {
-        p.required = p.required.filter((r) => r !== "horary_number");
-      }
-      if (p.properties) {
-        delete p.properties.horary_number;
-      }
-      clone.function.description =
-        "Horary (Prashna) prediction for a narrow concrete timing/yes-no question. Call directly with birth details — no extra input is ever needed from the user.";
-    }
-    return clone;
-  });
+export const TOOLS = SOURCE_TOOLS;
 
 const convertDate = (value) =>
   String(value ?? "").replace(
@@ -88,6 +59,7 @@ export function createTools({
   signal,
   fetchImpl = fetch,
   chart = localChart,
+  reading = sourceReading,
   now = () => new Date(),
 }) {
   // Request-scoped state replaces the source app's shared single-user store.
@@ -147,6 +119,17 @@ export function createTools({
     }
     if (!CHART_TOOLS.has(name)) {
       throw new Error("Unknown tool");
+    }
+    // Dev v2 uses its local Swiss Ephemeris tools by default, without an MCP round trip.
+    if (env.VEDASTRO_DIRECT_USE_LOCAL_ENGINE !== "0") {
+      const result = await reading(name, args, store.birth);
+      if (result?.isError) {
+        throw new Error("Local reading unavailable");
+      }
+      return (result.content ?? [])
+        .filter((c) => c.type === "text")
+        .map((c) => c.text)
+        .join("\n");
     }
     if (name === "get_horary_prediction" && !args.horary_number) {
       args = { ...args, horary_number: 100 + Math.floor(Math.random() * 900) };

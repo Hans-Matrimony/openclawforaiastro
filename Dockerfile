@@ -64,6 +64,10 @@ COPY scripts/configure-mcp-runtime.mjs /app/configure-mcp-runtime.mjs
 COPY .pi/ /app/.openclaw/.pi/
 COPY skills/ /app/.openclaw/skills/
 COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
+# Pin and compile the source Dev engine's native Swiss Ephemeris dependency.
+RUN cd /app/extensions/reviewed-reading/direct/assets/dev-v2 \
+    && npm ci --omit=dev --no-audit --no-fund \
+    && node --input-type=module -e "import {get_horoscope_predictions as chart} from './engine.mjs'; const r=JSON.parse(chart({birth_date:'01/01/2000',birth_time:'12:00',location_name:'Delhi'}).content[0].text); if(r.engine!=='local-sweph-v2'||r.ashtakavarga.grand_total!==337)process.exit(1)"
 COPY extensions/inference-budget/ /app/extensions/inference-budget/
 COPY extensions/inference-budget/transport.mjs extensions/inference-budget/runtime.mjs \
     extensions/inference-budget/pi-extension.mjs extensions/inference-budget/provider-envelope.mjs /app/bootstrap/runtime/inference-budget/
