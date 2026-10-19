@@ -1,4 +1,5 @@
 import { stressFollowup } from "./stress-followup.mjs";
+import { companionFallback } from "./companion-fallback.mjs";
 
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
@@ -43,7 +44,7 @@ export async function contextualClosing(
     ) {
       return base;
     }
-    const question = stressFollowup(value, notes);
+    const question = stressFollowup(value, notes) ?? companionFallback(value);
     return question ? base + " " + question : base;
   };
   const prompt =

@@ -3,6 +3,37 @@ import test from "node:test";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 
+void test("reported education and money questions retain companionship on writer failure", async () => {
+  for (const [query, closing] of [
+    [
+      "educatoin ke baare main batao",
+      "Padhai ko lekar jo bhi mann mein chal raha hai, aaram se batao.",
+    ],
+    [
+      "thodi pareshani hai paiso ko leke kab poori hogi",
+      "Paise ki baat khulkar kar sakte ho, judge nahi karunga.",
+    ],
+  ]) {
+    const value = { query, language: "hinglish", history: [] };
+    const answer = "Original chart paragraph.\n\n2027 ke baad original verdict.";
+    for (const generate of [
+      async () => "NONE",
+      async () => {
+        throw Error("Closing call budget exhausted");
+      },
+    ]) {
+      assert.equal(await contextualClosing(answer, value, { generate }), answer + " " + closing);
+    }
+    const repeated = await contextualClosing(
+      answer,
+      { ...value, history: [{ role: "assistant", text: closing }] },
+      { generate: async () => "NONE" },
+    );
+    assert.ok(repeated.startsWith(answer));
+    assert.ok(!repeated.includes(closing));
+  }
+});
+
 void test("malformed companion output leaves the reading intact", async () => {
   const answer = "Original interpretation.\n\nOriginal timing.";
   const value = { query: "career?", language: "english", history: [] };
