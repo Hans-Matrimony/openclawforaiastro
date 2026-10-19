@@ -1,5 +1,6 @@
 import { SOURCE_PROMPT } from "./source-contract.mjs";
 import { personaInstruction } from "./persona.mjs";
+import { compactPrompt, uniqueMemory } from "./compact-prompt.mjs";
 
 export function savedBirthContext(birth) {
   const fields = {};
@@ -25,7 +26,13 @@ export const ignoresMemory = (query) =>
     query,
   );
 
-export async function readingContext(value, memory, redact, asOf = new Date()) {
+export async function readingContext(
+  value,
+  memory,
+  redact,
+  asOf = new Date(),
+  { separateCompanion = false } = {},
+) {
   const profile = savedBirthContext(value.birth);
   let facts = [];
   let status = "ignored";
@@ -36,7 +43,7 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
         throw new Error("Invalid memory");
       }
       // Prioritize explicit birth facts when the bounded context cannot hold every note.
-      const ordered = rows.filter((row) => typeof row === "string" && row.trim());
+      const ordered = uniqueMemory(rows);
       ordered.sort((a, b) => Number(/^\s*\[birth\]/i.test(b)) - Number(/^\s*\[birth\]/i.test(a)));
       let size = 0;
       for (const row of ordered.slice(0, 50)) {
@@ -54,16 +61,18 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
   }
   // Encode untrusted facts as data; a note cannot close its context block.
   const data = (value) => JSON.stringify(value).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
-  let prompt = SOURCE_PROMPT.replace(
-    /<user_memory>\r?\n\(empty\)\r?\n<\/user_memory>/,
-    () => `<user_memory>\n${data({ status, facts })}\n</user_memory>`,
-  ).replace(
-    /PERSON_CONTEXT_STATUS: VERIFIED_EMPTY\.[^\r\n]*/,
-    () =>
-      `PERSON_CONTEXT_STATUS: ${profile.status}. Selected self profile data: ${data(profile.fields)}. ` +
-      "Use these supplied fields for self readings; do not call read_memory merely to retrieve these same confirmed fields again. Current explicit corrections and a clearly different subject must be resolved before choosing birth data. Missing fields stay unknown. " +
-      `Response language for this turn: ${data(value.language)}. Follow this app preference unless the current user message explicitly requests another language. Hinglish means conversational Hindi in Latin letters, not an English reply.`,
-  );
+  let prompt = compactPrompt(SOURCE_PROMPT)
+    .replace(
+      /<user_memory>\r?\n\(empty\)\r?\n<\/user_memory>/,
+      () => `<user_memory>\n${data({ status, facts })}\n</user_memory>`,
+    )
+    .replace(
+      /PERSON_CONTEXT_STATUS: VERIFIED_EMPTY\.[^\r\n]*/,
+      () =>
+        `PERSON_CONTEXT_STATUS: ${profile.status}. Selected self profile data: ${data(profile.fields)}. ` +
+        "Use these supplied fields for self readings; do not call read_memory merely to retrieve these same confirmed fields again. Current explicit corrections and a clearly different subject must be resolved before choosing birth data. Missing fields stay unknown. " +
+        `Response language for this turn: ${data(value.language)}. Follow this app preference unless the current user message explicitly requests another language. Hinglish means conversational Hindi in Latin letters, not an English reply.`,
+    );
   const date = asOf.toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
     year: "numeric",
@@ -92,12 +101,13 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
         "# Timing and delivery consistency\n\n" +
         "Use only the dasha names and date boundaries actually returned by the tool. A current period ending does not establish a future antardasha, marriage window or event date. Do not invent a future period to make an answer more specific. Keep the answer natural and direct, with one brief qualification when necessary rather than repeated disclaimers.\n\n",
     );
-  prompt +=
-    "\n\n# Friendly closing\n" +
-    "For a completed reading, use three separate paragraphs: first the simple explanation, second only the short direct answer or verdict (one brief sentence), third the friendly topic-relevant follow-up in the user's language. Separate paragraphs with a blank line. Never attach the follow-up to the second paragraph. " +
-    "Keep the existing answer and verdict; do not add another recap or a service menu. This overrides earlier instructions forbidding a follow-up offer. " +
-    "Base the question on the current concern and relevant user-provided history or saved facts. Never ask what the user already told you or repeat a prior closing. Current corrections override old memory. Ask about one unresolved concrete concern or next step, not 'would you like more detail?'. Do not bring up unrelated memories or treat past assistant predictions as user facts. " +
-    "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
+  prompt += separateCompanion
+    ? "\n\n# Companion ownership\nReturn only the original answer: for readings, explanation then one short verdict separated by a blank line. Do not generate a friendly closing or follow-up here; a separate companion stage adds the third paragraph using the same user context. Ordinary replies and clarifications remain brief.\n"
+    : "\n\n# Friendly closing\n" +
+      "For a completed reading, use three separate paragraphs: first the simple explanation, second only the short direct answer or verdict (one brief sentence), third the friendly topic-relevant follow-up in the user's language. Separate paragraphs with a blank line. Never attach the follow-up to the second paragraph. " +
+      "Keep the existing answer and verdict; do not add another recap or a service menu. This overrides earlier instructions forbidding a follow-up offer. " +
+      "Base the question on the current concern and relevant user-provided history or saved facts. Never ask what the user already told you or repeat a prior closing. Current corrections override old memory. Ask about one unresolved concrete concern or next step, not 'would you like more detail?'. Do not bring up unrelated memories or treat past assistant predictions as user facts. " +
+      "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
   prompt +=
     "\n\n# Simple user-facing wording\n" +
     "Do not display bindu totals, bindu scores, ashtakavarga numbers, or the words bindu, bindus, retrograde, combust, vakri or their Hindi technical equivalents. Explain only the relevant practical meaning already supported by the tools in familiar language. Do not substitute another technical label. Do not turn a technical placement into a new prediction or claim. Keep the second paragraph to one short direct answer; all companionship belongs in the third paragraph. Raw structured output requested by the user is exempt.\n";

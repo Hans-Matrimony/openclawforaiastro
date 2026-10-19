@@ -54,6 +54,7 @@ export async function directAnswer(
     memory,
     (text) => redactIdentity(text, value.user_id),
     now(),
+    { separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" },
   );
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
   let remedyKnowledge;
