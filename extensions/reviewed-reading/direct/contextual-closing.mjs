@@ -1,3 +1,5 @@
+import { stressFollowup } from "./stress-followup.mjs";
+
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
 
@@ -18,6 +20,10 @@ export async function contextualClosing(
     .slice(-10)
     .map((turn) => ({ role: turn.role, text: redact(turn.text).slice(0, 2000) }));
   const notes = facts.filter((fact) => !/^\s*\[birth\]/i.test(fact)).slice(0, 15);
+  const fallback = () => {
+    const question = stressFollowup(value, notes);
+    return question ? base + " " + question : base;
+  };
   const prompt =
     "Write only one short, natural follow-up question for the end of this reply, or NONE if no useful question remains. " +
     "Use the current question, the answer just given, relevant user statements in history, and saved user facts. Current corrections override older facts. " +
@@ -47,7 +53,7 @@ export async function contextualClosing(
       (question.match(/[?？]/g) ?? []).length !== 1 ||
       generic.test(question)
     ) {
-      return base;
+      return fallback();
     }
     // Observed writer failure: asking the user to supply the prediction itself.
     if (
@@ -55,13 +61,13 @@ export async function contextualClosing(
         question,
       )
     ) {
-      return base;
+      return fallback();
     }
     if (history.some((turn) => turn.role === "assistant" && turn.text.includes(question))) {
-      return base;
+      return fallback();
     }
     return base + " " + question;
   } catch {
-    return base;
+    return fallback();
   }
 }

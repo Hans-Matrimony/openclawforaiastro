@@ -139,6 +139,12 @@ The original answer is preserved. Unavailable, repetitive or invalid closings
 are omitted; no generic sentence is forced. This request stays within the
 existing five-call ceiling and is included in response usage diagnostics.
 
+Personal stress conversations are eligible without a chart-tool call. If the
+closing model fails, returns NONE or exhausts its call allowance, a local question
+asks about the user's concern or support needs. It uses user statements and saved
+facts, never an assistant's chart interpretation as evidence of the stress cause,
+and avoids reusing its recent questions. Existing no-follow-up exclusions apply.
+
 Explicit remedy requests retrieve up to five passages using the existing
 `skills/qdrant/qdrant_client.py` and the dev `astrology_remedies` collection.
 The dev collection contains remedy-bearing reference records copied with their

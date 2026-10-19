@@ -12,6 +12,7 @@ import {
   remedyUnavailableReply,
 } from "./friendly-closing.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
+import { isStressConcern } from "./stress-followup.mjs";
 import {
   asksForRemedy,
   remedySearchQuery,
@@ -239,14 +240,20 @@ export async function directAnswer(
       readingTools.size > 0 && !isDeathTimingQuestion(value.query),
       { friendlyClosing: true },
     );
-    const completed = readingTools.size > 0 || remedyKnowledge?.status === "available";
+    const completed =
+      readingTools.size > 0 ||
+      remedyKnowledge?.status === "available" ||
+      isStressConcern(value.query);
     let finalReply = formatted;
     if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
-      if (canAskFollowup(formatted, value, completed) && upstreamCalls < 5) {
+      if (canAskFollowup(formatted, value, completed)) {
         finalReply = await contextualClosing(formatted, value, {
           facts: context.memoryFacts,
           redact: (text) => redactIdentity(text, value.user_id),
           generate: async (instruction, data) => {
+            if (upstreamCalls >= 5) {
+              throw new Error("Closing call budget exhausted");
+            }
             upstreamCalls++;
             const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
               method: "POST",
