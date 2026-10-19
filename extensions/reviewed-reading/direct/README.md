@@ -133,6 +133,8 @@ Explicit remedy requests retrieve up to five passages using the existing
 `skills/qdrant/qdrant_client.py` and the dev `astrology_remedies` collection.
 The dev collection contains remedy-bearing reference records copied with their
 existing vectors. Structured `remedies` lists are retained alongside passage text.
+The writer receives simple-practice references with gemstone-purchase clauses
+and unrelated prediction fields omitted; the stored corpus is unchanged.
 Set `VEDASTRO_DIRECT_QDRANT_COLLECTION` to use another verified collection. This
 override applies only to the direct flow; the shared client's legacy default
 is unchanged. It needs

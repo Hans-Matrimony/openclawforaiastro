@@ -71,6 +71,39 @@ export function remedySearchQuery(value) {
   return `Traditional astrology remedies ${topics.join(" ") || "general wellbeing"}`;
 }
 
+// The imported corpus mixes simple practices with gemstone purchases. Keep the
+// former as remedy evidence; do not send purchase advice to the writer.
+function simpleRemedyReference(row) {
+  const gemstone =
+    /\b(?:diamonds?|sapphires?|rub(?:y|ies)|emeralds?|pearls?|coral|hessonite|gemstones?|cat'?s eye|neelam|pukhraj|panna|manikya|moonga|gomed|lahsuniya)\b/i;
+  const result = {};
+  for (const key of [
+    "text",
+    "content",
+    "page_content",
+    "category",
+    "topic",
+    "type",
+    "planet",
+    "name",
+    "source",
+  ]) {
+    if (typeof row[key] !== "string") {
+      continue;
+    }
+    result[key] = row[key]
+      .split(/(?<=[.!।])\s+|\n+/u)
+      .filter((part) => !gemstone.test(part))
+      .join(" ");
+  }
+  if (Array.isArray(row.remedies)) {
+    result.remedies = row.remedies.filter(
+      (item) => typeof item === "string" && !gemstone.test(item),
+    );
+  }
+  return result;
+}
+
 export function normalizeRemedies(value) {
   if (value?.status === "empty" && Array.isArray(value.sources) && !value.sources.length) {
     return { status: "empty", sources: [] };
@@ -80,8 +113,16 @@ export function normalizeRemedies(value) {
   }
   const sources = [];
   let size = 0;
-  for (const row of value.sources.slice(0, 5)) {
-    if (!row || typeof row !== "object" || Array.isArray(row) || !Object.keys(row).length) {
+  for (const input of value.sources.slice(0, 5)) {
+    if (!input || typeof input !== "object" || Array.isArray(input) || !Object.keys(input).length) {
+      continue;
+    }
+    const row = simpleRemedyReference(input);
+    if (
+      ![row.text, row.content, row.page_content, ...(row.remedies ?? [])].some(
+        (part) => typeof part === "string" && part.trim(),
+      )
+    ) {
       continue;
     }
     const text = [

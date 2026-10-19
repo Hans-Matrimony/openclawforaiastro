@@ -10,6 +10,31 @@ import {
 import { formatReadingReply } from "../extensions/reviewed-reading/direct/format-reply.mjs";
 import { appendFriendlyClosing } from "../extensions/reviewed-reading/direct/friendly-closing.mjs";
 
+void test("simple remedy evidence excludes gemstone purchases and unrelated prediction fields", () => {
+  const result = normalizeRemedies({
+    status: "available",
+    sources: [
+      {
+        type: "remedy",
+        text: "VENUS REMEDIES: Respect spouse. Wear diamond or white sapphire on Friday. Donate rice.",
+        remedies: ["Wear emerald", "Help others"],
+        predictions: ["Guaranteed marriage"],
+      },
+    ],
+  });
+  assert.equal(result.status, "available");
+  assert.equal(result.sources[0].text, "VENUS REMEDIES: Respect spouse. Donate rice.");
+  assert.deepEqual(result.sources[0].remedies, ["Help others"]);
+  assert.equal(result.sources[0].predictions, undefined);
+  assert.deepEqual(
+    normalizeRemedies({
+      status: "available",
+      sources: [{ type: "remedy", text: "Wear a diamond." }],
+    }),
+    { status: "empty", sources: [] },
+  );
+});
+
 void test("structured production remedies survive normalization and empty results remain empty", () => {
   const source = {
     text: "Traditional Venus guidance",
