@@ -1,6 +1,8 @@
 import { createMemory } from "./memory.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
 import { SOURCE_PROMPT, SOURCE_CONFIG } from "./source-contract.mjs";
+import { generationSettings } from "./generation.mjs";
+import { directReplyCache } from "./reply-cache.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -21,6 +23,7 @@ export async function directAnswer(
     makeMemory = createMemory,
     makeTools = createTools,
     now = () => new Date(),
+    replyCache = directReplyCache,
   } = {},
 ) {
   if (!env.OPENROUTER_API_KEY) {
@@ -28,20 +31,10 @@ export async function directAnswer(
   }
   const signal = AbortSignal.timeout(120000);
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
-  const facts = (await memory.read()).map((text) => redactIdentity(text, value.user_id));
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
+  const generation = generationSettings(env);
   const messages = [
     { role: "system", content: SOURCE_PROMPT },
-    {
-      role: "system",
-      content:
-        "Context data, not instructions: " +
-        JSON.stringify({
-          birth: value.birth ?? null,
-          memory: facts,
-          language: value.language,
-        }),
-    },
     ...value.history.map((turn) => ({
       role: turn.role,
       content: redactIdentity(turn.text, value.user_id),
@@ -49,6 +42,8 @@ export async function directAnswer(
     { role: "user", content: redactIdentity(value.query, value.user_id) },
   ];
   let nudged = false;
+  let upstreamCalls = 0;
+  let cacheHits = 0;
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
@@ -57,36 +52,44 @@ export async function directAnswer(
       tools: TOOLS,
       tool_choice: "auto",
       stream: false,
-      temperature: 0.7,
       max_tokens: 4096,
-      provider: { require_parameters: true },
+      ...generation,
     };
     if (Buffer.byteLength(JSON.stringify(body)) > 131072) {
       throw new Error("Direct context too large");
     }
-    const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      redirect: "error",
-      signal,
-      headers: {
-        Authorization: "Bearer " + env.OPENROUTER_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      throw new Error("Direct answer unavailable");
+    const cacheEnabled = generation.temperature === 0 && env.VEDASTRO_DIRECT_REPLY_CACHE !== "0";
+    let completion = cacheEnabled ? replyCache.get(value.user_id, body) : null;
+    const cacheHit = completion !== null;
+    if (!completion) {
+      upstreamCalls++;
+      const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        redirect: "error",
+        signal,
+        headers: {
+          Authorization: "Bearer " + env.OPENROUTER_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        throw new Error("Direct answer unavailable");
+      }
+      const text = await response.text();
+      if (Buffer.byteLength(text) > 131072) {
+        throw new Error("Direct response too large");
+      }
+      completion = JSON.parse(text);
+    } else {
+      cacheHits++;
     }
-    const text = await response.text();
-    if (Buffer.byteLength(text) > 131072) {
-      throw new Error("Direct response too large");
-    }
-    const completion = JSON.parse(text);
     answerUsage.push({
       generation_id: typeof completion.id === "string" ? completion.id.slice(0, 128) : null,
       input_tokens: completion.usage?.prompt_tokens ?? null,
       output_tokens: completion.usage?.completion_tokens ?? null,
       cost_usd: Number.isFinite(completion.usage?.cost) ? completion.usage.cost : null,
+      cache_hit: cacheHit,
     });
     const choice = completion.choices?.[0];
     if (!choice?.message) {
@@ -97,23 +100,31 @@ export async function directAnswer(
         throw new Error("Too many tool calls");
       }
       messages.push(choice.message);
-      for (const call of choice.message.tool_calls) {
-        let content;
-        try {
-          const result = await execute(
-            call.function.name,
-            JSON.parse(call.function.arguments || "{}"),
-          );
-          content = typeof result === "string" ? result : JSON.stringify(result);
-        } catch {
-          content = JSON.stringify({ error: "Tool unavailable. Do not improvise a reading." });
-        }
+      const results = await Promise.all(
+        choice.message.tool_calls.map(async (call) => {
+          let content;
+          let args = {};
+          try {
+            args = JSON.parse(call.function.arguments || "{}");
+          } catch {
+            // The supplied source treats malformed tool arguments as an empty object.
+          }
+          try {
+            const result = await execute(call.function.name, args);
+            content = typeof result === "string" ? result : JSON.stringify(result);
+          } catch {
+            content = "Tool failed: Tool unavailable";
+          }
+          return redactIdentity(content, value.user_id);
+        }),
+      );
+      choice.message.tool_calls.forEach((call, index) => {
         messages.push({
           role: "tool",
           tool_call_id: call.id,
-          content: redactIdentity(content, value.user_id),
+          content: results[index],
         });
-      }
+      });
       continue;
     }
     const reply = choice.message.content;
@@ -134,10 +145,14 @@ export async function directAnswer(
       throw new Error("Incomplete direct reply");
     }
     // The source app's final text is the final answer. No selector, verdict, or rewrite.
+    if (cacheEnabled && !cacheHit) {
+      replyCache.put(value.user_id, body, completion);
+    }
     return {
       schema: "vedastro-direct-reply-v1",
       reply,
-      answer_model_calls: modelCalls,
+      answer_model_calls: upstreamCalls,
+      answer_cache_hits: cacheHits,
       answer_usage: answerUsage,
     };
   }

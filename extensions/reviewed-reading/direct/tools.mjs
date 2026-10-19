@@ -97,7 +97,10 @@ export function createTools({
       };
     }
     if (name === "read_memory") {
-      return (await memory.read()).join("\n") || "(empty)";
+      const facts = await memory.read();
+      // Saved profile data is available through the source memory tool, never a second system prompt.
+      const selected = store.birth ? ["[selected_birth] " + JSON.stringify(store.birth)] : [];
+      return [...selected, ...facts].join("\n") || "(empty)";
     }
     if (name === "update_memory") {
       return memory.write(args.memory_text ?? args.text);

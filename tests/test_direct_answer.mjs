@@ -32,6 +32,27 @@ const completion = (text) =>
   new Response(
     JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: text } }] }),
   );
+const memoryCompletion = () =>
+  new Response(
+    JSON.stringify({
+      choices: [
+        {
+          finish_reason: "tool_calls",
+          message: {
+            role: "assistant",
+            content: null,
+            tool_calls: [
+              {
+                id: "memory-call",
+                type: "function",
+                function: { name: "read_memory", arguments: "{}" },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  );
 const makeMemory = (id) => ({
   read: async () => ["Only facts for " + id.split(":").at(-1)],
   write: async () => ({ saved: true }),
@@ -65,15 +86,17 @@ void test("source final reply and its paragraph boundaries are returned byte-for
       calls++;
       assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
       const body = JSON.parse(options.body);
-      assert.equal(body.temperature, 0.7);
+      assert.equal(body.temperature, 0);
+      assert.equal(body.seed, 42);
+      assert.equal(body.provider.allow_fallbacks, false);
       assert.equal(body.max_tokens, 4096);
       assert.equal(body.model, "qwen/qwen3-next-80b-a3b-instruct");
       assert.ok(body.messages[0].content.includes("Today's date is 2026-10-17"));
       assert.ok(body.messages[0].content.includes("# Friend Mode"));
       assert.ok(body.messages[0].content.includes("1-3 SHORT WhatsApp-style messages"));
-      assert.ok(body.messages[1].content.includes("Only facts for alice"));
       assert.equal(body.messages.at(-1).content, value.query);
-      assert.equal(body.messages[2].content, value.history[0].text);
+      assert.equal(body.messages[1].content, value.history[0].text);
+      assert.equal(body.messages.filter((message) => message.role === "system").length, 1);
       assert.equal(options.headers.Authorization, "Bearer test-model-secret");
       return completion(expected);
     },
@@ -93,7 +116,11 @@ void test("concurrent conversations do not share birth data or recalled user mem
           env,
           makeMemory,
           fetchImpl: async (_, options) => {
-            seen.push(JSON.parse(options.body).messages[1].content);
+            const body = JSON.parse(options.body);
+            if (body.messages.at(-1).role !== "tool") {
+              return memoryCompletion();
+            }
+            seen.push(body.messages.at(-1).content);
             return completion("Ready.");
           },
         },
@@ -220,6 +247,9 @@ void test("model payloads omit login identifiers even when recalled in tool memo
       fetchImpl: async (_, options) => {
         assert.ok(!options.body.includes("910000000001"));
         assert.ok(!options.body.includes("0000000001"));
+        if (JSON.parse(options.body).messages.at(-1).role !== "tool") {
+          return memoryCompletion();
+        }
         return completion("Ready.");
       },
     },
