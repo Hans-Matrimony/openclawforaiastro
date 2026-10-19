@@ -130,10 +130,11 @@ without rewriting the answer or adding a model call. Existing closing questions
 are preserved, and the same exclusions apply to this fallback.
 
 With `VEDASTRO_DIRECT_CONTEXTUAL_CLOSING=1` in dev, the fixed fallback is replaced
-by one bounded same-model closing request when the answer lacks a specific
+by one bounded same-model closing request that also reviews an existing closing
 question. It receives the current answer, the last ten conversation turns and
 already-loaded non-birth memory notes. It must not repeat answered questions,
 reuse a prior closing, introduce unrelated memories or invent personal facts.
+The question must be answerable by the user, not ask them to predict the future.
 The original answer is preserved. Unavailable, repetitive or invalid closings
 are omitted; no generic sentence is forced. This request stays within the
 existing five-call ceiling and is included in response usage diagnostics.

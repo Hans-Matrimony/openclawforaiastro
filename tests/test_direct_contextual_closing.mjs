@@ -52,12 +52,29 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
   );
   assert.equal(
     await contextualClosing("Answer. Which course interests you?", value, {
-      generate: async () => {
-        throw Error("should not run");
-      },
+      generate: async () => "Which course interests you?",
     }),
     "Answer. Which course interests you?",
   );
+});
+void test("existing future-prediction questions are reviewed without rewriting the answer", async () => {
+  const answer = "The original reading.\n\nThe original verdict.";
+  const result = await contextualClosing(
+    answer + " Family ka opposition kab tak rahega?",
+    { query: "meri shaadi?", language: "hinglish", history: [] },
+    {
+      generate: async (prompt, data) => {
+        assert.match(prompt, /Never ask the user to predict the future/);
+        assert.equal(JSON.parse(data).answer, answer);
+        assert.equal(
+          JSON.parse(data).existing_closing_to_review,
+          "Family ka opposition kab tak rahega?",
+        );
+        return "Family ki sabse badi concern kya hai?";
+      },
+    },
+  );
+  assert.equal(result, answer + " Family ki sabse badi concern kya hai?");
 });
 void test("dev agent uses memory and history for a single bounded closing call", async () => {
   let calls = 0;
