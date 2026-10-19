@@ -4,7 +4,7 @@ export function companionFallback(value) {
   const language = /\b(?:reply|answer|respond) in english\b/i.test(value.query)
     ? "english"
     : value.language?.toLowerCase();
-  const education = /educat(?:ion|oin)|padhai|stud(?:y|ies)|exam|शिक्षा|पढ़ाई/i.test(value.query);
+  const education = /\beduc[a-z]{2,8}\b|padhai|stud(?:y|ies)|exam|शिक्षा|पढ़ाई/i.test(value.query);
   const finance = /pais[aeo]|financ|money|पैस|धन/i.test(value.query);
   if (!education && !finance) {
     return null;

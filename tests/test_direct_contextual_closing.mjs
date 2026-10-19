@@ -3,6 +3,19 @@ import test from "node:test";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 
+void test("companion cannot repeat astrology timing in the reported misspelled education query", async () => {
+  assert.equal(
+    await contextualClosing(
+      "Original reading.",
+      { query: "educaiotn ke baare main batao", language: "hinglish", history: [] },
+      {
+        generate: async () => "2027 ke baad sab clear ho jayega. Weekly do topics padho?",
+      },
+    ),
+    "Original reading. Padhai ko lekar jo bhi mann mein chal raha hai, aaram se batao.",
+  );
+});
+
 void test("reported ordinary questions reach companion writer without chart calls", async () => {
   for (const query of [
     "educaiotn ke baare main batao",
