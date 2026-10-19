@@ -65,18 +65,21 @@ and death-date limitations are not forced into chart calculations. This guard is
 scoped, not a universal intent classifier or a guarantee of factual predictions.
 The five-round ceiling and no HTTP retry policy remain in place.
 `answer_reading_tools` reports successful reading tools without logging content.
-Reading bubble boundaries are repaired using whitespace only: existing soft
+The score sanitizer replaces numeric `N/48` fractions with qualitative strength
+words; standalone point counts rely on the Friend Mode instruction. Reading
+bubble boundaries are repaired using whitespace only: existing soft
 line breaks or the final complete sentence can become the second bubble. Already
 valid two-part replies and ordinary chat are unchanged. No summary text is
 invented, and a single sentence is never split just to create a second bubble.
 The resolved app language is supplied explicitly, with current user overrides
 taking priority. Period names and event dates must come from the tool output;
 an ending dasha is not automatically a marriage window.
-Direct death-date/lifespan questions have a narrow additional boundary: keep only
-the model's first limitation sentence, or supply a concise localized limitation
-if it instead invented a date. Do not deliver appended medical reassurance,
-disease-risk claims or motivational filler as part of that answer. This does not
-route ordinary mentions of death, grief or fear into a fixed response.
+Direct death-date/lifespan questions have an additional date/age-pattern boundary:
+supply a concise localized limitation when those patterns detect a predicted
+death date or lifespan. Other wording passes through this filter, while runtime
+instructions still prohibit unsupported medical assessments. The filter does not
+validate health or longevity claims and does not route ordinary mentions of
+death, grief or fear into a fixed response.
 Failures do not fall back to the previous
 answer pipeline. Inputs, output sizes, model rounds and request concurrency are
 bounded; private content is not logged by this route.

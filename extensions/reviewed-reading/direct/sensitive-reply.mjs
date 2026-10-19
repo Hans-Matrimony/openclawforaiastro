@@ -19,10 +19,15 @@ function assertsDeathDate(reply) {
     return false;
   }
   const nearYear = new RegExp(
-    "(?:(?:" + DEATH_WORDS + "|umr)[^.!?]{0,80}?\\b(?:19|20)[0-9]{2}\\b)|\\b(?:19|20)[0-9]{2}\\b[^.!?]{0,80}?(?:" + DEATH_WORDS + ")",
+    "(?:(?:" +
+      DEATH_WORDS +
+      "|umr)[^.!?]{0,80}?\\b(?:19|20)[0-9]{2}\\b)|\\b(?:19|20)[0-9]{2}\\b[^.!?]{0,80}?(?:" +
+      DEATH_WORDS +
+      ")",
     "i",
   );
-  const lifespanAge = /\b[0-9]{1,3}\s*(?:saal|sal|years?|varsh)\b[^.!?]{0,40}?(?:jeeyenge|jiyenge| live\b|umr\b|lifespan\b)/i;
+  const lifespanAge =
+    /\b[0-9]{1,3}\s*(?:saal|sal|years?|varsh)\b[^.!?]{0,40}?(?:jeeyenge|jiyenge| live\b|umr\b|lifespan\b)/i;
   return nearYear.test(reply) || lifespanAge.test(reply);
 }
 

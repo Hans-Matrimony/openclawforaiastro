@@ -6,7 +6,10 @@ import {
 } from "../extensions/reviewed-reading/direct/context.mjs";
 import { requiresChartReading } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { formatReadingReply, sanitizeBindus } from "../extensions/reviewed-reading/direct/format-reply.mjs";
+import {
+  formatReadingReply,
+  sanitizeBindus,
+} from "../extensions/reviewed-reading/direct/format-reply.mjs";
 import {
   deathTimingReply,
   isDeathTimingQuestion,
