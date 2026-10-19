@@ -34,6 +34,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
     "Would you like more detail?",
     "First? Second?",
     "Answer without question",
+    "Family ka opposition kab tak rahega aur 2027 ke baad kya badlega?",
   ]) {
     assert.equal(
       await contextualClosing("Answer. Iske baare mein thoda aur bataun?", value, {
@@ -66,10 +67,8 @@ void test("existing future-prediction questions are reviewed without rewriting t
       generate: async (prompt, data) => {
         assert.match(prompt, /Never ask the user to predict the future/);
         assert.equal(JSON.parse(data).answer, answer);
-        assert.equal(
-          JSON.parse(data).existing_closing_to_review,
-          "Family ka opposition kab tak rahega?",
-        );
+        assert.equal(JSON.parse(data).existing_closing_to_review, undefined);
+        assert.ok(!data.includes("opposition kab tak"));
         return "Family ki sabse badi concern kya hai?";
       },
     },

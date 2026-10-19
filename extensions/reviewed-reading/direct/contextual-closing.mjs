@@ -34,7 +34,6 @@ export async function contextualClosing(
           query: redact(value.query),
           language: value.language,
           answer: redact(base),
-          existing_closing_to_review: candidate ? redact(candidate) : null,
           history,
           saved_user_facts: notes,
         }),
@@ -47,6 +46,14 @@ export async function contextualClosing(
       !/[?？]$/.test(question) ||
       (question.match(/[?？]/g) ?? []).length !== 1 ||
       generic.test(question)
+    ) {
+      return base;
+    }
+    // Observed writer failure: asking the user to supply the prediction itself.
+    if (
+      /\bkab tak raheg[ai]\b|\b\d{4}\s+ke baad kya badlega\b|\bwhen will (?:my|your|the) (?:marriage|family opposition)\b/i.test(
+        question,
+      )
     ) {
       return base;
     }
