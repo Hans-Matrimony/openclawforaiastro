@@ -29,7 +29,29 @@ void test("malformed companion output leaves the reading intact", async () => {
         },
       },
     ),
+    answer + " Okay, no advice right now. Take your time; you can say what's on your mind.",
+  );
+});
+
+void test("live listening regression adds support without a model call or invented scene", async () => {
+  const answer = "Existing reading.\n2027 ke baad existing verdict.";
+  const result = await contextualClosing(
     answer,
+    {
+      query:
+        "Ab job ki tension nahi hai, ghar mein roz jhagda hota hai. Bas suno, abhi advice nahi chahiye.",
+      language: "hinglish",
+      history: [],
+    },
+    {
+      generate: async () => {
+        assert.fail("Listening must not generate another question");
+      },
+    },
+  );
+  assert.equal(
+    result,
+    answer + " Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho.",
   );
 });
 
@@ -114,7 +136,7 @@ void test("companion can acknowledge feelings without forcing another question",
   const result = await contextualClosing(
     answer,
     {
-      query: "Bas mann halka karna tha",
+      query: "Aaj thoda udaas hoon",
       language: "hinglish",
       history: [{ role: "user", text: "Night shifts aur MBA saath manage kar raha hoon." }],
     },

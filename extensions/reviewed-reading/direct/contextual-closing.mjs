@@ -16,6 +16,20 @@ export async function contextualClosing(
   if (!base || /[?？]\s*$/.test(base)) {
     return reply;
   }
+  // Listening is an explicit interaction preference, not another interview turn.
+  if (/\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)) {
+    const language = /\b(?:reply|answer|respond) in english\b/i.test(value.query)
+      ? "english"
+      : value.language?.toLowerCase();
+    const support = ["hinglish"].includes(language)
+      ? "Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho."
+      : ["english", "en"].includes(language)
+        ? "Okay, no advice right now. Take your time; you can say what's on your mind."
+        : ["hindi", "hi"].includes(language)
+          ? "ठीक है, अभी कोई सलाह नहीं। आराम से अपनी बात कह सकते हो।"
+          : null;
+    return support ? base + " " + support : base;
+  }
   const history = (value.history ?? [])
     .slice(-10)
     .map((turn) => ({ role: turn.role, text: redact(turn.text).slice(0, 2000) }));
