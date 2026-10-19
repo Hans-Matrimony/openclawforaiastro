@@ -21,10 +21,14 @@ conversation pairs and that user's mem0 facts. `read_memory`, `update_memory` an
 cannot choose a different memory account. Memory identity and credentials are
 excluded from model and chart-tool payloads. The source schema's `memory_text`
 argument is honoured; there is no shared in-process user store.
-The initial model request contains exactly one source system prompt followed by
-the delivered history and current question. It does not prepend a separate
-birth/memory/language instruction. Recalled facts and the selected saved birth
-profile are supplied only when the model calls `read_memory`.
+The initial model request contains one system prompt followed by delivered
+history and the unchanged current question. The source's existing memory and
+selected-person placeholders are populated before the first model call, so a
+saved profile is no longer declared empty or hidden behind an optional tool.
+User-scoped mem0 facts are read once, bounded and encoded as untrusted data;
+explicit birth notes are prioritized. Memory lookup failure is marked unavailable
+and does not hide a supplied profile. An explicit request to ignore memory skips
+the initial memory read. `read_memory` and writes remain available in the tool loop.
 
 As in the source Dev server, chart tools default to the local `sweph` engine:
 natal chart, Ashtakavarga, dasha/antardasha, transit and area judgment signals,
@@ -39,14 +43,38 @@ equivalence. `VEDASTRO_DIRECT_USE_LOCAL_ENGINE=0` explicitly selects the previou
 MCP-first/Python-fallback transport for comparison. The Python path uses
 `VEDASTRO_DIRECT_PYTHON` or `python3`.
 
-The source prompt plus Friend Mode, tool registry and five-iteration limit are
-retained. Friend Mode requests short conversational messages separated
-by blank lines. The source's fixed date is retained unchanged, as requested;
+The source assets remain byte-identical. Runtime context fixes make the source
+prompt and Friend Mode agree on two blank-line-separated parts for completed
+chart readings; ordinary chat and clarifications stay brief. Sensitive-question
+wording prohibits deriving death dates, lifespan, diagnoses or actual disease
+risk from chart symbolism. The runtime date/year are filled from the current
+Asia/Kolkata date instead of the source prompt's frozen date;
 `get_current_datetime` supplies live time when called. HTTP/model retries
 are disabled to avoid duplicate paid requests. Responses use the final model
-text directly: no second summarizer, selector, verdict, translation repair or
-additional answer-writing prompt is run. Ordinary user-memory/tool calls remain
-part of the supplied agent flow. Failures do not fall back to the previous
+wording directly: no second summarizer, selector, verdict, translation repair or
+additional writer pipeline is run. For supported self-reading questions with a
+complete profile, an answer without successful chart-tool evidence is withheld
+and the same agent gets one bounded tool-selection correction. Only chart tools
+are advertised during that correction, then the normal registry is restored.
+Repeated tool avoidance or failed chart tools cannot complete that reading.
+Clarifications, general explanations, ordinary conversation, practical questions
+and death-date limitations are not forced into chart calculations. This guard is
+scoped, not a universal intent classifier or a guarantee of factual predictions.
+The five-round ceiling and no HTTP retry policy remain in place.
+`answer_reading_tools` reports successful reading tools without logging content.
+Reading bubble boundaries are repaired using whitespace only: existing soft
+line breaks or the final complete sentence can become the second bubble. Already
+valid two-part replies and ordinary chat are unchanged. No summary text is
+invented, and a single sentence is never split just to create a second bubble.
+The resolved app language is supplied explicitly, with current user overrides
+taking priority. Period names and event dates must come from the tool output;
+an ending dasha is not automatically a marriage window.
+Direct death-date/lifespan questions have a narrow additional boundary: keep only
+the model's first limitation sentence, or supply a concise localized limitation
+if it instead invented a date. Do not deliver appended medical reassurance,
+disease-risk claims or motivational filler as part of that answer. This does not
+route ordinary mentions of death, grief or fear into a fixed response.
+Failures do not fall back to the previous
 answer pipeline. Inputs, output sizes, model rounds and request concurrency are
 bounded; private content is not logged by this route.
 
@@ -58,7 +86,8 @@ The endpoint advertises seed, temperature and native tool support. Configure
 `VEDASTRO_DIRECT_SEED` or `VEDASTRO_DIRECT_PROVIDER` explicitly to override these.
 A different model requires an explicitly configured compatible endpoint.
 `VEDASTRO_DIRECT_GENERATION_MODE=source` restores the source's temperature `0.7`
-and normal provider routing without a seed. Pinning reduces routing and sampling
+and normal provider routing without a seed; the context fixes still apply.
+Pinning reduces routing and sampling
 variation, but cannot guarantee byte-identical output across provider changes,
 live transit timestamps, different memory/history, or automatic horary numbers.
 If the pinned endpoint is unavailable, stable mode fails rather than switching

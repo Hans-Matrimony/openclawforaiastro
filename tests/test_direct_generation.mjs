@@ -35,7 +35,7 @@ void test("invalid generation configuration fails instead of silently routing el
     assert.throws(() => generationSettings(env));
   }
 });
-void test("source mode sends exactly the source conversation envelope and parallel tool results in their original order", async () => {
+void test("source sampling mode retains one contextual system message and ordered parallel tool results", async () => {
   let calls = 0;
   let starts = 0;
   let release;
@@ -53,9 +53,7 @@ void test("source mode sends exactly the source conversation envelope and parall
     {
       env: { OPENROUTER_API_KEY: "test-only", VEDASTRO_DIRECT_GENERATION_MODE: "source" },
       makeMemory: () => ({
-        read: () => {
-          throw new Error("Memory should be on demand");
-        },
+        read: async () => [],
       }),
       makeTools: () => async (name) => {
         starts++;

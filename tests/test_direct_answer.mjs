@@ -78,29 +78,34 @@ void test("supplied prompt, schemas and fallback engine remain identical to the 
 void test("source final reply and its paragraph boundaries are returned byte-for-byte without a second writer", async () => {
   const expected = "  2029–2032 mein sambhavna hai.\n\nDoosri poori baat.  ";
   let calls = 0;
-  const result = await directAnswer(value, {
-    env,
-    makeMemory,
-    now: () => new Date("2026-10-18T09:00:00Z"),
-    fetchImpl: async (url, options) => {
-      calls++;
-      assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
-      const body = JSON.parse(options.body);
-      assert.equal(body.temperature, 0);
-      assert.equal(body.seed, 42);
-      assert.equal(body.provider.allow_fallbacks, false);
-      assert.equal(body.max_tokens, 4096);
-      assert.equal(body.model, "qwen/qwen3-next-80b-a3b-instruct");
-      assert.ok(body.messages[0].content.includes("Today's date is 2026-10-17"));
-      assert.ok(body.messages[0].content.includes("# Friend Mode"));
-      assert.ok(body.messages[0].content.includes("1-3 SHORT WhatsApp-style messages"));
-      assert.equal(body.messages.at(-1).content, value.query);
-      assert.equal(body.messages[1].content, value.history[0].text);
-      assert.equal(body.messages.filter((message) => message.role === "system").length, 1);
-      assert.equal(options.headers.Authorization, "Bearer test-model-secret");
-      return completion(expected);
+  const result = await directAnswer(
+    { ...value, query: "Hello" },
+    {
+      env,
+      makeMemory,
+      now: () => new Date("2026-10-18T09:00:00Z"),
+      fetchImpl: async (url, options) => {
+        calls++;
+        assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
+        const body = JSON.parse(options.body);
+        assert.equal(body.temperature, 0);
+        assert.equal(body.seed, 42);
+        assert.equal(body.provider.allow_fallbacks, false);
+        assert.equal(body.max_tokens, 4096);
+        assert.equal(body.model, "qwen/qwen3-next-80b-a3b-instruct");
+        assert.ok(body.messages[0].content.includes("Today's date is 2026-10-18"));
+        assert.ok(body.messages[0].content.includes("# Friend Mode"));
+        assert.ok(body.messages[0].content.includes("exactly TWO short parts"));
+        assert.ok(body.messages[0].content.includes("PERSON_CONTEXT_STATUS: READY"));
+        assert.ok(body.messages[0].content.includes('"date":"1990-01-01"'));
+        assert.equal(body.messages.at(-1).content, "Hello");
+        assert.equal(body.messages[1].content, value.history[0].text);
+        assert.equal(body.messages.filter((message) => message.role === "system").length, 1);
+        assert.equal(options.headers.Authorization, "Bearer test-model-secret");
+        return completion(expected);
+      },
     },
-  });
+  );
   assert.equal(result.reply, expected);
   assert.equal(result.answer_model_calls, 1);
   assert.equal(calls, 1);
@@ -111,7 +116,12 @@ void test("concurrent conversations do not share birth data or recalled user mem
   await Promise.all(
     ["alice", "bob"].map((name) =>
       directAnswer(
-        { ...value, user_id: "dev:" + name, birth: { ...value.birth, location_name: name } },
+        {
+          ...value,
+          query: "Hello",
+          user_id: "dev:" + name,
+          birth: { ...value.birth, location_name: name },
+        },
         {
           env,
           makeMemory,
@@ -240,7 +250,7 @@ void test("model HTTP failures are not retried or silently sent to a different a
 void test("model payloads omit login identifiers even when recalled in tool memory", async () => {
   const user = "+910000000001";
   await directAnswer(
-    { ...value, user_id: user },
+    { ...value, query: "Hello", user_id: user },
     {
       env,
       makeMemory: () => ({ read: async () => ["My account is " + user] }),

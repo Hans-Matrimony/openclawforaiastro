@@ -1,8 +1,12 @@
 import { createMemory } from "./memory.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
-import { SOURCE_PROMPT, SOURCE_CONFIG } from "./source-contract.mjs";
+import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
+import { formatReadingReply } from "./format-reply.mjs";
+import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
+import { readingContext } from "./context.mjs";
+import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -31,10 +35,16 @@ export async function directAnswer(
   }
   const signal = AbortSignal.timeout(120000);
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
+  const context = await readingContext(
+    value,
+    memory,
+    (text) => redactIdentity(text, value.user_id),
+    now(),
+  );
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
   const generation = generationSettings(env);
   const messages = [
-    { role: "system", content: SOURCE_PROMPT },
+    { role: "system", content: context.prompt },
     ...value.history.map((turn) => ({
       role: turn.role,
       content: redactIdentity(turn.text, value.user_id),
@@ -44,13 +54,19 @@ export async function directAnswer(
   let nudged = false;
   let upstreamCalls = 0;
   let cacheHits = 0;
+  const readingRequired = requiresChartReading(value.query, context.profile);
+  const readingTools = new Set();
+  let correctedMissingReading = false;
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
-      tools: TOOLS,
-      tool_choice: "auto",
+      tools:
+        correctedMissingReading && readingTools.size === 0
+          ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
+          : TOOLS,
+      tool_choice: correctedMissingReading && readingTools.size === 0 ? "required" : "auto",
       stream: false,
       max_tokens: 4096,
       ...generation,
@@ -112,6 +128,13 @@ export async function directAnswer(
           try {
             const result = await execute(call.function.name, args);
             content = typeof result === "string" ? result : JSON.stringify(result);
+            if (
+              content &&
+              !result?.isError &&
+              CHART_TOOL_NAMES.has(bareToolName(call.function.name))
+            ) {
+              readingTools.add(bareToolName(call.function.name));
+            }
           } catch {
             content = "Tool failed: Tool unavailable";
           }
@@ -144,15 +167,32 @@ export async function directAnswer(
     ) {
       throw new Error("Incomplete direct reply");
     }
-    // The source app's final text is the final answer. No selector, verdict, or rewrite.
+    const clarification = reply.trim().endsWith("?");
+    if (readingRequired && readingTools.size === 0 && !clarification) {
+      if (correctedMissingReading) {
+        throw new Error("Personal reading requires a successful chart tool");
+      }
+      correctedMissingReading = true;
+      messages.push(choice.message, {
+        role: "user",
+        content:
+          "Complete the original personal chart question using the supplied birth context and a relevant reading tool. The preceding text has no current chart evidence; do not present it as a completed reading. Call the appropriate reading tool now.",
+      });
+      continue;
+    }
+    // Preserve normal wording; apply the narrow death-date boundary and bubble whitespace.
     if (cacheEnabled && !cacheHit) {
       replyCache.put(value.user_id, body, completion);
     }
     return {
       schema: "vedastro-direct-reply-v1",
-      reply,
+      reply: formatReadingReply(
+        deathTimingReply(value.query, reply, value.language),
+        readingTools.size > 0 && !isDeathTimingQuestion(value.query),
+      ),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
+      answer_reading_tools: [...readingTools],
       answer_usage: answerUsage,
     };
   }
