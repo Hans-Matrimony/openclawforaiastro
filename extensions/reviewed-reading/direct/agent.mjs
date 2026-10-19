@@ -3,7 +3,7 @@ import { createTools, TOOLS } from "./tools.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
-import { formatReadingReply } from "./format-reply.mjs";
+import { formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
 import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
@@ -187,7 +187,7 @@ export async function directAnswer(
     return {
       schema: "vedastro-direct-reply-v1",
       reply: formatReadingReply(
-        deathTimingReply(value.query, reply, value.language),
+        sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
         readingTools.size > 0 && !isDeathTimingQuestion(value.query),
       ),
       answer_model_calls: upstreamCalls,

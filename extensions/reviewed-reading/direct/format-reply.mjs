@@ -1,3 +1,25 @@
+// Bindu totals (ashtakavarga point counts like 31/48) are internal judgment
+// signals; a user reply states the meaning (strong/weak) instead of numbers.
+export function sanitizeBindus(reply) {
+  if (typeof reply !== "string") {
+    return reply;
+  }
+  const parts = reply.split("/");
+  let out = parts[0];
+  for (let i = 1; i < parts.length; i++) {
+    const numMatch = out.match(/([0-9]{1,2}) *$/);
+    const denMatch = parts[i].match(/^ *48([^0-9]|$)/);
+    if (numMatch && denMatch) {
+      out = out.slice(0, out.length - numMatch[0].length);
+      out += Number(numMatch[1]) >= 25 ? "strong" : "kamzor";
+      out += parts[i].slice(denMatch[0].length - (denMatch[1] === "" ? 0 : 1));
+    } else {
+      out += "/" + parts[i];
+    }
+  }
+  return out;
+}
+
 // Preserve model wording; repair whitespace boundaries only for completed chart readings.
 export function formatReadingReply(reply, hasReading) {
   if (!hasReading) {

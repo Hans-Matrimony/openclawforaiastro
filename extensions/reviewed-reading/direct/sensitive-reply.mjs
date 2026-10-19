@@ -9,24 +9,31 @@ export function isDeathTimingQuestion(query) {
   );
 }
 
+const DEATH_WORDS = "death|die|dies|dying|maut|mrityu|marne|lifespan";
+
+// A reply asserts a death date when a calendar year sits next to death or
+// lifespan wording, or when a lifespan in years is predicted. Health and
+// longevity guidance without those assertions passes through untouched.
+function assertsDeathDate(reply) {
+  if (typeof reply !== "string") {
+    return false;
+  }
+  const nearYear = new RegExp(
+    "(?:(?:" + DEATH_WORDS + "|umr)[^.!?]{0,80}?\\b(?:19|20)[0-9]{2}\\b)|\\b(?:19|20)[0-9]{2}\\b[^.!?]{0,80}?(?:" + DEATH_WORDS + ")",
+    "i",
+  );
+  const lifespanAge = /\b[0-9]{1,3}\s*(?:saal|sal|years?|varsh)\b[^.!?]{0,40}?(?:jeeyenge|jiyenge| live\b|umr\b|lifespan\b)/i;
+  return nearYear.test(reply) || lifespanAge.test(reply);
+}
+
 export function deathTimingReply(query, reply, language) {
   if (!isDeathTimingQuestion(query)) {
     return reply;
   }
-  // A death-date answer must not grow into an unsupported personal health assessment.
-  const first = [
-    ...new Intl.Segmenter("en", { granularity: "sentence" }).segment(reply),
-  ][0]?.segment.trim();
-  if (
-    first &&
-    (language !== "hinglish" || /\b(?:nahi|nahin|bata|kundli|aapki)\b/i.test(first)) &&
-    !/\d|health|healthy|risk|disease|illness|safe|khatra/i.test(first) &&
-    /(?:astrology|kundli|chart).{0,80}(?:nahi bata|nahin bata|cannot (?:reliably )?(?:predict|establish|determine)|can't (?:predict|establish|determine)|does(?:n't| not) predict)/i.test(
-      first,
-    ) &&
-    /death|lifespan|maut|mrityu|marne/i.test(first)
-  ) {
-    return first;
+  // The model's health-and-longevity reading passes through untouched; only a
+  // reply that actually asserts a death date or lifespan gets the boundary.
+  if (!assertsDeathDate(reply)) {
+    return reply;
   }
   if (language === "hinglish") {
     return "Kundli se aapki death kab hogi ya aap kitni umr tak jeeyenge, iska bharosemand jawab nahi milta.";

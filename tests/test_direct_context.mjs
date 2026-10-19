@@ -6,7 +6,7 @@ import {
 } from "../extensions/reviewed-reading/direct/context.mjs";
 import { requiresChartReading } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { formatReadingReply } from "../extensions/reviewed-reading/direct/format-reply.mjs";
+import { formatReadingReply, sanitizeBindus } from "../extensions/reviewed-reading/direct/format-reply.mjs";
 import {
   deathTimingReply,
   isDeathTimingQuestion,
@@ -270,20 +270,26 @@ void test("greetings and death-date limitations stay direct without forcing irre
   }
 });
 
-void test("death-date answers cannot append invented medical reassurance or a lifespan prediction", () => {
+void test("bindu totals never reach the user reply", () => {
+  assert.equal(
+    sanitizeBindus("House 10 ka ashtakavarga 40/48 hai — bahut strong."),
+    "House 10 ka ashtakavarga strong hai — bahut strong.",
+  );
+  assert.equal(sanitizeBindus("8th house 21/48 points"), "8th house kamzor points");
+  assert.equal(sanitizeBindus("No numbers in this reply."), "No numbers in this reply.");
+});
+
+void test("death-date claims are refused; health-and-longevity readings pass through", () => {
   const query = "meri death kab tak hogi";
   const raw =
     "Astrology nahi bata sakta ki kab tak kisi ki death hogi. Tumhari health ke liye koi negative factor nahi dikh raha.";
-  assert.equal(
-    deathTimingReply(query, raw, "hinglish"),
-    "Astrology nahi bata sakta ki kab tak kisi ki death hogi.",
-  );
+  assert.equal(deathTimingReply(query, raw, "hinglish"), raw);
   const fabricated = deathTimingReply(query, "You will die in 2030.", "hinglish");
   assert.ok(!fabricated.includes("2030"));
   assert.ok(fabricated.includes("bharosemand"));
   assert.equal(
     deathTimingReply(query, "Astrology doesn't predict death dates.", "hinglish"),
-    fabricated,
+    "Astrology doesn't predict death dates.",
   );
   assert.equal(
     deathTimingReply(
@@ -295,7 +301,7 @@ void test("death-date answers cannot append invented medical reassurance or a li
   );
   assert.equal(
     deathTimingReply(query, "Your chart doesn't show death because you are healthy.", "hinglish"),
-    fabricated,
+    "Your chart doesn't show death because you are healthy.",
   );
   for (const question of ["How long will I live?", "When will I die?", "meri maut kab hogi"]) {
     assert.equal(isDeathTimingQuestion(question), true);
