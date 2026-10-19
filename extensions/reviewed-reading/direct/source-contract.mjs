@@ -1,14 +1,10 @@
 import fs from "node:fs";
 
 const assets = new URL("./assets/dev-v2/", import.meta.url);
-const server = fs.readFileSync(new URL("server.mjs", assets), "utf8");
-const friend = server.match(/\+ `([\s\S]*?)`;\s*const ALL_TOOLS/);
-if (!friend || /\$\{|\\/.test(friend[1])) {
-  throw new Error("Unexpected source Friend Mode literal");
-}
-// JavaScript template literals normalize CRLF; the file-read prompt stays byte-identical.
+// The tracked Friend Mode file is the dev-editable overlay, including newer user edits.
 export const SOURCE_PROMPT =
-  fs.readFileSync(new URL("system-prompt.txt", assets), "utf8") + friend[1].replace(/\r\n?/g, "\n");
+  fs.readFileSync(new URL("system-prompt.txt", assets), "utf8") +
+  fs.readFileSync(new URL("friend-mode.txt", assets), "utf8").replace(/\r\n?/g, "\n");
 export const SOURCE_CONFIG = JSON.parse(
   fs.readFileSync(new URL("config.example.json", assets), "utf8"),
 );

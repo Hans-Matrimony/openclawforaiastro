@@ -173,10 +173,13 @@ export async function directAnswer(
         throw new Error("Personal reading requires a successful chart tool");
       }
       correctedMissingReading = true;
-      messages.push(choice.message, {
+      // Do not anchor the retry on the ungrounded answer we just rejected.
+      messages.push({
         role: "user",
         content:
-          "Complete the original personal chart question using the supplied birth context and a relevant reading tool. The preceding text has no current chart evidence; do not present it as a completed reading. Call the appropriate reading tool now.",
+          "Use the supplied birth context and a relevant reading tool to answer this exact active question: " +
+          JSON.stringify(redactIdentity(value.query, value.user_id)) +
+          ". Preserve its subject and intent; a question about a particular partner is not a general marriage-timing question. Previous assistant predictions are not chart evidence. Call the appropriate reading tool now, then answer this question directly.",
       });
       continue;
     }

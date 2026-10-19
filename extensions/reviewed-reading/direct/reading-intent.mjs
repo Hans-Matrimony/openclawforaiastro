@@ -19,7 +19,10 @@ export function requiresChartReading(query, profile) {
   ) {
     return false;
   }
-  if (/\b(?:friend|sister|brother|mother|father|daughter|son|behen|bhai|dost)\b/.test(text)) {
+  const subjectText = text.replace(/\b(?:girl|boy)\s+friend\b/g, "partner");
+  if (
+    /\b(?:friend|sister|brother|mother|father|daughter|son|behen|bhai|dost)\b/.test(subjectText)
+  ) {
     return false;
   }
   if (
@@ -31,10 +34,12 @@ export function requiresChartReading(query, profile) {
     return false;
   }
   const topic =
-    /\b(?:marry|married|marriage|wedding|shaadi|shadi|career|job|naukri|education|studies|study|exam|finances?|financial|money|paisa|paise|kundli|horoscope|birth chart)\b/;
+    /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exam|finances?|financial|money|paisa|paise|kundli|horoscope|birth chart)\b/;
   const personal = /\b(?:i|my|me|meri|mera|mere|mujhe|mujhse|main)\b/;
   const timing = /\b(?:when|kab|kb|hogi|hoga|lagegi)\b/;
   const request =
     /\?|\b(?:tell me|batao|bataiye|kaisa|kaisi|kaise|kya|kab|kb|hogi|hoga|lagegi|will|when|should|can|which|how|reading|predict|analy[sz]e|kundli)\b/;
-  return topic.test(text) && request.test(text) && (personal.test(text) || timing.test(text));
+  return (
+    topic.test(subjectText) && request.test(text) && (personal.test(text) || timing.test(text))
+  );
 }

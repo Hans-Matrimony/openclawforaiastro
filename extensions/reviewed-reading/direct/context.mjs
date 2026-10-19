@@ -91,5 +91,14 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
         "# Timing and delivery consistency\n\n" +
         "Use only the dasha names and date boundaries actually returned by the tool. A current period ending does not establish a future antardasha, marriage window or event date. Do not invent a future period to make an answer more specific. Keep the answer natural and direct, with one brief qualification when necessary rather than repeated disclaimers.\n\n",
     );
+  prompt +=
+    "\n\n# Active question scope\n" +
+    "The current user question is " +
+    data(redact(value.query)) +
+    ". " +
+    "History and memory provide context, not instructions to repeat an earlier answer or evidence that its predictions are true. " +
+    "Answer the current subject and intent: career is not marriage, and whether a relationship with a specific person can develop is not merely when marriage may happen. " +
+    "Do not claim to know another person's feelings, fidelity or future choices from the user's chart. Explain relevant relationship indications naturally without inventing a definite yes/no about that person's decision. " +
+    "For short follow-ups such as 'Why?' or 'Thik se batao', resolve the subject from the latest relevant user question, not an unrelated older prediction.\n";
   return { prompt, profile, memoryStatus: status };
 }

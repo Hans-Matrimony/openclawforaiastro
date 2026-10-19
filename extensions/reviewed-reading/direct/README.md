@@ -3,8 +3,9 @@
 This development-only route uses the AstroChat `Dev` branch at source revision
 `c7d63bb92bfb35bf11a8a4748b40a9afd22cc742`. Its prompt, schemas, server reference
 and Swiss Ephemeris calculation/judgment engine are preserved in `assets/dev-v2`.
-That directory's `provenance.json` records their hashes. `friend-mode.txt` is the
-exact appended prompt extracted from the source server. The original source
+That directory's `provenance.json` records their hashes. `friend-mode.txt` began
+as the appended source prompt and is now the authoritative dev-editable overlay;
+the runtime loads this file directly at startup. The original source
 repository remains untouched; the earlier source assets remain for comparison.
 
 `POST /astrofriend/direct-answer` requires gateway authentication. Enable it with
@@ -43,7 +44,7 @@ equivalence. `VEDASTRO_DIRECT_USE_LOCAL_ENGINE=0` explicitly selects the previou
 MCP-first/Python-fallback transport for comparison. The Python path uses
 `VEDASTRO_DIRECT_PYTHON` or `python3`.
 
-The source assets remain byte-identical. Runtime context fixes make the source
+The calculation engine and source server reference remain unchanged. Runtime context fixes make the source
 prompt and Friend Mode agree on two blank-line-separated parts for completed
 chart readings; ordinary chat and clarifications stay brief. Sensitive-question
 wording prohibits deriving death dates, lifespan, diagnoses or actual disease
@@ -57,6 +58,8 @@ complete profile, an answer without successful chart-tool evidence is withheld
 and the same agent gets one bounded tool-selection correction. Only chart tools
 are advertised during that correction, then the normal registry is restored.
 Repeated tool avoidance or failed chart tools cannot complete that reading.
+The correction drops the rejected ungrounded answer and repeats the exact current
+question, preserving its subject instead of reinforcing an earlier prediction.
 Clarifications, general explanations, ordinary conversation, practical questions
 and death-date limitations are not forced into chart calculations. This guard is
 scoped, not a universal intent classifier or a guarantee of factual predictions.
@@ -91,7 +94,13 @@ Pinning reduces routing and sampling
 variation, but cannot guarantee byte-identical output across provider changes,
 live transit timestamps, different memory/history, or automatic horary numbers.
 If the pinned endpoint is unavailable, stable mode fails rather than switching
-providers silently. Tool calls run concurrently, with results kept in their
+providers unless a backup was explicitly configured. Set
+`VEDASTRO_DIRECT_FALLBACK_PROVIDER=deepinfra/fp8` to allow OpenRouter to try only
+the primary and this backup for the same model, preserving temperature/seed/tool
+requirements. Backup routing caps prices at $0.15 per million input tokens and
+$1.50 per million output tokens. This is provider routing inside one request;
+the application does not resubmit failed HTTP requests or uncertain generations.
+Tool calls run concurrently, with results kept in their
 advertised order, as in the source server.
 
 Live frozen-input checks still varied on both tested endpoints with these

@@ -204,6 +204,10 @@ void test("generic first answer is withheld and corrected with chart tools, with
         return reply("Just be happy and patient.");
       }
       if (calls === 2) {
+        assert.ok(body.messages.at(-1).content.includes(JSON.stringify(input.query)));
+        assert.ok(
+          !body.messages.some((message) => message.content === "Just be happy and patient."),
+        );
         assert.equal(body.tool_choice, "required");
         assert.ok(
           body.tools.every(
@@ -220,6 +224,52 @@ void test("generic first answer is withheld and corrected with chart tools, with
   assert.equal(result.reply, expected);
   assert.equal(result.answer_model_calls, 3);
   assert.deepEqual(result.answer_reading_tools, ["get_horoscope_predictions"]);
+});
+
+void test("topic changes retain the exact active question through chart correction", async () => {
+  for (const query of [
+    "Mera career kab set hoga",
+    "Kya meri Crush se meri shadi hogi",
+    "Meri Girl Friend se shadi hogi",
+    "Meri GF kab banegi",
+    "mera promotion kab hoga",
+  ]) {
+    const value = {
+      ...input,
+      query,
+      history: [
+        { role: "user", text: "meri shaadi kab hogi" },
+        { role: "assistant", text: "An old marriage timing prediction." },
+      ],
+    };
+    assert.equal(requiresChartReading(query, savedBirthContext(birth)), true, query);
+    let calls = 0;
+    const result = await directAnswer(value, {
+      env,
+      makeMemory: () => ({ read: async () => [] }),
+      makeTools: () => async () => "New chart evidence",
+      fetchImpl: async (_url, options) => {
+        const body = JSON.parse(options.body);
+        calls++;
+        assert.ok(body.messages[0].content.includes(JSON.stringify(query)));
+        if (calls === 1) {
+          return reply("Rejected old timing repeated.");
+        }
+        assert.ok(
+          !body.messages.some((message) => message.content === "Rejected old timing repeated."),
+        );
+        const correction = body.messages.find(
+          (message) => message.role === "user" && message.content.includes("exact active question"),
+        );
+        assert.ok(correction.content.includes(JSON.stringify(query)));
+        return calls === 2
+          ? chartCall()
+          : reply("Answer about the active subject.\n\nConcise relevant summary.");
+      },
+    });
+    assert.equal(result.answer_model_calls, 3);
+    assert.deepEqual(result.answer_reading_tools, ["get_horoscope_predictions"]);
+  }
 });
 
 void test("failed tools or repeated tool avoidance cannot masquerade as a completed personal reading", async () => {

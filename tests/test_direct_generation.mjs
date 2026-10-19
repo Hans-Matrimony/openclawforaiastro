@@ -24,6 +24,19 @@ void test("source comparison mode retains the original generation settings", () 
     provider: { require_parameters: true },
   });
 });
+void test("explicit dev backup allows only two endpoints for the same model and caps their prices", () => {
+  const settings = generationSettings({ VEDASTRO_DIRECT_FALLBACK_PROVIDER: "deepinfra/fp8" });
+  assert.deepEqual(settings.provider, {
+    require_parameters: true,
+    order: ["parasail/fp8", "deepinfra/fp8"],
+    only: ["parasail/fp8", "deepinfra/fp8"],
+    allow_fallbacks: true,
+    max_price: { prompt: 0.15, completion: 1.5 },
+  });
+  assert.equal(settings.temperature, 0);
+  assert.equal(settings.seed, 42);
+  assert.equal(settings.top_k, 1);
+});
 void test("invalid generation configuration fails instead of silently routing elsewhere", () => {
   for (const env of [
     { VEDASTRO_DIRECT_GENERATION_MODE: "other" },
@@ -31,8 +44,35 @@ void test("invalid generation configuration fails instead of silently routing el
     { VEDASTRO_DIRECT_SEED: "-1" },
     { VEDASTRO_DIRECT_MODEL: "another/model" },
     { VEDASTRO_DIRECT_PROVIDER: "https://invalid.test" },
+    { VEDASTRO_DIRECT_FALLBACK_PROVIDER: "https://invalid.test" },
+    { VEDASTRO_DIRECT_FALLBACK_PROVIDER: "parasail/fp8" },
   ]) {
     assert.throws(() => generationSettings(env));
+  }
+});
+void test("provider failures and ambiguous network errors never trigger an application-level resubmission", async () => {
+  for (const status of [429, 503, null]) {
+    let calls = 0;
+    await assert.rejects(
+      directAnswer(
+        { user_id: "test:user", query: "Hello", history: [], birth: null, language: "hinglish" },
+        {
+          env: {
+            OPENROUTER_API_KEY: "test-only",
+            VEDASTRO_DIRECT_FALLBACK_PROVIDER: "deepinfra/fp8",
+          },
+          makeMemory: () => ({ read: async () => [] }),
+          fetchImpl: async () => {
+            calls++;
+            if (status === null) {
+              throw new Error("Connection lost");
+            }
+            return new Response("rejected", { status });
+          },
+        },
+      ),
+    );
+    assert.equal(calls, 1);
   }
 });
 void test("source sampling mode retains one contextual system message and ordered parallel tool results", async () => {
