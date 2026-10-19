@@ -119,3 +119,24 @@ Set `VEDASTRO_DIRECT_REPLY_CACHE=0` to disable it. Source mode never uses this
 cache. This guarantees reuse only for identical writer inputs in the same live
 process and TTL; fresh evidence, other instances and source website replies can
 still produce different text.
+
+Completed readings now request one short, relevant friendly question at the end
+of the final bubble. The existing explanation and verdict remain; missing-detail
+questions, errors, death-date questions, structured output and explicit requests
+for no follow-up are excluded. A trailing question does not exempt an otherwise
+ungrounded reading from chart-tool checks.
+
+Explicit remedy requests retrieve up to five passages using the existing
+`skills/qdrant/qdrant_client.py` and its `astrology_knowledge` collection. It needs
+`QDRANT_URL`, `QDRANT_API_KEY` and `OPENAI_API_KEY` (the collection's existing
+`text-embedding-3-small` embedding model). Only fixed topic labels are sent for
+embedding, not birth details, identifiers or raw conversation history. Current
+topics take precedence; a short request such as “upay batao” inherits the most
+recent relevant user topic. A short “haan batao” or “yes please” also retrieves
+when it accepts the immediately preceding remedy offer. Ordinary readings and explicit refusals of remedies
+do not retrieve. Retrieved data is bounded, quoted as untrusted reference material
+and never treated as personal chart evidence or instructions. Missing credentials,
+empty results and retrieval errors are reported to the writer without invented
+remedies. The response includes content-free `answer_remedy_status` and
+`answer_remedy_sources` diagnostics on remedy turns. No remedy is stored as a
+user fact in Mem0 by this integration.

@@ -21,7 +21,7 @@ export function sanitizeBindus(reply) {
 }
 
 // Preserve model wording; repair whitespace boundaries only for completed chart readings.
-export function formatReadingReply(reply, hasReading) {
+export function formatReadingReply(reply, hasReading, { friendlyClosing = false } = {}) {
   if (!hasReading) {
     return reply;
   }
@@ -35,6 +35,14 @@ export function formatReadingReply(reply, hasReading) {
     // Normal prose follows the reading bubble contract below.
   }
   const paragraphs = reply.trim().split(/\r?\n\s*\r?\n/);
+  if (
+    friendlyClosing &&
+    paragraphs.length === 3 &&
+    paragraphs[2].trim().endsWith("?") &&
+    paragraphs[2].length <= 240
+  ) {
+    return paragraphs[0] + "\n\n" + paragraphs[1] + " " + paragraphs[2];
+  }
   if (paragraphs.length === 2) {
     return reply;
   }

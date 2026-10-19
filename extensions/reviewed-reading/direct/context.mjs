@@ -92,6 +92,11 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
         "Use only the dasha names and date boundaries actually returned by the tool. A current period ending does not establish a future antardasha, marriage window or event date. Do not invent a future period to make an answer more specific. Keep the answer natural and direct, with one brief qualification when necessary rather than repeated disclaimers.\n\n",
     );
   prompt +=
+    "\n\n# Friendly closing\n" +
+    "After answering a completed reading or remedy request, add exactly one short, friendly, topic-relevant follow-up question at the end of the final bubble, in the user's language. " +
+    "Keep the existing answer and verdict; do not add another recap or a service menu. This overrides earlier instructions forbidding a follow-up offer. " +
+    "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
+  prompt +=
     "\n\n# Active question scope\n" +
     "The current user question is " +
     data(redact(value.query)) +
