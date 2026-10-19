@@ -21,24 +21,30 @@ export function remedyUnavailableReply(value) {
   return "I couldn’t find a verified remedy for this question in the available references.";
 }
 
-export function appendFriendlyClosing(reply, value, completed) {
+export function canAskFollowup(reply, value, completed) {
   if (
     !completed ||
     isDeathTimingQuestion(value.query) ||
-    /[?？]\s*$/.test(reply) ||
     /\b(?:no (?:follow[- ]?ups?|questions)|without (?:follow[- ]?ups?|questions)|(?:don't|do not) ask|(?:sirf|bas) (?:jawab|answer))\b|सिर्फ\s*जवाब|सवाल\s*मत/i.test(
       value.query,
     ) ||
     reply.includes("```") ||
     /(?:^|\n)\s*\|[^\n]+\|/.test(reply)
   ) {
-    return reply;
+    return false;
   }
   try {
     JSON.parse(reply);
-    return reply;
+    return false;
   } catch {
     /* Normal prose only. */
+  }
+  return true;
+}
+
+export function appendFriendlyClosing(reply, value, completed) {
+  if (!canAskFollowup(reply, value, completed) || /[?？]\s*$/.test(reply)) {
+    return reply;
   }
   const language = responseLanguage(value);
   const closing =

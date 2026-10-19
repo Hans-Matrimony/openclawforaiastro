@@ -6,7 +6,12 @@ import { directReplyCache } from "./reply-cache.mjs";
 import { formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
-import { appendFriendlyClosing, remedyUnavailableReply } from "./friendly-closing.mjs";
+import {
+  appendFriendlyClosing,
+  canAskFollowup,
+  remedyUnavailableReply,
+} from "./friendly-closing.mjs";
+import { contextualClosing } from "./contextual-closing.mjs";
 import {
   asksForRemedy,
   remedySearchQuery,
@@ -229,21 +234,71 @@ export async function directAnswer(
       });
       continue;
     }
+    const formatted = formatReadingReply(
+      sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
+      readingTools.size > 0 && !isDeathTimingQuestion(value.query),
+      { friendlyClosing: true },
+    );
+    const completed = readingTools.size > 0 || remedyKnowledge?.status === "available";
+    let finalReply = formatted;
+    if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
+      if (canAskFollowup(formatted, value, completed) && upstreamCalls < 5) {
+        finalReply = await contextualClosing(formatted, value, {
+          facts: context.memoryFacts,
+          redact: (text) => redactIdentity(text, value.user_id),
+          generate: async (instruction, data) => {
+            upstreamCalls++;
+            const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              redirect: "error",
+              signal,
+              headers: {
+                Authorization: "Bearer " + env.OPENROUTER_API_KEY,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
+                ...generation,
+                messages: [
+                  { role: "system", content: instruction },
+                  { role: "user", content: data },
+                ],
+                max_tokens: 160,
+                stream: false,
+              }),
+            });
+            if (!response.ok) {
+              throw new Error("Closing unavailable");
+            }
+            const raw = await response.text();
+            if (Buffer.byteLength(raw) > 16384) {
+              throw new Error("Closing response too large");
+            }
+            const result = JSON.parse(raw);
+            answerUsage.push({
+              generation_id: result.id ?? null,
+              input_tokens: result.usage?.prompt_tokens ?? null,
+              output_tokens: result.usage?.completion_tokens ?? null,
+              cost_usd: Number.isFinite(result.usage?.cost) ? result.usage.cost : null,
+              cache_hit: false,
+            });
+            if (result.choices?.[0]?.finish_reason !== "stop") {
+              throw new Error("Incomplete closing");
+            }
+            return result.choices[0].message.content;
+          },
+        });
+      }
+    } else {
+      finalReply = appendFriendlyClosing(formatted, value, completed);
+    }
     // Preserve normal wording; apply the narrow death-date boundary and bubble whitespace.
     if (cacheEnabled && !cacheHit) {
       replyCache.put(value.user_id, body, completion);
     }
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: appendFriendlyClosing(
-        formatReadingReply(
-          sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
-          readingTools.size > 0 && !isDeathTimingQuestion(value.query),
-          { friendlyClosing: true },
-        ),
-        value,
-        readingTools.size > 0 || remedyKnowledge?.status === "available",
-      ),
+      reply: finalReply,
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],

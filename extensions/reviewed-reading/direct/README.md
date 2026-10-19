@@ -129,6 +129,15 @@ If the writer omits the closing, a local language-matched question is appended
 without rewriting the answer or adding a model call. Existing closing questions
 are preserved, and the same exclusions apply to this fallback.
 
+With `VEDASTRO_DIRECT_CONTEXTUAL_CLOSING=1` in dev, the fixed fallback is replaced
+by one bounded same-model closing request when the answer lacks a specific
+question. It receives the current answer, the last ten conversation turns and
+already-loaded non-birth memory notes. It must not repeat answered questions,
+reuse a prior closing, introduce unrelated memories or invent personal facts.
+The original answer is preserved. Unavailable, repetitive or invalid closings
+are omitted; no generic sentence is forced. This request stays within the
+existing five-call ceiling and is included in response usage diagnostics.
+
 Explicit remedy requests retrieve up to five passages using the existing
 `skills/qdrant/qdrant_client.py` and the dev `astrology_remedies` collection.
 The dev collection contains remedy-bearing reference records copied with their
