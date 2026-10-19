@@ -1,3 +1,4 @@
+import { fallbackGrammar } from "./persona.mjs";
 // Used only when the companion writer fails or offers no usable closing.
 // Topic acknowledgments do not infer personal circumstances from chart claims.
 export function companionFallback(value) {
@@ -33,5 +34,9 @@ export function companionFallback(value) {
   const previous = (value.history ?? [])
     .filter((turn) => turn.role === "assistant")
     .map((turn) => turn.text.toLowerCase());
-  return options.find((text) => !previous.some((old) => old.includes(text.toLowerCase()))) ?? null;
+  return (
+    options
+      .map((text) => fallbackGrammar(text, value))
+      .find((text) => !previous.some((old) => old.includes(text.toLowerCase()))) ?? null
+  );
 }

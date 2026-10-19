@@ -55,5 +55,5 @@ export function appendFriendlyClosing(reply, value, completed) {
         : ["english", "en"].includes(language)
           ? "Would you like me to explain this a little more?"
           : null;
-  return closing ? reply.trimEnd() + " " + closing : reply;
+  return closing ? reply.trimEnd() + "\n\n" + closing : reply;
 }

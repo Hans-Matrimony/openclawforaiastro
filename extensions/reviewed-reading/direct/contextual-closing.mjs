@@ -1,5 +1,6 @@
 import { stressFollowup } from "./stress-followup.mjs";
 import { companionFallback } from "./companion-fallback.mjs";
+import { personaInstruction, fallbackGrammar } from "./persona.mjs";
 
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
@@ -29,7 +30,7 @@ export async function contextualClosing(
         : ["hindi", "hi"].includes(language)
           ? "ठीक है, अभी कोई सलाह नहीं। आराम से अपनी बात कह सकते हो।"
           : null;
-    return support ? base + " " + support : base;
+    return support ? base + "\n\n" + fallbackGrammar(support, value) : base;
   }
   const history = (value.history ?? [])
     .slice(-10)
@@ -45,9 +46,11 @@ export async function contextualClosing(
       return base;
     }
     const question = stressFollowup(value, notes) ?? companionFallback(value);
-    return question ? base + " " + question : base;
+    return question ? base + "\n\n" + fallbackGrammar(question, value) : base;
   };
   const prompt =
+    personaInstruction(value) +
+    "Keep this persona consistent even if old assistant messages use another name or gender. Do not introduce yourself on every turn. Match the user's level of familiarity; prefer respectful aap, not tu/tere or pet names unless explicitly invited. Refer only to relevant user-stated memories, resolve corrections from the current message first, and do not ask again about already answered details. " +
     "Write a brief personal companion closing after the completed astrology answer, or NONE if there is nothing useful to add. The astrology answer is finished: do not rewrite, correct, extend or repeat it. " +
     "Use the current question, the answer just given, relevant user statements in history, and saved user facts. Current corrections override older facts. " +
     "Do not ask for information already supplied, repeat an earlier follow-up, switch topics, summarize, offer a service menu, or ask generic 'want more detail?' questions. " +
@@ -104,7 +107,7 @@ export async function contextualClosing(
     ) {
       return fallback();
     }
-    return base + " " + question;
+    return base + "\n\n" + question;
   } catch {
     return fallback();
   }

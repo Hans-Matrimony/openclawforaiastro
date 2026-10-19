@@ -1,4 +1,5 @@
 import { SOURCE_PROMPT } from "./source-contract.mjs";
+import { personaInstruction } from "./persona.mjs";
 
 export function savedBirthContext(birth) {
   const fields = {};
@@ -93,10 +94,13 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
     );
   prompt +=
     "\n\n# Friendly closing\n" +
-    "After answering a completed reading or remedy request, add exactly one short, friendly, topic-relevant follow-up question at the end of the final bubble, in the user's language. " +
+    "For a completed reading, use three separate paragraphs: first the simple explanation, second only the short direct answer or verdict (one brief sentence), third the friendly topic-relevant follow-up in the user's language. Separate paragraphs with a blank line. Never attach the follow-up to the second paragraph. " +
     "Keep the existing answer and verdict; do not add another recap or a service menu. This overrides earlier instructions forbidding a follow-up offer. " +
     "Base the question on the current concern and relevant user-provided history or saved facts. Never ask what the user already told you or repeat a prior closing. Current corrections override old memory. Ask about one unresolved concrete concern or next step, not 'would you like more detail?'. Do not bring up unrelated memories or treat past assistant predictions as user facts. " +
     "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
+  prompt +=
+    "\n\n# Simple user-facing wording\n" +
+    "Do not display bindu totals, bindu scores, ashtakavarga numbers, or the words bindu, bindus, retrograde, combust, vakri or their Hindi technical equivalents. Explain only the relevant practical meaning already supported by the tools in familiar language. Do not substitute another technical label. Do not turn a technical placement into a new prediction or claim. Keep the second paragraph to one short direct answer; all companionship belongs in the third paragraph. Raw structured output requested by the user is exempt.\n";
   prompt +=
     "\n\n# Active question scope\n" +
     "The current user question is " +
@@ -106,5 +110,9 @@ export async function readingContext(value, memory, redact, asOf = new Date()) {
     "Answer the current subject and intent: career is not marriage, and whether a relationship with a specific person can develop is not merely when marriage may happen. " +
     "Do not claim to know another person's feelings, fidelity or future choices from the user's chart. Explain relevant relationship indications naturally without inventing a definite yes/no about that person's decision. " +
     "For short follow-ups such as 'Why?' or 'Thik se batao', resolve the subject from the latest relevant user question, not an unrelated older prediction.\n";
+  prompt +=
+    "\n\n# App speaker identity\n" +
+    personaInstruction(value) +
+    "This controls speaker identity and grammar only, not chart calculations or interpretations. Do not introduce yourself repeatedly. Old assistant names do not override this app identity.\n";
   return { prompt, profile, memoryStatus: status, memoryFacts: facts };
 }

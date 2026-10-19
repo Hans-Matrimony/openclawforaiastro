@@ -12,7 +12,7 @@ void test("companion cannot repeat astrology timing in the reported misspelled e
         generate: async () => "2027 ke baad sab clear ho jayega. Weekly do topics padho?",
       },
     ),
-    "Original reading. Padhai ko lekar jo bhi mann mein chal raha hai, aaram se batao.",
+    "Original reading.\n\nPadhai ko lekar jo bhi mann mein chal raha hai, aaram se batao.",
   );
 });
 
@@ -58,7 +58,7 @@ void test("reported ordinary questions reach companion writer without chart call
       },
     );
     assert.equal(calls, 2);
-    assert.equal(result.reply, "Existing answer. Aaram se batao, jo mann mein hai.");
+    assert.equal(result.reply, "Existing answer.\n\nAaram se batao, jo mann mein hai.");
   }
 });
 
@@ -70,7 +70,7 @@ void test("reported education and money questions retain companionship on writer
     ],
     [
       "thodi pareshani hai paiso ko leke kab poori hogi",
-      "Paise ki baat khulkar kar sakte ho, judge nahi karunga.",
+      "Paise ki baat khulkar kar sakte ho, yahan koi judgement nahi.",
     ],
   ]) {
     const value = { query, language: "hinglish", history: [] };
@@ -81,7 +81,7 @@ void test("reported education and money questions retain companionship on writer
         throw Error("Closing call budget exhausted");
       },
     ]) {
-      assert.equal(await contextualClosing(answer, value, { generate }), answer + " " + closing);
+      assert.equal(await contextualClosing(answer, value, { generate }), answer + "\n\n" + closing);
     }
     const repeated = await contextualClosing(
       answer,
@@ -119,7 +119,7 @@ void test("malformed companion output leaves the reading intact", async () => {
         },
       },
     ),
-    answer + " Okay, no advice right now. Take your time; you can say what's on your mind.",
+    answer + "\n\nOkay, no advice right now. Take your time; you can say what's on your mind.",
   );
 });
 
@@ -141,7 +141,7 @@ void test("live listening regression adds support without a model call or invent
   );
   assert.equal(
     result,
-    answer + " Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho.",
+    answer + "\n\nTheek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho.",
   );
 });
 
@@ -183,7 +183,7 @@ void test("closing gets relevant conversation and memory without rewriting the a
       return "Night shift ke baad padhai ke liye kitna waqt mil pata hai?";
     },
   });
-  assert.equal(result, answer + " Night shift ke baad padhai ke liye kitna waqt mil pata hai?");
+  assert.equal(result, answer + "\n\nNight shift ke baad padhai ke liye kitna waqt mil pata hai?");
 });
 void test("no generic, duplicated, malformed or failed closing is forced", async () => {
   const value = {
@@ -214,10 +214,10 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
     "Answer.",
   );
   assert.equal(
-    await contextualClosing("Answer. Which course interests you?", value, {
+    await contextualClosing("Answer.\n\nWhich course interests you?", value, {
       generate: async () => "Which course interests you?",
     }),
-    "Answer. Which course interests you?",
+    "Answer.\n\nWhich course interests you?",
   );
 });
 void test("companion can acknowledge feelings without forcing another question", async () => {
@@ -241,12 +241,12 @@ void test("companion can acknowledge feelings without forcing another question",
       },
     },
   );
-  assert.equal(result, answer + " " + closing);
+  assert.equal(result, answer + "\n\n" + closing);
 });
 void test("existing future-prediction questions are reviewed without rewriting the answer", async () => {
   const answer = "The original reading.\n\nThe original verdict.";
   const result = await contextualClosing(
-    answer + " Family ka opposition kab tak rahega?",
+    answer + "\n\nFamily ka opposition kab tak rahega?",
     { query: "meri shaadi?", language: "hinglish", history: [] },
     {
       generate: async (prompt, data) => {
@@ -258,7 +258,7 @@ void test("existing future-prediction questions are reviewed without rewriting t
       },
     },
   );
-  assert.equal(result, answer + " Family ki sabse badi concern kya hai?");
+  assert.equal(result, answer + "\n\nFamily ki sabse badi concern kya hai?");
 });
 void test("dev agent uses memory and history for a single bounded closing call", async () => {
   let calls = 0;
@@ -315,6 +315,6 @@ void test("dev agent uses memory and history for a single bounded closing call",
   assert.equal(result.answer_usage.length, 2);
   assert.equal(
     result.reply,
-    "Shaant mann se prarthana kar sakte ho. Family ko is rishte mein sabse badi dikkat kis baat se hai?",
+    "Shaant mann se prarthana kar sakte ho.\n\nFamily ko is rishte mein sabse badi dikkat kis baat se hai?",
   );
 });

@@ -163,7 +163,7 @@ void test("friendly closing preserves the verdict bubble and structured output",
     "The chart supports this.\n\nA later window looks stronger.\n\nWould you like the reasons?";
   assert.equal(
     formatReadingReply(reply, true, { friendlyClosing: true }),
-    "The chart supports this.\n\nA later window looks stronger. Would you like the reasons?",
+    "The chart supports this.\n\nA later window looks stronger.\n\nWould you like the reasons?",
   );
   assert.equal(
     formatReadingReply('{"answer":"yes"}', true, { friendlyClosing: true }),
@@ -301,7 +301,10 @@ void test("retrieved passages are quoted data and ordinary follow-ups cannot ski
   assert.equal(calls, 3);
   assert.equal(result.answer_remedy_status, "available");
   assert.equal(result.answer_remedy_sources, 1);
-  assert.equal(result.reply, "Chart explanation.\n\nConcise verdict. Would you like more detail?");
+  assert.equal(
+    result.reply,
+    "Chart explanation.\n\nConcise verdict.\n\nWould you like more detail?",
+  );
 });
 
 void test("a friendly closing is appended without rewriting or adding another bubble", () => {
@@ -309,15 +312,15 @@ void test("a friendly closing is appended without rewriting or adding another bu
   const text = "The chart explanation.\n\nThe original verdict.";
   assert.equal(
     appendFriendlyClosing(text, value, true),
-    text + " Iske baare mein thoda aur bataun?",
+    text + "\n\nIske baare mein thoda aur bataun?",
   );
   assert.equal(
     appendFriendlyClosing(text, { ...value, language: "english" }, true),
-    text + " Would you like me to explain this a little more?",
+    text + "\n\nWould you like me to explain this a little more?",
   );
   assert.equal(
     appendFriendlyClosing(text, { ...value, language: "hindi" }, true),
-    text + " क्या इसके बारे में थोड़ा और बताऊँ?",
+    text + "\n\nक्या इसके बारे में थोड़ा और बताऊँ?",
   );
   for (const query of ["meri death kab hogi", "no follow-up questions", "bas jawab do"]) {
     assert.equal(appendFriendlyClosing(text, { ...value, query }, true), text);

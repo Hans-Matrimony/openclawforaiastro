@@ -19,7 +19,7 @@ void test("actual stress query retains a useful follow-up on NONE, invalid outpu
   ]) {
     assert.equal(
       await contextualClosing("The original answer.", value, { generate }),
-      "The original answer. Abhi sabse zyada tension kis baat ki ho rahi hai?",
+      "The original answer.\n\nAbhi sabse zyada tension kis baat ki ho rahi hai?",
     );
   }
 });
@@ -78,7 +78,7 @@ void test("stress conversation can receive a follow-up without calling chart too
   );
   assert.equal(
     result.reply,
-    "Main sun raha hoon. Abhi sabse zyada tension kis baat ki ho rahi hai?",
+    "Main sun raha hoon.\n\nAbhi sabse zyada tension kis baat ki ho rahi hai?",
   );
   assert.equal(result.answer_model_calls, 2);
   assert.deepEqual(result.answer_reading_tools, []);

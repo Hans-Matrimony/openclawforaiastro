@@ -227,7 +227,7 @@ void test("native tool loop yields its final reply directly after exactly two mo
       return { summary: "checked tool answer" };
     },
   });
-  assert.equal(result.reply, "The direct final answer. Iske baare mein thoda aur bataun?");
+  assert.equal(result.reply, "The direct final answer.\n\nIske baare mein thoda aur bataun?");
   assert.equal(modelCalls, 2);
   assert.equal(toolCalls, 1);
 });

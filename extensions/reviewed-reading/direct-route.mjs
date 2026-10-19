@@ -9,7 +9,7 @@ export function validateDirectInput(value) {
     !value ||
     Array.isArray(value) ||
     Object.keys(value).some(
-      (k) => !["user_id", "query", "history", "birth", "language"].includes(k),
+      (k) => !["user_id", "query", "history", "birth", "language", "user_gender"].includes(k),
     ) ||
     typeof value.user_id !== "string" ||
     !/^[A-Za-z0-9+:_-]{1,128}$/.test(value.user_id) ||
@@ -26,6 +26,8 @@ export function validateDirectInput(value) {
         t.text.length > 8000 ||
         Object.keys(t).some((k) => !["role", "text"].includes(k)),
     ) ||
+    (value.user_gender !== undefined &&
+      !["male", "female", "unknown"].includes(value.user_gender)) ||
     typeof value.language !== "string" ||
     value.language.length > 32
   ) {

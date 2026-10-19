@@ -41,7 +41,7 @@ export function formatReadingReply(reply, hasReading, { friendlyClosing = false 
     paragraphs[2].trim().endsWith("?") &&
     paragraphs[2].length <= 240
   ) {
-    return paragraphs[0] + "\n\n" + paragraphs[1] + " " + paragraphs[2];
+    return paragraphs.join("\n\n");
   }
   if (paragraphs.length === 2) {
     return reply;
