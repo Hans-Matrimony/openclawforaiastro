@@ -3,6 +3,57 @@ import test from "node:test";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 
+void test("malformed companion output leaves the reading intact", async () => {
+  const answer = "Original interpretation.\n\nOriginal timing.";
+  const value = { query: "career?", language: "english", history: [] };
+  for (const output of [
+    null,
+    undefined,
+    {},
+    "",
+    "none",
+    "None.",
+    "x".repeat(281),
+    "One\nTwo",
+    "One? Two?",
+  ]) {
+    assert.equal(await contextualClosing(answer, value, { generate: async () => output }), answer);
+  }
+  assert.equal(
+    await contextualClosing(
+      answer,
+      { ...value, query: "I am stressed, just listen" },
+      {
+        generate: async () => {
+          throw Error("offline");
+        },
+      },
+    ),
+    answer,
+  );
+});
+
+void test("memory is redacted and bounded and duplicates ignore case and whitespace", async () => {
+  const answer = "Original reading.";
+  const value = {
+    query: "career?",
+    language: "english",
+    history: [{ role: "assistant", text: "Take your time.  What feels hardest?" }],
+  };
+  assert.equal(
+    await contextualClosing(answer, value, {
+      facts: [null, "[birth] excluded", "private-id", "x".repeat(2000)],
+      redact: (text) => text.replaceAll("private-id", "[redacted]"),
+      generate: async (_, data) => {
+        assert.deepEqual(JSON.parse(data).saved_user_facts, ["[redacted]", "x".repeat(1000)]);
+        return "take your time. what feels hardest?";
+      },
+    }),
+    answer,
+  );
+  assert.equal(await contextualClosing(answer, value, { generate: async () => answer }), answer);
+});
+
 void test("closing gets relevant conversation and memory without rewriting the answer", async () => {
   const value = {
     query: "Ab kya karun?",
@@ -33,7 +84,6 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
     "Kaunsi field mein jaana hai?",
     "Would you like more detail?",
     "First? Second?",
-    "Answer without question",
     "Family ka opposition kab tak rahega aur 2027 ke baad kya badlega?",
   ]) {
     assert.equal(
@@ -57,6 +107,29 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
     }),
     "Answer. Which course interests you?",
   );
+});
+void test("companion can acknowledge feelings without forcing another question", async () => {
+  const answer = "The existing astrology paragraph.\n\nThe existing timing verdict.";
+  const closing = "Aaram se batao, jaldi nahi hai. Jo mann mein hai keh sakte ho.";
+  const result = await contextualClosing(
+    answer,
+    {
+      query: "Bas mann halka karna tha",
+      language: "hinglish",
+      history: [{ role: "user", text: "Night shifts aur MBA saath manage kar raha hoon." }],
+    },
+    {
+      facts: ["User works night shifts"],
+      generate: async (prompt, data) => {
+        assert.match(prompt, /do not rewrite, correct, extend or repeat it/);
+        assert.match(prompt, /never assume a romantic relationship/);
+        assert.match(prompt, /supportive statement alone/i);
+        assert.equal(JSON.parse(data).answer, answer);
+        return closing;
+      },
+    },
+  );
+  assert.equal(result, answer + " " + closing);
 });
 void test("existing future-prediction questions are reviewed without rewriting the answer", async () => {
   const answer = "The original reading.\n\nThe original verdict.";
