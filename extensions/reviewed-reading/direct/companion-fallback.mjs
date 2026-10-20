@@ -1,4 +1,5 @@
 import { fallbackGrammar } from "./persona.mjs";
+import { questionScope } from "./question-scope.mjs";
 // Used only when the companion writer fails or offers no usable closing.
 // Topic acknowledgments do not infer personal circumstances from chart claims.
 export function companionFallback(value, facts = []) {
@@ -10,10 +11,11 @@ export function companionFallback(value, facts = []) {
   const education = /\beduc[a-z]{2,8}\b|padhai|stud(?:y|ies)|exam|शिक्षा|पढ़ाई/i.test(value.query);
   const finance = /pais[aeo]|financ|money|पैस|धन/i.test(value.query);
   const relationship =
-    /sha+di|marri(?:age|ed)|relationship|partner|crush|girlfriend|boyfriend|शादी|रिश्त/i.test(
+    /\b(?:gf|bf)\b|sha+di|marri(?:age|ed)|relationship|partner|crush|girl\s*friend|boy\s*friend|शादी|रिश्त/i.test(
       value.query,
     );
   const career = /career|job|naukri|work|करियर|नौकरी/i.test(value.query);
+  const newRelationship = questionScope(value.query) === "dating";
   if (!education && !finance && !relationship && !career) {
     return null;
   }
@@ -37,7 +39,7 @@ export function companionFallback(value, facts = []) {
           english: "What feels most difficult about the MBA decision right now?",
           hindi: "एमबीए को लेकर अभी मन में सबसे बड़ी उलझन क्या है?",
         }
-      : relationship && /family|parents|ghar wal|परिवार|घरवाल/i.test(detail)
+      : relationship && !newRelationship && /family|parents|ghar wal|परिवार|घरवाल/i.test(detail)
         ? {
             hinglish: "Ghar walon wali baat ko lekar ab kaisa lag raha hai?",
             english: "How are you feeling about the situation with your family now?",
@@ -60,7 +62,9 @@ export function companionFallback(value, facts = []) {
             ]
           : relationship
             ? [
-                "Shaadi ya rishte ko lekar aap khud kya chahte ho?",
+                newRelationship
+                  ? "Naye rishte ko lekar aapke mann mein kya chal raha hai?"
+                  : "Shaadi ya rishte ko lekar aap khud kya chahte ho?",
                 "Rishte ki baat aaram se kar sakte ho, jaldi nahi hai.",
               ]
             : [
@@ -74,7 +78,9 @@ export function companionFallback(value, facts = []) {
               : finance
                 ? "What feels most urgent to sort out with money right now?"
                 : relationship
-                  ? "What do you want for yourself in marriage or a relationship?"
+                  ? newRelationship
+                    ? "What is on your mind about starting a new relationship?"
+                    : "What do you want for yourself in marriage or a relationship?"
                   : "What has been on your mind most about work lately?",
             "You can talk this through at your own pace, without judgment.",
             "Share as much or as little as feels comfortable.",
@@ -86,7 +92,9 @@ export function companionFallback(value, facts = []) {
                 : finance
                   ? "पैसों की इस परेशानी में अभी सबसे ज़रूरी क्या संभालना है?"
                   : relationship
-                    ? "शादी या रिश्ते को लेकर आपकी अपनी चाहत क्या है?"
+                    ? newRelationship
+                      ? "नए रिश्ते को लेकर आपके मन में क्या चल रहा है?"
+                      : "शादी या रिश्ते को लेकर आपकी अपनी चाहत क्या है?"
                     : "काम को लेकर अभी मन में सबसे ज़्यादा क्या चल रहा है?",
               "मन में जो चल रहा है, आराम से कह सकते हो।",
               "जितना सहज लगे उतना ही बताओ, जल्दी नहीं है।",

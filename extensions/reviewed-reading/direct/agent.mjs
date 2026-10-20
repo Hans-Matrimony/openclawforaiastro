@@ -20,6 +20,11 @@ import {
   normalizeRemedies,
 } from "./remedies.mjs";
 import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
+import {
+  questionScopeInstruction,
+  mismatchedQuestionReply,
+  unresolvedQuestionReply,
+} from "./question-scope.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -57,6 +62,10 @@ export async function directAnswer(
     { separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" },
   );
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
+  const scopeInstruction = questionScopeInstruction(value.query);
+  if (scopeInstruction) {
+    context.prompt += "\n\n# Current relationship question\n" + scopeInstruction;
+  }
   let remedyKnowledge;
   if (asksForRemedy(value.query, value.history)) {
     let knowledge;
@@ -103,6 +112,7 @@ export async function directAnswer(
   const readingRequired = requiresChartReading(value.query, context.profile);
   const readingTools = new Set();
   let correctedMissingReading = false;
+  let correctedQuestion = false;
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
@@ -196,7 +206,7 @@ export async function directAnswer(
       });
       continue;
     }
-    const reply = choice.message.content;
+    let reply = choice.message.content;
     if (!nudged && typeof reply === "string" && /mcp__VedAstro__[a-z_]+\s*:\s*\{/.test(reply)) {
       nudged = true;
       messages.push(choice.message, {
@@ -235,6 +245,25 @@ export async function directAnswer(
           ". Preserve its subject and intent; a question about a particular partner is not a general marriage-timing question. Previous assistant predictions are not chart evidence. Call the appropriate reading tool now, then answer this question directly.",
       });
       continue;
+    }
+    const questionMismatch = mismatchedQuestionReply(value.query, reply);
+    if (questionMismatch && !correctedQuestion && modelCalls < 5) {
+      correctedQuestion = true;
+      // Keep the same tool evidence and call budget. Do not add the rejected
+      // marriage answer to history or turn its date into a new prediction.
+      messages.push({
+        role: "user",
+        content:
+          "Answer this active question, not the earlier marriage question: " +
+          JSON.stringify(redactIdentity(value.query, value.user_id)) +
+          ". " +
+          (scopeInstruction ||
+            "Answer the current career subject using the existing relevant tool evidence."),
+      });
+      continue;
+    }
+    if (questionMismatch) {
+      reply = unresolvedQuestionReply(value);
     }
     const formatted = formatReadingReply(
       sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
@@ -303,7 +332,7 @@ export async function directAnswer(
       finalReply = appendFriendlyClosing(formatted, value, completed);
     }
     // Preserve normal wording; apply the narrow death-date boundary and bubble whitespace.
-    if (cacheEnabled && !cacheHit) {
+    if (cacheEnabled && !cacheHit && !questionMismatch) {
       replyCache.put(value.user_id, body, completion);
     }
     return {
