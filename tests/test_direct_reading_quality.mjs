@@ -18,6 +18,7 @@ const input = {
   history: [],
 };
 const evidence = JSON.stringify({
+  engine: "local-sweph-v2",
   dasha: {
     current_mahadasha: { lord: "Saturn", from: "2020-06-09", to: "2039-06-10" },
     current_antardasha: { lord: "Ketu", from: "2026-02-20", to: "2027-03-31" },
@@ -106,6 +107,22 @@ void test("period checks reject the observed invented Jupiter transition but acc
     null,
   );
   assert.deepEqual(collectPeriods("not JSON"), []);
+  assert.ok(
+    unsupportedTiming("Agla anukool samay 2027 ke baad aayega.", periods, "2026-10-20", {
+      periodBoundariesOnly: true,
+    }),
+  );
+  assert.ok(
+    unsupportedTiming("Agle 3-4 mahine mein paise ki pareshani thik hogi.", periods, "2026-10-20", {
+      periodBoundariesOnly: true,
+    }),
+  );
+  assert.equal(
+    unsupportedTiming("Ketu ka daur March 2027 tak hai.", periods, "2026-10-20", {
+      periodBoundariesOnly: true,
+    }),
+    null,
+  );
   assert.ok(unsupportedTiming("Shaadi March 2026 mein hogi.", [], "2026-10-20"));
   assert.ok(unsupportedTiming("Shaadi 2025 mein hogi.", [], "2026-10-20"));
   assert.equal(unsupportedTiming("2025 mein shaadi hui thi.", [], "2026-10-20"), null);

@@ -122,6 +122,7 @@ export async function directAnswer(
   const readingRequired = requiresChartReading(value.query, context.profile);
   const readingTools = new Set();
   const periods = [];
+  let periodBoundariesOnly = false;
   let correctedMissingReading = false;
   let correctedQuality = false;
   const answerUsage = [];
@@ -202,6 +203,13 @@ export async function directAnswer(
             ) {
               readingTools.add(bareToolName(call.function.name));
               periods.push(...collectPeriods(content));
+              try {
+                if (JSON.parse(content).engine === "local-sweph-v2") {
+                  periodBoundariesOnly = true;
+                }
+              } catch {
+                // Other tool implementations may return plain text.
+              }
             }
           } catch {
             content = "Tool failed: Tool unavailable";
@@ -268,7 +276,9 @@ export async function directAnswer(
       continue;
     }
     const structured = reply.trim().startsWith("{") || reply.includes("```");
-    const timingIssue = structured ? null : unsupportedTiming(reply, periods, today);
+    const timingIssue = structured
+      ? null
+      : unsupportedTiming(reply, periods, today, { periodBoundariesOnly });
     const wordingIssue = !structured && /\b(?:bindus?|retrograde|combust|vakri)\b/i.test(reply);
     if (timingIssue || wordingIssue) {
       if (correctedQuality) {

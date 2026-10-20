@@ -52,7 +52,7 @@ export function hasChartClaims(reply) {
   );
 }
 
-export function unsupportedTiming(reply, periods, today) {
+export function unsupportedTiming(reply, periods, today, { periodBoundariesOnly = false } = {}) {
   for (const sentence of reply.split(/[.!?\n]/)) {
     const years = (sentence.match(/\b20\d{2}\b/g) ?? []).map(Number);
     if (
@@ -118,6 +118,24 @@ export function unsupportedTiming(reply, periods, today) {
         ) {
           return `The claimed start of the ${lord} period does not match the supplied period boundaries.`;
         }
+      }
+    }
+  }
+  if (periodBoundariesOnly) {
+    for (const sentence of reply.split(/[.!?\n]/)) {
+      const dated =
+        /\b20\d{2}\b|\b(?:next|agle|agli|agla)\s+[\d-]+\s*(?:months?|mahine|saal|years?)\b/i.test(
+          sentence,
+        );
+      const periodExplanation = /\b(?:dasha|antardasha|mahadasha|period|daur)\b/i.test(sentence);
+      const eventClaim =
+        /\b(?:hogi|hoga|honge|aayega|aayegi|will|anukool|favourable|favorable|result|results|theek|thik)\b/i.test(
+          sentence,
+        );
+      const dateVerdict =
+        sentence.trim().length <= 100 && /\b(?:ke baad|by|after|tak)\b/i.test(sentence);
+      if (dated && !periodExplanation && (eventClaim || dateVerdict)) {
+        return "This local tool calculated current period boundaries, not an event window. Do not turn those boundaries into a marriage, career, financial or other event date. Give the supported present indication without an invented year or countdown.";
       }
     }
   }
