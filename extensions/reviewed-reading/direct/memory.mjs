@@ -1,15 +1,16 @@
 import { uniqueMemory } from "./compact-prompt.mjs";
+import { memoryEnvironment } from "./deployment.mjs";
 
 export function createMemory(userId, { env = process.env, fetchImpl = fetch, signal } = {}) {
   const url = new URL(env.MEM0_URL);
+  const { environment, expectedHost } = memoryEnvironment(env);
   if (
     !["https:", "http:"].includes(url.protocol) ||
     url.username ||
     url.password ||
-    !env.VEDASTRO_DIRECT_MEM0_DEV_HOST ||
-    url.hostname !== env.VEDASTRO_DIRECT_MEM0_DEV_HOST
+    url.hostname !== expectedHost
   ) {
-    throw new Error("Development memory target required");
+    throw new Error("Memory target does not match the selected environment");
   }
   const headers = { "Content-Type": "application/json" };
   if (env.MEM0_API_KEY) {
@@ -83,7 +84,7 @@ export function createMemory(userId, { env = process.env, fetchImpl = fetch, sig
         await request("/memory/add", {
           user_id: userId,
           content,
-          metadata: { source: "vedastro_direct", environment: "development" },
+          metadata: { source: "vedastro_direct", environment },
         });
       } finally {
         revision++;

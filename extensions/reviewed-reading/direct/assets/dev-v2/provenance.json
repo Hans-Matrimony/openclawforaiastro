@@ -4,7 +4,8 @@
   "files": [
     {
       "path": "engine.mjs",
-      "sha256": "fad1b19acc77294a071f5e2558e5fbfaf89d086f39e08cb7e9bd6f73ed2f2d7e"
+      "sha256": "320e2d6ac929860a43e3cf8b1f37136ae1970f19b01d1de36b0751545575d110",
+      "upstream_sha256": "fad1b19acc77294a071f5e2558e5fbfaf89d086f39e08cb7e9bd6f73ed2f2d7e"
     },
     {
       "path": "system-prompt.txt",
@@ -25,6 +26,14 @@
     {
       "path": "friend-mode.txt",
       "sha256": "81bd7198eee8d0032eda3960c914079774224568dc7380ed74ecd3935701bec1"
+    }
+  ],
+  "reviewed_patches": [
+    {
+      "file": "engine.mjs",
+      "purpose": "Resolve birth local time through IANA date-specific offsets, reject nonexistent/ambiguous local times, and permit an explicit offset to disambiguate daylight-saving overlaps.",
+      "implementation": "../../birth-time.mjs",
+      "preserved": "Planet calculations, dasha formulas, Ashtakavarga tables and judgment rules are unchanged."
     }
   ]
 }

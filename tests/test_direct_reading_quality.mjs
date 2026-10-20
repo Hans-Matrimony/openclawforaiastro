@@ -144,6 +144,11 @@ void test("period checks reject the observed invented Jupiter transition but acc
       periodBoundariesOnly: true,
     }),
   );
+  assert.ok(
+    unsupportedTiming("Next year Jupiter aapke 2nd house mein aayega.", periods, "2026-10-20", {
+      periodBoundariesOnly: true,
+    }),
+  );
   assert.equal(
     unsupportedTiming("Ketu ka daur March 2027 tak hai.", periods, "2026-10-20", {
       periodBoundariesOnly: true,
@@ -185,6 +190,54 @@ void test("unsupported timing and technical wording are corrected before compani
   assert.ok(result.reply.startsWith(answer + "\n\n"));
   assert.equal(result.reply.split("\n\n").length, 3);
   assert.doesNotMatch(result.reply, /Jupiter|2027|combust/);
+});
+
+void test("missing event windows cannot be replaced with a promise of improvement soon", async () => {
+  assert.ok(
+    unsupportedTiming(
+      "Jaise hi Saturn ki dasha badlegi aur Jupiter ya Venus ki period shuru hogi, waise hi naya mauka aayega.",
+      collectPeriods(evidence),
+      "2026-10-20",
+      { periodBoundariesOnly: true },
+    ),
+  );
+  assert.ok(
+    unsupportedTiming(
+      "Paise ki pareshani jald khatam hogi.",
+      collectPeriods(evidence),
+      "2026-10-20",
+      { periodBoundariesOnly: true },
+    ),
+  );
+  assert.equal(
+    unsupportedTiming(
+      "Jaldi natija nikalna sahi nahi hoga.",
+      collectPeriods(evidence),
+      "2026-10-20",
+      { periodBoundariesOnly: true },
+    ),
+    null,
+  );
+  const answer = "Abhi milajule sanket hain.\n\nSamay saaf nahi hai.";
+  const value = {
+    ...input,
+    query: "Mera career kab set hoga? Main night shift karta hoon aur MBA chahta hoon.",
+  };
+  for (const output of [
+    "Aapki kundali ke anusar MBA ka samay sakriya hai.",
+    "Paise ki pareshani jaldi door hogi, tension mat lijiye.",
+  ]) {
+    let status;
+    const result = await contextualClosing(answer, value, {
+      generate: async () => output,
+      onOutcome: (outcome) => {
+        status = outcome;
+      },
+    });
+    assert.equal(status, "fallback_reading_repeated");
+    assert.match(result.split("\n\n")[2], /Night shift/);
+    assert.ok(result.startsWith(answer));
+  }
 });
 
 void test("repeated invalid timing returns verified facts and a third bubble instead of an error", async () => {

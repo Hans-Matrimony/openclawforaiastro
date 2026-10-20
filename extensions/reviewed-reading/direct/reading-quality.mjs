@@ -1,4 +1,5 @@
 // Validate claims against this request's tool data, never old assistant prose.
+import { verifiedFactors } from "./verified-factors.mjs";
 const planets = {
   sun: "Sun",
   surya: "Sun",
@@ -52,7 +53,7 @@ export function hasChartClaims(reply) {
   );
 }
 
-export function verifiedTimingReply(value, periods, today) {
+export function verifiedTimingReply(value, periods, today, packets = []) {
   const active = [
     ...new Set(
       periods
@@ -72,6 +73,17 @@ export function verifiedTimingReply(value, periods, today) {
     Ketu: "Ketu",
   };
   const language = value.language?.toLowerCase();
+  const topic = /sha+di|marriage|wedding|relationship|partner/i.test(value.query)
+    ? "marriage"
+    : /career|job|naukri/i.test(value.query)
+      ? "career"
+      : /pais|money|financ/i.test(value.query)
+        ? "money"
+        : null;
+  const signal = packets
+    .flatMap((packet) => packet?.verdict_signals ?? [])
+    .find((row) => row.area === topic && ["POSITIVE", "NEGATIVE", "MIXED"].includes(row.trend));
+  const timing = /\b(?:when|kab|kb|timing|date|year|saal|hogi|hoga|tak)\b/i.test(value.query);
   if (language === "hinglish") {
     const fact = active.length
       ? `Abhi ${active.map((name) => names[name] ?? name).join(" aur ")} ka daur chal raha hai.`
@@ -83,7 +95,26 @@ export function verifiedTimingReply(value, periods, today) {
         : /pais|money|financ/i.test(value.query)
           ? "Paise ki pareshani khatam hone ka samay abhi saaf nahi hai."
           : "Is badlaav ka samay abhi saaf nahi hai.";
-    return fact + "\n\n" + verdict;
+    const subject = { marriage: "Shaadi", career: "Career", money: "Paise" }[topic];
+    const trend = signal
+      ? signal.trend === "MIXED"
+        ? `${subject} ke maamle mein sahyog aur rukawat, dono ke sanket hain.`
+        : signal.trend === "POSITIVE"
+          ? `${subject} ke maamle mein sahyog ke sanket zyada hain.`
+          : `${subject} ke maamle mein rukawat ke sanket zyada hain.`
+      : "";
+    const overview = signal
+      ? signal.trend === "MIXED"
+        ? "Milajula sanket hai; sambhavnayein aur chunautiyan dono hain."
+        : signal.trend === "POSITIVE"
+          ? "Sahyog ke sanket hain, natija pakka nahi."
+          : "Rukawat ke sanket hain; ise antim natija na maanein."
+      : "Is maamle ka saaf natija abhi nahi nikalta.";
+    return (
+      [trend, ...verifiedFactors(signal), fact].filter(Boolean).join(" ") +
+      "\n\n" +
+      (timing ? verdict : overview)
+    );
   }
   if (["hindi", "hi"].includes(language)) {
     return (
@@ -171,18 +202,42 @@ export function unsupportedTiming(reply, periods, today, { periodBoundariesOnly 
   }
   if (periodBoundariesOnly) {
     for (const sentence of reply.split(/[.!?\n]/)) {
+      if (
+        /\b(?:soon|shortly|jaldi|jald)\b/i.test(sentence) &&
+        /khatam|door|sudhar|improv|hogi|hoga|will|baneg|mileg/i.test(sentence) &&
+        !/\b(?:not|nahi|nahin)\b/i.test(sentence)
+      ) {
+        return "No near-term event window was calculated. Do not promise the event or improvement will happen soon.";
+      }
       const dated =
-        /\b20\d{2}\b|\b(?:next|agle|agli|agla)\s+[\d-]+\s*(?:months?|mahine|saal|years?)\b/i.test(
+        /\b20\d{2}\b|\b(?:next|agle|agli|agla)\s+(?:[\d-]+\s*)?(?:months?|mahine|saal|years?)\b|\baane wale (?:mahine|saal)\b/i.test(
           sentence,
         );
       const periodExplanation = /\b(?:dasha|antardasha|mahadasha|period|daur)\b/i.test(sentence);
+      if (
+        periodExplanation &&
+        /badlegi|badlega|shuru\s+(?:hogi|hoga)|will\s+(?:start|begin|change)/i.test(sentence)
+      ) {
+        return "No future period sequence was calculated. Do not promise an outcome when another planetary period begins or changes.";
+      }
       const eventClaim =
         /\b(?:hogi|hoga|honge|aayega|aayegi|will|anukool|favourable|favorable|result|results|theek|thik)\b/i.test(
           sentence,
         );
       const dateVerdict =
         sentence.trim().length <= 100 && /\b(?:ke baad|by|after|tak)\b/i.test(sentence);
-      if (dated && !periodExplanation && (eventClaim || dateVerdict)) {
+      const relativeFuture =
+        /\b(?:next (?:month|year)|agle (?:saal|mahine)|agla (?:saal|mahina)|aane wale (?:mahine|saal))\b/i.test(
+          sentence,
+        );
+      if (
+        periodExplanation &&
+        /\b(?:ke baad|after|next|agla|agli)\b/i.test(sentence) &&
+        /sambhavn|badh|improv|chance|favour|anukool|hogi|hoga/i.test(sentence)
+      ) {
+        return "A future event improvement is being inferred from an uncalculated next period. Keep the explanation to the current evidence; no projected next-period outcomes were calculated.";
+      }
+      if (dated && !periodExplanation && (eventClaim || dateVerdict || relativeFuture)) {
         return "This local tool calculated current period boundaries, not an event window. Do not turn those boundaries into a marriage, career, financial or other event date. Give the supported present indication without an invented year or countdown.";
       }
     }

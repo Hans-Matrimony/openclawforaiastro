@@ -13,6 +13,7 @@ import {
 } from "./friendly-closing.mjs";
 import { contextualClosing, listeningReply } from "./contextual-closing.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
+import { toolEvidence, LOCAL_READING_LIMITS } from "./tool-evidence.mjs";
 import {
   asksForRemedy,
   remedySearchQuery,
@@ -61,6 +62,7 @@ export async function directAnswer(
     return {
       schema: "vedastro-direct-reply-v1",
       reply: listening,
+      answer_response_kind: "listening",
       answer_model_calls: 0,
       answer_cache_hits: 0,
       answer_reading_tools: [],
@@ -72,6 +74,7 @@ export async function directAnswer(
     return {
       schema: "vedastro-direct-reply-v1",
       reply: expired,
+      answer_response_kind: "expired_target",
       answer_model_calls: 0,
       answer_cache_hits: 0,
       answer_reading_tools: [],
@@ -132,8 +135,16 @@ export async function directAnswer(
   let upstreamCalls = 0;
   let cacheHits = 0;
   const readingRequired = requiresChartReading(value.query, context.profile);
+  const initialReading = readingRequired && env.VEDASTRO_DIRECT_REQUIRE_INITIAL_READING === "1";
+  const chartTools = TOOLS.filter(
+    (tool) =>
+      CHART_TOOL_NAMES.has(bareToolName(tool.function.name)) &&
+      (bareToolName(tool.function.name) !== "get_horary_prediction" ||
+        /\b(?:horary|prashna)\b/i.test(value.query)),
+  );
   const readingTools = new Set();
   const periods = [];
+  const readingPackets = [];
   let periodBoundariesOnly = false;
   let correctedMissingReading = false;
   let correctedQuality = false;
@@ -144,12 +155,13 @@ export async function directAnswer(
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
       tools:
-        correctedMissingReading && readingTools.size === 0
-          ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
-          : TOOLS,
-      tool_choice: correctedMissingReading && readingTools.size === 0 ? "required" : "auto",
+        (correctedMissingReading || initialReading) && readingTools.size === 0 ? chartTools : TOOLS,
+      tool_choice:
+        (correctedMissingReading || initialReading) && readingTools.size === 0
+          ? "required"
+          : "auto",
       stream: false,
-      max_tokens: 4096,
+      max_tokens: /\b(?:json|raw|structured)\b/i.test(value.query) ? 4096 : 1536,
       ...generation,
     };
     if (Buffer.byteLength(JSON.stringify(body)) > 131072) {
@@ -183,9 +195,13 @@ export async function directAnswer(
     }
     answerUsage.push({
       generation_id: typeof completion.id === "string" ? completion.id.slice(0, 128) : null,
-      input_tokens: completion.usage?.prompt_tokens ?? null,
-      output_tokens: completion.usage?.completion_tokens ?? null,
-      cost_usd: Number.isFinite(completion.usage?.cost) ? completion.usage.cost : null,
+      input_tokens: cacheHit ? 0 : (completion.usage?.prompt_tokens ?? null),
+      output_tokens: cacheHit ? 0 : (completion.usage?.completion_tokens ?? null),
+      cost_usd: cacheHit
+        ? 0
+        : Number.isFinite(completion.usage?.cost)
+          ? completion.usage.cost
+          : null,
       cache_hit: cacheHit,
     });
     const choice = completion.choices?.[0];
@@ -219,13 +235,32 @@ export async function directAnswer(
               try {
                 if (JSON.parse(content).engine === "local-sweph-v2") {
                   periodBoundariesOnly = true;
+                  const evidence = toolEvidence(content, today, {
+                    rawRequested: /\b(?:json|raw|structured)\b/i.test(value.query),
+                  });
+                  readingPackets.push(evidence.packet);
+                  content = evidence.text;
                 }
               } catch {
                 // Other tool implementations may return plain text.
               }
             }
-          } catch {
-            content = "Tool failed: Tool unavailable";
+          } catch (error) {
+            const birthCodes = [
+              "birth_time_invalid",
+              "birth_time_nonexistent",
+              "birth_time_ambiguous",
+              "birth_offset_mismatch",
+              "birth_timezone_unsupported",
+            ];
+            content = birthCodes.includes(error?.code)
+              ? JSON.stringify({
+                  error: error.code,
+                  clarification_required: true,
+                  instruction:
+                    "Do not calculate or guess from this birth time. Ask for a corrected local time or the birth record's UTC offset; a repeated daylight-saving time needs an explicit offset, for example 01:30 -04:00.",
+                })
+              : "Tool failed: Tool unavailable";
           }
           return redactIdentity(content, value.user_id);
         }),
@@ -237,6 +272,12 @@ export async function directAnswer(
           content: results[index],
         });
       });
+      if (
+        periodBoundariesOnly &&
+        !messages[0].content.includes("# Evidence limits for this turn")
+      ) {
+        messages[0].content += LOCAL_READING_LIMITS;
+      }
       continue;
     }
     let reply = choice.message.content;
@@ -292,10 +333,12 @@ export async function directAnswer(
     const timingIssue = structured
       ? null
       : unsupportedTiming(reply, periods, today, { periodBoundariesOnly });
-    const wordingIssue = !structured && /\b(?:bindus?|retrograde|combust|vakri)\b/i.test(reply);
+    const wordingIssue =
+      !structured &&
+      /\b(?:bindus?|retrograde|combust|vakri)\b|\b\d{1,2}\s*(?:points?|ank)\b/i.test(reply);
     if (timingIssue || wordingIssue) {
       if (correctedQuality) {
-        reply = verifiedTimingReply(value, periods, today);
+        reply = verifiedTimingReply(value, periods, today, readingPackets);
         usedVerifiedFallback = true;
       } else {
         correctedQuality = true;
@@ -305,8 +348,8 @@ export async function directAnswer(
             "Correct the answer before returning it. " +
             (timingIssue ?? "") +
             " Use only period names and start/end dates in THIS turn's tool results. Do not invent the next period or equate a period boundary with an event date. " +
-            "Explain in simple everyday words; omit bindu counts and the terms bindu, retrograde, combust and vakri. " +
-            "Return the explanation and short verdict as two paragraphs. The separate companion stage supplies the third. " +
+            "Explain in simple everyday words; omit ALL internal strength scores, including numbers renamed as points or ank, and omit bindu, retrograde, combust and vakri. " +
+            "Return a useful explanation of 2-4 sentences and at most 90 words, then a verdict of at most 18 words as two paragraphs. The separate companion stage supplies the third. " +
             "Today's India date is " +
             today +
             ".",
@@ -324,12 +367,16 @@ export async function directAnswer(
       remedyKnowledge?.status === "available" ||
       isStressConcern(value.query);
     let finalReply = formatted;
+    let companionStatus = "not_requested";
     if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
       // Companionship follows ordinary replies too; it is not chart-tool evidence.
       // The existing chart requirement above remains independent and unchanged.
       if (canAskFollowup(formatted, value, !clarification)) {
         finalReply = await contextualClosing(formatted, value, {
           facts: context.memoryFacts,
+          onOutcome: (status) => {
+            companionStatus = status;
+          },
           redact: (text) => redactIdentity(text, value.user_id),
           generate: async (instruction, data) => {
             if (upstreamCalls >= 5) {
@@ -392,6 +439,7 @@ export async function directAnswer(
       answer_reading_tools: [...readingTools],
       answer_usage: answerUsage,
       answer_quality_fallback: usedVerifiedFallback,
+      answer_companion_status: companionStatus,
       ...(remedyKnowledge
         ? {
             answer_remedy_status: remedyKnowledge.status,

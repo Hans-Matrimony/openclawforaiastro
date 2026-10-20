@@ -1,8 +1,8 @@
 import { createReadingHandler } from "./route.mjs";
 import { directAnswer } from "./direct/agent.mjs";
+import { directEnabledForEnvironment, productionUserAllowed } from "./direct/deployment.mjs";
 
-export const directEnabled = (env = process.env) =>
-  env.VEDASTRO_DIRECT_DEV_ENABLED === "1" && env.VEDASTRO_DIRECT_ENVIRONMENT === "development";
+export const directEnabled = (env = process.env) => directEnabledForEnvironment(env);
 
 export function validateDirectInput(value) {
   if (
@@ -51,7 +51,13 @@ export function createDirectHandler(
 ) {
   const handler = createReadingHandler((value) => calculate(value, { env }), {
     ...options,
-    validate: validateDirectInput,
+    validate: (input) => {
+      const value = validateDirectInput(input);
+      if (!productionUserAllowed(value.user_id, env)) {
+        throw new Error("Direct canary user not enabled");
+      }
+      return value;
+    },
     maxBody: 196608,
     failureStatus: 503,
     failureCode: "direct_answer_unavailable",

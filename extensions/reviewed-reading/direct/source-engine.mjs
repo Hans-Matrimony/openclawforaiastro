@@ -1,4 +1,4 @@
-// Keep the supplied calculation/judgment code unchanged; adapt only input formatting.
+// Adapt input formatting; reviewed calculation patches are listed in provenance.json.
 function sourceDate(value) {
   const text = String(value ?? "");
   const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
@@ -17,7 +17,9 @@ function sourceDate(value) {
 }
 
 function sourceTime(value) {
-  const match = /^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i.exec(String(value ?? "").trim());
+  const match = /^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?(?:\s+([+-]\d{2}:\d{2}))?$/i.exec(
+    String(value ?? "").trim(),
+  );
   if (!match) {
     throw new Error("Invalid birth time");
   }
@@ -28,7 +30,7 @@ function sourceTime(value) {
   if (match[3]) {
     hour = (hour % 12) + (match[3].toUpperCase() === "PM" ? 12 : 0);
   }
-  return `${String(hour).padStart(2, "0")}:${match[2]}`;
+  return `${String(hour).padStart(2, "0")}:${match[2]}${match[4] ? " " + match[4] : ""}`;
 }
 
 export async function sourceReading(

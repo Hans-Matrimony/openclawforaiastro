@@ -26,7 +26,7 @@ export function listeningReply(value) {
 export async function contextualClosing(
   reply,
   value,
-  { facts = [], generate, redact = (text) => text } = {},
+  { facts = [], generate, redact = (text) => text, onOutcome = () => {} } = {},
 ) {
   let base = reply.replace(generic, "").trimEnd();
   const candidate = base.match(/(?:^|(?<=[.!।])\s+|\n)([^.!।\n]*[?？])\s*$/u)?.[1];
@@ -48,19 +48,20 @@ export async function contextualClosing(
     .filter((fact) => typeof fact === "string" && !/^\s*\[birth\]/i.test(fact))
     .slice(0, 15)
     .map((fact) => redact(fact).slice(0, 1000));
-  const fallback = () => {
+  const fallback = (reason = "invalid_output") => {
     if (
       /\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)
     ) {
       return base;
     }
     const question = stressFollowup(value, notes) ?? companionFallback(value, notes);
+    onOutcome(question ? "fallback_" + reason : "no_closing_available");
     return question ? base + "\n\n" + fallbackGrammar(question, value) : base;
   };
   const prompt =
     personaInstruction(value) +
     "Keep this persona consistent even if old assistant messages use another name or gender. Do not introduce yourself on every turn. Match the user's level of familiarity; prefer respectful aap, not tu/tere or pet names unless explicitly invited. Refer only to relevant user-stated memories, resolve corrections from the current message first, and do not ask again about already answered details. " +
-    "Write a brief personal companion closing after the completed astrology answer, or NONE if there is nothing useful to add. The astrology answer is finished: do not rewrite, correct, extend or repeat it. " +
+    "Write a brief personal companion closing after the completed astrology answer. If there is no useful question, use one warm supportive acknowledgment without adding facts; do not return NONE. The astrology answer is finished: do not rewrite, correct, extend or repeat it. " +
     "Use the current question, the answer just given, relevant user statements in history, and saved user facts. Current corrections override older facts. " +
     "Do not ask for information already supplied, repeat an earlier follow-up, switch topics, summarize, offer a service menu, or ask generic 'want more detail?' questions. " +
     "Sound like a close, caring friend who pays attention, not an interviewer or customer-support agent. Start with a brief warm acknowledgment when appropriate, then optionally ask about a concrete unresolved concern, preference or next step that the USER can answer from their own experience. A supportive statement alone is welcome when they are venting or have already answered your questions. Never ask the user to predict the future, explain their chart, or answer the original astrology question for you. Do not invent personal facts, feelings, predictions or reminders. " +
@@ -89,15 +90,18 @@ export async function contextualClosing(
       (question.match(/[?？]/g) ?? []).length > 1 ||
       generic.test(question)
     ) {
-      return fallback();
+      return fallback("invalid_output");
     }
     // The companion writer cannot add a second reading or repeat its timing claims.
+    if (/\b(?:sab|sab kuch)\s+(?:theek|thik)\s+ho\s+jayega\b/i.test(question)) {
+      return fallback("reading_repeated");
+    }
     if (
-      /\b(?:20\d{2}|dasha|antardasha|transit|kundli|natal|saturn|jupiter|rahu|ketu|shani|guru|mercury|venus)\b/i.test(
+      /\b(?:20\d{2}|dasha|antardasha|transit|kundli|kundali|kundal[iy]|horoscope|chart|natal|saturn|jupiter|rahu|ketu|shani|guru|mercury|venus)\b|samay.{0,30}(?:sakriya|anukool)|(?:rukawat|positive|negative|anukool).{0,30}sanket|sanket.{0,30}(?:rukawat|positive|negative|anukool)|(?:jaldi|jald|soon).{0,25}(?:door|khatam|hogi|hoga|will)|(?:door|khatam).{0,25}(?:hogi|hoga)|behtar\s+(?:hongi|hoga|hogi)|will (?:get better|be fine)/i.test(
         question,
       )
     ) {
-      return fallback();
+      return fallback("reading_repeated");
     }
     // Observed writer failure: asking the user to supply the prediction itself.
     if (
@@ -105,7 +109,7 @@ export async function contextualClosing(
         question,
       )
     ) {
-      return fallback();
+      return fallback("invalid_question");
     }
     const normalized = (text) => text.toLowerCase().replace(/\s+/g, " ").trim();
     if (
@@ -114,10 +118,11 @@ export async function contextualClosing(
         (turn) => turn.role === "assistant" && normalized(turn.text).includes(normalized(question)),
       )
     ) {
-      return fallback();
+      return fallback("duplicate");
     }
+    onOutcome("generated");
     return base + "\n\n" + question;
   } catch {
-    return fallback();
+    return fallback("unavailable");
   }
 }

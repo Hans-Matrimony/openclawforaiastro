@@ -130,7 +130,15 @@ void test("redirected instruction paths never expose the target fingerprint", (t
 });
 
 void test("diagnostic image copies do not overwrite the persisted persona", () => {
-  assert.ok(!ASTROLOGY_ASSETS.some((name) => /AGENTS\.md|SOUL\.md|instruction-source/u.test(name)));
+  // Selector/renderer AGENTS are release-managed service instructions, not the
+  // persisted astrologer persona protected by this migration contract.
+  assert.ok(
+    !ASTROLOGY_ASSETS.some((name) =>
+      /workspace-astrologer\/(?:AGENTS|SOUL)\.md|instruction-source/u.test(name),
+    ),
+  );
+  assert.ok(ASTROLOGY_ASSETS.includes("workspace-provider-selector/AGENTS.md"));
+  assert.ok(ASTROLOGY_ASSETS.includes("workspace-provider-renderer/AGENTS.md"));
   const docker = fs.readFileSync(new URL("../Dockerfile", import.meta.url), "utf8");
   assert.ok(docker.includes("SOUL.md /app/bootstrap/instruction-source/"));
   const start = fs.readFileSync(

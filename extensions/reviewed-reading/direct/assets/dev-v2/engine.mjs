@@ -2,6 +2,7 @@
 // Calculations AND verdict signals (Ashtakavarga bindus, dignity, sade-sati, antardasha, area rules) — zero network.
 // Same tool names as VedAstro MCP so the system prompt needs no changes.
 import sweph from "sweph";
+import { birthUtc } from "../../birth-time.mjs";
 
 const C = sweph.constants;
 sweph.set_sid_mode(C.SE_SIDM_LAHIRI, 0, 0);
@@ -314,13 +315,8 @@ function parseBirth(dateStr, timeStr, locationName) {
   const m = String(dateStr).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
   const t = String(timeStr).match(/(\d{1,2}):(\d{2})/);
   if (!m || !t) throw new Error("Bad date/time format (need DD/MM/YYYY and HH:MM)");
-  const [_, dd, mm, yyyy] = m.map(Number);
-  const hh = Number(t[1]), mi = Number(t[2]);
-  const tz = loc.tzOffset || "+05:30";
-  const [tzH, tzM] = tz.split(":").map(Number);
-  const sign = tz.startsWith("-") ? -1 : 1;
-  const utc = new Date(Date.UTC(yyyy, mm - 1, dd, hh - sign * tzH, mi - sign * tzM));
-  return { utc, loc };
+  const { utc, timeZone, offsetMinutes, offsetText } = birthUtc(dateStr, timeStr, loc);
+  return { utc, loc: { ...loc, tzOffset: offsetText, timeZone, birth_utc_offset_minutes: offsetMinutes } };
 }
 
 function fmtChart(r, label) {

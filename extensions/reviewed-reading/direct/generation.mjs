@@ -25,9 +25,12 @@ export function generationSettings(env = process.env) {
   }
   return {
     temperature: 0,
-    top_k: 1,
+    ...(model.startsWith("google/gemini-") ? {} : { top_k: 1 }),
     top_p: 1,
     seed,
+    ...(model === "qwen/qwen3.5-35b-a3b" || model === "google/gemini-2.5-flash-lite"
+      ? { reasoning: { enabled: false } }
+      : {}),
     provider: {
       require_parameters: true,
       order: fallback ? [endpoint, fallback] : [endpoint],

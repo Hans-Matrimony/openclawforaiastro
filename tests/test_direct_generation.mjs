@@ -24,6 +24,23 @@ void test("source comparison mode retains the original generation settings", () 
     provider: { require_parameters: true },
   });
 });
+void test("candidate models use supported sampling parameters with bounded reasoning", () => {
+  const google = generationSettings({
+    VEDASTRO_DIRECT_MODEL: "google/gemini-2.5-flash-lite",
+    VEDASTRO_DIRECT_PROVIDER: "google-ai-studio",
+    VEDASTRO_DIRECT_FALLBACK_PROVIDER: "google-vertex",
+  });
+  assert.ok(!Object.hasOwn(google, "top_k"));
+  assert.deepEqual(google.reasoning, { enabled: false });
+  assert.equal(google.seed, 42);
+  const qwen = generationSettings({
+    VEDASTRO_DIRECT_MODEL: "qwen/qwen3.5-35b-a3b",
+    VEDASTRO_DIRECT_PROVIDER: "parasail/fp8",
+    VEDASTRO_DIRECT_FALLBACK_PROVIDER: "venice",
+  });
+  assert.equal(qwen.top_k, 1);
+  assert.deepEqual(qwen.reasoning, { enabled: false });
+});
 void test("explicit dev backup allows only two endpoints for the same model and caps their prices", () => {
   const settings = generationSettings({ VEDASTRO_DIRECT_FALLBACK_PROVIDER: "deepinfra/fp8" });
   assert.deepEqual(settings.provider, {

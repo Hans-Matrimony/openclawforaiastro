@@ -58,7 +58,7 @@ const makeMemory = (id) => ({
   write: async () => ({ saved: true }),
 });
 
-void test("supplied prompt, schemas and fallback engine remain identical to the pinned source", () => {
+void test("pinned source assets and explicitly reviewed engine patch match recorded checksums", () => {
   const assets = new URL("../extensions/reviewed-reading/direct/assets/dev-v2/", import.meta.url);
   const provenance = JSON.parse(
     fs.readFileSync(new URL("provenance.json", assets), "utf8").replace(/^\uFEFF/, ""),
@@ -91,7 +91,7 @@ void test("source final reply and its paragraph boundaries are returned byte-for
         assert.equal(body.temperature, 0);
         assert.equal(body.seed, 42);
         assert.equal(body.provider.allow_fallbacks, false);
-        assert.equal(body.max_tokens, 4096);
+        assert.equal(body.max_tokens, 1536);
         assert.equal(body.model, "qwen/qwen3-next-80b-a3b-instruct");
         assert.ok(body.messages[0].content.includes("Today's date is 2026-10-18"));
         assert.ok(body.messages[0].content.includes("# Friend Mode"));

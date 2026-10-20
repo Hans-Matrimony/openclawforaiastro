@@ -2,6 +2,17 @@
 // Keep routing, birth resolution, tool evidence and output contracts intact.
 export function compactPrompt(source) {
   return source
+    .replace(
+      /# Completed Reading Output Contract[^]*?(?=# Language \(highest priority\))/,
+      "# Completed Reading Output Contract\n\n" +
+        "After a successful reading, return exactly two paragraphs: a useful explanation, then one short direct verdict. " +
+        "Explain the 2-3 strongest relevant factors in 2-4 natural sentences. Address the actual question and acknowledge relevant user context; avoid a placement inventory. " +
+        "The verdict must match the evidence and answer the current intent. A mixed indication stays mixed; missing timing evidence is not a negative verdict. " +
+        "Only give an event window when the tool explicitly calculated an event window for this topic. Current period boundaries, natal placements and transits alone are not event windows. " +
+        "If no event window was calculated, describe the relevant present indications and briefly say the exact timing is not established. Never invent a year, countdown, age threshold, next period or definite yes/no. " +
+        "For an overview question, give an overview verdict rather than an unnecessary timing limitation. No labels, repeated disclaimers, fixed-year examples or service menus. " +
+        "Keep the second paragraph to one short sentence. A separate companion stage owns the friendly third paragraph when enabled.\n\n",
+    )
     .replace(/# Examples of correct behavior[^]*?(?=# Sensitive Questions Policy)/, "")
     .replace(
       /# Voice[^]*?(?=# Persistent Memory)/,

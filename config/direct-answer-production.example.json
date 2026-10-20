@@ -1,0 +1,65 @@
+{
+  "schema": "direct-answer-release-config-v1",
+  "description": "Reviewable production configuration. Disabled by default; contains no credentials or real users.",
+  "openclaw": {
+    "VEDASTRO_DIRECT_ENVIRONMENT": "production",
+    "VEDASTRO_DIRECT_DEV_ENABLED": "0",
+    "VEDASTRO_DIRECT_PRODUCTION_ENABLED": "0",
+    "VEDASTRO_DIRECT_PRODUCTION_USERS": "",
+    "VEDASTRO_DIRECT_MEM0_PRODUCTION_HOST": "REPLACE_WITH_PRODUCTION_MEMORY_HOST",
+    "MEM0_URL": "https://REPLACE_WITH_PRODUCTION_MEMORY_HOST",
+    "VEDASTRO_DIRECT_USE_LOCAL_ENGINE": "1",
+    "VEDASTRO_DIRECT_CONTEXTUAL_CLOSING": "1",
+    "VEDASTRO_DIRECT_GENERATION_MODE": "stable",
+    "VEDASTRO_DIRECT_REQUIRE_INITIAL_READING": "1",
+    "VEDASTRO_DIRECT_MODEL": "qwen/qwen3-next-80b-a3b-instruct",
+    "VEDASTRO_DIRECT_PROVIDER": "parasail/fp8",
+    "VEDASTRO_DIRECT_FALLBACK_PROVIDER": "deepinfra/fp8",
+    "VEDASTRO_DIRECT_QDRANT_COLLECTION": "astrology_remedies"
+  },
+  "pwa": {
+    "VEDASTRO_DIRECT_ENVIRONMENT": "production",
+    "VEDASTRO_DIRECT_DEV_ENABLED": "0",
+    "VEDASTRO_DIRECT_PRODUCTION_ENABLED": "0",
+    "VEDASTRO_DIRECT_PRODUCTION_USERS": ""
+  },
+  "secrets_to_supply_separately": [
+    "OPENROUTER_API_KEY",
+    "OPENCLAW_GATEWAY_TOKEN",
+    "MEM0_API_KEY",
+    "QDRANT_API_KEY",
+    "OPENAI_API_KEY"
+  ],
+  "required_service_urls_to_verify": ["OPENCLAW_URL", "MEM0_URL", "QDRANT_URL"],
+  "promotion": {
+    "method": "Build scoped release branches from each production branch; do not merge the entire divergent dev branch.",
+    "order": [
+      "OpenClaw with production switch disabled",
+      "PWA with production switch disabled",
+      "Enable the same explicit canary user list in both services",
+      "Verify real UI replies and usage",
+      "Expand only after canary acceptance"
+    ],
+    "gates": [
+      "All direct-answer and PWA contract tests pass",
+      "No expired dates presented as upcoming",
+      "No invented event windows or next periods",
+      "Every completed canary reading has three separate bubbles",
+      "Listening-only input produces no reading",
+      "Normal readings retain useful topic-specific depth instead of routinely falling back",
+      "Production memory host and remedy collection verified",
+      "Test OTP configuration reviewed separately and not copied from dev"
+    ],
+    "rollback": [
+      "Set VEDASTRO_DIRECT_PRODUCTION_ENABLED=0 in PWA and OpenClaw",
+      "Restore the previously recorded application image and configuration if required",
+      "Do not restore or delete user databases, memory collections or Redis volumes"
+    ]
+  },
+  "capability_limits": [
+    "Local traditional interpretation rules are not scientifically verified predictions",
+    "No calculated event-window or future-period sequence is supplied by the current four local tools",
+    "City resolution uses a finite catalogue; unsupported places must be clarified",
+    "Repeated or nonexistent daylight-saving birth times require clarification rather than guessing"
+  ]
+}
