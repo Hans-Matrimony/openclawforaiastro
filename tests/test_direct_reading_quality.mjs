@@ -160,19 +160,20 @@ void test("unsupported timing and technical wording are corrected before compani
   assert.doesNotMatch(result.reply, /Jupiter|2027|combust/);
 });
 
-void test("repeated invalid timing is withheld rather than returned as a prediction", async () => {
+void test("repeated invalid timing returns verified facts and a third bubble instead of an error", async () => {
   let calls = 0;
-  await assert.rejects(
-    directAnswer(input, {
-      ...dependencies,
-      fetchImpl: async () => {
-        calls++;
-        return calls === 1 ? tool() : completion("2027 ke baad Jupiter ki dasha shuru hogi.");
-      },
-    }),
-    /timing and wording/,
-  );
-  assert.equal(calls, 3);
+  const result = await directAnswer(input, {
+    ...dependencies,
+    fetchImpl: async () => {
+      calls++;
+      return calls === 1 ? tool() : completion("2027 ke baad Jupiter ki dasha shuru hogi.");
+    },
+  });
+  assert.equal(calls, 4);
+  assert.equal(result.answer_quality_fallback, true);
+  assert.match(result.reply, /Shani aur Ketu/);
+  assert.doesNotMatch(result.reply, /Jupiter|2027/);
+  assert.equal(result.reply.split("\n\n").length, 3);
 });
 
 void test("an unrecognized informal question cannot ship invented personal chart claims without tools", async () => {

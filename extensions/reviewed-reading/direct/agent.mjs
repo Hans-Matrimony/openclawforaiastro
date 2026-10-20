@@ -25,6 +25,7 @@ import {
   expiredTargetReply,
   hasChartClaims,
   unsupportedTiming,
+  verifiedTimingReply,
 } from "./reading-quality.mjs";
 
 export function redactIdentity(text, userId) {
@@ -125,6 +126,7 @@ export async function directAnswer(
   let periodBoundariesOnly = false;
   let correctedMissingReading = false;
   let correctedQuality = false;
+  let usedVerifiedFallback = false;
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
@@ -226,7 +228,7 @@ export async function directAnswer(
       });
       continue;
     }
-    const reply = choice.message.content;
+    let reply = choice.message.content;
     if (!nudged && typeof reply === "string" && /mcp__VedAstro__[a-z_]+\s*:\s*\{/.test(reply)) {
       nudged = true;
       messages.push(choice.message, {
@@ -282,22 +284,24 @@ export async function directAnswer(
     const wordingIssue = !structured && /\b(?:bindus?|retrograde|combust|vakri)\b/i.test(reply);
     if (timingIssue || wordingIssue) {
       if (correctedQuality) {
-        throw new Error("Reading did not satisfy timing and wording checks");
+        reply = verifiedTimingReply(value, periods, today);
+        usedVerifiedFallback = true;
+      } else {
+        correctedQuality = true;
+        messages.push({
+          role: "user",
+          content:
+            "Correct the answer before returning it. " +
+            (timingIssue ?? "") +
+            " Use only period names and start/end dates in THIS turn's tool results. Do not invent the next period or equate a period boundary with an event date. " +
+            "Explain in simple everyday words; omit bindu counts and the terms bindu, retrograde, combust and vakri. " +
+            "Return the explanation and short verdict as two paragraphs. The separate companion stage supplies the third. " +
+            "Today's India date is " +
+            today +
+            ".",
+        });
+        continue;
       }
-      correctedQuality = true;
-      messages.push({
-        role: "user",
-        content:
-          "Correct the answer before returning it. " +
-          (timingIssue ?? "") +
-          " Use only period names and start/end dates in THIS turn's tool results. Do not invent the next period or equate a period boundary with an event date. " +
-          "Explain in simple everyday words; omit bindu counts and the terms bindu, retrograde, combust and vakri. " +
-          "Return the explanation and short verdict as two paragraphs. The separate companion stage supplies the third. " +
-          "Today's India date is " +
-          today +
-          ".",
-      });
-      continue;
     }
     const formatted = formatReadingReply(
       sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
@@ -366,7 +370,7 @@ export async function directAnswer(
       finalReply = appendFriendlyClosing(formatted, value, completed);
     }
     // Preserve normal wording; apply the narrow death-date boundary and bubble whitespace.
-    if (cacheEnabled && !cacheHit) {
+    if (cacheEnabled && !cacheHit && !usedVerifiedFallback) {
       replyCache.put(value.user_id, body, completion);
     }
     return {
@@ -376,6 +380,7 @@ export async function directAnswer(
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],
       answer_usage: answerUsage,
+      answer_quality_fallback: usedVerifiedFallback,
       ...(remedyKnowledge
         ? {
             answer_remedy_status: remedyKnowledge.status,

@@ -52,6 +52,54 @@ export function hasChartClaims(reply) {
   );
 }
 
+export function verifiedTimingReply(value, periods, today) {
+  const active = [
+    ...new Set(
+      periods
+        .filter((period) => period.from <= today && period.to >= today)
+        .map((period) => period.lord),
+    ),
+  ];
+  const names = {
+    Saturn: "Shani",
+    Jupiter: "Guru",
+    Venus: "Shukra",
+    Mercury: "Budh",
+    Sun: "Surya",
+    Moon: "Chandra",
+    Mars: "Mangal",
+    Rahu: "Rahu",
+    Ketu: "Ketu",
+  };
+  const language = value.language?.toLowerCase();
+  if (language === "hinglish") {
+    const fact = active.length
+      ? `Abhi ${active.map((name) => names[name] ?? name).join(" aur ")} ka daur chal raha hai.`
+      : "Is sawaal ke liye abhi saaf timing ka sanket nahi mila.";
+    const verdict = /sha+di|marriage|wedding/i.test(value.query)
+      ? "Shaadi ka saal abhi saaf nahi hai."
+      : /career|job|naukri/i.test(value.query)
+        ? "Career ki pakki timing abhi saaf nahi hai."
+        : /pais|money|financ/i.test(value.query)
+          ? "Paise ki pareshani khatam hone ka samay abhi saaf nahi hai."
+          : "Is badlaav ka samay abhi saaf nahi hai.";
+    return fact + "\n\n" + verdict;
+  }
+  if (["hindi", "hi"].includes(language)) {
+    return (
+      (active.length
+        ? "मौजूदा ग्रह-दौर की जानकारी उपलब्ध है, लेकिन उससे इस घटना का साल तय नहीं होता।"
+        : "उपलब्ध जानकारी से इस घटना का समय तय नहीं हो रहा।") + "\n\nइस बदलाव का समय अभी स्पष्ट नहीं है।"
+    );
+  }
+  return (
+    (active.length
+      ? `The current periods are ${active.join(" and ")}.`
+      : "The available reading does not establish an event window.") +
+    "\n\nThe timing of this event is not established yet."
+  );
+}
+
 export function unsupportedTiming(reply, periods, today, { periodBoundariesOnly = false } = {}) {
   for (const sentence of reply.split(/[.!?\n]/)) {
     const years = (sentence.match(/\b20\d{2}\b/g) ?? []).map(Number);
@@ -156,7 +204,7 @@ export function expiredTargetReply(value, today) {
   }
   const lang = value.language?.toLowerCase();
   if (lang === "hinglish") {
-    return `${target} beet chuka hai. Aap us saal ki situation samajhna chahte hain, ya aage ka samay pooch rahe hain?`;
+    return `${target} beet chuka hai. Aapka sawaal us saal ki situation ke baare mein hai, ya aage ke samay ke baare mein?`;
   }
   if (["hindi", "hi"].includes(lang)) {
     return `${target} बीत चुका है। आप उस साल की स्थिति समझना चाहते हैं या आगे का समय पूछ रहे हैं?`;
