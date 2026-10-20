@@ -11,7 +11,7 @@ import {
   canAskFollowup,
   remedyUnavailableReply,
 } from "./friendly-closing.mjs";
-import { contextualClosing } from "./contextual-closing.mjs";
+import { contextualClosing, listeningReply } from "./contextual-closing.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
 import {
   asksForRemedy,
@@ -56,6 +56,17 @@ export async function directAnswer(
   }
   const requestTime = now();
   const today = requestTime.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const listening = listeningReply(value);
+  if (listening) {
+    return {
+      schema: "vedastro-direct-reply-v1",
+      reply: listening,
+      answer_model_calls: 0,
+      answer_cache_hits: 0,
+      answer_reading_tools: [],
+      answer_usage: [],
+    };
+  }
   const expired = expiredTargetReply(value, today);
   if (expired) {
     return {

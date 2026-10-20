@@ -5,6 +5,24 @@ import { personaInstruction, fallbackGrammar } from "./persona.mjs";
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
 
+export function listeningReply(value) {
+  if (!/\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)) {
+    return null;
+  }
+  const language = /\b(?:reply|answer|respond) in english\b/i.test(value.query)
+    ? "english"
+    : value.language?.toLowerCase();
+  const support =
+    language === "hinglish"
+      ? "Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho."
+      : ["english", "en"].includes(language)
+        ? "Okay, no advice right now. Take your time; you can say what's on your mind."
+        : ["hindi", "hi"].includes(language)
+          ? "ठीक है, अभी कोई सलाह नहीं। आराम से अपनी बात कह सकते हो।"
+          : null;
+  return support ? fallbackGrammar(support, value) : null;
+}
+
 export async function contextualClosing(
   reply,
   value,
@@ -19,18 +37,9 @@ export async function contextualClosing(
     return reply;
   }
   // Listening is an explicit interaction preference, not another interview turn.
-  if (/\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)) {
-    const language = /\b(?:reply|answer|respond) in english\b/i.test(value.query)
-      ? "english"
-      : value.language?.toLowerCase();
-    const support = ["hinglish"].includes(language)
-      ? "Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho."
-      : ["english", "en"].includes(language)
-        ? "Okay, no advice right now. Take your time; you can say what's on your mind."
-        : ["hindi", "hi"].includes(language)
-          ? "ठीक है, अभी कोई सलाह नहीं। आराम से अपनी बात कह सकते हो।"
-          : null;
-    return support ? base + "\n\n" + fallbackGrammar(support, value) : base;
+  const listening = listeningReply(value);
+  if (listening) {
+    return base + "\n\n" + listening;
   }
   const history = (value.history ?? [])
     .slice(-10)

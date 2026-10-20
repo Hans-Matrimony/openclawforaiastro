@@ -62,6 +62,33 @@ const dependencies = {
   now: () => new Date("2026-10-20T00:00:00Z"),
 };
 
+void test("explicit listening skips astrology, advice, tools and paid generation despite old predictions", async () => {
+  const result = await directAnswer(
+    {
+      ...input,
+      user_gender: "female",
+      query: "Unko hamari alag caste se dikkat hai. Bas suno, abhi koi advice nahi.",
+      history: [{ role: "assistant", text: "2027 ke baad shaadi hogi." }],
+    },
+    {
+      ...dependencies,
+      makeMemory: () => {
+        assert.fail("Listening does not need a memory lookup");
+      },
+      makeTools: () => {
+        assert.fail("Listening must not calculate a reading");
+      },
+      fetchImpl: async () => {
+        assert.fail("Listening must not generate predictions");
+      },
+    },
+  );
+  assert.equal(result.answer_model_calls, 0);
+  assert.equal(result.reply, "Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakti ho.");
+  assert.deepEqual(result.answer_reading_tools, []);
+  assert.doesNotMatch(result.reply, /2027|Saturn|Ketu|\?/i);
+});
+
 void test("expired upcoming year is clarified without current transits or a paid model call", async () => {
   const result = await directAnswer(
     { ...input, query: "2025 mein shaadi hogi kya?" },
