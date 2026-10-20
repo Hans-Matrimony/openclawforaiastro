@@ -318,3 +318,29 @@ void test("dev agent uses memory and history for a single bounded closing call",
     "Shaant mann se prarthana kar sakte ho.\n\nFamily ko is rishte mein sabse badi dikkat kis baat se hai?",
   );
 });
+
+void test("marriage reading retains a third bubble when companion output is unusable", async () => {
+  const base = "Original explanation.\n\nOriginal short verdict.";
+  const value = { query: "meri shaadi kab hogi?", language: "hinglish", history: [] };
+  for (const generate of [
+    async () => "NONE",
+    async () => "",
+    async () => "Jupiter brings marriage in 2027.",
+    async () => {
+      throw new Error("Provider unavailable");
+    },
+  ]) {
+    const result = await contextualClosing(base, value, { generate });
+    assert.ok(result.startsWith(base + "\n\n"));
+    assert.equal(result.split("\n\n").length, 3);
+    assert.ok(!result.includes("2027"));
+  }
+  const previous = await contextualClosing(base, value, { generate: async () => "NONE" });
+  const next = await contextualClosing(
+    base,
+    { ...value, history: [{ role: "assistant", text: previous }] },
+    { generate: async () => "NONE" },
+  );
+  assert.equal(next.split("\n\n").length, 3);
+  assert.notEqual(next, previous);
+});

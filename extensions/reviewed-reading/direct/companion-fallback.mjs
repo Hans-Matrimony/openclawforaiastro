@@ -7,7 +7,11 @@ export function companionFallback(value) {
     : value.language?.toLowerCase();
   const education = /\beduc[a-z]{2,8}\b|padhai|stud(?:y|ies)|exam|शिक्षा|पढ़ाई/i.test(value.query);
   const finance = /pais[aeo]|financ|money|पैस|धन/i.test(value.query);
-  if (!education && !finance) {
+  const relationship =
+    /sha+di|shadi|marriage|partner|relationship|girlfriend|boyfriend|crush|\u0936\u093e\u0926\u0940|\u0935\u093f\u0935\u093e\u0939|\u0930\u093f\u0936\u094d\u0924/i.test(
+      value.query,
+    );
+  if (!education && !finance && !relationship) {
     return null;
   }
   const options =
@@ -22,7 +26,10 @@ export function companionFallback(value) {
               "Paise ki baat khulkar kar sakte ho, judge nahi karunga.",
               "Jitna comfortable ho utna hi batao, jaldi nahi hai.",
             ]
-          : ["Jo mann mein chal raha hai, aaram se bata sakte ho."]
+          : [
+              "Is rishte ke sawaal ko lekar aapke mann mein jo baat hai, aaram se bataiye.",
+              "Aapke liye rishte mein kya maayne rakhta hai, us par bhi baat kar sakte hain.",
+            ]
       : ["english", "en"].includes(language)
         ? [
             "You can talk this through at your own pace, without judgment.",
