@@ -45,7 +45,7 @@ export async function contextualClosing(
     ) {
       return base;
     }
-    const question = stressFollowup(value, notes) ?? companionFallback(value);
+    const question = stressFollowup(value, notes) ?? companionFallback(value, notes);
     return question ? base + "\n\n" + fallbackGrammar(question, value) : base;
   };
   const prompt =

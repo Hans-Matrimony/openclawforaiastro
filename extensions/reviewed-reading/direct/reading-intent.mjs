@@ -34,12 +34,14 @@ export function requiresChartReading(query, profile) {
     return false;
   }
   const topic =
-    /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exam|finances?|financial|money|paisa|paise|kundli|horoscope|birth chart)\b/;
+    /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|educ[a-z]{2,8}|studies|study|exam|finances?|financial|money|pais[aeo]|kundli|horoscope|birth chart|tension|stress)\b/;
   const personal = /\b(?:i|my|me|meri|mera|mere|mujhe|mujhse|main)\b/;
   const timing = /\b(?:when|kab|kb|hogi|hoga|lagegi)\b/;
   const request =
     /\?|\b(?:tell me|batao|bataiye|kaisa|kaisi|kaise|kya|kab|kb|hogi|hoga|lagegi|will|when|should|can|which|how|reading|predict|analy[sz]e|kundli)\b/;
   return (
-    topic.test(subjectText) && request.test(text) && (personal.test(text) || timing.test(text))
+    topic.test(subjectText) &&
+    request.test(text) &&
+    (personal.test(text) || timing.test(text) || /\b(?:batao|bataiye)\b/.test(text))
   );
 }

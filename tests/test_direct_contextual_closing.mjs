@@ -93,7 +93,7 @@ void test("reported education and money questions retain companionship on writer
   }
 });
 
-void test("malformed companion output leaves the reading intact", async () => {
+void test("malformed companion output preserves the reading and supplies a safe career closing", async () => {
   const answer = "Original interpretation.\n\nOriginal timing.";
   const value = { query: "career?", language: "english", history: [] };
   for (const output of [
@@ -107,7 +107,10 @@ void test("malformed companion output leaves the reading intact", async () => {
     "One\nTwo",
     "One? Two?",
   ]) {
-    assert.equal(await contextualClosing(answer, value, { generate: async () => output }), answer);
+    assert.equal(
+      await contextualClosing(answer, value, { generate: async () => output }),
+      answer + "\n\nYou can talk this through at your own pace, without judgment.",
+    );
   }
   assert.equal(
     await contextualClosing(
@@ -161,9 +164,12 @@ void test("memory is redacted and bounded and duplicates ignore case and whitesp
         return "take your time. what feels hardest?";
       },
     }),
-    answer,
+    answer + "\n\nYou can talk this through at your own pace, without judgment.",
   );
-  assert.equal(await contextualClosing(answer, value, { generate: async () => answer }), answer);
+  assert.equal(
+    await contextualClosing(answer, value, { generate: async () => answer }),
+    answer + "\n\nYou can talk this through at your own pace, without judgment.",
+  );
 });
 
 void test("closing gets relevant conversation and memory without rewriting the answer", async () => {
@@ -185,7 +191,7 @@ void test("closing gets relevant conversation and memory without rewriting the a
   });
   assert.equal(result, answer + "\n\nNight shift ke baad padhai ke liye kitna waqt mil pata hai?");
 });
-void test("no generic, duplicated, malformed or failed closing is forced", async () => {
+void test("generic, duplicated, malformed or failed career closings use a fresh safe fallback", async () => {
   const value = {
     query: "career?",
     language: "hinglish",
@@ -202,7 +208,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
       await contextualClosing("Answer. Iske baare mein thoda aur bataun?", value, {
         generate: async () => question,
       }),
-      "Answer.",
+      "Answer.\n\nKaam ko lekar abhi sabse zyada kya uljhan hai?",
     );
   }
   assert.equal(
@@ -211,7 +217,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
         throw Error("offline");
       },
     }),
-    "Answer.",
+    "Answer.\n\nKaam ko lekar abhi sabse zyada kya uljhan hai?",
   );
   assert.equal(
     await contextualClosing("Answer.\n\nWhich course interests you?", value, {

@@ -20,6 +20,12 @@ import {
   normalizeRemedies,
 } from "./remedies.mjs";
 import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
+import {
+  collectPeriods,
+  expiredTargetReply,
+  hasChartClaims,
+  unsupportedTiming,
+} from "./reading-quality.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -47,13 +53,26 @@ export async function directAnswer(
   if (!env.OPENROUTER_API_KEY) {
     throw new Error("Direct model not configured");
   }
+  const requestTime = now();
+  const today = requestTime.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const expired = expiredTargetReply(value, today);
+  if (expired) {
+    return {
+      schema: "vedastro-direct-reply-v1",
+      reply: expired,
+      answer_model_calls: 0,
+      answer_cache_hits: 0,
+      answer_reading_tools: [],
+      answer_usage: [],
+    };
+  }
   const signal = AbortSignal.timeout(120000);
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
   const context = await readingContext(
     value,
     memory,
     (text) => redactIdentity(text, value.user_id),
-    now(),
+    requestTime,
     { separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" },
   );
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
@@ -102,7 +121,9 @@ export async function directAnswer(
   let cacheHits = 0;
   const readingRequired = requiresChartReading(value.query, context.profile);
   const readingTools = new Set();
+  const periods = [];
   let correctedMissingReading = false;
+  let correctedQuality = false;
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
@@ -180,6 +201,7 @@ export async function directAnswer(
               CHART_TOOL_NAMES.has(bareToolName(call.function.name))
             ) {
               readingTools.add(bareToolName(call.function.name));
+              periods.push(...collectPeriods(content));
             }
           } catch {
             content = "Tool failed: Tool unavailable";
@@ -221,7 +243,16 @@ export async function directAnswer(
         reply.trim(),
       ) &&
       !/[.!।]\s|\n\s*\n/.test(reply.trim());
-    if (readingRequired && readingTools.size === 0 && !clarification) {
+    const personalClaims =
+      context.profile.status === "READY" &&
+      hasChartClaims(reply) &&
+      !/^(?:what (?:is|are)|explain|define)\b/i.test(value.query.trim());
+    if (
+      (readingRequired || personalClaims) &&
+      readingTools.size === 0 &&
+      !clarification &&
+      !isDeathTimingQuestion(value.query)
+    ) {
       if (correctedMissingReading) {
         throw new Error("Personal reading requires a successful chart tool");
       }
@@ -233,6 +264,28 @@ export async function directAnswer(
           "Use the supplied birth context and a relevant reading tool to answer this exact active question: " +
           JSON.stringify(redactIdentity(value.query, value.user_id)) +
           ". Preserve its subject and intent; a question about a particular partner is not a general marriage-timing question. Previous assistant predictions are not chart evidence. Call the appropriate reading tool now, then answer this question directly.",
+      });
+      continue;
+    }
+    const structured = reply.trim().startsWith("{") || reply.includes("```");
+    const timingIssue = structured ? null : unsupportedTiming(reply, periods, today);
+    const wordingIssue = !structured && /\b(?:bindus?|retrograde|combust|vakri)\b/i.test(reply);
+    if (timingIssue || wordingIssue) {
+      if (correctedQuality) {
+        throw new Error("Reading did not satisfy timing and wording checks");
+      }
+      correctedQuality = true;
+      messages.push({
+        role: "user",
+        content:
+          "Correct the answer before returning it. " +
+          (timingIssue ?? "") +
+          " Use only period names and start/end dates in THIS turn's tool results. Do not invent the next period or equate a period boundary with an event date. " +
+          "Explain in simple everyday words; omit bindu counts and the terms bindu, retrograde, combust and vakri. " +
+          "Return the explanation and short verdict as two paragraphs. The separate companion stage supplies the third. " +
+          "Today's India date is " +
+          today +
+          ".",
       });
       continue;
     }
