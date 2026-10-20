@@ -90,8 +90,10 @@ void test("runtime prompt does not order a fabricated future window or a negativ
   const prompt = compactPrompt(SOURCE_PROMPT);
   assert.ok(!prompt.includes("If the current period is negative, name the next favorable window"));
   assert.ok(!prompt.includes("2027 ke baad"));
-  assert.match(prompt, /missing timing evidence is not a negative verdict/);
-  assert.match(LOCAL_READING_LIMITS, /did not calculate an event window/);
+  assert.match(prompt, /Missing timing evidence is not a negative verdict/);
+  assert.match(prompt, /Positive indications stay positive; negative indications stay negative/);
+  assert.doesNotMatch(prompt, /or definite yes\/no/);
+  assert.match(LOCAL_READING_LIMITS, /No separate event window/);
 });
 
 void test("local tool instructions cannot promote period boundaries to event windows", () => {
@@ -125,7 +127,7 @@ void test("verified fallback answers overview intent and includes supported topi
   );
   assert.match(answer, /Career ke maamle mein sahyog aur rukawat/);
   assert.doesNotMatch(answer, /timing|saal|2039/);
-  assert.match(answer.split("\n\n")[1], /Milajula/);
+  assert.match(answer.split("\n\n")[1], /milajule/);
 });
 
 void test("conversational evidence hides internal strength totals but preserves their assessments and raw mode", () => {
@@ -155,7 +157,7 @@ void test("conversational evidence hides internal strength totals but preserves 
   assert.equal(JSON.stringify(original), text);
 });
 
-void test("ordinary evidence carries active period lords without inviting dates to become event windows", () => {
+void test("ordinary evidence preserves actual period boundaries and their current status", () => {
   const text = JSON.stringify({
     engine: "local-sweph-v2",
     dasha: { current_antardasha: { lord: "Ketu", from: "2026-01-01", to: "2027-03-14" } },
@@ -163,12 +165,43 @@ void test("ordinary evidence carries active period lords without inviting dates 
   const result = toolEvidence(text, "2026-10-20");
   assert.deepEqual(result.packet.dasha.current_antardasha, {
     lord: "Ketu",
+    from: "2026-01-01",
+    to: "2027-03-14",
     active_at_reference_date: true,
   });
   assert.equal(
     toolEvidence(text, "2026-10-20", { rawRequested: true }).packet.dasha.current_antardasha.to,
     "2027-03-14",
   );
+});
+
+void test("a missing calendar window cannot erase positive, negative or mixed rule verdicts", () => {
+  const expected = {
+    POSITIVE: /ke yog anukool hain/,
+    NEGATIVE: /ke yog filhaal anukool nahi hain/,
+    MIXED: /ke yog milajule hain/,
+  };
+  for (const [trend, verdict] of Object.entries(expected)) {
+    const packets = [{ verdict_signals: [{ area: "marriage", trend }] }];
+    for (const query of ["Meri shaadi kab hogi?", "Kya meri shaadi possible hai?"]) {
+      const result = verifiedTimingReply(
+        { query, language: "hinglish" },
+        [],
+        "2026-10-20",
+        packets,
+      );
+      assert.match(result.split("\n\n")[1], verdict);
+      assert.doesNotMatch(result, /saaf nahi|pakka nahi|cannot|timing/i);
+      assert.doesNotMatch(result, /20\d{2}/);
+    }
+    const english = verifiedTimingReply(
+      { query: "Will I get married?", language: "english" },
+      [],
+      "2026-10-20",
+      packets,
+    );
+    assert.doesNotMatch(english, /not established|cannot determine/i);
+  }
 });
 
 void test("fallback preserves known supporting and challenging factors without guessing from unknown rule text", () => {

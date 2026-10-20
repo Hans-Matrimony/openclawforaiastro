@@ -7,9 +7,10 @@ export function compactPrompt(source) {
       "# Completed Reading Output Contract\n\n" +
         "After a successful reading, return exactly two paragraphs: a useful explanation, then one short direct verdict. " +
         "Explain the 2-3 strongest relevant factors in 2-4 natural sentences. Address the actual question and acknowledge relevant user context; avoid a placement inventory. " +
-        "The verdict must match the evidence and answer the current intent. A mixed indication stays mixed; missing timing evidence is not a negative verdict. " +
+        "Give a clear positive, negative or mixed interpretation matching the tool's actual rule trend and the current question. Positive indications stay positive; negative indications stay negative; call it mixed only when the evidence is mixed. " +
+        "Answer possibility and prospects directly. Missing timing evidence is not a negative verdict and must not erase a supported positive or negative interpretation. " +
         "Only give an event window when the tool explicitly calculated an event window for this topic. Current period boundaries, natal placements and transits alone are not event windows. " +
-        "If no event window was calculated, describe the relevant present indications and briefly say the exact timing is not established. Never invent a year, countdown, age threshold, next period or definite yes/no. " +
+        "If no event window was calculated, lead with the supported present indication, such as favourable prospects or current delay. Do not replace it with generic uncertainty, 'cannot tell', or a repeated disclaimer. Never invent a year, countdown, age threshold or next period. " +
         "For an overview question, give an overview verdict rather than an unnecessary timing limitation. No labels, repeated disclaimers, fixed-year examples or service menus. " +
         "Keep the second paragraph to one short sentence. A separate companion stage owns the friendly third paragraph when enabled.\n\n",
     )

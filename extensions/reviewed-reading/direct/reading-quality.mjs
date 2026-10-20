@@ -117,11 +117,13 @@ export function verifiedTimingReply(value, periods, today, packets = []) {
     Ketu: "Ketu",
   };
   const language = value.language?.toLowerCase();
-  const topic = /sha+di|marriage|wedding|relationship|partner/i.test(value.query)
+  const topic = /sha+di|marri(?:age|ed)|marry|wedding|relationship|partner|शादी|विवाह/i.test(
+    value.query,
+  )
     ? "marriage"
-    : /career|job|naukri/i.test(value.query)
+    : /career|job|naukri|नौकरी|करियर/i.test(value.query)
       ? "career"
-      : /pais|money|financ/i.test(value.query)
+      : /pais|money|financ|पैस|धन/i.test(value.query)
         ? "money"
         : null;
   const signal = packets
@@ -131,7 +133,9 @@ export function verifiedTimingReply(value, periods, today, packets = []) {
   if (language === "hinglish") {
     const fact = active.length
       ? `Abhi ${active.map((name) => names[name] ?? name).join(" aur ")} ka daur chal raha hai.`
-      : "Is sawaal ke liye abhi saaf timing ka sanket nahi mila.";
+      : signal
+        ? ""
+        : "Is sawaal ke liye abhi saaf timing ka sanket nahi mila.";
     const verdict = /sha+di|marriage|wedding/i.test(value.query)
       ? "Shaadi ka saal abhi saaf nahi hai."
       : /career|job|naukri/i.test(value.query)
@@ -149,15 +153,44 @@ export function verifiedTimingReply(value, periods, today, packets = []) {
       : "";
     const overview = signal
       ? signal.trend === "MIXED"
-        ? "Milajula sanket hai; sambhavnayein aur chunautiyan dono hain."
+        ? `${subject} ke yog milajule hain.`
         : signal.trend === "POSITIVE"
-          ? "Sahyog ke sanket hain, natija pakka nahi."
-          : "Rukawat ke sanket hain; ise antim natija na maanein."
+          ? `${subject} ke yog anukool hain.`
+          : `${subject} ke yog filhaal anukool nahi hain.`
       : "Is maamle ka saaf natija abhi nahi nikalta.";
     return (
       [trend, ...verifiedFactors(signal), fact].filter(Boolean).join(" ") +
       "\n\n" +
-      (timing ? verdict : overview)
+      (signal ? overview : timing ? verdict : overview)
+    );
+  }
+  if (signal) {
+    if (["hindi", "hi"].includes(language)) {
+      const verdict =
+        signal.trend === "POSITIVE"
+          ? "योग अनुकूल हैं।"
+          : signal.trend === "NEGATIVE"
+            ? "योग फिलहाल अनुकूल नहीं हैं।"
+            : "योग मिले-जुले हैं।";
+      const explanation =
+        signal.trend === "POSITIVE"
+          ? "इस विषय में सहयोग के संकेत अधिक हैं।"
+          : signal.trend === "NEGATIVE"
+            ? "इस विषय में रुकावट के संकेत अधिक हैं।"
+            : "इस विषय में सहयोग और रुकावट, दोनों के संकेत हैं।";
+      return explanation + "\n\n" + verdict;
+    }
+    const subject = { marriage: "Marriage", career: "Career", money: "Financial" }[topic];
+    const assessment =
+      signal.trend === "POSITIVE"
+        ? "favourable"
+        : signal.trend === "NEGATIVE"
+          ? "currently unfavourable"
+          : "mixed";
+    return (
+      `${subject} indications are ${assessment}.` +
+      (active.length ? ` The current periods are ${active.join(" and ")}.` : "") +
+      `\n\n${subject} prospects are ${assessment}.`
     );
   }
   if (["hindi", "hi"].includes(language)) {
