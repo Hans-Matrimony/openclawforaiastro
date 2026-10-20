@@ -14,6 +14,7 @@ import {
 import { contextualClosing, listeningReply } from "./contextual-closing.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
 import { toolEvidence, LOCAL_READING_LIMITS } from "./tool-evidence.mjs";
+import { unsupportedHouseClaim } from "./placement-quality.mjs";
 import {
   asksForRemedy,
   remedySearchQuery,
@@ -334,12 +335,13 @@ export async function directAnswer(
     const timingIssue = structured
       ? null
       : unsupportedTiming(reply, periods, today, { periodBoundariesOnly });
+    const placementIssue = structured ? null : unsupportedHouseClaim(reply, readingPackets);
     const wordingIssue =
       !structured &&
       (/\b(?:bindus?|retrograde|combust|vakri)\b|\b\d{1,2}\s*(?:points?|ank)\b/i.test(reply) ||
         wrongReplyScript(reply, value));
-    if (timingIssue || wordingIssue) {
-      if (correctedQuality) {
+    if (timingIssue || placementIssue || wordingIssue) {
+      if (correctedQuality || modelCalls === 5) {
         reply = verifiedTimingReply(value, periods, today, readingPackets);
         usedVerifiedFallback = true;
       } else {
@@ -348,7 +350,7 @@ export async function directAnswer(
           role: "user",
           content:
             "Correct the answer before returning it. " +
-            (timingIssue ?? "") +
+            (timingIssue ?? placementIssue ?? "") +
             " Use only period names and start/end dates in THIS turn's tool results. Do not invent the next period or equate a period boundary with an event date. " +
             "Explain in simple everyday words; omit ALL internal strength scores, including numbers renamed as points or ank, and omit bindu, retrograde, combust and vakri. " +
             (value.language?.toLowerCase() === "hinglish"

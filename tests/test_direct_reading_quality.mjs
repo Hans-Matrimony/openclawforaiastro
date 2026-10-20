@@ -275,6 +275,50 @@ void test("requested Hinglish cannot silently switch to a Hindi reading or closi
   assert.equal(wrongReplyScript(result, input), false);
 });
 
+void test("a first quality failure on the final allowed model round falls back instead of exceeding the loop budget", async () => {
+  let calls = 0;
+  const result = await directAnswer(input, {
+    ...dependencies,
+    fetchImpl: async () => {
+      calls++;
+      return calls < 5 ? tool() : completion("Next 3-4 mahine mein shaadi ki sambhavana hai.");
+    },
+  });
+  assert.equal(calls, 5);
+  assert.equal(result.answer_quality_fallback, true);
+  assert.equal(result.reply.split("\n\n").length, 3);
+  assert.doesNotMatch(result.reply, /3-4|Next/);
+});
+
+void test("a repeated incorrect education house claim cannot be delivered", async () => {
+  const wrong =
+    "Tumhare chart mein Jupiter aur Mercury dono hi 10th house mein hain.\n\nPadhai aur career jud rahe hain.";
+  const packet = {
+    ...JSON.parse(evidence),
+    birth_chart: {
+      planets: [
+        "Jupiter: Aries 30.00° | house 2 | Test",
+        "Mercury: Sagittarius 240.00° | house 10 | Test",
+      ],
+    },
+  };
+  let calls = 0;
+  const result = await directAnswer(
+    { ...input, query: "educatoin ke baare main batao" },
+    {
+      ...dependencies,
+      makeTools: () => async () => JSON.stringify(packet),
+      fetchImpl: async () => {
+        calls++;
+        return calls === 1 ? tool() : completion(wrong);
+      },
+    },
+  );
+  assert.equal(result.answer_quality_fallback, true);
+  assert.doesNotMatch(result.reply, /Jupiter aur Mercury dono/);
+  assert.equal(result.reply.split("\n\n").length, 3);
+});
+
 void test("repeated invalid timing returns verified facts and a third bubble instead of an error", async () => {
   let calls = 0;
   const result = await directAnswer(input, {
