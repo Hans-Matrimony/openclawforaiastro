@@ -382,3 +382,28 @@ void test("a genuinely incomplete reading may ask a short clarification without 
   assert.equal(result.answer_model_calls, 1);
   assert.deepEqual(result.answer_reading_tools, []);
 });
+
+void test("timing guidance uses today's IST date and distinguishes elapsed, ongoing and historical windows", async () => {
+  for (const [instant, date] of [
+    ["2026-10-20T00:00:00Z", "2026-10-20"],
+    ["2026-12-31T20:00:00Z", "2027-01-01"],
+    ["2028-02-28T20:00:00Z", "2028-02-29"],
+  ]) {
+    const context = await readingContext(
+      { ...input, history: [{ role: "assistant", content: "Marriage in 2025" }] },
+      { read: async () => ["Earlier prediction: marriage in 2025"] },
+      (text) => text,
+      new Date(instant),
+    );
+    assert.ok(context.prompt.includes("Today in Asia/Kolkata is " + date));
+    assert.ok(context.prompt.includes("compare every proposed date and window with TODAY"));
+    assert.ok(context.prompt.includes("A window ending before today is elapsed"));
+    assert.ok(context.prompt.includes("is already underway"));
+    assert.ok(
+      context.prompt.includes("historical questions and past period explanations remain valid"),
+    );
+    assert.ok(context.prompt.includes("never move an old date forward"));
+    assert.ok(context.prompt.includes("Earlier prediction: marriage in 2025"));
+    assert.ok(!context.prompt.includes("2027 ke baad"));
+  }
+});

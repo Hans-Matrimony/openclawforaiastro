@@ -81,7 +81,8 @@ export async function readingContext(
   });
   prompt = prompt
     .replace(/Today's date is \d{4}-\d{2}-\d{2}/, `Today's date is ${date}`)
-    .replace(/Current year is \d{4}/, `Current year is ${date.slice(0, 4)}`);
+    .replace(/Current year is \d{4}/, `Current year is ${date.slice(0, 4)}`)
+    .replaceAll("2027 ke baad", "tool mein diya agla anukool samay");
   prompt = prompt
     .replace(
       "- Format every reply as 1-3 SHORT WhatsApp-style messages separated by blank lines. Never one long paragraph, never a report.",
@@ -120,6 +121,19 @@ export async function readingContext(
     "Answer the current subject and intent: career is not marriage, and whether a relationship with a specific person can develop is not merely when marriage may happen. " +
     "Do not claim to know another person's feelings, fidelity or future choices from the user's chart. Explain relevant relationship indications naturally without inventing a definite yes/no about that person's decision. " +
     "For short follow-ups such as 'Why?' or 'Thik se batao', resolve the subject from the latest relevant user question, not an unrelated older prediction.\n";
+  prompt +=
+    "\n\n# Authoritative timing reference\n" +
+    "Today in Asia/Kolkata is " +
+    date +
+    ". This server date overrides dates implied by old history, memory and style examples. " +
+    "For upcoming-event questions, compare every proposed date and window with TODAY, not merely the current year. " +
+    "A window ending before today is elapsed: never present it as upcoming or say the user should wait for it. " +
+    "A window starting before today but ending today or later is already underway; describe its remaining portion through its actual end date. " +
+    "Past birth dates, historical questions and past period explanations remain valid and must not be rewritten. " +
+    "For an explicitly requested past year, explain that it is historical rather than promising a future event. " +
+    "Old assistant predictions and age thresholds already reached are not new future windows. Recheck relevant current tool evidence. " +
+    "If no supported unelapsed event window is available, say so briefly and naturally; never move an old date forward, add a year, or manufacture a future window. " +
+    "Apply this consistently to both the explanation and the short verdict, without repeating disclaimers.\n";
   prompt +=
     "\n\n# App speaker identity\n" +
     personaInstruction(value) +
