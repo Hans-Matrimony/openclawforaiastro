@@ -12,7 +12,7 @@ void test("companion cannot repeat astrology timing in the reported misspelled e
         generate: async () => "2027 ke baad sab clear ho jayega. Weekly do topics padho?",
       },
     ),
-    "Original reading.\n\nPadhai ko lekar jo bhi mann mein chal raha hai, aaram se batao.",
+    "Original reading.\n\nPadhai mein abhi kis cheez par dhyaan dena chahte ho?",
   );
 });
 
@@ -64,13 +64,10 @@ void test("reported ordinary questions reach companion writer without chart call
 
 void test("reported education and money questions retain companionship on writer failure", async () => {
   for (const [query, closing] of [
-    [
-      "educatoin ke baare main batao",
-      "Padhai ko lekar jo bhi mann mein chal raha hai, aaram se batao.",
-    ],
+    ["educatoin ke baare main batao", "Padhai mein abhi kis cheez par dhyaan dena chahte ho?"],
     [
       "thodi pareshani hai paiso ko leke kab poori hogi",
-      "Paise ki baat khulkar kar sakte ho, yahan koi judgement nahi.",
+      "Paise ki is pareshani mein abhi sabse zaroori kya sambhalna hai?",
     ],
   ]) {
     const value = { query, language: "hinglish", history: [] };
@@ -107,7 +104,10 @@ void test("malformed companion output leaves the reading intact", async () => {
     "One\nTwo",
     "One? Two?",
   ]) {
-    assert.equal(await contextualClosing(answer, value, { generate: async () => output }), answer);
+    assert.equal(
+      await contextualClosing(answer, value, { generate: async () => output }),
+      answer + "\n\nWhat has been on your mind most about work lately?",
+    );
   }
   assert.equal(
     await contextualClosing(
@@ -161,9 +161,12 @@ void test("memory is redacted and bounded and duplicates ignore case and whitesp
         return "take your time. what feels hardest?";
       },
     }),
-    answer,
+    answer + "\n\nWhat has been on your mind most about work lately?",
   );
-  assert.equal(await contextualClosing(answer, value, { generate: async () => answer }), answer);
+  assert.equal(
+    await contextualClosing(answer, value, { generate: async () => answer }),
+    answer + "\n\nWhat has been on your mind most about work lately?",
+  );
 });
 
 void test("closing gets relevant conversation and memory without rewriting the answer", async () => {
@@ -202,7 +205,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
       await contextualClosing("Answer. Iske baare mein thoda aur bataun?", value, {
         generate: async () => question,
       }),
-      "Answer.",
+      "Answer.\n\nKaam ko lekar abhi aapke mann mein sabse zyada kya chal raha hai?",
     );
   }
   assert.equal(
@@ -211,7 +214,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
         throw Error("offline");
       },
     }),
-    "Answer.",
+    "Answer.\n\nKaam ko lekar abhi aapke mann mein sabse zyada kya chal raha hai?",
   );
   assert.equal(
     await contextualClosing("Answer.\n\nWhich course interests you?", value, {

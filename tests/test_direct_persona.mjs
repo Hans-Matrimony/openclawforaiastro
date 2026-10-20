@@ -24,7 +24,7 @@ void test("companion receives persona alongside corrected history and memory", a
     ["female", "Aarav"],
   ]) {
     const answer = "Original chart answer.";
-    const closing = "Aapki baat samajhne ke liye yahin hoon.";
+    const closing = "Padhai wali baat mein abhi kya chal raha hai?";
     const value = {
       user_gender,
       query: "Ab job ki nahi, padhai ki tension hai",
