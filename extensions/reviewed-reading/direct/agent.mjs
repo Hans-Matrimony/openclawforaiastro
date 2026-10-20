@@ -268,7 +268,7 @@ export async function directAnswer(
     const formatted = formatReadingReply(
       sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
       readingTools.size > 0 && !isDeathTimingQuestion(value.query),
-      { friendlyClosing: true },
+      { friendlyClosing: true, separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" },
     );
     const completed =
       readingTools.size > 0 ||

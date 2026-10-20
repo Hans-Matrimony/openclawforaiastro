@@ -1,5 +1,17 @@
 import { isDeathTimingQuestion } from "./sensitive-reply.mjs";
 
+// Only a short, separate conversational paragraph may be replaced by the
+// companion stage. Keep chart/date paragraphs in the reading formatter.
+export function isCompanionParagraph(text) {
+  return (
+    text.length <= 280 &&
+    (/[?？]\s*$/.test(text) ||
+      !/\b(?:20\d{2}|dasha|antardasha|transit|kundli|natal|saturn|jupiter|rahu|ketu|shani|guru|mercury|venus|sun|moon|mars|shukra|mangal|chandra|house\s*\d+)\b|दशा|शनि|ग्रह/i.test(
+        text,
+      ))
+  );
+}
+
 function responseLanguage(value) {
   if (/\b(?:reply|answer|respond)\s+in\s+english\b/i.test(value.query)) {
     return "english";

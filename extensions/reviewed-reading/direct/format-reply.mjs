@@ -1,3 +1,4 @@
+import { isCompanionParagraph } from "./friendly-closing.mjs";
 // Bindu totals (ashtakavarga point counts like 31/48) are internal judgment
 // signals; a user reply states the meaning (strong/weak) instead of numbers.
 export function sanitizeBindus(reply) {
@@ -21,7 +22,11 @@ export function sanitizeBindus(reply) {
 }
 
 // Preserve model wording; repair whitespace boundaries only for completed chart readings.
-export function formatReadingReply(reply, hasReading, { friendlyClosing = false } = {}) {
+export function formatReadingReply(
+  reply,
+  hasReading,
+  { friendlyClosing = false, separateCompanion = false } = {},
+) {
   if (!hasReading) {
     return reply;
   }
@@ -35,6 +40,9 @@ export function formatReadingReply(reply, hasReading, { friendlyClosing = false 
     // Normal prose follows the reading bubble contract below.
   }
   const paragraphs = reply.trim().split(/\r?\n\s*\r?\n/);
+  if (separateCompanion && paragraphs.length === 3 && isCompanionParagraph(paragraphs[2])) {
+    return reply; // Preserve both reading bubbles; the companion stage owns the third.
+  }
   if (
     friendlyClosing &&
     paragraphs.length === 3 &&
