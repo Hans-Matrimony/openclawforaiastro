@@ -53,6 +53,50 @@ export function hasChartClaims(reply) {
   );
 }
 
+export function wrongReplyScript(reply, value) {
+  if (
+    !["hinglish", "english", "en"].includes(value.language?.toLowerCase()) ||
+    /reply in hindi|answer in hindi|hindi (?:mein|me)|devanagari|हिंदी/i.test(value.query)
+  ) {
+    return false;
+  }
+  const devanagari = (reply.match(/[\u0900-\u097f]/g) ?? []).length;
+  const latin = (reply.match(/[A-Za-z]/g) ?? []).length;
+  return devanagari > 20 && devanagari > latin;
+}
+
+function timingText(text) {
+  const words = {
+    अगले: "next",
+    अगली: "next",
+    अगला: "next",
+    महीने: "months",
+    महीना: "month",
+    साल: "year",
+    वर्ष: "year",
+    जल्द: "soon",
+    जल्दी: "soon",
+    बाद: "after",
+    अंतर्दशा: "antardasha",
+    महादशा: "mahadasha",
+    दशा: "dasha",
+    होगी: "hogi",
+    होगा: "hoga",
+    होंगे: "honge",
+    आएगी: "aayegi",
+    आएगा: "aayega",
+    शुरू: "shuru",
+    सुधरने: "improve",
+    सुधार: "improvement",
+  };
+  return text
+    .replace(/[०-९]/g, (digit) => String(digit.charCodeAt(0) - 0x966))
+    .replace(
+      /अंतर्दशा|महादशा|महीने|महीना|अगले|अगली|अगला|जल्दी|जल्द|होंगे|होगी|होगा|आएगी|आएगा|सुधरने|सुधार|वर्ष|साल|बाद|दशा|शुरू/g,
+      (word) => " " + words[word] + " ",
+    );
+}
+
 export function verifiedTimingReply(value, periods, today, packets = []) {
   const active = [
     ...new Set(
@@ -132,6 +176,7 @@ export function verifiedTimingReply(value, periods, today, packets = []) {
 }
 
 export function unsupportedTiming(reply, periods, today, { periodBoundariesOnly = false } = {}) {
+  reply = timingText(reply);
   for (const sentence of reply.split(/[.!?\n]/)) {
     const years = (sentence.match(/\b20\d{2}\b/g) ?? []).map(Number);
     if (
@@ -227,7 +272,7 @@ export function unsupportedTiming(reply, periods, today, { periodBoundariesOnly 
       const dateVerdict =
         sentence.trim().length <= 100 && /\b(?:ke baad|by|after|tak)\b/i.test(sentence);
       const relativeFuture =
-        /\b(?:next (?:month|year)|agle (?:saal|mahine)|agla (?:saal|mahina)|aane wale (?:mahine|saal))\b/i.test(
+        /\b(?:(?:next|agle|agli|agla)\s+(?:\d+(?:\s*[-–]\s*\d+)?\s+)?(?:months?|years?|saal|mahine|mahina)|aane wale (?:mahine|saal))\b/i.test(
           sentence,
         );
       if (

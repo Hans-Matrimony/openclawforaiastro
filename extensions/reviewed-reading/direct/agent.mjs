@@ -27,6 +27,7 @@ import {
   hasChartClaims,
   unsupportedTiming,
   verifiedTimingReply,
+  wrongReplyScript,
 } from "./reading-quality.mjs";
 
 export function redactIdentity(text, userId) {
@@ -335,7 +336,8 @@ export async function directAnswer(
       : unsupportedTiming(reply, periods, today, { periodBoundariesOnly });
     const wordingIssue =
       !structured &&
-      /\b(?:bindus?|retrograde|combust|vakri)\b|\b\d{1,2}\s*(?:points?|ank)\b/i.test(reply);
+      (/\b(?:bindus?|retrograde|combust|vakri)\b|\b\d{1,2}\s*(?:points?|ank)\b/i.test(reply) ||
+        wrongReplyScript(reply, value));
     if (timingIssue || wordingIssue) {
       if (correctedQuality) {
         reply = verifiedTimingReply(value, periods, today, readingPackets);
@@ -349,6 +351,9 @@ export async function directAnswer(
             (timingIssue ?? "") +
             " Use only period names and start/end dates in THIS turn's tool results. Do not invent the next period or equate a period boundary with an event date. " +
             "Explain in simple everyday words; omit ALL internal strength scores, including numbers renamed as points or ank, and omit bindu, retrograde, combust and vakri. " +
+            (value.language?.toLowerCase() === "hinglish"
+              ? "Write Hinglish in Latin letters, not Devanagari. "
+              : "") +
             "Return a useful explanation of 2-4 sentences and at most 90 words, then a verdict of at most 18 words as two paragraphs. The separate companion stage supplies the third. " +
             "Today's India date is " +
             today +

@@ -5,6 +5,7 @@ import {
   collectPeriods,
   expiredTargetReply,
   unsupportedTiming,
+  wrongReplyScript,
 } from "../extensions/reviewed-reading/direct/reading-quality.mjs";
 import { requiresChartReading } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
@@ -195,6 +196,28 @@ void test("unsupported timing and technical wording are corrected before compani
 void test("missing event windows cannot be replaced with a promise of improvement soon", async () => {
   assert.ok(
     unsupportedTiming(
+      "अगले 2-3 महीने में कुछ बदलाव शुरू हो जाएगा।",
+      collectPeriods(evidence),
+      "2026-10-20",
+      { periodBoundariesOnly: true },
+    ),
+  );
+  assert.ok(
+    unsupportedTiming("पैसे की स्थिति जल्द सुधरने लगेगी।", collectPeriods(evidence), "2026-10-20", {
+      periodBoundariesOnly: true,
+    }),
+  );
+  assert.ok(unsupportedTiming("शादी २०२५ में होगी।", [], "2026-10-20"));
+  assert.ok(
+    unsupportedTiming(
+      "Next 3-4 mahine mein situation sudharne ki sambhavana hai.",
+      collectPeriods(evidence),
+      "2026-10-20",
+      { periodBoundariesOnly: true },
+    ),
+  );
+  assert.ok(
+    unsupportedTiming(
       "Jaise hi Saturn ki dasha badlegi aur Jupiter ya Venus ki period shuru hogi, waise hi naya mauka aayega.",
       collectPeriods(evidence),
       "2026-10-20",
@@ -238,6 +261,18 @@ void test("missing event windows cannot be replaced with a promise of improvemen
     assert.match(result.split("\n\n")[2], /Night shift/);
     assert.ok(result.startsWith(answer));
   }
+});
+
+void test("requested Hinglish cannot silently switch to a Hindi reading or closing", async () => {
+  const hindi = "अभी पैसों की तंगी और दबाव चल रहा है। अगले 2-3 महीने में कुछ बदलाव दिखने लगेगा।";
+  assert.equal(wrongReplyScript(hindi, input), true);
+  assert.equal(wrongReplyScript("Shani ka daur chal raha hai.", input), false);
+  assert.equal(wrongReplyScript(hindi, { ...input, language: "hindi" }), false);
+  assert.equal(wrongReplyScript(hindi, { ...input, query: "Hindi mein batao" }), false);
+  const answer = "Abhi milajule sanket hain.\n\nSamay saaf nahi hai.";
+  const result = await contextualClosing(answer, input, { generate: async () => hindi });
+  assert.equal(result.split("\n\n").length, 3);
+  assert.equal(wrongReplyScript(result, input), false);
 });
 
 void test("repeated invalid timing returns verified facts and a third bubble instead of an error", async () => {

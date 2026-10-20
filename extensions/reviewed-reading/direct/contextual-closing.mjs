@@ -1,6 +1,7 @@
 import { stressFollowup } from "./stress-followup.mjs";
 import { companionFallback } from "./companion-fallback.mjs";
 import { personaInstruction, fallbackGrammar } from "./persona.mjs";
+import { wrongReplyScript } from "./reading-quality.mjs";
 
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
@@ -92,7 +93,17 @@ export async function contextualClosing(
     ) {
       return fallback("invalid_output");
     }
+    if (wrongReplyScript(question, value)) {
+      return fallback("invalid_output");
+    }
     // The companion writer cannot add a second reading or repeat its timing claims.
+    if (
+      /\b(?:next|agle|agli|agla)\s+(?:\d+(?:\s*[-–]\s*\d+)?\s+)?(?:months?|years?|saal|mahine|mahina)\b/i.test(
+        question,
+      )
+    ) {
+      return fallback("reading_repeated");
+    }
     if (/\b(?:sab|sab kuch)\s+(?:theek|thik)\s+ho\s+jayega\b/i.test(question)) {
       return fallback("reading_repeated");
     }
