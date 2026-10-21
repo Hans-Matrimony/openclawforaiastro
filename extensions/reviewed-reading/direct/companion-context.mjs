@@ -67,7 +67,7 @@ function rejectedDetail(text, value) {
   return (
     detail.test(text) &&
     !acknowledgesChange &&
-    /\bMBA\s+(?:nahi|nahin|cancel|chhod|chod)|\b(?:quit|stopped)\s+(?:my\s+)?MBA|\b(?:not|no longer)\s+(?:doing|pursuing|planning)\s+(?:an?\s+)?MBA/i.test(
+    /\bMBA\s+(?:filhaal\s+|abhi\s+)?(?:nahi|nahin|cancel|chhod|chod)|\b(?:quit|stopped)\s+(?:my\s+)?MBA|\b(?:not|no longer)\s+(?:doing|pursuing|planning)\s+(?:an?\s+)?MBA/i.test(
       latest ?? "",
     )
   );

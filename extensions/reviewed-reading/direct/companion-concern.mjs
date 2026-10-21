@@ -41,7 +41,7 @@ export function companionConcern(value, facts = []) {
       return { kind: "fees", evidence: text };
     }
     if (
-      /family|parents|ghar\s*wal|घरवाल|परिवार/i.test(text) &&
+      /family|parents|mummy|papa|mom|dad|father|mother|ghar\s*wal|घरवाल|परिवार/i.test(text) &&
       /now agree|ab maan gaye|ab raazi|अब मान गए|अब राज़ी/i.test(text)
     ) {
       dismissed.add("family");
@@ -49,8 +49,8 @@ export function companionConcern(value, facts = []) {
     if (
       !dismissed.has("family") &&
       focus.topics.includes("relationship") &&
-      /family|parents|ghar\s*wal|घरवाल|परिवार/i.test(text) &&
-      /khilaaf|khilaf|oppose|opposition|against|dikkat|objection|nahi maan|खिलाफ|दिक्कत|विरोध/i.test(
+      /family|parents|mummy|papa|mom|dad|father|mother|ghar\s*wal|घरवाल|परिवार/i.test(text) &&
+      /khilaaf|khilaf|oppose|opposition|against|dikkat|objection|nahi maan|mana kar|guss|darr|खिलाफ|दिक्कत|विरोध/i.test(
         text,
       )
     ) {
@@ -150,12 +150,13 @@ export function concernFallback(value, concern) {
     .filter((t) => t.role === "assistant")
     .map((t) => t.text.toLowerCase());
   const userEvidence = [
+    concern.evidence ?? "",
     value.query,
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
   ].join("\n");
   const paymentKnown =
     concern.kind === "fees" &&
-    /(?:payment|fees?).{0,35}(?:next week|tomorrow|kal|agle hafte|due|\d)|(?:अगले हफ्ते|कल).{0,20}फीस/i.test(
+    /(?:next week|tomorrow|kal|agle hafte).{0,35}(?:payment|fees?)|(?:payment|fees?).{0,35}(?:next week|tomorrow|kal|agle hafte|due|\d)|(?:अगले हफ्ते|कल).{0,20}फीस/i.test(
       userEvidence,
     );
   // Never recycle a specific question that may already have been answered.
@@ -217,6 +218,7 @@ export function ignoresKnownConcern(question, concern, value = {}) {
     return true;
   }
   const userEvidence = [
+    concern.evidence ?? "",
     value.query ?? "",
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
   ].join("\n");
@@ -232,7 +234,9 @@ export function ignoresKnownConcern(question, concern, value = {}) {
   }
   if (
     concern.kind === "fees" &&
-    /(?:fees?|payment).{0,35}(?:next week|tomorrow|kal|agle hafte|due|\d)/i.test(userEvidence) &&
+    /(?:next week|tomorrow|kal|agle hafte).{0,35}(?:fees?|payment)|(?:fees?|payment).{0,35}(?:next week|tomorrow|kal|agle hafte|due|\d)/i.test(
+      userEvidence,
+    ) &&
     /(?:fees?|payment).{0,30}(?:kab|when|due|kareeb|coming up)|when.{0,30}(?:pay|due)/i.test(
       question,
     )

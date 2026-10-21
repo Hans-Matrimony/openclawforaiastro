@@ -1,3 +1,9 @@
+import {
+  listeningOnly,
+  celebration,
+  continuityFallback,
+  repeatsAnsweredConcern,
+} from "./companion-continuity.mjs";
 import { stressFollowup } from "./stress-followup.mjs";
 import { companionFallback } from "./companion-fallback.mjs";
 import { companionConcern, concernFallback, ignoresKnownConcern } from "./companion-concern.mjs";
@@ -52,19 +58,22 @@ export async function contextualClosing(
   if (!base || /[?？]\s*$/.test(base)) {
     return reply;
   }
-  // Listening is an explicit interaction preference, not another interview turn.
-  if (/\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)) {
-    const language = /\b(?:reply|answer|respond) in english\b/i.test(value.query)
-      ? "english"
-      : value.language?.toLowerCase();
-    const support = ["hinglish"].includes(language)
-      ? "Theek hai, abhi koi advice nahi. Aaram se apni baat keh sakte ho."
-      : ["english", "en"].includes(language)
-        ? "Okay, no advice right now. Take your time; you can say what's on your mind."
-        : ["hindi", "hi"].includes(language)
-          ? "ठीक है, अभी कोई सलाह नहीं। आराम से अपनी बात कह सकते हो।"
-          : null;
-    return support ? base + "\n\n" + fallbackGrammar(support, value) : base;
+  // Explicit listening and good news should not become another interview.
+  if (listeningOnly(value.query) || celebration(value.query)) {
+    const support = continuityFallback(value);
+    if (support) {
+      // A listening-only reply can itself be duplicated stock companionship,
+      // rather than an astrology reading. Replace that narrow social case;
+      // never strip or rewrite a paragraph containing chart/date evidence.
+      const socialParts = base.split(/\r?\n+/).filter((part) => part.trim());
+      const stockOnly =
+        listeningOnly(value.query) &&
+        socialParts.every(
+          (part) =>
+            stockPresence.test(part) && isCompanionParagraph(part.replace(stockPresence, "")),
+        );
+      return (stockOnly ? "" : base + "\n\n") + fallbackGrammar(support, value);
+    }
   }
   const focus = companionFocus(value);
   const history = (value.history ?? [])
@@ -129,6 +138,7 @@ export async function contextualClosing(
       }
     }
     const question =
+      continuityFallback(value) ??
       concernFallback(value, concern) ??
       stressFollowup(value, notes) ??
       companionFallback(value, notes, { requireQuestion });
@@ -193,6 +203,7 @@ export async function contextualClosing(
       return fallback();
     }
     if (
+      repeatsAnsweredConcern(question, value) ||
       closingDrifts(question, focus, value, notes) ||
       ignoresKnownConcern(question, concern, value) ||
       unsupportedClosingDetail(question, value, notes) ||
