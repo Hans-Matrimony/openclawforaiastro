@@ -1,67 +1,8 @@
 import { isCompanionParagraph } from "./friendly-closing.mjs";
 
-export const MAX_BUBBLE_WORDS = 50;
-export const MAX_REPLY_WORDS = 90;
-export const MAX_CLOSING_WORDS = 20;
-
-function shortenBubble(bubble, limit) {
-  const words = [...bubble.matchAll(/\S+/gu)];
-  if (words.length <= limit) {
-    return bubble;
-  }
-  if (limit <= 0) {
-    return "";
-  }
-  const boundary = words[limit].index;
-  let sentenceEnd = 0;
-  for (const sentence of bubble.matchAll(/[.!?\u0964\u0965]["'”’»)]*(?=\s|$)/gu)) {
-    const end = sentence.index + sentence[0].length;
-    if (end > boundary) {
-      break;
-    }
-    sentenceEnd = end;
-  }
-  return sentenceEnd
-    ? bubble.slice(0, sentenceEnd)
-    : bubble
-        .slice(0, boundary)
-        .trimEnd()
-        .replace(/[,;:]$/u, "") + "…";
-}
-
-export function limitBubbleWords(reply) {
-  if (reply.includes("```") || /(?:^|\n)\s*\|[^\n]+\|/.test(reply)) {
-    return reply;
-  }
-  try {
-    JSON.parse(reply);
-    return reply;
-  } catch {
-    // Raw structured responses must remain valid; ordinary prose follows.
-  }
-  const parts = reply.split(/(\r?\n\s*\r?\n)/u);
-  const bubbles = parts.filter((_, index) => index % 2 === 0);
-  // Reserve room for the short verdict and final question before the explanation.
-  // Typical readings fit 50 + 20 + 20; shorter parts release their unused budget.
-  const reserve = Math.min(MAX_CLOSING_WORDS, Math.floor(MAX_REPLY_WORDS / bubbles.length));
-  const reservations = bubbles.map((bubble) =>
-    Math.min(reserve, (bubble.match(/\S+/gu) ?? []).length),
-  );
-  let remaining = MAX_REPLY_WORDS;
-  let reserved = reservations.reduce((sum, words) => sum + words, 0);
-  const shortened = bubbles.map((bubble, index) => {
-    reserved -= reservations[index];
-    const result = shortenBubble(bubble, Math.min(MAX_BUBBLE_WORDS, remaining - reserved));
-    remaining -= (result.match(/\S+/gu) ?? []).length;
-    return result;
-  });
-  return parts.map((part, index) => (index % 2 ? part : shortened[index / 2])).join("");
-}
-
 export function formatDisplayReply(reply) {
-  // The final count includes words introduced by display cleanup, such as "to"
-  // replacing a date-range dash. Cached completions use this same boundary.
-  return limitBubbleWords(removeReplyDashes(removeDisplayTerms(reply)));
+  // Display-only cleanup; preserve the full response and all bubble boundaries.
+  return removeReplyDashes(removeDisplayTerms(reply));
 }
 
 export function removeReplyDashes(reply) {
