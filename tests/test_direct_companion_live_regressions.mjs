@@ -5,6 +5,15 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test("one parent's agreement does not resolve the other parent's objection", async () => {
+  const { companionConcern } =
+    await import("../extensions/reviewed-reading/direct/companion-concern.mjs");
+  assert.equal(
+    companionConcern({ query: "Mummy ab maan gaye, papa mana kar denge.", history: [] })?.kind,
+    "family",
+  );
+});
+
 void test("saved fee deadline is also respected when recent history is empty", async () => {
   const reply = await contextualClosing(
     reading,

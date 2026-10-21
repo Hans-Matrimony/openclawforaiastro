@@ -41,7 +41,7 @@ export function companionConcern(value, facts = []) {
       return { kind: "fees", evidence: text };
     }
     if (
-      /family|parents|mummy|papa|mom|dad|father|mother|ghar\s*wal|घरवाल|परिवार/i.test(text) &&
+      /family|parents|ghar\s*wal|घरवाल|परिवार/i.test(text) &&
       /now agree|ab maan gaye|ab raazi|अब मान गए|अब राज़ी/i.test(text)
     ) {
       dismissed.add("family");
