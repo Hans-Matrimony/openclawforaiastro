@@ -75,7 +75,7 @@ void test("supplied prompt, schemas and fallback engine remain identical to the 
   }
 });
 
-void test("source final reply and its paragraph boundaries are returned byte-for-byte without a second writer", async () => {
+void test("source final reply preserves paragraph boundaries with display-only dash cleanup and no second writer", async () => {
   const expected = "  2029–2032 mein sambhavna hai.\n\nDoosri poori baat.  ";
   let calls = 0;
   const result = await directAnswer(
@@ -106,7 +106,7 @@ void test("source final reply and its paragraph boundaries are returned byte-for
       },
     },
   );
-  assert.equal(result.reply, expected);
+  assert.equal(result.reply, "  2029 to 2032 mein sambhavna hai.\n\nDoosri poori baat.  ");
   assert.equal(result.answer_model_calls, 1);
   assert.equal(calls, 1);
 });

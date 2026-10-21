@@ -3,7 +3,7 @@ import { createTools, TOOLS } from "./tools.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
-import { formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
+import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
 import {
@@ -78,7 +78,7 @@ export async function directAnswer(
     if (knowledge.status !== "available") {
       return {
         schema: "vedastro-direct-reply-v1",
-        reply: remedyUnavailableReply(value),
+        reply: formatDisplayReply(remedyUnavailableReply(value)),
         answer_model_calls: 0,
         answer_cache_hits: 0,
         answer_reading_tools: [],
@@ -337,7 +337,7 @@ export async function directAnswer(
     }
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: finalReply,
+      reply: formatDisplayReply(finalReply),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],

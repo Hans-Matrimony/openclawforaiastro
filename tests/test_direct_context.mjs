@@ -6,6 +6,7 @@ import {
 } from "../extensions/reviewed-reading/direct/context.mjs";
 import { requiresChartReading } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
+import { createReplyCache } from "../extensions/reviewed-reading/direct/reply-cache.mjs";
 import {
   formatReadingReply,
   sanitizeBindus,
@@ -381,4 +382,56 @@ void test("a genuinely incomplete reading may ask a short clarification without 
   );
   assert.equal(result.answer_model_calls, 1);
   assert.deepEqual(result.answer_reading_tools, []);
+});
+
+void test("display terms are removed from fresh and cached answers without changing chart evidence or bubbles", async () => {
+  const evidence = "Saturn retrograde; 31 bindus; Mercury combust.";
+  const raw =
+    "Saturn RETROGRADE hai; 31 bindus hain aur Mercury Combust hai.\n\n2027 ke baad mauka hai.";
+  const closing = "Padhai mein abhi sabse badi pareshani kya hai?";
+  const cache = createReplyCache();
+  let upstream = 0;
+  let writes = 0;
+  let calculations = 0;
+  const options = {
+    env: { OPENROUTER_API_KEY: "test-only", VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "1" },
+    now: () => new Date("2026-10-20T12:00:00Z"),
+    replyCache: cache,
+    makeMemory: () => ({ read: async () => [] }),
+    makeTools: () => async () => {
+      calculations++;
+      return evidence;
+    },
+    fetchImpl: async (_url, options) => {
+      upstream++;
+      const body = JSON.parse(options.body);
+      if (!body.tools) {
+        assert.ok(JSON.parse(body.messages[1].content).answer.includes("RETROGRADE"));
+        return reply(closing);
+      }
+      if (body.messages.at(-1).role !== "tool") {
+        return chartCall();
+      }
+      assert.equal(body.messages.at(-1).content, evidence);
+      writes++;
+      return reply(raw);
+    },
+  };
+  for (const cached of [false, true]) {
+    const result = await directAnswer(
+      { ...input, query: "Meri education ke baare mein batao" },
+      options,
+    );
+    assert.deepEqual(result.reply.split("\n\n"), [
+      "Saturn hai; 31 hain aur Mercury hai.",
+      "2027 ke baad mauka hai.",
+      closing,
+    ]);
+    assert.equal(result.answer_model_calls, cached ? 2 : 3);
+    assert.equal(result.answer_cache_hits, cached ? 1 : 0);
+    assert.deepEqual(result.answer_reading_tools, ["get_horoscope_predictions"]);
+  }
+  assert.equal(calculations, 2);
+  assert.equal(writes, 1);
+  assert.equal(upstream, 5);
 });
