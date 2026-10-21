@@ -1,5 +1,6 @@
 import { stressFollowup } from "./stress-followup.mjs";
 import { companionFallback } from "./companion-fallback.mjs";
+import { companionConcern, concernFallback, ignoresKnownConcern } from "./companion-concern.mjs";
 import { personaInstruction, fallbackGrammar } from "./persona.mjs";
 import { isCompanionParagraph } from "./friendly-closing.mjs";
 import {
@@ -16,6 +17,20 @@ const generic =
 // Reject stock presence announcements in this closing only, never in the reading.
 const stockPresence =
   /\bsun\s+r(?:ah|h)[aie]\s+h(?:oo|u|o)n?\b|\bya(?:ha+n?|hi+n?)\s+h(?:oo|u|o)n?\b|\bi(?:['’]m| am)\s+(?:listening|(?:right )?here)\b|सुन\s*रह[ाीे]|(?:यहाँ|यहां|यहीं|यही)\s*ह[ूँूं]/i;
+
+// Keep a complete final question when the writer adds an overlong preamble.
+// Do not truncate a question mid-sentence or add another paid rewrite call.
+function compactClosing(text) {
+  if (!/[\r\n]/.test(text) && text.split(/\s+/u).length <= 20) {
+    return text;
+  }
+  const last = text
+    .split(/(?:\r?\n)+|(?<=[.!।])\s+|\s*[—–]\s*/u)
+    .filter(Boolean)
+    .at(-1)
+    ?.trim();
+  return last && /[?？]$/.test(last) && last.split(/\s+/u).length <= 20 ? last : text;
+}
 
 export async function contextualClosing(
   reply,
@@ -54,7 +69,25 @@ export async function contextualClosing(
   const history = (value.history ?? [])
     .slice(-20)
     .map((turn) => ({ role: turn.role, text: redact(turn.text).slice(0, 2000) }));
+  // Predictions are not evidence about the user's circumstances. Keep full
+  // history for repetition checks locally, but give this writer only user turns
+  // and prior separate companion bubbles, never the astrology paragraphs.
+  const companionHistory = history.flatMap((turn) => {
+    if (turn.role === "user") {
+      return [turn];
+    }
+    const parts = turn.text.split(/\n\s*\n/);
+    const closing = parts.length === 3 ? parts[2] : null;
+    return closing &&
+      isCompanionParagraph(closing) &&
+      !/\b(?:20\d{2}|dasha|antardasha|transit|kundli|saturn|jupiter|rahu|ketu|shani|mercury|venus)\b/i.test(
+        closing,
+      )
+      ? [{ role: "assistant", text: closing }]
+      : [];
+  });
   const notes = companionNotes(facts, focus, value).map((fact) => redact(fact).slice(0, 1000));
+  const concern = companionConcern(value, notes);
   const sharingFeelings =
     /\b(?:udaas|sad|upset|lonely|vent|mann bhaari)\b/i.test(value.query) &&
     !/[?？]|\b(?:kab|kyu|kyun|why|how|bata[a-z]*|tell|explain)\b/i.test(value.query);
@@ -66,14 +99,17 @@ export async function contextualClosing(
       return base;
     }
     const question =
-      stressFollowup(value, notes) ?? companionFallback(value, notes, { requireQuestion });
+      concernFallback(value, concern) ??
+      stressFollowup(value, notes) ??
+      companionFallback(value, notes, { requireQuestion });
     return question ? base + "\n\n" + fallbackGrammar(question, value) : base;
   };
   const prompt =
     personaInstruction(value) +
     "Keep this persona consistent even if old assistant messages use another name or gender. Do not introduce yourself on every turn. Match the user's level of familiarity; prefer respectful aap, not tu/tere or pet names unless explicitly invited. Refer only to relevant user-stated memories, resolve corrections from the current message first, and do not ask again about already answered details. " +
     "Write the third bubble as a brief personal companion closing after the completed astrology answer. Normally add one warm, specific follow-up; use a supportive statement instead when the user wants to vent or has already answered enough questions. Do not return NONE merely because the astrology answer is complete. The astrology answer is finished: do not rewrite, correct, extend or repeat it. " +
-    "Use the current question, the answer just given, relevant user statements in history, and saved user facts. Current corrections override older facts. " +
+    "Use the current question, relevant user statements in history, and saved user facts. Current corrections override older facts. The reading is already delivered separately and is not included here; do not produce another reading. Assistant turns contain only previous companion closings. " +
+    "When known_concern is supplied, acknowledge that specific concern briefly and move one step forward. Do not ask what is wrong again. For a workload problem, explore the daily bottleneck; for fees, explore the upcoming payment or support needed; for family disagreement, explore who they can speak with. These are examples, not a script. If the user has already answered a detail, ask a different unresolved detail. " +
     "Stay with the current topic. Pick one relevant personal detail, if available, and continue from the last thing the user actually shared rather than starting the conversation over. Use recent user statements before older memory. If a detail is already known, acknowledge it naturally and ask about the still-unanswered part or how they feel about it now. Do not drag an old topic into a new question. " +
     "Do not announce your presence or that you are listening: no 'main sun rahi hoon', 'sun raha hoon', 'main yahan hoon', 'yahin hoon', 'I am here', or 'I am listening', even as a lead-in. Show care through the specific conversation instead. The persona's grammar examples are not phrases to copy. " +
     "Do not ask for information already supplied, repeat an earlier follow-up, switch topics, summarize, offer a service menu, or ask generic 'want more detail?' questions. " +
@@ -86,19 +122,24 @@ export async function contextualClosing(
     ? " For this completed two-part answer, the third bubble must end with one specific conversational question. A motivational reassurance or another summary is not a follow-up. For 'why/how' follow-ups, continue the most recent user topic from history; for 'tell me about myself', ask about their present experience without repeating the prediction."
     : "";
   try {
-    const question = (
-      await generate(
-        prompt + questionInstruction,
-        JSON.stringify({
-          query: redact(value.query),
-          language: value.language,
-          answer: redact(base),
-          history,
-          saved_user_facts: notes,
-          conversation_focus: { ...focus, user_topic: redact(focus.user_topic) },
-        }),
-      )
-    ).trim();
+    const question = compactClosing(
+      (
+        await generate(
+          prompt + questionInstruction,
+          JSON.stringify({
+            query: redact(value.query),
+            language: value.language,
+            reading_completed: true,
+            history: companionHistory,
+            saved_user_facts: notes,
+            conversation_focus: { ...focus, user_topic: redact(focus.user_topic) },
+            known_concern: concern
+              ? { kind: concern.kind, evidence: redact(concern.evidence).slice(0, 1000) }
+              : null,
+          }),
+        )
+      ).trim(),
+    );
     if (
       /^none[.!]?$/i.test(question) ||
       !question ||
@@ -114,6 +155,7 @@ export async function contextualClosing(
     }
     if (
       closingDrifts(question, focus, value, notes) ||
+      ignoresKnownConcern(question, concern) ||
       unsupportedClosingDetail(question, value, notes) ||
       asksKnownDetail(question, value, notes)
     ) {

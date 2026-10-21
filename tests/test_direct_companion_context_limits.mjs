@@ -63,7 +63,7 @@ void test("full delivered history and relevant saved facts reach the bounded com
       facts,
       generate: async (prompt, data) => {
         const context = JSON.parse(data);
-        assert.equal(context.history.length, history.length);
+        assert.equal(context.history.length, history.filter((t) => t.role === "user").length);
         assert.deepEqual(context.saved_user_facts, ["User wants an MBA"]);
         assert.equal(context.conversation_focus.user_topic, "Education ke baare mein batao");
         assert.match(prompt, /At most 20 words/);

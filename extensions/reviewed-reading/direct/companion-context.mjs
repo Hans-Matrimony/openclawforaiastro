@@ -57,7 +57,7 @@ function rejectedDetail(text, value) {
   const latest = statements.find((statement) => detail.test(statement));
   return (
     detail.test(text) &&
-    /\bMBA\s+(?:nahi|nahin|cancel)|\b(?:not|no longer)\s+(?:doing|pursuing|planning)\s+(?:an?\s+)?MBA/i.test(
+    /\bMBA\s+(?:nahi|nahin|cancel|chhod|chod)|\b(?:quit|stopped)\s+(?:my\s+)?MBA|\b(?:not|no longer)\s+(?:doing|pursuing|planning)\s+(?:an?\s+)?MBA/i.test(
       latest ?? "",
     )
   );

@@ -70,7 +70,7 @@ void test("fallback uses related user history and saved facts, never assistant p
     [
       { ...value, history: [{ role: "user", text: "Mere ghar wale rishte ke khilaaf hain." }] },
       [],
-      /Ghar walon wali baat/,
+      /Ghar\s*walon.*baat/,
     ],
     [{ ...value, query: "Career ke baare mein batao" }, ["User wants to pursue an MBA"], /MBA/],
     [
@@ -120,7 +120,8 @@ void test("recent conversation, saved memory and persona reach only the closing 
         assert.ok(prompt.includes(name));
         assert.match(prompt, /Do not announce your presence/);
         assert.match(prompt, /Current corrections override older facts/);
-        assert.equal(context.answer, reading);
+        assert.equal(context.answer, undefined);
+        assert.equal(context.reading_completed, true);
         assert.equal(context.history[0].text, input.history[0].text);
         assert.deepEqual(context.saved_user_facts, ["User works night shifts"]);
         return "Night shift aur MBA ko saath rakhne mein abhi kya mushkil aa rahi hai?";

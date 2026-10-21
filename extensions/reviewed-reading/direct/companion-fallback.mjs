@@ -33,8 +33,9 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
       value.query;
     personal = personalTopic.test(topicQuery);
   }
-  const education = /\beduc[a-z]{2,8}\b|padhai|stud(?:y|ies)|exam|शिक्षा|पढ़ाई/i.test(topicQuery);
-  const finance = /pais[aeo]|financ|money|पैस|धन/i.test(topicQuery);
+  const focusedTopics = companionFocus(value).topics;
+  const education = focusedTopics.includes("education");
+  const finance = focusedTopics.includes("finance");
   const relationship =
     /\b(?:gf|bf)\b|sha+di|marri(?:age|ed)|relationship|partner|crush|girl\s*friend|boy\s*friend|शादी|रिश्त/i.test(
       topicQuery,

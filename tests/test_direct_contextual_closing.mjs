@@ -241,7 +241,8 @@ void test("companion can acknowledge feelings without forcing another question",
         assert.match(prompt, /do not rewrite, correct, extend or repeat it/);
         assert.match(prompt, /never assume a romantic relationship/);
         assert.match(prompt, /supportive statement alone/i);
-        assert.equal(JSON.parse(data).answer, answer);
+        assert.equal(JSON.parse(data).answer, undefined);
+        assert.equal(JSON.parse(data).reading_completed, true);
         return closing;
       },
     },
@@ -256,7 +257,8 @@ void test("existing future-prediction questions are reviewed without rewriting t
     {
       generate: async (prompt, data) => {
         assert.match(prompt, /Never ask the user to predict the future/);
-        assert.equal(JSON.parse(data).answer, answer);
+        assert.equal(JSON.parse(data).answer, undefined);
+        assert.equal(JSON.parse(data).reading_completed, true);
         assert.equal(JSON.parse(data).existing_closing_to_review, undefined);
         assert.ok(!data.includes("opposition kab tak"));
         return "Family ki sabse badi concern kya hai?";

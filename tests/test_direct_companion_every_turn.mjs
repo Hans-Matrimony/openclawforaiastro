@@ -83,12 +83,13 @@ void test("a standalone reassurance stays separate until the companion replaces 
     { ...value, query: "Mere baare mai kuch batai" },
     {
       generate: async (_prompt, data) => {
-        received = JSON.parse(data).answer;
+        received = JSON.parse(data);
         return support;
       },
     },
   );
-  assert.equal(received, main);
+  assert.equal(received.answer, undefined);
+  assert.equal(received.reading_completed, true);
   assert.equal(result.split("\n\n").length, 3);
   assert.equal(result.slice(0, main.length), main);
   assert.match(result.split("\n\n")[2], /\?$/);

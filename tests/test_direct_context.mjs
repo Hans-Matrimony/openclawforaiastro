@@ -406,7 +406,8 @@ void test("display terms are removed from fresh and cached answers without chang
       upstream++;
       const body = JSON.parse(options.body);
       if (!body.tools) {
-        assert.ok(JSON.parse(body.messages[1].content).answer.includes("RETROGRADE"));
+        assert.equal(JSON.parse(body.messages[1].content).answer, undefined);
+        assert.doesNotMatch(body.messages[1].content, /RETROGRADE|2027/);
         return reply(closing);
       }
       if (body.messages.at(-1).role !== "tool") {
