@@ -184,9 +184,7 @@ void test("companion receives user history and earlier closings without predicti
 
 void test("keep the writer's complete contextual question instead of replacing an overlong preamble", async () => {
   const question = "Abhi konsi job ki taraf zyada khinchav hai?";
-  const raw =
-    "MBA chhodne ka faisla bahut sahi lag raha hai ab job pe dhyan dena hai aur main tere liye khush hoon.\n" +
-    question;
+  const raw = Array(50).fill("preamble").join(" ") + ".\n" + question;
   const result = await contextualClosing(
     base,
     { ...value, query: "MBA chhod diya, job pe focus hai" },

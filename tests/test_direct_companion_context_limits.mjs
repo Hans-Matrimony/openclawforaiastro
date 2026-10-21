@@ -35,7 +35,7 @@ void test("topic drift and invented context are rejected only in the companion",
     "Shaadi ko lekar family ki kya expectations hain?",
     "MBA ki fees ke liye kya plan hai?",
     "Night shift ke baad kitna padh paate ho?",
-    Array(25).fill("word").join(" ") + "?",
+    Array(50).fill("word").join(" ") + "?",
   ]) {
     const result = await contextualClosing(base, value, { generate: async () => closing });
     assert.ok(result.startsWith(base + "\n\n"));
@@ -66,7 +66,7 @@ void test("full delivered history and relevant saved facts reach the bounded com
         assert.equal(context.history.length, history.filter((t) => t.role === "user").length);
         assert.deepEqual(context.saved_user_facts, ["User wants an MBA"]);
         assert.equal(context.conversation_focus.user_topic, "Education ke baare mein batao");
-        assert.match(prompt, /At most 20 words/);
+        assert.match(prompt, /At most 45 words/);
         return closing;
       },
     },

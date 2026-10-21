@@ -99,15 +99,15 @@ const options = {
   family: {
     hinglish: [
       "Gharwalon ki baat aasaan nahi lagti. Unmein kis se aap khulkar baat kar paate ho?",
-      "Is family wali baat mein aap apni partner se kya share kar paaye ho?",
+      "Apni baat gharwalon ke saamne rakhte waqt sabse mushkil kya lagta hai?",
     ],
     english: [
       "That family situation sounds difficult. Who in the family can you talk openly with?",
-      "What have you been able to share with your partner about this family situation?",
+      "What feels hardest about explaining your side to your family?",
     ],
     hindi: [
       "घरवालों की बात आसान नहीं लगती। उनमें किससे खुलकर बात कर पाते हो?",
-      "परिवार की इस बात पर अपने साथी से क्या साझा कर पाए हो?",
+      "घरवालों के सामने अपनी बात रखते समय सबसे मुश्किल क्या लगता है?",
     ],
   },
   job_focus: {
@@ -151,14 +151,49 @@ export function concernFallback(value, concern) {
   return (
     options[concern.kind]?.[language]?.find(
       (q, index) =>
-        !(paymentKnown && index === 0) && !previous.some((old) => old.includes(q.toLowerCase())),
+        !(paymentKnown && index === 0) &&
+        !ignoresKnownConcern(q, concern, value) &&
+        !previous.some((old) => old.includes(q.toLowerCase())),
     ) ?? null
   );
 }
 
-export function ignoresKnownConcern(question, concern) {
+export function ignoresKnownConcern(question, concern, value = {}) {
   if (!concern) {
     return false;
+  }
+  const finalQuestion = question.split(/(?<=[.!?।])\s+|\n+/u).at(-1) ?? question;
+  const related = {
+    fees: /fees?|payment|scholarship|support|madad|kharch|pais[aeo]|financial|amount|installment|kisht|budget|expense|iske liye|फीस|मदद|सहारा/i,
+    time: /time|routine|din|day|schedule|waqt|samay|shift|ghanta|hour|padhai|study|workload|समय|दिन/i,
+    family:
+      /family|ghar|partner|parents|mummy|papa|baat|conversation|speak|talk|explaining|घर|बात/i,
+    job_focus: /job|work|career|kaam|skill|naukri|काम/i,
+  }[concern.kind];
+  if (/[?？]$/.test(finalQuestion) && related && !related.test(finalQuestion)) {
+    return true;
+  }
+  const userEvidence = [
+    value.query ?? "",
+    ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
+  ].join("\n");
+  if (
+    concern.kind === "fees" &&
+    /(?:fees?|payment).{0,35}(?:next week|tomorrow|kal|agle hafte|due|\d)/i.test(userEvidence) &&
+    /(?:fees?|payment).{0,30}(?:kab|when|due|kareeb|coming up)|when.{0,30}(?:pay|due)/i.test(
+      question,
+    )
+  ) {
+    return true;
+  }
+  if (
+    concern.kind === "family" &&
+    /(?:mummy|papa|maa|mom|dad).{0,15}(?:se baat kar sak|can talk|baat ho chuki)/i.test(
+      userEvidence,
+    ) &&
+    /kis\s*se|who.{0,25}talk/i.test(question)
+  ) {
+    return true;
   }
   // Broad restarts are not a meaningful continuation once a concrete concern is known.
   return /(?:tension|stress|pareshan).{0,20}(?:kis baat|kis cheez|kyu)|what.{0,15}(?:causing|worrying)|what.{0,15}weighing on|(?:apni zindagi|life).{0,35}(?:kaisa|how|kya chal)|sabse badi uljhan|सबसे.{0,12}तनाव.{0,10}किस/i.test(
