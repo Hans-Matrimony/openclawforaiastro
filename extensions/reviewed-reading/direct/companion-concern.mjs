@@ -112,19 +112,30 @@ const options = {
   },
   job_focus: {
     hinglish: [
-      "Ab job par focus hai. Apne kaam mein sabse pehle kya badalna chahte ho?",
+      "Ab job par focus hai. Kis tarah ka kaam karna chahte ho?",
       "Job ko priority dene ke baad ab kaisa lag raha hai?",
     ],
     english: [
-      "Work is the priority now. What would you most like to change about it first?",
+      "Work is the priority now. What kind of work would you like to do?",
       "How are you feeling now that work is your priority?",
     ],
     hindi: [
-      "अब नौकरी पर ध्यान है। अपने काम में सबसे पहले क्या बदलना चाहते हो?",
+      "अब नौकरी पर ध्यान है। किस तरह का काम करना चाहते हो?",
       "नौकरी को प्राथमिकता देने के बाद अब कैसा लग रहा है?",
     ],
   },
 };
+
+function knownWorkPreference(value) {
+  const latest = [
+    value.query,
+    ...(value.history ?? [])
+      .filter((t) => t.role === "user")
+      .toReversed()
+      .map((t) => t.text),
+  ].find((text) => /software (?:developer|engineer)|\b(?:sales|marketing)\b/i.test(text));
+  return Boolean(latest && !/\b(?:nahi|nahin|not|no longer)\b/i.test(latest));
+}
 
 export function concernFallback(value, concern) {
   if (!concern) {
@@ -151,16 +162,23 @@ export function concernFallback(value, concern) {
   // Use only the newest user statement for this specific fallback. Older history
   // must not turn a resolved fear into a claim about how the user feels now.
   const specific =
-    concern.kind === "family" &&
-    /papa.{0,45}(?:darr|dar lag|afraid|scared)|(?:afraid|scared).{0,30}(?:dad|father)/i.test(
-      value.query,
-    )
+    concern.kind === "job_focus" && knownWorkPreference(value)
       ? {
-          hinglish: "Papa se baat karne ka darr hai. Unke kis reaction ki sabse zyada fikr hai?",
-          english: "Talking to your dad feels scary. What reaction are you most worried about?",
-          hindi: "पापा से बात करने में डर लग रहा है। उनकी किस प्रतिक्रिया की सबसे ज़्यादा चिंता है?",
+          hinglish:
+            "Kaam ki direction toh clear hai. Is field mein aapko sabse zyada kya pasand aata hai?",
+          english: "You have a direction in mind. What interests you most about this kind of work?",
+          hindi: "काम की दिशा तो तय है। इस क्षेत्र में आपको सबसे ज़्यादा क्या पसंद आता है?",
         }[language]
-      : null;
+      : concern.kind === "family" &&
+          /papa.{0,45}(?:darr|dar lag|afraid|scared)|(?:afraid|scared).{0,30}(?:dad|father)/i.test(
+            value.query,
+          )
+        ? {
+            hinglish: "Papa se baat karne ka darr hai. Unke kis reaction ki sabse zyada fikr hai?",
+            english: "Talking to your dad feels scary. What reaction are you most worried about?",
+            hindi: "पापा से बात करने में डर लग रहा है। उनकी किस प्रतिक्रिया की सबसे ज़्यादा चिंता है?",
+          }[language]
+        : null;
   return (
     [specific, ...(options[concern.kind]?.[language] ?? [])]
       .filter(Boolean)
@@ -183,7 +201,7 @@ export function ignoresKnownConcern(question, concern, value = {}) {
     time: /time|routine|din|day|schedule|waqt|samay|shift|ghanta|hour|padhai|study|workload|समय|दिन/i,
     family:
       /family|ghar|partner|parents|mummy|papa|baat|conversation|speak|talk|explaining|घर|बात/i,
-    job_focus: /job|work|career|kaam|skill|naukri|काम/i,
+    job_focus: /job|work|career|kaam|skill|naukri|field|interview|application|काम|क्षेत्र/i,
   }[concern.kind];
   // Natural continuations use pronouns: "Fees ka pressure hai. Iske liye koi
   // madad mil sakti hai?" Require a grounded opening, not repeated topic words.
@@ -202,6 +220,16 @@ export function ignoresKnownConcern(question, concern, value = {}) {
     value.query ?? "",
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
   ].join("\n");
+  if (
+    concern.kind === "job_focus" &&
+    knownWorkPreference(value) &&
+    /(?:kis|kaun|what|which).{0,15}(?:tarah|kind|type|job|work)|किस तरह का काम/i.test(finalQuestion)
+  ) {
+    // Asking why a known role appeals is different from asking them to choose it again.
+    if (!/interests|pasand|पसंद/i.test(finalQuestion)) {
+      return true;
+    }
+  }
   if (
     concern.kind === "fees" &&
     /(?:fees?|payment).{0,35}(?:next week|tomorrow|kal|agle hafte|due|\d)/i.test(userEvidence) &&

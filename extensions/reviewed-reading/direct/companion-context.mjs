@@ -2,7 +2,8 @@
 const TOPICS = {
   education:
     /\beduc[a-z]*\b|\b(?:study|studies|studying|exam|course|college|MBA|BTech|BCA|MCA|BBA|MBBS|padhai)\b|पढ़ाई|शिक्षा|परीक्षा/i,
-  career: /\b(?:career|job|work|naukri|office|boss|promotion|night shifts?)\b|नौकरी|करियर|काम/i,
+  career:
+    /\b(?:career|job|work|naukri|office|boss|promotion|night shifts?|software developer|software engineer|sales|marketing|interviews?|applications?)\b|नौकरी|करियर|काम|इंटरव्यू/i,
   finance:
     /\b(?:pais[aeo]*|money|financ[a-z]*|income|salary|debt|loan|fees?|EMI|rent|savings)\b|पैस|धन|कर्ज/i,
   relationship:
