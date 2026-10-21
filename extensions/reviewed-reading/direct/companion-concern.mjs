@@ -188,7 +188,17 @@ export function concernFallback(value, concern) {
           !(paymentKnown && q === options.fees[language]?.[0]) &&
           !ignoresKnownConcern(q, concern, value) &&
           !previous.some((old) => old.includes(q.toLowerCase())),
-      ) ?? null
+      ) ??
+    (paymentKnown
+      ? {
+          hinglish:
+            "Fees ki deadline ka pressure hai. Abhi sab ek saath suljhana zaroori nahi; apni baat aaram se keh sakte ho.",
+          english:
+            "There is pressure from the fees deadline. You do not have to sort everything out at once; take your time talking it through.",
+          hindi:
+            "फीस की समय सीमा का दबाव है। अभी सब एक साथ सुलझाना ज़रूरी नहीं; अपनी बात आराम से कह सकते हो।",
+        }[language]
+      : null)
   );
 }
 

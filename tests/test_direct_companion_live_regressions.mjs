@@ -5,6 +5,24 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test("exhausted fee questions retain the known concern instead of restarting broadly", async () => {
+  const closing = await check(
+    "Ghar se financial help nahi mil sakti.",
+    [
+      user("Agle hafte fees bharni hai"),
+      {
+        role: "assistant",
+        text:
+          reading +
+          "\n\nFees wali baat mein ab kis tarah ka saath chahiye, baat karna ya milkar options sochna?",
+      },
+    ],
+    new Error("writer unavailable"),
+  );
+  assert.match(closing, /fees.*deadline/i);
+  assert.doesNotMatch(closing, /sabse zaroori|payment kareeb|kab/i);
+});
+
 void test("job closing cannot smuggle in unrelated family context", async () => {
   const closing = await check(
     "MBA filhaal chhod diya hai, pehle job chahiye.",
