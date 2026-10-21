@@ -148,13 +148,28 @@ export function concernFallback(value, concern) {
       userEvidence,
     );
   // Never recycle a specific question that may already have been answered.
+  // Use only the newest user statement for this specific fallback. Older history
+  // must not turn a resolved fear into a claim about how the user feels now.
+  const specific =
+    concern.kind === "family" &&
+    /papa.{0,45}(?:darr|dar lag|afraid|scared)|(?:afraid|scared).{0,30}(?:dad|father)/i.test(
+      value.query,
+    )
+      ? {
+          hinglish: "Papa se baat karne ka darr hai. Unke kis reaction ki sabse zyada fikr hai?",
+          english: "Talking to your dad feels scary. What reaction are you most worried about?",
+          hindi: "पापा से बात करने में डर लग रहा है। उनकी किस प्रतिक्रिया की सबसे ज़्यादा चिंता है?",
+        }[language]
+      : null;
   return (
-    options[concern.kind]?.[language]?.find(
-      (q, index) =>
-        !(paymentKnown && index === 0) &&
-        !ignoresKnownConcern(q, concern, value) &&
-        !previous.some((old) => old.includes(q.toLowerCase())),
-    ) ?? null
+    [specific, ...(options[concern.kind]?.[language] ?? [])]
+      .filter(Boolean)
+      .find(
+        (q) =>
+          !(paymentKnown && q === options.fees[language]?.[0]) &&
+          !ignoresKnownConcern(q, concern, value) &&
+          !previous.some((old) => old.includes(q.toLowerCase())),
+      ) ?? null
   );
 }
 
@@ -170,7 +185,17 @@ export function ignoresKnownConcern(question, concern, value = {}) {
       /family|ghar|partner|parents|mummy|papa|baat|conversation|speak|talk|explaining|घर|बात/i,
     job_focus: /job|work|career|kaam|skill|naukri|काम/i,
   }[concern.kind];
-  if (/[?？]$/.test(finalQuestion) && related && !related.test(finalQuestion)) {
+  // Natural continuations use pronouns: "Fees ka pressure hai. Iske liye koi
+  // madad mil sakti hai?" Require a grounded opening, not repeated topic words.
+  const groundedContinuation =
+    related?.test(question.slice(0, question.length - finalQuestion.length)) &&
+    /\b(?:iske|isme|uske|unke|unse|isse|that|this|their|them)\b|इसके|उनसे|उनकी/i.test(finalQuestion);
+  if (
+    /[?？]$/.test(finalQuestion) &&
+    related &&
+    !related.test(finalQuestion) &&
+    !groundedContinuation
+  ) {
     return true;
   }
   const userEvidence = [

@@ -6,7 +6,7 @@ const TOPICS = {
   finance:
     /\b(?:pais[aeo]*|money|financ[a-z]*|income|salary|debt|loan|fees?|EMI|rent|savings)\b|पैस|धन|कर्ज/i,
   relationship:
-    /\b(?:gf|bf|sha+di|marriage|married|partner|crush|relationship|rishte?|family|parents|girlfriend|boyfriend)\b|ghar wal|शादी|रिश्त|परिवार|घरवाल/i,
+    /\b(?:gf|bf|sha+di|marriage|married|partner|crush|relationship|rishte?|family|parents|girlfriend|boyfriend|mummy|papa|mom|dad|mother|father)\b|ghar wal|शादी|रिश्त|परिवार|घरवाल|मम्मी|पापा/i,
   wellbeing: /\b(?:stress|tension|sad|udaas|lonely|pareshan|health|sleep)\b|तनाव|परेशान|सेहत|नींद/i,
   relocation: /\b(?:relocat[a-z]*|moving|abroad|ghar badal|shift house)\b|घर बदल/i,
 };
@@ -55,8 +55,17 @@ function rejectedDetail(text, value) {
   ];
   const detail = /\bMBA\b/i;
   const latest = statements.find((statement) => detail.test(statement));
+  // Acknowledge a stopped course without treating it as an ongoing activity.
+  // Keep this narrow: the question must move to work, not back to study.
+  const acknowledgesChange =
+    /\bMBA\s+(?:chhod|chod|quit|cancel)|(?:quit|stopped|left)\s+(?:my\s+|your\s+)?MBA/i.test(
+      text,
+    ) &&
+    /(?:ab|now|then).{0,35}(?:job|work|career)|(?:job|work|career).{0,35}\?/i.test(text) &&
+    !/padhai|stud(?:y|ies|ying)|course|degree/i.test(text);
   return (
     detail.test(text) &&
+    !acknowledgesChange &&
     /\bMBA\s+(?:nahi|nahin|cancel|chhod|chod)|\b(?:quit|stopped)\s+(?:my\s+)?MBA|\b(?:not|no longer)\s+(?:doing|pursuing|planning)\s+(?:an?\s+)?MBA/i.test(
       latest ?? "",
     )
@@ -112,7 +121,23 @@ export function unsupportedClosingDetail(question, value, facts) {
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
     ...facts,
   ].join("\n");
+  const statements = [
+    value.query,
+    ...(value.history ?? [])
+      .filter((t) => t.role === "user")
+      .toReversed()
+      .map((t) => t.text),
+    ...facts,
+  ];
+  const inventedConversation = ["mummy", "papa"].some((person) => {
+    const latest = statements.find((text) => new RegExp(`\\b${person}\\b`, "i").test(text));
+    return (
+      new RegExp(`${person}.{0,20}baat kar sak`, "i").test(latest ?? "") &&
+      new RegExp(`${person}.{0,20}(?:baat ho rahi|baat ho gayi|baat kar li)`, "i").test(question)
+    );
+  });
   return (
+    inventedConversation ||
     rejectedDetail(question, value) ||
     [/\bMBA\b/i, /night shifts?|raat ki shift/i, /\bEMI\b/i].some(
       (detail) => detail.test(question) && !detail.test(evidence),

@@ -90,7 +90,7 @@ export async function contextualClosing(
   const notes = companionNotes(facts, focus, value).map((fact) => redact(fact).slice(0, 1000));
   const concern = companionConcern(value, notes);
   const sharingFeelings =
-    /\b(?:udaas|sad|upset|lonely|vent|mann bhaari|khush|happy|excited|job mil gayi|pass ho gaya|pass ho gayi)\b/i.test(
+    /\b(?:udaas|sad|upset|lonely|vent|mann bhaari|khush|happy|excited|job mil gayi|pass ho gaya|pass ho gayi|thak gaya|thak gayi|exhausted)\b/i.test(
       value.query,
     ) && !/[?？]|\b(?:kab|kyu|kyun|why|how|bata[a-z]*|tell|explain)\b/i.test(value.query);
   const requireQuestion = (boundaries.length >= 1 || focus.topics.length > 0) && !sharingFeelings;
@@ -99,6 +99,34 @@ export async function contextualClosing(
       /\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)
     ) {
       return base;
+    }
+    if (sharingFeelings) {
+      const celebrating =
+        /\b(?:khush|happy|excited|job mil gayi|pass ho gaya|pass ho gayi)\b/i.test(value.query) &&
+        !/\b(?:nahi|nahin|not|unhappy)\b/i.test(value.query);
+      const language =
+        /\b(?:reply|answer|respond) in (english|hindi)\b/i.exec(value.query)?.[1]?.toLowerCase() ??
+        { en: "english", hi: "hindi" }[value.language?.toLowerCase()] ??
+        value.language?.toLowerCase();
+      const support = (
+        celebrating
+          ? {
+              hinglish:
+                "Yeh sunkar achha laga! Is khushi ko mehsoos karne ke liye thoda waqt toh banta hai.",
+              english: "I'm glad to hear that! Give yourself a little time to enjoy this moment.",
+              hindi: "यह सुनकर अच्छा लगा! इस खुशी को महसूस करने के लिए थोड़ा वक्त तो बनता है।",
+            }
+          : {
+              hinglish:
+                "Abhi sab suljhana zaroori nahi. Jitni baat kehna chahein, apne tareeke se keh sakte hain.",
+              english:
+                "You don't have to sort everything out right now. Share as much or as little as you feel like.",
+              hindi: "अभी सब सुलझाना ज़रूरी नहीं। जितनी बात कहना चाहें, अपने तरीके से कह सकते हैं।",
+            }
+      )[language];
+      if (support) {
+        return base + "\n\n" + support;
+      }
     }
     const question =
       concernFallback(value, concern) ??
@@ -110,6 +138,8 @@ export async function contextualClosing(
     personaInstruction(value) +
     "Write only the third chat bubble, as a warm, attentive friend. The astrology reading is already complete: do not rewrite, correct, extend or repeat it. Do not produce predictions, dates, chart explanations, or another summary. " +
     "Reply to what the user just shared, including their answer to your previous follow-up; resolve the current message first. Use one relevant detail from recent user messages or saved_user_facts naturally. Current corrections override older facts. Do not ask for information already supplied. If the user told you the problem or answered your question, acknowledge it and continue with something still unresolved. When known_concern is present, do not ask again what is wrong. " +
+    "Prefer the specific person or difficulty the user named over the broad topic: if they can talk to mummy but fear papa's reaction, continue with that fear, not 'what is difficult with family?' or 'who can you talk to?'. If they already described the feared reaction, do not ask them to name it again. This is an example of continuity, not a fact to copy into other conversations. " +
+    "Preserve what has actually happened: 'can talk to mummy' does not mean they have spoken or that mummy agrees. 'Want a job' does not mean they already have one. Acknowledge only the stated fact, not an assumed next step. " +
     "Use one or two short sentences: a specific acknowledgment and, when useful, one easy conversational question. Aim for 15 to 30 words. At most 45 words and 280 characters in one paragraph. Keep the warmth instead of turning every reply into an interview. A supportive statement alone is appropriate when they are venting, celebrating, or do not want questions. Avoid repeating the same acknowledgment across turns. Use plain everyday language, not poetic flattery about magic, destiny, or being special. " +
     "Stay with the current subject; do not pull an unrelated old memory into it. Assistant history contains prior companion bubbles only, not evidence about the user's life. Never ask the user to predict the future or answer their original astrology question. Do not invent feelings, circumstances or memories, approve major decisions as definitely right, give unrequested plans, or promise outcomes. " +
     "Match the requested language and persona grammar. Prefer aap, not tu/tere or pet names unless invited. Do not announce your presence: no 'main sun rahi hoon', 'main yahan hoon', 'I am listening' or 'I am here'. No introductions, service menus, 'want more detail?', or stock motivational lines. " +
