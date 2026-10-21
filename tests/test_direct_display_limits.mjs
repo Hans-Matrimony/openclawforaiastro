@@ -10,6 +10,19 @@ import {
 
 const count = (text) => text.trim().split(/\s+/u).filter(Boolean).length;
 
+void test("display removes only blocked whole words across all bubbles, preserving numbers and claims", () => {
+  const raw =
+    "Prashna chart mein 337 bindus hai, jo strong hai. Jupiter retrograde hai.\n\n1 BINDU; 2 Bindus; RETROGRADE, combust.\n\nBindu ko lekar kya soch rahe ho?";
+  assert.equal(
+    formatDisplayReply(raw),
+    "Prashna chart mein 337 hai, jo strong hai. Jupiter hai.\n\n1; 2;,.\n\nko lekar kya soch rahe ho?",
+  );
+  assert.equal(
+    formatDisplayReply("binduism retrograded precombustion 2027"),
+    "binduism retrograded precombustion 2027",
+  );
+});
+
 void test("display removes prose dashes but preserves dates, negatives, links, code and bubble boundaries", () => {
   assert.equal(
     formatDisplayReply("Shaadi — dheere hogi.\n\n2027–2029.\n\nKaam - kaisa hai?"),

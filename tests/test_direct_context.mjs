@@ -387,7 +387,7 @@ void test("a genuinely incomplete reading may ask a short clarification without 
 void test("display terms are removed from fresh and cached answers without changing chart evidence or bubbles", async () => {
   const evidence = "Saturn retrograde; 31 bindus; Mercury combust.";
   const raw =
-    "Saturn RETROGRADE hai; 31 bindus hain aur Mercury Combust hai.\n\n2027 ke baad mauka hai.";
+    "Saturn RETROGRADE hai; 31 bindus hain aur Mercury Combust hai.\n\n2027 ke baad mauka hai; 1 bindu hai.";
   const closing = "Padhai mein abhi sabse badi pareshani kya hai?";
   const cache = createReplyCache();
   let upstream = 0;
@@ -424,7 +424,7 @@ void test("display terms are removed from fresh and cached answers without chang
     );
     assert.deepEqual(result.reply.split("\n\n"), [
       "Saturn hai; 31 hain aur Mercury hai.",
-      "2027 ke baad mauka hai.",
+      "2027 ke baad mauka hai; 1 hai.",
       closing,
     ]);
     assert.equal(result.answer_model_calls, cached ? 2 : 3);

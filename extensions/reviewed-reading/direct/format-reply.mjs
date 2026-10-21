@@ -77,7 +77,7 @@ export function removeReplyDashes(reply) {
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
   return reply.replace(
-    /([ \t]*)\b(?:retrograde|bindus|combust)\b([ \t]*)/gi,
+    /([ \t]*)\b(?:retrograde|bindus?|combust)\b([ \t]*)/gi,
     (_match, before, after) => (before && after ? " " : ""),
   );
 }
