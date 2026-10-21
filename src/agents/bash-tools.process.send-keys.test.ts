@@ -1,5 +1,4 @@
-import { afterEach, expect, test } from "vitest";
-import { sleep } from "../utils";
+import { afterEach, expect, test, vi } from "vitest";
 import { resetProcessRegistryForTests } from "./bash-process-registry";
 import { createExecTool } from "./bash-tools.exec";
 import { createProcessTool } from "./bash-tools.process";
@@ -13,7 +12,7 @@ test("process send-keys encodes Enter for pty sessions", async () => {
   const processTool = createProcessTool();
   const result = await execTool.execute("toolcall", {
     command:
-      'node -e "const dataEvent=String.fromCharCode(100,97,116,97);process.stdin.on(dataEvent,d=>{process.stdout.write(d);if(d.includes(10)||d.includes(13))process.exit(0);});"',
+      'node -e "const dataEvent=String.fromCharCode(100,97,116,97);process.stdin.on(dataEvent,d=>{process.stdout.write(d);if(d.includes(10)||d.includes(13))process.exit(0);});process.stdout.write(String.fromCharCode(82,69,65,68,89));"',
     pty: true,
     background: true,
   });
@@ -21,6 +20,18 @@ test("process send-keys encodes Enter for pty sessions", async () => {
   expect(result.details.status).toBe("running");
   const sessionId = result.details.sessionId;
   expect(sessionId).toBeTruthy();
+
+  // Wait until the child has registered stdin before sending Enter. A spawned
+  // Windows process is not necessarily ready under parallel test load.
+  await vi.waitFor(
+    async () => {
+      const poll = await processTool.execute("toolcall", { action: "poll", sessionId });
+      const details = poll.details as { status?: string; aggregated?: string };
+      expect(details.status).toBe("running");
+      expect(details.aggregated ?? "").toContain("READY");
+    },
+    { timeout: 30_000, interval: 50 },
+  );
 
   await processTool.execute("toolcall", {
     action: "send-keys",
@@ -28,19 +39,15 @@ test("process send-keys encodes Enter for pty sessions", async () => {
     keys: ["h", "i", "Enter"],
   });
 
-  const deadline = Date.now() + (process.platform === "win32" ? 4000 : 2000);
-  while (Date.now() < deadline) {
-    await sleep(50);
-    const poll = await processTool.execute("toolcall", { action: "poll", sessionId });
-    const details = poll.details as { status?: string; aggregated?: string };
-    if (details.status !== "running") {
+  await vi.waitFor(
+    async () => {
+      const poll = await processTool.execute("toolcall", { action: "poll", sessionId });
+      const details = poll.details as { status?: string; aggregated?: string };
       expect(details.status).toBe("completed");
       expect(details.aggregated ?? "").toContain("hi");
-      return;
-    }
-  }
-
-  throw new Error("PTY session did not exit after send-keys");
+    },
+    { timeout: 30_000, interval: 50 },
+  );
 });
 
 test("process submit sends Enter for pty sessions", async () => {
@@ -48,7 +55,7 @@ test("process submit sends Enter for pty sessions", async () => {
   const processTool = createProcessTool();
   const result = await execTool.execute("toolcall", {
     command:
-      'node -e "const dataEvent=String.fromCharCode(100,97,116,97);const submitted=String.fromCharCode(115,117,98,109,105,116,116,101,100);process.stdin.on(dataEvent,d=>{if(d.includes(10)||d.includes(13)){process.stdout.write(submitted);process.exit(0);}});"',
+      'node -e "const dataEvent=String.fromCharCode(100,97,116,97);const submitted=String.fromCharCode(115,117,98,109,105,116,116,101,100);process.stdin.on(dataEvent,d=>{if(d.includes(10)||d.includes(13)){process.stdout.write(submitted);process.exit(0);}});process.stdout.write(String.fromCharCode(82,69,65,68,89));"',
     pty: true,
     background: true,
   });
@@ -57,22 +64,30 @@ test("process submit sends Enter for pty sessions", async () => {
   const sessionId = result.details.sessionId;
   expect(sessionId).toBeTruthy();
 
+  // Wait until the child has registered stdin before sending Enter. A spawned
+  // Windows process is not necessarily ready under parallel test load.
+  await vi.waitFor(
+    async () => {
+      const poll = await processTool.execute("toolcall", { action: "poll", sessionId });
+      const details = poll.details as { status?: string; aggregated?: string };
+      expect(details.status).toBe("running");
+      expect(details.aggregated ?? "").toContain("READY");
+    },
+    { timeout: 30_000, interval: 50 },
+  );
+
   await processTool.execute("toolcall", {
     action: "submit",
     sessionId,
   });
 
-  const deadline = Date.now() + (process.platform === "win32" ? 4000 : 2000);
-  while (Date.now() < deadline) {
-    await sleep(50);
-    const poll = await processTool.execute("toolcall", { action: "poll", sessionId });
-    const details = poll.details as { status?: string; aggregated?: string };
-    if (details.status !== "running") {
+  await vi.waitFor(
+    async () => {
+      const poll = await processTool.execute("toolcall", { action: "poll", sessionId });
+      const details = poll.details as { status?: string; aggregated?: string };
       expect(details.status).toBe("completed");
       expect(details.aggregated ?? "").toContain("submitted");
-      return;
-    }
-  }
-
-  throw new Error("PTY session did not exit after submit");
+    },
+    { timeout: 30_000, interval: 50 },
+  );
 });
