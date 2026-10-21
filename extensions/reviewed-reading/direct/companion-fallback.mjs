@@ -1,5 +1,6 @@
 import { fallbackGrammar } from "./persona.mjs";
 import { questionScope } from "./question-scope.mjs";
+import { companionFocus, companionNotes } from "./companion-context.mjs";
 // Used only when the companion writer fails or offers no usable closing.
 // Topic acknowledgments do not infer personal circumstances from chart claims.
 export function companionFallback(value, facts = [], { requireQuestion = false } = {}) {
@@ -13,7 +14,7 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
   let personal = personalTopic.test(value.query);
   const topics =
     /\b(?:gf|bf)\b|sha+di|marriage|relationship|partner|crush|girl\s*friend|boy\s*friend|career|job|naukri|work|educ[a-z]*|padhai|study|exam|pais[aeo]|financ[a-z]*|money|शादी|रिश्त|करियर|नौकरी|शिक्षा|पढ़ाई|पैस|धन/i;
-  let topicQuery = value.query;
+  let topicQuery = companionFocus(value).user_topic;
   if (!topics.test(topicQuery) && /\b(?:sabhi|sab kuch|everything|all these)\b/i.test(topicQuery)) {
     personal = true; // A concern about all areas of life is not just the last GF/career topic.
   }
@@ -49,14 +50,18 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
     }
     personal = true; // Completed readings on other topics also retain a conversational third bubble.
   }
-  const userContext = [
-    value.query,
-    ...(value.history ?? [])
-      .filter((turn) => turn.role === "user")
-      .slice(-10)
-      .map((turn) => turn.text),
-    ...facts,
-  ].join("\n");
+  const userContext = companionNotes(
+    [
+      value.query,
+      ...(value.history ?? [])
+        .filter((turn) => turn.role === "user")
+        .slice(-10)
+        .map((turn) => turn.text),
+      ...facts,
+    ],
+    companionFocus(value),
+    value,
+  ).join("\n");
   // Explicit corrections suppress older details in the fixed fallback. The
   // companion writer still receives all the ordered context, unchanged.
   const detail = /\b(?:nahi|nahin|not|no longer|instead)\b|नहीं/i.test(value.query)
@@ -169,34 +174,42 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
         : career
           ? "काम"
           : "अपनी ज़िंदगी";
-  return (
-    [
-      contextual?.[{ en: "english", hi: "hindi" }[language] ?? language],
-      ...options,
-      ...(requireQuestion
-        ? language === "hinglish"
+  const candidates = [
+    contextual?.[{ en: "english", hi: "hindi" }[language] ?? language],
+    ...options,
+    ...(requireQuestion
+      ? language === "hinglish"
+        ? [
+            newRelationship
+              ? "Naye rishte mein aapke liye sabse zaroori kya hai?"
+              : `${subject} ko lekar aapke liye abhi sabse zaroori kya hai?`,
+            `${subject} ko lekar aaj kaisa lag raha hai?`,
+          ]
+        : ["english", "en"].includes(language)
           ? [
-              newRelationship
-                ? "Naye rishte mein aapke liye sabse zaroori kya hai?"
-                : `${subject} ko lekar aapke liye abhi sabse zaroori kya hai?`,
-              `${subject} ko lekar aaj kaisa lag raha hai?`,
+              `What matters most to you about ${englishSubject} right now?`,
+              `How are you feeling about ${englishSubject} today?`,
             ]
-          : ["english", "en"].includes(language)
+          : ["hindi", "hi"].includes(language)
             ? [
-                `What matters most to you about ${englishSubject} right now?`,
-                `How are you feeling about ${englishSubject} today?`,
+                `${hindiSubject} को लेकर अभी आपके लिए सबसे ज़रूरी क्या है?`,
+                `${hindiSubject} को लेकर आज कैसा लग रहा है?`,
               ]
-            : ["hindi", "hi"].includes(language)
-              ? [
-                  `${hindiSubject} को लेकर अभी आपके लिए सबसे ज़रूरी क्या है?`,
-                  `${hindiSubject} को लेकर आज कैसा लग रहा है?`,
-                ]
-              : []
-        : []),
-    ]
-      .filter(Boolean)
-      .map((text) => fallbackGrammar(text, value))
-      .filter((text) => !requireQuestion || /[?？]\s*$/.test(text))
-      .find((text) => !previous.some((old) => old.includes(text.toLowerCase()))) ?? null
+            : []
+      : []),
+  ]
+    .filter(Boolean)
+    .map((text) => fallbackGrammar(text, value))
+    .filter(
+      (text) => (!requireQuestion || /[?？]\s*$/.test(text)) && text.split(/\s+/u).length <= 20,
+    );
+  // Prefer unused questions, then the least recently used. Exhausting the small
+  // emergency pool must not silently remove the companion bubble.
+  return (
+    candidates.toSorted(
+      (a, b) =>
+        previous.findLastIndex((old) => old.includes(a.toLowerCase())) -
+        previous.findLastIndex((old) => old.includes(b.toLowerCase())),
+    )[0] ?? null
   );
 }

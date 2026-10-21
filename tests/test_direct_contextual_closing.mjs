@@ -58,7 +58,9 @@ void test("reported ordinary questions reach companion writer without chart call
       },
     );
     assert.equal(calls, 2);
-    assert.equal(result.reply, "Existing answer.\n\nAaram se batao, jo mann mein hai.");
+    assert.ok(result.reply.startsWith("Existing answer.\n\n"));
+    assert.match(result.reply.split("\n\n")[1], /\?$/);
+    assert.match(result.reply.split("\n\n")[1], query.startsWith("educ") ? /Padhai/ : /Paise/);
   }
 });
 

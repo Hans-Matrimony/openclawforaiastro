@@ -6,6 +6,7 @@ import {
   formatDisplayReply,
   limitBubbleWords,
   MAX_BUBBLE_WORDS,
+  MAX_REPLY_WORDS,
 } from "../extensions/reviewed-reading/direct/format-reply.mjs";
 
 const count = (text) => text.trim().split(/\s+/u).filter(Boolean).length;
@@ -32,8 +33,8 @@ void test("display removes prose dashes but preserves dates, negatives, links, c
   assert.equal(formatDisplayReply(protectedText), protectedText);
 });
 
-void test("90 words are unchanged; overlong bubbles retain whole sentences and short verdict/follow-up", () => {
-  const exact = Array(90).fill("word").join(" ");
+void test("50 words are unchanged; overlong bubbles retain whole sentences and short verdict/follow-up", () => {
+  const exact = Array(50).fill("word").join(" ");
   assert.equal(limitBubbleWords(exact), exact);
   const first = "2029 mein mauka hai. " + Array(45).fill("reason").join(" ") + ".";
   const overflow = first + " " + Array(60).fill("extra").join(" ") + ".";
@@ -51,16 +52,35 @@ void test("90 words are unchanged; overlong bubbles retain whole sentences and s
 void test("one overlong sentence ends at a word boundary and every prose bubble is independently capped", () => {
   const words = Array.from({ length: 150 }, (_, i) => "word" + i);
   const result = limitBubbleWords(words.join(" ") + "\n\n" + words.join(" "));
-  for (const bubble of result.split("\n\n")) {
-    assert.equal(count(bubble), 90);
-    assert.ok(bubble.endsWith("word89…"));
-    assert.ok(!bubble.includes("word90"));
+  for (const [index, bubble] of result.split("\n\n").entries()) {
+    assert.equal(count(bubble), index === 0 ? 50 : 40);
+    assert.ok(bubble.endsWith(index === 0 ? "word49…" : "word39…"));
+    assert.ok(!bubble.includes("word50"));
+  }
+  assert.equal(count(result), MAX_REPLY_WORDS);
+});
+
+void test("the total budget reserves a complete third question even with two oversized reading bubbles", () => {
+  const explanation = Array(100).fill("reason").join(" ");
+  const verdict = Array(70).fill("verdict").join(" ");
+  const closing =
+    "MBA aur night shift ko saath manage karne mein abhi sabse mushkil kya lag raha hai?";
+  const result = formatDisplayReply(explanation + "\n\n" + verdict + "\n\n" + closing);
+  assert.equal(count(result), 90);
+  const parts = result.split("\n\n");
+  assert.equal(parts.length, 3);
+  assert.equal(parts[2], closing);
+  assert.ok(parts.every((part) => count(part) <= 50));
+  for (let size = 1; size <= 8; size++) {
+    const output = limitBubbleWords(Array(size).fill(explanation).join("\n\n"));
+    assert.ok(count(output) <= 90);
+    assert.ok(output.split("\n\n").every((part) => count(part) <= 50));
   }
 });
 
 void test("the cap is applied after dash normalization and does not corrupt structured responses", () => {
-  const reply = Array(88).fill("word").join(" ") + " 2027–2029.";
-  assert.ok(count(formatDisplayReply(reply)) <= 90);
+  const reply = Array(48).fill("word").join(" ") + " 2027–2029.";
+  assert.ok(count(formatDisplayReply(reply)) <= 50);
   for (const structured of [
     JSON.stringify({ text: Array(150).fill("word").join(" ") }),
     "```json\n" + Array(150).fill("word").join(" ") + "\n```",
@@ -73,7 +93,7 @@ void test("the cap is applied after dash normalization and does not corrupt stru
 void test("fresh and cached answers share the cap while tool evidence and a separate companion remain intact", async () => {
   const cache = createReplyCache();
   const evidence = "Saturn retrograde, 31 bindus and Mercury combust are raw tool evidence.";
-  const first = "Career ka mauka 2029 mein hai. " + Array(45).fill("reason").join(" ") + ".";
+  const first = "Career ka mauka 2029 mein hai. " + Array(40).fill("reason").join(" ") + ".";
   const long = first + " " + Array(60).fill("extra").join(" ") + ".\n\n2029–2032 mein mauka hai.";
   const closing = "Kaam ko lekar abhi sabse zyada dikkat kis baat mein hai?";
   let writers = 0,
@@ -100,6 +120,7 @@ void test("fresh and cached answers share the cap while tool evidence and a sepa
         return completion({ role: "assistant", content: closing });
       }
       assert.match(body.messages[0].content, /hard maximum of 90 words/);
+      assert.match(body.messages[0].content, /hard maximum of 50 words/);
       if (body.messages.at(-1).role !== "tool") {
         return completion({
           role: "assistant",
@@ -128,7 +149,8 @@ void test("fresh and cached answers share the cap while tool evidence and a sepa
   for (const cached of [false, true]) {
     const result = await directAnswer(input, options);
     assert.deepEqual(result.reply.split("\n\n"), [first, "2029 to 2032 mein mauka hai.", closing]);
-    assert.ok(result.reply.split("\n\n").every((bubble) => count(bubble) <= 90));
+    assert.ok(result.reply.split("\n\n").every((bubble) => count(bubble) <= 50));
+    assert.ok(count(result.reply) <= 90);
     assert.equal(result.answer_cache_hits, cached ? 1 : 0);
     assert.equal(result.answer_model_calls, cached ? 2 : 3);
   }

@@ -110,7 +110,7 @@ export async function readingContext(
       "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
   prompt +=
     "\n\n# Simple user-facing wording\n" +
-    "Each user-facing paragraph or bubble has a hard maximum of 90 words. This overrides any higher word allowance elsewhere. Use complete concise sentences and prioritize the direct answer and strongest relevant tool-supported reasons; do not add filler to reach the limit. " +
+    "Each user-facing paragraph or bubble has a hard maximum of 50 words, and the complete reply including the companion has a hard maximum of 90 words. For a reading, use at most 50 words for the explanation, 20 for the short verdict, and reserve 20 for the separate companion. These limits override higher word allowances elsewhere. Write complete concise sentences, keeping the direct answer and strongest tool-supported reasons; no filler. " +
     "Do not display bindu totals, bindu scores, ashtakavarga numbers, or the words bindu, bindus, retrograde, combust, vakri or their Hindi technical equivalents. Explain only the relevant practical meaning already supported by the tools in familiar language. Do not substitute another technical label. Do not turn a technical placement into a new prediction or claim. Keep the second paragraph to one short direct answer; all companionship belongs in the third paragraph. Raw structured output requested by the user is exempt.\n";
   prompt +=
     "\n\n# Active question scope\n" +
