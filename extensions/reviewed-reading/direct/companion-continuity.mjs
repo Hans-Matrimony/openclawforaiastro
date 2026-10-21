@@ -46,6 +46,25 @@ export function continuityFallback(value) {
 }
 
 export function repeatsAnsweredConcern(question, value) {
+  // Compare the actual question as well as the full bubble. Changing the
+  // acknowledgment must not disguise asking the same question again.
+  const core = (text) =>
+    text
+      .toLowerCase()
+      .match(/\b(?:kya|kis|kaun|what|which|when|how|would|could|do|have)\b[^?]*\?\s*$/)?.[0]
+      ?.replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  const current = core(question);
+  if (
+    current &&
+    current.split(/\s+/).length >= 6 &&
+    (value.history ?? [])
+      .filter((turn) => turn.role === "assistant")
+      .slice(-3)
+      .some((turn) => core(turn.text.split(/\n\s*\n/).at(-1)) === current)
+  ) {
+    return true;
+  }
   // Latest explicit refusal concern: do not ask for the feared reaction again.
   return (
     /\b(?:papa|dad|father)\b.{0,35}(?:mana kar|refus|reject)/i.test(value.query) &&

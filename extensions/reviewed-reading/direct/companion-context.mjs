@@ -98,7 +98,8 @@ export function closingDrifts(question, focus, value, facts) {
   if (!focus.topics.length || !topics.length) {
     return false;
   }
-  if (topics.some((topic) => focus.topics.includes(topic))) {
+  const additionalTopics = topics.filter((topic) => !focus.topics.includes(topic));
+  if (!additionalTopics.length) {
     return false;
   }
   const userEvidence = [
@@ -107,13 +108,19 @@ export function closingDrifts(question, focus, value, facts) {
     ...facts,
   ];
   // A user-established bridge (night shifts alongside MBA, for example) is valid.
-  return !userEvidence.some((text) => {
-    const known = companionTopics(text);
-    return (
-      known.some((topic) => focus.topics.includes(topic)) &&
-      known.some((topic) => topics.includes(topic))
-    );
-  });
+  return additionalTopics.some(
+    (topic) =>
+      !userEvidence.some((text) => {
+        const known = companionTopics(text);
+        const workStudy =
+          ["career", "education"].includes(topic) &&
+          focus.topics.some((current) => ["career", "education"].includes(current));
+        return (
+          (workStudy || known.some((current) => focus.topics.includes(current))) &&
+          known.includes(topic)
+        );
+      }),
+  );
 }
 
 export function unsupportedClosingDetail(question, value, facts) {

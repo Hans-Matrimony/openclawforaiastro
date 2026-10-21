@@ -55,7 +55,7 @@ export async function contextualClosing(
   } else if (!boundaries.length) {
     base = reply.replace(generic, "").trimEnd();
   }
-  if (!base || /[?？]\s*$/.test(base)) {
+  if (!base || (/[?？]\s*$/.test(base) && !listeningOnly(value.query))) {
     return reply;
   }
   // Explicit listening and good news should not become another interview.
@@ -68,10 +68,16 @@ export async function contextualClosing(
       const socialParts = base.split(/\r?\n+/).filter((part) => part.trim());
       const stockOnly =
         listeningOnly(value.query) &&
-        socialParts.every(
-          (part) =>
-            stockPresence.test(part) && isCompanionParagraph(part.replace(stockPresence, "")),
-        );
+        socialParts.some((part) => stockPresence.test(part)) &&
+        socialParts.every((part) => {
+          const clean = part.replace(stockPresence, "");
+          return (
+            isCompanionParagraph(clean) &&
+            !/\b(?:20\d{2}|dasha|antardasha|transit|kundli|saturn|jupiter|rahu|ketu|shani|venus|mercury|mars|moon|sun|house)\b/i.test(
+              clean,
+            )
+          );
+        });
       return (stockOnly ? "" : base + "\n\n") + fallbackGrammar(support, value);
     }
   }

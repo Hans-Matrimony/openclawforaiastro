@@ -5,6 +5,41 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test("job closing cannot smuggle in unrelated family context", async () => {
+  const closing = await check(
+    "MBA filhaal chhod diya hai, pehle job chahiye.",
+    [user("Mummy maan gayi, papa ka darr hai")],
+    "Mummy maan gayi, papa ka darr hai. Kis type ki job chahiye?",
+  );
+  assert.doesNotMatch(closing, /mummy|papa/i);
+});
+
+void test("listening preference also replaces stock social text ending in a question", async () => {
+  const reply =
+    "Main sun rahi hoon.\nMain sun rahi hoon.\n\nInterview clear hua. Kya ab halka lagta hai?";
+  const result = await contextualClosing(
+    reply,
+    { query: "Abhi advice nahi chahiye, bas baat karni hai.", language: "hinglish", history: [] },
+    {},
+  );
+  assert.doesNotMatch(result, /sun rahi|interview|\?/i);
+  assert.match(result, /koi advice nahi/);
+});
+
+void test("changing the acknowledgment cannot repeat the previous question", async () => {
+  const question = "kya koi part time option ya kisi se baat ki hai jisse thoda time mil sake?";
+  const closing = await check(
+    "Ghar se financial help nahi mil sakti.",
+    [
+      user("Agle hafte fees bharni hai"),
+      { role: "assistant", text: reading + "\n\nFees ka pressure hai, aur " + question },
+    ],
+    "Fees heavy hain aur ghar se help nahi mil rahi… " + question,
+  );
+  assert.ok(!closing.includes(question));
+  assert.match(closing, /fees/i);
+});
+
 void test("one parent's agreement does not resolve the other parent's objection", async () => {
   const { companionConcern } =
     await import("../extensions/reviewed-reading/direct/companion-concern.mjs");
