@@ -4,6 +4,7 @@ import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
 import { previousSameQuestion } from "./repeated-question.mjs";
+import { unsupportedPeriodClaim } from "./period-evidence.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
@@ -20,7 +21,12 @@ import {
   retrieveRemedies,
   normalizeRemedies,
 } from "./remedies.mjs";
-import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
+import {
+  CHART_TOOL_NAMES,
+  bareToolName,
+  requiresChartReading,
+  isOrdinaryConcern,
+} from "./reading-intent.mjs";
 import {
   questionScopeInstruction,
   mismatchedQuestionReply,
@@ -99,6 +105,11 @@ export async function directAnswer(
       JSON.stringify(knowledge).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
   }
   const generation = generationSettings(env);
+  const ordinaryConcern = isOrdinaryConcern(value.query);
+  if (ordinaryConcern) {
+    context.prompt +=
+      "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
+  }
   const previousReading = previousSameQuestion(value);
   if (previousReading) {
     context.prompt +=
@@ -110,10 +121,12 @@ export async function directAnswer(
   }
   const messages = [
     { role: "system", content: context.prompt },
-    ...value.history.map((turn) => ({
-      role: turn.role,
-      content: redactIdentity(turn.text, value.user_id),
-    })),
+    ...value.history
+      .filter((turn) => !ordinaryConcern || turn.role === "user")
+      .map((turn) => ({
+        role: turn.role,
+        content: redactIdentity(turn.text, value.user_id),
+      })),
     { role: "user", content: redactIdentity(value.query, value.user_id) },
   ];
   let nudged = false;
@@ -123,13 +136,16 @@ export async function directAnswer(
   const readingTools = new Set();
   let correctedMissingReading = false;
   let correctedQuestion = false;
+  let correctedPeriod = false;
+  const chartResults = [];
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
-      tools:
-        correctedMissingReading && readingTools.size === 0
+      tools: ordinaryConcern
+        ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
+        : correctedMissingReading && readingTools.size === 0
           ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
           : TOOLS,
       tool_choice: correctedMissingReading && readingTools.size === 0 ? "required" : "auto",
@@ -203,6 +219,7 @@ export async function directAnswer(
               CHART_TOOL_NAMES.has(bareToolName(call.function.name))
             ) {
               readingTools.add(bareToolName(call.function.name));
+              chartResults.push(content);
             }
           } catch {
             content = "Tool failed: Tool unavailable";
@@ -260,6 +277,22 @@ export async function directAnswer(
       continue;
     }
     const questionMismatch = mismatchedQuestionReply(value.query, reply);
+    if (unsupportedPeriodClaim(reply, chartResults)) {
+      if (correctedPeriod || modelCalls >= 5) {
+        reply =
+          value.language === "english"
+            ? "The returned period schedule does not support the future period I was about to name. I cannot establish an event date from that information.\n\nA future timing window is not verified."
+            : "Jo period details mili hain, unse agla period aur uski date verify nahi ho rahi. Isliye uske basis par shaadi, job ya kisi aur event ka saal batana sahi nahi hoga.\n\nAbhi future timing verify nahi hui hai.";
+      } else {
+        correctedPeriod = true;
+        messages.push({
+          role: "user",
+          content:
+            "Your proposed future antardasha is not in the returned period schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the active question with the supported current-period indication and explain briefly that an exact future window is not established by these results.",
+        });
+        continue;
+      }
+    }
     if (questionMismatch && !correctedQuestion && modelCalls < 5) {
       correctedQuestion = true;
       // Keep the same tool evidence and call budget. Do not add the rejected

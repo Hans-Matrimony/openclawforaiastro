@@ -7,6 +7,13 @@ export const CHART_TOOL_NAMES = new Set([
 
 export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
+export function isOrdinaryConcern(query) {
+  return (
+    !/[?]|\b(?:kab|when|hoga|hogi|kundli|chart|astrology|predict|horoscope|batao)\b/i.test(query) &&
+    /\b(?:pareshan|tension|worried|stressed|upset)\b/i.test(query)
+  );
+}
+
 export function requiresChartReading(query, profile) {
   if (profile.status !== "READY") {
     return false;

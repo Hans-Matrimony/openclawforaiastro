@@ -146,6 +146,8 @@ export function unsupportedClosingDetail(question, value, facts) {
   });
   return (
     inventedConversation ||
+    (/\b(?:darr lag|dar lag|afraid|scared)\b/i.test(question) &&
+      !/\b(?:darr|dar|afraid|scared|fear)\b/i.test(evidence)) ||
     rejectedDetail(question, value) ||
     [/\bMBA\b/i, /night shifts?|raat ki shift/i, /\bEMI\b/i].some(
       (detail) => detail.test(question) && !detail.test(evidence),
