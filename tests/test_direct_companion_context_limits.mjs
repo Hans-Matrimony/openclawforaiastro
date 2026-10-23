@@ -58,6 +58,33 @@ void test("night-shift work does not establish an all-night study schedule", asy
   );
 });
 
+void test("study schedule uses the latest user clause, not unrelated negation or assistant claims", () => {
+  const closing = "Studying all night sounds tiring. When can you rest?";
+  const current = { ...value, history: [{ role: "user", text: "I study all night." }] };
+  for (const query of [
+    "I study all night, but I am not tired.",
+    "I study all night and I do not work nights.",
+  ]) {
+    assert.equal(unsupportedClosingDetail(closing, { ...current, query }, []), false);
+  }
+  assert.equal(
+    unsupportedClosingDetail(closing, { ...current, query: "I don't study all night." }, []),
+    true,
+  );
+  assert.equal(
+    unsupportedClosingDetail(
+      closing,
+      {
+        ...value,
+        history: [{ role: "assistant", text: "You study all night." }],
+      },
+      [],
+    ),
+    true,
+  );
+  assert.equal(unsupportedClosingDetail(closing, value, ["User studies all night."]), false);
+});
+
 void test("a reading writer's misplaced question becomes a third bubble without inventing a verdict", async () => {
   const raw = "Existing chart explanation. Existing short answer.\n\nWould you like more detail?";
   const formatted = formatReadingReply(raw, true, { separateCompanion: true });

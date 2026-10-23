@@ -147,8 +147,12 @@ export function unsupportedClosingDetail(question, value, facts) {
   // A night job alongside study is not evidence of studying all night.
   // Match the activity and duration together, never across separate turns.
   const allNightStudy =
-    /\b(?:raat\s*bhar|poori\s*raat)\s+(?:(?:jaag|jag)\s*kar\s+)?(?:padh\w*|study\w*)\b|\b(?:study\w*|revis\w*)\s+(?:all\s+night|through\s+the\s+night)\b/i;
-  const latestStudy = statements.find((text) => allNightStudy.test(text));
+    /\b(?:raat\s*bhar|poori\s*raat)\s+(?:(?:jaag|jag)\s*kar\s+)?(?:padh\w*|stud(?:y|ies|ying))\b|\b(?:stud(?:y|ies|ying)|revis\w*)\s+(?:all\s+night|through\s+the\s+night)\b/i;
+  // Scope negation to the study clause: "I study all night, but I am not
+  // tired" confirms the schedule rather than denying it.
+  const latestStudy = statements
+    .flatMap((text) => text.split(/[.!?;\n]|,\s*|\b(?:but|lekin|magar|aur|and)\b/iu))
+    .find((clause) => allNightStudy.test(clause));
   const inventedStudySchedule =
     allNightStudy.test(question) &&
     (!latestStudy || /\b(?:nahi|nahin|not|don't|never)\b/i.test(latestStudy));
