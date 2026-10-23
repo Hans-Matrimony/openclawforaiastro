@@ -24,6 +24,8 @@ const response = (message, finish_reason = "stop") =>
     JSON.stringify({
       choices: [{ finish_reason, message }],
       usage: { cost: 0 },
+      provider: "SyntheticProvider",
+      model: "synthetic-model",
     }),
   );
 
@@ -74,6 +76,11 @@ void test("source flow uses raw source prompt, tools and seven rounds with isola
   assert.equal(reads, 1);
   assert.equal(calls, 8);
   assert.equal(result.answer_model_calls, 8);
+  assert.ok(
+    result.answer_usage.every(
+      (row) => row.provider === "SyntheticProvider" && row.model === "synthetic-model",
+    ),
+  );
   assert.ok(result.reply.startsWith("Source explanation.\n\nSource verdict.\n\n"));
   assert.equal(result.reply.split("\n\n").length, 3);
   assert.equal(requests[0].temperature, 0.7);

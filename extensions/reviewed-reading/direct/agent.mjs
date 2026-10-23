@@ -195,6 +195,8 @@ export async function directAnswer(
     }
     answerUsage.push({
       generation_id: typeof completion.id === "string" ? completion.id.slice(0, 128) : null,
+      provider: typeof completion.provider === "string" ? completion.provider.slice(0, 128) : null,
+      model: typeof completion.model === "string" ? completion.model.slice(0, 128) : null,
       input_tokens: completion.usage?.prompt_tokens ?? null,
       output_tokens: completion.usage?.completion_tokens ?? null,
       cost_usd: Number.isFinite(completion.usage?.cost) ? completion.usage.cost : null,
@@ -376,6 +378,8 @@ export async function directAnswer(
             const result = JSON.parse(raw);
             answerUsage.push({
               generation_id: result.id ?? null,
+              provider: typeof result.provider === "string" ? result.provider.slice(0, 128) : null,
+              model: typeof result.model === "string" ? result.model.slice(0, 128) : null,
               input_tokens: result.usage?.prompt_tokens ?? null,
               output_tokens: result.usage?.completion_tokens ?? null,
               cost_usd: Number.isFinite(result.usage?.cost) ? result.usage.cost : null,

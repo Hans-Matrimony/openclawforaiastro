@@ -24,6 +24,24 @@ void test("source comparison mode retains the original generation settings", () 
     provider: { require_parameters: true },
   });
 });
+void test("source provider pin retains source sampling and cannot affect stable companion routing", () => {
+  const env = { VEDASTRO_DIRECT_SOURCE_PROVIDER: "parasail/fp8" };
+  const settings = generationSettings({ ...env, VEDASTRO_DIRECT_GENERATION_MODE: "source" });
+  assert.equal(settings.temperature, 0.7);
+  assert.equal(settings.seed, undefined);
+  assert.deepEqual(settings.provider.only, ["parasail/fp8"]);
+  assert.equal(settings.provider.allow_fallbacks, false);
+  assert.deepEqual(settings.provider.max_price, { prompt: 0.15, completion: 1.5 });
+  assert.deepEqual(generationSettings(env), generationSettings({}));
+  assert.throws(
+    () =>
+      generationSettings({
+        VEDASTRO_DIRECT_GENERATION_MODE: "source",
+        VEDASTRO_DIRECT_SOURCE_PROVIDER: "https://other.test",
+      }),
+    /Invalid source provider/,
+  );
+});
 void test("explicit dev backup allows only two endpoints for the same model and caps their prices", () => {
   const settings = generationSettings({ VEDASTRO_DIRECT_FALLBACK_PROVIDER: "deepinfra/fp8" });
   assert.deepEqual(settings.provider, {

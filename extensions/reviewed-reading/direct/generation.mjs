@@ -3,7 +3,26 @@ import { SOURCE_CONFIG } from "./source-contract.mjs";
 export function generationSettings(env = process.env) {
   const mode = env.VEDASTRO_DIRECT_GENERATION_MODE || "stable";
   if (mode === "source") {
-    return { temperature: 0.7, provider: { require_parameters: true } };
+    // Keep the source sampling settings. Pinning is opt-in so both comparison
+    // runners can use the same endpoint without changing companion routing.
+    const endpoint = env.VEDASTRO_DIRECT_SOURCE_PROVIDER || "";
+    if (endpoint && !/^[a-z0-9][a-z0-9_/-]*$/.test(endpoint)) {
+      throw new Error("Invalid source provider endpoint");
+    }
+    return {
+      temperature: 0.7,
+      provider: {
+        require_parameters: true,
+        ...(endpoint
+          ? {
+              only: [endpoint],
+              order: [endpoint],
+              allow_fallbacks: false,
+              max_price: { prompt: 0.15, completion: 1.5 },
+            }
+          : {}),
+      },
+    };
   }
   if (mode !== "stable") {
     throw new Error("Unknown direct generation mode");

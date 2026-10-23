@@ -2,6 +2,18 @@
 
 ## Source-flow comparison mode
 
+For controlled comparisons, optionally set
+`VEDASTRO_DIRECT_SOURCE_PROVIDER=parasail/fp8` and use the same endpoint in the
+local source runner. This preserves source temperature 0.7, disables provider
+fallback for the reading, and caps provider prices at $0.15/M input and $1.50/M
+output tokens. An unavailable pinned endpoint fails rather than silently routing
+elsewhere. Unset the variable to retain the source's automatic routing.
+This option does not change the separate companion's configured endpoint or
+sampling. Usage diagnostics record the actual provider and model for each call.
+Identical providers and inputs still do not guarantee identical sampled replies.
+Full delivered history is retained: removing the companion's prior questions
+would lose context for short user answers.
+
 Set `VEDASTRO_DIRECT_FLOW=source` alongside the existing development-only route
 flags to use the source Dev prompt and agent behavior. Leaving this unset keeps
 the current reviewed flow, providing a rollback without changing memory data.
