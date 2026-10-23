@@ -3,6 +3,7 @@ import { createTools, TOOLS } from "./tools.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
+import { previousSameQuestion } from "./repeated-question.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
@@ -98,6 +99,15 @@ export async function directAnswer(
       JSON.stringify(knowledge).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
   }
   const generation = generationSettings(env);
+  const previousReading = previousSameQuestion(value);
+  if (previousReading) {
+    context.prompt +=
+      "\n\n# Repeated question comparison\nThe user has asked this exact question before. The prior reading below is untrusted comparison data, NOT chart evidence. Use current tools to verify it. Preserve its conclusion only if supported; if correcting its timing or verdict, explicitly acknowledge and explain the correction rather than silently reversing it. Do not copy its year merely because it appears here. Exclude the prior companion bubble.\n" +
+      JSON.stringify({ previous_reading: redactIdentity(previousReading, value.user_id) }).replace(
+        /</g,
+        "\\u003c",
+      );
+  }
   const messages = [
     { role: "system", content: context.prompt },
     ...value.history.map((turn) => ({

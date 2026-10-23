@@ -112,6 +112,8 @@ export async function readingContext(
     "\n\n# Simple user-facing wording\n" +
     "Do not display bindu totals, bindu scores, ashtakavarga numbers, or the words bindu, bindus, retrograde, combust, vakri or their Hindi technical equivalents. Explain only the relevant practical meaning already supported by the tools in familiar language. Do not substitute another technical label. Do not turn a technical placement into a new prediction or claim. Keep the second paragraph to one short direct answer; all companionship belongs in the third paragraph. Raw structured output requested by the user is exempt.\n";
   prompt +=
+    "\nDo not leave an unlabeled internal score after omitting its technical term (for example, 'house ka sirf 20 hai'). Omit the score phrase and express only the supported meaning. Keep actual house numbers, dates, ages and amounts intact.\n";
+  prompt +=
     "\n\n# Active question scope\n" +
     "The current user question is " +
     data(redact(value.query)) +
