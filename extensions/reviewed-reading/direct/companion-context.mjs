@@ -144,8 +144,17 @@ export function unsupportedClosingDetail(question, value, facts) {
       new RegExp(`${person}.{0,20}(?:baat ho rahi|baat ho gayi|baat kar li)`, "i").test(question)
     );
   });
+  // A night job alongside study is not evidence of studying all night.
+  // Match the activity and duration together, never across separate turns.
+  const allNightStudy =
+    /\b(?:raat\s*bhar|poori\s*raat)\s+(?:(?:jaag|jag)\s*kar\s+)?(?:padh\w*|study\w*)\b|\b(?:study\w*|revis\w*)\s+(?:all\s+night|through\s+the\s+night)\b/i;
+  const latestStudy = statements.find((text) => allNightStudy.test(text));
+  const inventedStudySchedule =
+    allNightStudy.test(question) &&
+    (!latestStudy || /\b(?:nahi|nahin|not|don't|never)\b/i.test(latestStudy));
   return (
     inventedConversation ||
+    inventedStudySchedule ||
     rejectedDetail(question, value) ||
     [/\bMBA\b/i, /night shifts?|raat ki shift/i, /\bEMI\b/i].some(
       (detail) => detail.test(question) && !detail.test(evidence),

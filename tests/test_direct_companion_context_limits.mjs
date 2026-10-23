@@ -1,5 +1,6 @@
-import test from "node:test";
 import assert from "node:assert/strict";
+import test from "node:test";
+import { unsupportedClosingDetail } from "../extensions/reviewed-reading/direct/companion-context.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import {
   formatDisplayReply,
@@ -13,6 +14,49 @@ const value = {
   language: "hinglish",
   user_gender: "male",
 };
+
+void test("night-shift work does not establish an all-night study schedule", async () => {
+  const current = {
+    ...value,
+    query: "Padhai aur night shift ke beech bahut tension hai.",
+    history: [
+      {
+        role: "user",
+        text: "Main night shift mein kaam karta hoon aur MBA ki taiyari kar raha hoon.",
+      },
+      { role: "user", text: "Neend poori nahi hoti aur fees ki bhi chinta hai." },
+    ],
+  };
+  const observed =
+    "Raat bhar jag kar padhai karna aur neend ki kami ka tension samajh rahi hoon—kya aaj koi bhi 15 minute bhi apne liye rest kar paaye?";
+  assert.equal(unsupportedClosingDetail(observed, current, []), true);
+  assert.equal(
+    unsupportedClosingDetail("Studying all night is exhausting. Did you rest?", current, []),
+    true,
+  );
+  const result = await contextualClosing(base, current, { generate: async () => observed });
+  assert.equal(result.split("\n\n").slice(0, 2).join("\n\n"), base);
+  assert.equal(result.split("\n\n").length, 3);
+  assert.ok(!result.includes(observed));
+  assert.match(result.split("\n\n")[2], /fees/i);
+  assert.doesNotMatch(result.split("\n\n")[2], /tension kis baat/i);
+  assert.equal(
+    unsupportedClosingDetail(
+      observed,
+      { ...current, query: "Main raat bhar jag kar padhai karta hoon." },
+      [],
+    ),
+    false,
+  );
+  assert.equal(
+    unsupportedClosingDetail(
+      observed,
+      { ...current, query: "Main raat bhar padhai nahi karta." },
+      [],
+    ),
+    true,
+  );
+});
 
 void test("a reading writer's misplaced question becomes a third bubble without inventing a verdict", async () => {
   const raw = "Existing chart explanation. Existing short answer.\n\nWould you like more detail?";

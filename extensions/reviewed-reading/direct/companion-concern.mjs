@@ -14,7 +14,13 @@ export function companionConcern(value, facts = []) {
   const dismissed = new Set();
   for (const text of statements) {
     const topics = companionTopics(text);
-    if (focus.topics.length && topics.length && !topics.some((t) => focus.topics.includes(t))) {
+    const studyFees = focus.topics.includes("education") && /\bfees?\b|फीस/i.test(text);
+    if (
+      focus.topics.length &&
+      topics.length &&
+      !topics.some((t) => focus.topics.includes(t)) &&
+      !studyFees
+    ) {
       continue;
     }
     if (
