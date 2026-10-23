@@ -23,6 +23,11 @@ void test("source personal reading requires a new chart despite previous predict
         if (++calls === 1) {
           assert.equal(body.tool_choice, "required");
           assert.ok(
+            !body.messages.some(
+              (m) => m.role === "assistant" && m.content?.includes("Old prediction"),
+            ),
+          );
+          assert.ok(
             body.tools.every((t) =>
               /get_(horoscope_predictions|current_transits|match_report|horary_prediction)$/.test(
                 t.function.name,

@@ -131,10 +131,15 @@ export async function directAnswer(
         "\\u003c",
       );
   }
+  const readingRequired = requiresChartReading(value.query, context.profile);
+  // Personal source readings use user context plus fresh tools, not old model
+  // predictions. The companion still receives the original value.history.
   const messages = [
     { role: "system", content: context.prompt },
     ...value.history
-      .filter((turn) => !ordinaryConcern || turn.role === "user")
+      .filter(
+        (turn) => !(ordinaryConcern || (sourceFlow && readingRequired)) || turn.role === "user",
+      )
       .map((turn) => ({
         role: turn.role,
         content: redactIdentity(turn.text, value.user_id),
@@ -144,7 +149,6 @@ export async function directAnswer(
   let nudged = false;
   let upstreamCalls = 0;
   let cacheHits = 0;
-  const readingRequired = requiresChartReading(value.query, context.profile);
   const readingTools = new Set();
   let correctedMissingReading = false;
   let correctedQuestion = false;
