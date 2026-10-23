@@ -88,6 +88,7 @@ COPY extensions/reviewed-reading/route.mjs /app/extensions/reviewed-reading/rout
 COPY extensions/reviewed-reading/direct/ /app/extensions/reviewed-reading/direct/
 COPY extensions/reviewed-reading/direct-route.mjs extensions/reviewed-reading/direct-http.mjs /app/extensions/reviewed-reading/
 COPY extensions/direct-answer/ /app/extensions/direct-answer/
+COPY scripts/configure-direct-answer.mjs /app/scripts/configure-direct-answer.mjs
 RUN npm ci --omit=dev --prefix /app/extensions/reviewed-reading/direct/assets/dev-v2
 
 COPY skills/kundli/response_evidence.py skills/kundli/response_contract.py skills/kundli/response_calculations.py skills/kundli/response_marriage_timing.py skills/kundli/response_consultation_wording.py skills/kundli/timing_periods.py skills/kundli/vimshottari.py skills/kundli/topic_rules.py skills/kundli/separation_rules.py skills/kundli/natal_cache.py skills/kundli/cities_india.json skills/kundli/verify_response_runtime.py /app/astrology-response/kundli/

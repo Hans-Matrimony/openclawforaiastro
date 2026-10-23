@@ -1,30 +1,30 @@
-import { createMemory } from "./memory.mjs";
-import { createTools, TOOLS } from "./tools.mjs";
-import { SOURCE_CONFIG } from "./source-contract.mjs";
-import { generationSettings } from "./generation.mjs";
-import { directReplyCache } from "./reply-cache.mjs";
-import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
-import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
+import { contextualClosing } from "./contextual-closing.mjs";
+import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import {
   appendFriendlyClosing,
   canAskFollowup,
   remedyUnavailableReply,
 } from "./friendly-closing.mjs";
-import { contextualClosing } from "./contextual-closing.mjs";
-import { isStressConcern } from "./stress-followup.mjs";
+import { generationSettings } from "./generation.mjs";
+import { createMemory } from "./memory.mjs";
+import {
+  questionScopeInstruction,
+  mismatchedQuestionReply,
+  unresolvedQuestionReply,
+} from "./question-scope.mjs";
+import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
 import {
   asksForRemedy,
   remedySearchQuery,
   retrieveRemedies,
   normalizeRemedies,
 } from "./remedies.mjs";
-import { CHART_TOOL_NAMES, bareToolName, requiresChartReading } from "./reading-intent.mjs";
-import {
-  questionScopeInstruction,
-  mismatchedQuestionReply,
-  unresolvedQuestionReply,
-} from "./question-scope.mjs";
+import { directReplyCache } from "./reply-cache.mjs";
+import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
+import { SOURCE_CONFIG } from "./source-contract.mjs";
+import { isStressConcern } from "./stress-followup.mjs";
+import { createTools, TOOLS } from "./tools.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -299,7 +299,14 @@ export async function directAnswer(
                 model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
                 ...generation,
                 messages: [
-                  { role: "system", content: instruction },
+                  {
+                    role: "system",
+                    content:
+                      instruction +
+                      (value.quota_context
+                        ? "\n\n# Trusted app access guidance\n" + value.quota_context
+                        : ""),
+                  },
                   { role: "user", content: data },
                 ],
                 max_tokens: 160,

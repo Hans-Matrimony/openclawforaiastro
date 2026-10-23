@@ -2,14 +2,19 @@ import { uniqueMemory } from "./compact-prompt.mjs";
 
 export function createMemory(userId, { env = process.env, fetchImpl = fetch, signal } = {}) {
   const url = new URL(env.MEM0_URL);
+  const release = env.ASTROFRIEND_DIRECT_MODE !== undefined;
+  const expectedHost = release
+    ? env.ASTROFRIEND_DIRECT_MEM0_HOST
+    : env.VEDASTRO_DIRECT_MEM0_DEV_HOST;
   if (
     !["https:", "http:"].includes(url.protocol) ||
     url.username ||
     url.password ||
-    !env.VEDASTRO_DIRECT_MEM0_DEV_HOST ||
-    url.hostname !== env.VEDASTRO_DIRECT_MEM0_DEV_HOST
+    !expectedHost ||
+    url.hostname !== expectedHost ||
+    (release && env.ASTROFRIEND_DIRECT_ENVIRONMENT === "production" && url.protocol !== "https:")
   ) {
-    throw new Error("Development memory target required");
+    throw new Error("Verified memory target required");
   }
   const headers = { "Content-Type": "application/json" };
   if (env.MEM0_API_KEY) {
@@ -83,7 +88,10 @@ export function createMemory(userId, { env = process.env, fetchImpl = fetch, sig
         await request("/memory/add", {
           user_id: userId,
           content,
-          metadata: { source: "vedastro_direct", environment: "development" },
+          metadata: {
+            source: "vedastro_direct",
+            environment: release ? env.ASTROFRIEND_DIRECT_ENVIRONMENT : "development",
+          },
         });
       } finally {
         revision++;

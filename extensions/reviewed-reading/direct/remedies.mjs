@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export function asksForRemedy(query, history = []) {
   if (
@@ -169,7 +169,9 @@ export function retrieveRemedies(query, { env = process.env, signal, run = execF
     );
     const script = existsSync(localScript)
       ? localScript
-      : "/app/bootstrap/skills/qdrant/qdrant_client.py";
+      : existsSync("/app/.openclaw/skills/qdrant/qdrant_client.py")
+        ? "/app/.openclaw/skills/qdrant/qdrant_client.py"
+        : "/app/bootstrap/skills/qdrant/qdrant_client.py";
     run(
       env.VEDASTRO_DIRECT_PYTHON || "python3",
       [script, "search", query, "--limit", "5"],

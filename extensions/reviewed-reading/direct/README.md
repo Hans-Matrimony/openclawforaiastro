@@ -1,12 +1,43 @@
 # Direct answer integration
 
-This development-only route uses the AstroChat `Dev` branch at source revision
+This opt-in route uses the AstroChat `Dev` branch at source revision
 `c7d63bb92bfb35bf11a8a4748b40a9afd22cc742`. Its prompt, schemas, server reference
 and Swiss Ephemeris calculation/judgment engine are preserved in `assets/dev-v2`.
 That directory's `provenance.json` records their hashes. `friend-mode.txt` began
 as the appended source prompt and is now the authoritative dev-editable overlay;
 the runtime loads this file directly at startup. The original source
 repository remains untouched; the earlier source assets remain for comparison.
+
+## Release pilot and rollback
+
+The release is disabled by default. For an isolated staging pilot, set both the
+PWA backend and gateway to `ASTROFRIEND_DIRECT_MODE=pilot`,
+`ASTROFRIEND_DIRECT_ENVIRONMENT=staging`, and the same comma-separated
+`ASTROFRIEND_DIRECT_TEST_USERS` list of canonical server user IDs. Membership is
+exact, not a prefix match. Only the existing Meera/Aarav path is eligible;
+other personas and users retain the legacy route.
+
+The gateway also requires `MEM0_URL`, `MEM0_API_KEY`, `OPENROUTER_API_KEY` and
+`ASTROFRIEND_DIRECT_MEM0_HOST` matching the verified memory URL hostname.
+For an approved production pilot use environment `production`; HTTPS memory
+is then mandatory. Verify the existing canonical memory namespace before
+enabling any account. Never copy staging identities or credentials into production.
+Keep `VEDASTRO_DIRECT_CONTEXTUAL_CLOSING=1` for the separate contextual closing.
+The startup script registers the direct plugin while preserving existing agents
+and plugin configuration. Existing app access guidance reaches both writers;
+billing enforcement stays in the PWA before answer dispatch.
+
+Rollback by setting `ASTROFRIEND_DIRECT_MODE=off` on the PWA first, then the
+gateway, and restarting each. Explicit off overrides old development flags.
+Startup removes only this plugin's load path and disables its entry. It does
+not delete conversations, memory or legacy configuration. Observe in-flight
+requests before stopping the gateway; never resend an uncertain paid turn.
+
+Before rollout, require a successful Linux image build, an isolated paired
+PWA/gateway smoke test, legacy persona and paid/free access checks, and a
+multi-turn delivery test including interrupted connections and recovery. Unit
+tests alone do not establish production readiness. This PR does not enable
+the feature in production or authorize a merge or deployment.
 
 `POST /astrofriend/direct-answer` requires gateway authentication. Enable it with
 `VEDASTRO_DIRECT_DEV_ENABLED=1` and `VEDASTRO_DIRECT_ENVIRONMENT=development`.
