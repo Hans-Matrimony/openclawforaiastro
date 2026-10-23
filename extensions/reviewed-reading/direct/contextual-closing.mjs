@@ -1,14 +1,4 @@
-import {
-  listeningOnly,
-  celebration,
-  continuityFallback,
-  repeatsAnsweredConcern,
-} from "./companion-continuity.mjs";
-import { stressFollowup } from "./stress-followup.mjs";
-import { companionFallback } from "./companion-fallback.mjs";
 import { companionConcern, concernFallback, ignoresKnownConcern } from "./companion-concern.mjs";
-import { personaInstruction, fallbackGrammar } from "./persona.mjs";
-import { isCompanionParagraph } from "./friendly-closing.mjs";
 import {
   companionFocus,
   companionNotes,
@@ -16,6 +6,16 @@ import {
   unsupportedClosingDetail,
   asksKnownDetail,
 } from "./companion-context.mjs";
+import {
+  listeningOnly,
+  celebration,
+  continuityFallback,
+  repeatsAnsweredConcern,
+} from "./companion-continuity.mjs";
+import { companionFallback } from "./companion-fallback.mjs";
+import { isCompanionParagraph } from "./friendly-closing.mjs";
+import { personaInstruction, fallbackGrammar } from "./persona.mjs";
+import { stressFollowup } from "./stress-followup.mjs";
 
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
@@ -156,6 +156,7 @@ export async function contextualClosing(
     "Reply to what the user just shared, including their answer to your previous follow-up; resolve the current message first. Use one relevant detail from recent user messages or saved_user_facts naturally. Current corrections override older facts. Do not ask for information already supplied. If the user told you the problem or answered your question, acknowledge it and continue with something still unresolved. When known_concern is present, do not ask again what is wrong. " +
     "Prefer the specific person or difficulty the user named over the broad topic: if they can talk to mummy but fear papa's reaction, continue with that fear, not 'what is difficult with family?' or 'who can you talk to?'. If they already described the feared reaction, do not ask them to name it again. This is an example of continuity, not a fact to copy into other conversations. " +
     "Preserve what has actually happened: 'can talk to mummy' does not mean they have spoken or that mummy agrees. 'Want a job' does not mean they already have one. Acknowledge only the stated fact, not an assumed next step. " +
+    "Keep separate activities distinct: working a night shift and preparing for an exam does not mean studying all night. Do not invent when or how an activity happens. Use a clear time scope in your question: ask about rest today or over recent days, never mix both into 'was there a day today'. " +
     "Use one or two short sentences: a specific acknowledgment and, when useful, one easy conversational question. Aim for 15 to 30 words. At most 45 words and 280 characters in one paragraph. Keep the warmth instead of turning every reply into an interview. A supportive statement alone is appropriate when they are venting, celebrating, or do not want questions. Avoid repeating the same acknowledgment across turns. Use plain everyday language, not poetic flattery about magic, destiny, or being special. " +
     "Stay with the current subject; do not pull an unrelated old memory into it. Assistant history contains prior companion bubbles only, not evidence about the user's life. Never ask the user to predict the future or answer their original astrology question. Do not invent feelings, circumstances or memories, approve major decisions as definitely right, give unrequested plans, or promise outcomes. " +
     "Match the requested language and persona grammar. Prefer aap, not tu/tere or pet names unless invited. Do not announce your presence: no 'main sun rahi hoon', 'main yahan hoon', 'I am listening' or 'I am here'. No introductions, service menus, 'want more detail?', or stock motivational lines. " +
