@@ -1,6 +1,9 @@
 import fs from "node:fs";
 
 const assets = new URL("./assets/dev-v2/", import.meta.url);
+export const SOURCE_FLOW_PROMPT =
+  fs.readFileSync(new URL("system-prompt.txt", assets), "utf8") +
+  fs.readFileSync(new URL("source-friend-mode.txt", assets), "utf8");
 // The tracked Friend Mode file is the dev-editable overlay, including newer user edits.
 export const SOURCE_PROMPT =
   fs.readFileSync(new URL("system-prompt.txt", assets), "utf8") +

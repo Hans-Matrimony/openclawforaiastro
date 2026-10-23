@@ -17,7 +17,8 @@
     },
     {
       "path": "server.mjs",
-      "sha256": "410c9d110b38cf69d939664e55b25d8044d1c777594ca68a079210b19b17c35c"
+      "sha256": "89b4d22bd7161407952b21993eb9741f6030febed36c6db626cb0191f18af299",
+      "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9"
     },
     {
       "path": "config.example.json",
@@ -26,6 +27,11 @@
     {
       "path": "friend-mode.txt",
       "sha256": "81bd7198eee8d0032eda3960c914079774224568dc7380ed74ecd3935701bec1"
+    },
+    {
+      "path": "source-friend-mode.txt",
+      "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9",
+      "sha256": "8a426c3cd741fdf2623188a67d0bca2ed58dd4923b9c8222991b841c53ac53dd"
     }
   ]
 }

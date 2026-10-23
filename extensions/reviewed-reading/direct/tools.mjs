@@ -125,7 +125,9 @@ export function createTools({
     }
     // Dev v2 uses its local Swiss Ephemeris tools by default, without an MCP round trip.
     if (env.VEDASTRO_DIRECT_USE_LOCAL_ENGINE !== "0") {
-      const result = await reading(name, args, store.birth);
+      const result = await reading(name, args, store.birth, {
+        rawSource: env.VEDASTRO_DIRECT_FLOW === "source",
+      });
       if (result?.isError) {
         throw new Error("Local reading unavailable");
       }

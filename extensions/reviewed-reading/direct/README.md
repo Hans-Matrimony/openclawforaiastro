@@ -1,5 +1,30 @@
 # Direct answer integration
 
+## Source-flow comparison mode
+
+Set `VEDASTRO_DIRECT_FLOW=source` alongside the existing development-only route
+flags to use the source Dev prompt and agent behavior. Leaving this unset keeps
+the current reviewed flow, providing a rollback without changing memory data.
+
+Source mode retains the un-compacted source system prompt and the Friend Mode
+appendix extracted from `server.mjs` at `fb060c30c10568ab9d954b9e990ba4696528e1a9`.
+It uses the same tool schemas, raw local-engine output including its instruction,
+temperature 0.7, parallel tool execution, seven agent rounds, and a one-time
+native-tool-call nudge. The prior answer-comparison, missing-tool correction,
+period correction and topic-correction overlays are not applied in this mode.
+
+App adaptations remain explicit: current date, saved birth fields, user-scoped
+mem0 facts and delivered history, persona identity, display cleanup, sensitive
+outcome boundaries, and separate companionship. The existing companion prompt
+and its configured generation settings are unchanged. Model temperature 0.7
+does not provide deterministic identical replies. Source mode allows at most
+eight paid calls (seven reading rounds plus one companion call), within the
+existing request timeout. Test runners must reserve for eight calls, not five.
+Failed HTTP requests are not automatically retried; the source server's retries,
+authentication, disk sessions and streaming transport are not transplanted over
+the app's existing billing, identity, memory and delivery services. No PWA code
+change is needed. Enabling this flag requires deploying these changes first.
+
 The calculation engine alone is updated to source Dev revision
 `fb060c30c10568ab9d954b9e990ba4696528e1a9`, exposing upcoming antardashas and
 the next mahadasha. Other captured assets retain their revisions below.

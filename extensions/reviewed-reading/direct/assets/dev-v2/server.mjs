@@ -284,12 +284,12 @@ const RETRYABLE = e => /LLM (402|429|502|503)/.test(e.message) || /empty choices
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function chatCompletionRetry(messages) {
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 4; attempt++) {
     try {
       return await chatCompletion(messages);
     } catch (e) {
-      if (RETRYABLE(e) && attempt < 2) {
-        await sleep(6000 * (attempt + 1));
+      if (RETRYABLE(e) && attempt < 3) {
+        await sleep(12000 * (attempt + 1));
         continue;
       }
       throw e;
@@ -344,8 +344,8 @@ async function chatCompletionStream(messages, send) {
         }],
       };
     } catch (e) {
-      if (RETRYABLE(e) && !sentAny && attempt < 2) {
-        await sleep(6000 * (attempt + 1));
+      if (RETRYABLE(e) && !sentAny && attempt < 3) {
+        await sleep(12000 * (attempt + 1));
         continue;
       }
       throw e;
@@ -359,7 +359,7 @@ const TEXT_TOOL_CALL_RE = /mcp__VedAstro__[a-z_]+\s*:\s*\{/;
 async function runAgent(userHistory, send, isClosed, sid, sess) {
   const messages = [{ role: "system", content: SYSTEM_PROMPT }, ...userHistory];
   let nudged = false;
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 7; i++) {
     if (isClosed()) throw new Error("Client closed connection");
     const completion = send ? await chatCompletionStream(messages, send) : await chatCompletionRetry(messages);
     const choice = completion.choices?.[0];

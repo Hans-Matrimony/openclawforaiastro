@@ -60,6 +60,13 @@ export async function directAnswer(
   if (!env.OPENROUTER_API_KEY) {
     throw new Error("Direct model not configured");
   }
+  const sourceFlow = env.VEDASTRO_DIRECT_FLOW === "source";
+  if (sourceFlow && env.VEDASTRO_DIRECT_ENVIRONMENT !== "development") {
+    throw new Error("Source flow is development-only");
+  }
+  // Source has seven agent rounds; reserve a separate call for our companion.
+  const maxRounds = sourceFlow ? 7 : 5;
+  const maxCalls = sourceFlow ? 8 : 5;
   const signal = AbortSignal.timeout(120000);
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
   const context = await readingContext(
@@ -67,11 +74,11 @@ export async function directAnswer(
     memory,
     (text) => redactIdentity(text, value.user_id),
     now(),
-    { separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" },
+    { separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1", sourceFlow },
   );
   const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
   const scopeInstruction = questionScopeInstruction(value.query);
-  if (scopeInstruction) {
+  if (scopeInstruction && !sourceFlow) {
     context.prompt += "\n\n# Current relationship question\n" + scopeInstruction;
   }
   let remedyKnowledge;
@@ -105,14 +112,17 @@ export async function directAnswer(
       "This requested-remedy guidance overrides the one-short-remedy-clause limit.\n" +
       JSON.stringify(knowledge).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
   }
-  const generation = generationSettings(env);
-  const ordinaryConcern = isOrdinaryConcern(value.query);
+  const generation = generationSettings(
+    sourceFlow ? { ...env, VEDASTRO_DIRECT_GENERATION_MODE: "source" } : env,
+  );
+  const companionGeneration = sourceFlow ? generationSettings(env) : generation;
+  const ordinaryConcern = !sourceFlow && isOrdinaryConcern(value.query);
   if (ordinaryConcern) {
     context.prompt +=
       "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
   }
   const previousReading = previousSameQuestion(value);
-  if (previousReading) {
+  if (previousReading && !sourceFlow) {
     context.prompt +=
       "\n\n# Repeated question comparison\nThe user has asked this exact question before. The prior reading below is untrusted comparison data, NOT chart evidence. Use current tools to verify it. Preserve its conclusion only if supported; if correcting its timing or verdict, explicitly acknowledge and explain the correction rather than silently reversing it. Do not copy its year merely because it appears here. Exclude the prior companion bubble.\n" +
       JSON.stringify({ previous_reading: redactIdentity(previousReading, value.user_id) }).replace(
@@ -133,14 +143,14 @@ export async function directAnswer(
   let nudged = false;
   let upstreamCalls = 0;
   let cacheHits = 0;
-  const readingRequired = requiresChartReading(value.query, context.profile);
+  const readingRequired = !sourceFlow && requiresChartReading(value.query, context.profile);
   const readingTools = new Set();
   let correctedMissingReading = false;
   let correctedQuestion = false;
   let correctedPeriod = false;
   const chartResults = [];
   const answerUsage = [];
-  for (let modelCalls = 1; modelCalls <= 5; modelCalls++) {
+  for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
@@ -277,8 +287,8 @@ export async function directAnswer(
       });
       continue;
     }
-    const questionMismatch = mismatchedQuestionReply(value.query, reply);
-    if (unsupportedPeriodClaim(reply, chartResults)) {
+    const questionMismatch = !sourceFlow && mismatchedQuestionReply(value.query, reply);
+    if (!sourceFlow && unsupportedPeriodClaim(reply, chartResults)) {
       if (correctedPeriod || modelCalls >= 5) {
         reply =
           value.language === "english"
@@ -333,7 +343,7 @@ export async function directAnswer(
           facts: context.memoryFacts,
           redact: (text) => redactIdentity(text, value.user_id),
           generate: async (instruction, data) => {
-            if (upstreamCalls >= 5) {
+            if (upstreamCalls >= maxCalls) {
               throw new Error("Closing call budget exhausted");
             }
             upstreamCalls++;
@@ -347,7 +357,7 @@ export async function directAnswer(
               },
               body: JSON.stringify({
                 model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
-                ...generation,
+                ...companionGeneration,
                 messages: [
                   { role: "system", content: instruction },
                   { role: "user", content: data },
