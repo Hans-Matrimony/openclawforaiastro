@@ -42,18 +42,22 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const config = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
   const defaults = config.agents?.defaults ?? {};
   for (const agent of config.agents?.list ?? []) {
-    if (!["astrologer", "astrologer_preview", "astrologer_preview_fast"].includes(agent.id))
+    if (!["astrologer", "astrologer_preview", "astrologer_preview_fast"].includes(agent.id)) {
       continue;
-    if (!agent.workspace) throw new Error(`Missing workspace for ${agent.id}`);
+    }
+    if (!agent.workspace) {
+      throw new Error(`Missing workspace for ${agent.id}`);
+    }
     const result = auditPromptBudget(
       agent.workspace,
       defaults.bootstrapMaxChars,
       defaults.bootstrapTotalMaxChars,
     );
     console.log(JSON.stringify({ agent: agent.id, ...result }));
-    if (!result.fits)
+    if (!result.fits) {
       throw new Error(
         `Astrologer prompt budget exceeded for ${agent.id}; refusing truncated policy`,
       );
+    }
   }
 }

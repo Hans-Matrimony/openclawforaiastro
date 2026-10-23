@@ -17,38 +17,53 @@ export function configureReadingGuard(
   cfg.models.providers ??= {};
   const route = (ref) => {
     ref = originalRef(ref);
-    if (!enabled || !ref) return ref;
+    if (!enabled || !ref) {
+      return ref;
+    }
     const slash = ref.indexOf("/");
-    if (slash < 1) throw new Error("Reading guard requires explicit provider/model references");
+    if (slash < 1) {
+      throw new Error("Reading guard requires explicit provider/model references");
+    }
     const provider = ref.slice(0, slash);
     const source = cfg.models.providers[provider];
-    if (!source) throw new Error(`Reading guard provider config missing: ${provider}`);
+    if (!source) {
+      throw new Error(`Reading guard provider config missing: ${provider}`);
+    }
     const alias = PREFIX + provider;
     cfg.models.providers[alias] = structuredClone(source);
     if (!source.apiKey) {
       const key = (envKeys[provider] ?? []).find((key) => env[key]);
-      if (key) cfg.models.providers[alias].apiKey = "${" + key + "}";
+      if (key) {
+        cfg.models.providers[alias].apiKey = "${" + key + "}";
+      }
       // Auth-profile-only configurations require an explicit config key mapping.
-      else
+      else {
         throw new Error(
           `Reading guard needs a configured API key or environment key for ${provider}`,
         );
+      }
     }
     const next = PREFIX + ref;
     const modelDefaults = cfg.agents?.defaults?.models;
-    if (modelDefaults?.[ref]) modelDefaults[next] = structuredClone(modelDefaults[ref]);
+    if (modelDefaults?.[ref]) {
+      modelDefaults[next] = structuredClone(modelDefaults[ref]);
+    }
     return next;
   };
   for (const agent of cfg.agents?.list ?? []) {
-    if (!targets.has(agent.id)) continue;
+    if (!targets.has(agent.id)) {
+      continue;
+    }
     const model = agent.model ?? cfg.agents?.defaults?.model;
-    if (typeof model === "string") agent.model = route(model);
-    else if (model)
+    if (typeof model === "string") {
+      agent.model = route(model);
+    } else if (model) {
       agent.model = {
         ...model,
         primary: route(model.primary),
         ...(model.fallbacks ? { fallbacks: model.fallbacks.map(route) } : {}),
       };
+    }
   }
   cfg.plugins ??= {};
   cfg.plugins.entries ??= {};
@@ -64,17 +79,25 @@ export function configureReadingGuard(
     cfg.plugins.allow.push("astrologer-reading");
   }
   if (!enabled) {
-    for (const key of Object.keys(cfg.models.providers))
-      if (key.startsWith(PREFIX)) delete cfg.models.providers[key];
-    for (const key of Object.keys(cfg.agents?.defaults?.models ?? {}))
-      if (key.startsWith(PREFIX)) delete cfg.agents.defaults.models[key];
+    for (const key of Object.keys(cfg.models.providers)) {
+      if (key.startsWith(PREFIX)) {
+        delete cfg.models.providers[key];
+      }
+    }
+    for (const key of Object.keys(cfg.agents?.defaults?.models ?? {})) {
+      if (key.startsWith(PREFIX)) {
+        delete cfg.agents.defaults.models[key];
+      }
+    }
   }
   return cfg;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const file = process.argv[2];
-  if (!file) throw new Error("Usage: configure-reading-guard.mjs <config-path>");
+  if (!file) {
+    throw new Error("Usage: configure-reading-guard.mjs <config-path>");
+  }
   const config = JSON.parse(fs.readFileSync(file, "utf8"));
   const next = configureReadingGuard(config, {
     enabled: process.env.ASTROFRIEND_READING_STYLE_GUARD !== "0",

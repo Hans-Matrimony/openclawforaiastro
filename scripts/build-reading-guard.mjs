@@ -6,7 +6,9 @@ const requireCompiler = createRequire(
 );
 const ts = requireCompiler("typescript");
 const [source, destination] = process.argv.slice(2);
-if (!source || !destination) throw new Error("Expected source and output directories");
+if (!source || !destination) {
+  throw new Error("Expected source and output directories");
+}
 fs.mkdirSync(destination, { recursive: true });
 for (const name of ["astrologer-reading-style", "astrologer-reading-stream"]) {
   const input = fs.readFileSync(path.join(source, name + ".ts"), "utf8");

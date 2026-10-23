@@ -143,7 +143,7 @@ describe("web auto-reply", () => {
     // The resolver should receive a prefixed body with the configured marker
     const callArg = resolver.mock.calls[0]?.[0] as { Body?: string };
     expect(callArg?.Body).toBeDefined();
-    expect(callArg?.Body).toContain("[WhatsApp +1555");
+    expect(callArg?.Body).toContain("[WhatsApp whatsapp:+1555 id:msg1");
     expect(callArg?.Body).toContain("[same-phone] hello");
     resetLoadConfigMock();
   });
@@ -175,7 +175,7 @@ describe("web auto-reply", () => {
 
     // Body should include envelope but not the same-phone prefix
     const callArg = resolver.mock.calls[0]?.[0] as { Body?: string };
-    expect(callArg?.Body).toContain("[WhatsApp +1555");
+    expect(callArg?.Body).toContain("[WhatsApp whatsapp:+1555 id:msg1");
     expect(callArg?.Body).toContain("hello");
   });
   it("forwards reply-to context to resolver", async () => {
