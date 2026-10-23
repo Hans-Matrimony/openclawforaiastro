@@ -32,9 +32,16 @@ export function removeReplyDashes(reply) {
 // Display-only cleanup, after generation and follow-up assembly. Keep chart
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
-  return reply.replace(
-    /([ \t]*)\b(?:retrograde|bindus?|combust)\b([ \t]*)/gi,
-    (_match, before, after) => (before && after ? " " : ""),
+  return (
+    reply
+      // Remove only an unlabeled house-score fragment, retaining the house and meaning.
+      .replace(
+        /\b(house\s+\d{1,2}|\d{1,2}(?:st|nd|rd|th)\s+house)\s+ka\s+(?:sirf\s+)?\d{1,3}\s+(?:hai\s+)?(?=(?:bahut\s+)?(?:weak|strong|kamzor)\b)/gi,
+        "$1 ",
+      )
+      .replace(/([ \t]*)\b(?:retrograde|bindus?|combust)\b([ \t]*)/gi, (_match, before, after) =>
+        before && after ? " " : "",
+      )
   );
 }
 

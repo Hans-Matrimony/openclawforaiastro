@@ -6,6 +6,12 @@ import { formatDisplayReply } from "../extensions/reviewed-reading/direct/format
 
 const count = (text) => text.trim().split(/\s+/u).filter(Boolean).length;
 
+void test("unlabeled house score is removed without changing dates or amounts", () => {
+  assert.equal(formatDisplayReply("7th house ka sirf 20 hai bahut weak."), "7th house bahut weak.");
+  const text = "House 7 strong. Age 20. 2027 ke baad. Fees 20000.\n\nShort verdict.";
+  assert.equal(formatDisplayReply(text), text);
+});
+
 void test("display removes only blocked whole words across all bubbles, preserving numbers and claims", () => {
   const raw =
     "Prashna chart mein 337 bindus hai, jo strong hai. Jupiter retrograde hai.\n\n1 BINDU; 2 Bindus; RETROGRADE, combust.\n\nBindu ko lekar kya soch rahe ho?";
