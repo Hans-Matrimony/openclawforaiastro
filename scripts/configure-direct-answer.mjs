@@ -25,6 +25,9 @@ export function configureDirectAnswer(config, env = process.env) {
       throw new Error("Direct-answer pilot configuration is incomplete");
     }
     next.plugins ??= {};
+    if (Array.isArray(next.plugins.allow)) {
+      next.plugins.allow = [...new Set([...next.plugins.allow, "direct-answer"])];
+    }
     next.plugins.load ??= {};
     next.plugins.load.paths = [...new Set([...(next.plugins.load.paths || []), pluginPath])];
     next.plugins.entries ??= {};
@@ -33,6 +36,9 @@ export function configureDirectAnswer(config, env = process.env) {
       enabled: true,
     };
   } else {
+    if (Array.isArray(next.plugins?.allow)) {
+      next.plugins.allow = next.plugins.allow.filter((id) => id !== "direct-answer");
+    }
     if (next.plugins?.load?.paths)
       next.plugins.load.paths = next.plugins.load.paths.filter((p) => p !== pluginPath);
     if (next.plugins?.entries?.["direct-answer"])

@@ -77,15 +77,21 @@ test("pilot is exact-user scoped; explicit off overrides old dev switches", () =
 test("plugin startup preserves identities, legacy routes and defaults; off rolls back only new plugin", () => {
   const old = {
     agents: { list: [{ id: "astrologer" }, { id: "tarot_reader" }] },
-    plugins: { load: { paths: ["/existing"] }, entries: { legacy: { enabled: true } } },
+    plugins: {
+      allow: ["legacy"],
+      load: { paths: ["/existing"] },
+      entries: { legacy: { enabled: true } },
+    },
   };
   assert.deepEqual(configureDirectAnswer(old, {}), old);
   const next = configureDirectAnswer(old, pilot);
   assert.deepEqual(next.agents, old.agents);
   assert.deepEqual(next.plugins.entries.legacy, old.plugins.entries.legacy);
   assert.deepEqual(next.plugins.load.paths, ["/existing", "/app/extensions/direct-answer"]);
+  assert.deepEqual(next.plugins.allow, ["legacy", "direct-answer"]);
   const rolled = configureDirectAnswer(next, { ASTROFRIEND_DIRECT_MODE: "off" });
   assert.deepEqual(rolled.plugins.load.paths, ["/existing"]);
+  assert.deepEqual(rolled.plugins.allow, ["legacy"]);
   assert.equal(rolled.plugins.entries["direct-answer"].enabled, false);
   assert.throws(() => configureDirectAnswer(old, { ...pilot, MEM0_URL: "http://memory.test" }));
   assert.throws(() =>
