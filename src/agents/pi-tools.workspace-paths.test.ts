@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+// Exercise real filesystem tools without loading unrelated plugin/network tools.
+import "./test-helpers/fast-coding-tools.js";
 import { createOpenClawCodingTools } from "./pi-tools.js";
 
 async function withTempDir<T>(prefix: string, fn: (dir: string) => Promise<T>) {

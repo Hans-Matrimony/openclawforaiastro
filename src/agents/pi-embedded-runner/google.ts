@@ -142,7 +142,7 @@ function sanitizeDeepSeekReasoningContent(messages: AgentMessage[]): AgentMessag
           // Case: object, array, or other type → convert to string or use placeholder
           try {
             const str = String(currentThinking);
-            normalizedThinking = (str === "[object Object]" || str.trim().length === 0) ? " " : str;
+            normalizedThinking = str === "[object Object]" || str.trim().length === 0 ? " " : str;
           } catch {
             normalizedThinking = " ";
           }
@@ -299,7 +299,10 @@ export function sanitizeToolsForGoogle<
   });
 }
 
-export function logToolSchemasForGoogle(params: { tools: AgentTool[]; provider: string }) {
+export function logToolSchemasForGoogle<TSchemaType extends TSchema, TResult>(params: {
+  tools: AgentTool<TSchemaType, TResult>[];
+  provider: string;
+}) {
   if (params.provider !== "google-antigravity" && params.provider !== "google-gemini-cli") {
     return;
   }

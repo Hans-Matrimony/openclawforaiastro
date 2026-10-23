@@ -39,10 +39,12 @@ export function configureDirectAnswer(config, env = process.env) {
     if (Array.isArray(next.plugins?.allow)) {
       next.plugins.allow = next.plugins.allow.filter((id) => id !== "direct-answer");
     }
-    if (next.plugins?.load?.paths)
+    if (next.plugins?.load?.paths) {
       next.plugins.load.paths = next.plugins.load.paths.filter((p) => p !== pluginPath);
-    if (next.plugins?.entries?.["direct-answer"])
+    }
+    if (next.plugins?.entries?.["direct-answer"]) {
       next.plugins.entries["direct-answer"].enabled = false;
+    }
   }
   return next;
 }
@@ -51,6 +53,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const path = process.argv[2];
   const original = JSON.parse(fs.readFileSync(path, "utf8"));
   const next = configureDirectAnswer(original);
-  if (JSON.stringify(next) !== JSON.stringify(original))
+  if (JSON.stringify(next) !== JSON.stringify(original)) {
     fs.writeFileSync(path, JSON.stringify(next, null, 2) + "\n");
+  }
 }

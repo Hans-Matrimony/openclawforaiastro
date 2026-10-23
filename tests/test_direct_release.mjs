@@ -16,7 +16,7 @@ const pilot = {
   MEM0_API_KEY: "test",
   OPENROUTER_API_KEY: "test",
 };
-test("access guidance reaches both reading and companion requests without rewriting the reading", async () => {
+void test("access guidance reaches both reading and companion requests without rewriting the reading", async () => {
   const guidance = "Finish this allowed reading without inviting another restricted reading.";
   const reading =
     "Original astrology explanation remains unchanged.\n\nOriginal short verdict remains unchanged.";
@@ -54,14 +54,16 @@ test("access guidance reaches both reading and companion requests without rewrit
     },
   );
   assert.equal(calls.length, 2);
-  for (const call of calls)
+  for (const call of calls) {
     assert.ok(call.messages.some((m) => m.role === "system" && m.content.includes(guidance)));
+  }
   assert.equal(result.reply.split("\n\n").slice(0, 2).join("\n\n"), reading);
 });
-test("pilot is exact-user scoped; explicit off overrides old dev switches", () => {
+void test("pilot is exact-user scoped; explicit off overrides old dev switches", () => {
   assert.equal(directReleaseEnabled(pilot, "synthetic-a"), true);
-  for (const id of ["synthetic", "synthetic-ab", "", "other"])
+  for (const id of ["synthetic", "synthetic-ab", "", "other"]) {
     assert.equal(directReleaseEnabled(pilot, id), false);
+  }
   assert.equal(directReleaseEnabled({ ...pilot, ASTROFRIEND_DIRECT_TEST_USERS: "" }), false);
   assert.equal(directReleaseEnabled({ ...pilot, ASTROFRIEND_DIRECT_MODE: "all" }), false);
   assert.equal(
@@ -74,7 +76,7 @@ test("pilot is exact-user scoped; explicit off overrides old dev switches", () =
     false,
   );
 });
-test("plugin startup preserves identities, legacy routes and defaults; off rolls back only new plugin", () => {
+void test("plugin startup preserves identities, legacy routes and defaults; off rolls back only new plugin", () => {
   const old = {
     agents: { list: [{ id: "astrologer" }, { id: "tarot_reader" }] },
     plugins: {
@@ -98,7 +100,7 @@ test("plugin startup preserves identities, legacy routes and defaults; off rolls
     configureDirectAnswer(old, { ...pilot, ASTROFRIEND_DIRECT_MEM0_HOST: "other.test" }),
   );
 });
-test("access guidance stays bounded and reaches reading prompt without changing chart data", async () => {
+void test("access guidance stays bounded and reaches reading prompt without changing chart data", async () => {
   const value = {
     user_id: "synthetic-a",
     query: "career",
@@ -113,7 +115,7 @@ test("access guidance stays bounded and reaches reading prompt without changing 
   assert.ok(context.prompt.includes(value.quota_context));
   assert.equal(context.profile.status, "VERIFIED_EMPTY");
 });
-test("production memory uses pinned host and retains canonical user identity", async () => {
+void test("production memory uses pinned host and retains canonical user identity", async () => {
   let captured;
   const memory = createMemory("synthetic-a", {
     env: pilot,

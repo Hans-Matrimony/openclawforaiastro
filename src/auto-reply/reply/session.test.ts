@@ -70,13 +70,17 @@ describe("initSessionState thread forking", () => {
     if (!newSessionFile) {
       throw new Error("Missing session file for forked thread");
     }
-    const [headerLine] = (await fs.readFile(newSessionFile, "utf-8"))
+    const [headerLine, messageLine] = (await fs.readFile(newSessionFile, "utf-8"))
       .split(/\r?\n/)
       .filter((line) => line.trim().length > 0);
     const parsedHeader = JSON.parse(headerLine) as {
       parentSession?: string;
     };
     expect(parsedHeader.parentSession).toBe(parentSessionFile);
+    expect(JSON.parse(messageLine).message).toEqual(message.message);
+    expect(await fs.readFile(parentSessionFile, "utf-8")).toBe(
+      `${JSON.stringify(header)}\n${JSON.stringify(message)}\n`,
+    );
   });
 
   it("records topic-specific session files when MessageThreadId is present", async () => {

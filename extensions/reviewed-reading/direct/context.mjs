@@ -124,6 +124,8 @@ export async function readingContext(
     "\n\n# App speaker identity\n" +
     personaInstruction(value) +
     "This controls speaker identity and grammar only, not chart calculations or interpretations. Do not introduce yourself repeatedly. Old assistant names do not override this app identity.\n";
-  if (value.quota_context) prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
+  if (value.quota_context) {
+    prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
+  }
   return { prompt, profile, memoryStatus: status, memoryFacts: facts };
 }

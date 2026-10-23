@@ -1,5 +1,6 @@
 import type { AgentToolResult } from "@mariozechner/pi-agent-core";
 import { createEditTool, createReadTool, createWriteTool } from "@mariozechner/pi-coding-agent";
+import { Type } from "@sinclair/typebox";
 import type { AnyAgentTool } from "./pi-tools.types.js";
 import { detectMime } from "../media/mime.js";
 import { assertSandboxPath } from "./sandbox-paths.js";
@@ -279,8 +280,45 @@ export function createSandboxedWriteTool(root: string) {
 }
 
 export function createSandboxedEditTool(root: string) {
-  const base = createEditTool(root) as unknown as AnyAgentTool;
-  return wrapSandboxPathGuard(wrapToolParamNormalization(base, CLAUDE_PARAM_GROUPS.edit), root);
+  return wrapSandboxPathGuard(createOpenClawEditTool(root), root);
+}
+
+export function createOpenClawEditTool(root: string): AnyAgentTool {
+  const base = createEditTool(root);
+  // Preserve the existing model-facing single-edit contract. Pi 0.70 expects
+  // an edits array internally; saved conversations still use oldText/newText.
+  return wrapToolParamNormalization(
+    {
+      ...base,
+      description:
+        "Edit a file by replacing exact text. The oldText must match exactly and be unique in the file.",
+      parameters: Type.Object({
+        path: Type.String({ description: "Path to the file to edit" }),
+        oldText: Type.String({ description: "Exact text to replace" }),
+        newText: Type.String({ description: "Replacement text" }),
+      }),
+      execute: (id, params, signal, onUpdate) => {
+        const args = normalizeToolParams(params);
+        if (
+          typeof args?.path !== "string" ||
+          typeof args.oldText !== "string" ||
+          typeof args.newText !== "string"
+        ) {
+          throw new Error("Invalid edit tool arguments");
+        }
+        return base.execute(
+          id,
+          {
+            path: args.path,
+            edits: [{ oldText: args.oldText, newText: args.newText }],
+          },
+          signal,
+          onUpdate,
+        );
+      },
+    },
+    CLAUDE_PARAM_GROUPS.edit,
+  );
 }
 
 export function createOpenClawReadTool(base: AnyAgentTool): AnyAgentTool {

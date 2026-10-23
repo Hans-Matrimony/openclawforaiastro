@@ -118,7 +118,9 @@ try {
         await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(1000) })
       ).ok;
     } catch {}
-    if (ready) break;
+    if (ready) {
+      break;
+    }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   assert.ok(ready, "Gateway failed to start: " + logs.slice(-4000));
@@ -182,6 +184,8 @@ print('Release PWA adapter to packaged gateway: passed.')
     new Promise((resolve) => child.once("exit", resolve)),
     new Promise((resolve) => setTimeout(resolve, 5000)),
   ]);
-  if (child.exitCode === null) child.kill("SIGKILL");
+  if (child.exitCode === null) {
+    child.kill("SIGKILL");
+  }
   fs.rmSync(directory, { recursive: true, force: true });
 }

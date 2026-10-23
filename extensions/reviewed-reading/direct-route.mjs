@@ -64,7 +64,9 @@ export function createDirectHandler(
     ...options,
     validate: (value) => {
       validateDirectInput(value);
-      if (!directEnabled(env, value.user_id)) throw new Error("Caller outside pilot");
+      if (!directEnabled(env, value.user_id)) {
+        throw new Error("Caller outside pilot");
+      }
       return value;
     },
     maxBody: 196608,
