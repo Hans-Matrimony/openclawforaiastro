@@ -36,7 +36,7 @@ export function removeDisplayTerms(reply) {
     reply
       // Remove only an unlabeled house-score fragment, retaining the house and meaning.
       .replace(
-        /\b(house\s+\d{1,2}|\d{1,2}(?:st|nd|rd|th)\s+house)\s+ka\s+(?:sirf\s+)?\d{1,3}\s+(?:hai\s+)?(?=(?:bahut\s+)?(?:weak|strong|kamzor)\b)/gi,
+        /\b(house\s+\d{1,2}|\d{1,2}(?:st|nd|rd|th)\s+house)\s+ka\s+(?:sirf\s+)?\d{1,3}\s+(?:bindus?\s+)?(?:hai\s+)?(?=(?:bahut\s+)?(?:weak|strong|kamzor)\b)/gi,
         "$1 ",
       )
       .replace(/([ \t]*)\b(?:retrograde|bindus?|combust)\b([ \t]*)/gi, (_match, before, after) =>
