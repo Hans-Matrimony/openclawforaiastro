@@ -29,6 +29,45 @@ const response = (message, finish_reason = "stop") =>
     }),
   );
 
+for (const malformed of ['{"query":"marriage"}\n<tool_call>{}', "null", "[]", '"text"']) {
+  void test(`invalid tool arguments are not executed or forwarded: ${malformed}`, async () => {
+    let calls = 0;
+    const result = await directAnswer(value, {
+      env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+      makeMemory: () => ({ read: async () => [] }),
+      makeTools: () => async () => assert.fail("Malformed arguments must not reach calculations"),
+      fetchImpl: async (_, options) => {
+        const body = JSON.parse(options.body);
+        if (++calls === 1) {
+          return response(
+            {
+              role: "assistant",
+              content: null,
+              tool_calls: [
+                {
+                  id: "broken",
+                  type: "function",
+                  function: {
+                    name: "mcp__VedAstro__get_horoscope_predictions",
+                    arguments: malformed,
+                  },
+                },
+              ],
+            },
+            "tool_calls",
+          );
+        }
+        assert.equal(body.messages.at(-2).tool_calls[0].function.arguments, "{}");
+        assert.equal(body.messages.at(-1).tool_call_id, "broken");
+        assert.match(body.messages.at(-1).content, /Invalid arguments/);
+        return response({ role: "assistant", content: "Calculation could not be completed." });
+      },
+    });
+    assert.equal(calls, 2);
+    assert.deepEqual(result.answer_reading_tools, []);
+  });
+}
+
 void test("source flow uses raw source prompt, tools and seven rounds with isolated companionship", async () => {
   let calls = 0;
   let reads = 0;

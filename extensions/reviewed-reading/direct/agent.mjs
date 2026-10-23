@@ -5,6 +5,7 @@ import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
 import { previousSameQuestion } from "./repeated-question.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
+import { houseLordConflicts } from "./house-evidence.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
@@ -148,6 +149,7 @@ export async function directAnswer(
   let correctedMissingReading = false;
   let correctedQuestion = false;
   let correctedPeriod = false;
+  let correctedHouseLord = false;
   const chartResults = [];
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
@@ -210,16 +212,31 @@ export async function directAnswer(
       if (choice.message.tool_calls.length > 8) {
         throw new Error("Too many tool calls");
       }
-      messages.push(choice.message);
-      const results = await Promise.all(
-        choice.message.tool_calls.map(async (call) => {
-          let content;
-          let args = {};
-          try {
-            args = JSON.parse(call.function.arguments || "{}");
-          } catch {
-            // The supplied source treats malformed tool arguments as an empty object.
+      const toolCalls = choice.message.tool_calls.map((call) => {
+        try {
+          const args = JSON.parse(call.function.arguments || "{}");
+          if (!args || typeof args !== "object" || Array.isArray(args)) {
+            throw new Error("Tool arguments must be an object");
           }
+          return { call, args, valid: true };
+        } catch {
+          // Do not forward broken JSON to the provider or execute a different
+          // calculation with empty arguments. Let the next normal agent round
+          // correct this call from an explicit tool error.
+          return {
+            call: { ...call, function: { ...call.function, arguments: "{}" } },
+            args: {},
+            valid: false,
+          };
+        }
+      });
+      messages.push({ ...choice.message, tool_calls: toolCalls.map(({ call }) => call) });
+      const results = await Promise.all(
+        toolCalls.map(async ({ call, args, valid }) => {
+          if (!valid) {
+            return "Tool failed: Invalid arguments. Send one valid JSON object per function call; do not include additional tool-call text in arguments.";
+          }
+          let content;
           try {
             const result = await execute(call.function.name, args);
             content = typeof result === "string" ? result : JSON.stringify(result);
@@ -290,6 +307,21 @@ export async function directAnswer(
       continue;
     }
     const questionMismatch = !sourceFlow && mismatchedQuestionReply(value.query, reply);
+    const lordConflicts = sourceFlow ? houseLordConflicts(reply, chartResults) : [];
+    if (lordConflicts.length) {
+      if (correctedHouseLord || modelCalls >= maxRounds) {
+        throw new Error("Reading contradicts calculated house lord");
+      }
+      correctedHouseLord = true;
+      messages.push({
+        role: "user",
+        content:
+          "Correct the proposed reading using the existing chart results. These explicit house-lord claims contradict that chart: " +
+          JSON.stringify(lordConflicts) +
+          ". Do not repeat the rejected claim. Reconsider any timing rationale depending on it; an upcoming period lord is not automatically this house lord. Answer the original question using supported factors, without calling the same tools again.",
+      });
+      continue;
+    }
     if (!sourceFlow && unsupportedPeriodClaim(reply, chartResults)) {
       if (correctedPeriod || modelCalls >= 5) {
         reply =
