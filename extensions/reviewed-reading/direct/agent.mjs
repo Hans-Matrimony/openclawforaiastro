@@ -187,6 +187,9 @@ export async function directAnswer(
             if (
               content &&
               !result?.isError &&
+              !/^\s*(?:Tool failed:|Error:|Calculation failed|Unable to calculate)/i.test(
+                content,
+              ) &&
               CHART_TOOL_NAMES.has(bareToolName(call.function.name))
             ) {
               readingTools.add(bareToolName(call.function.name));

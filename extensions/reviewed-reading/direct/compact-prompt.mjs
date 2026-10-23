@@ -2,6 +2,14 @@
 // Keep routing, birth resolution, tool evidence and output contracts intact.
 export function compactPrompt(source) {
   return source
+    .replace(
+      /^- Style examples:.*$/gm,
+      "- State the supported verdict plainly in the user's language; do not borrow dates or ages from style examples.",
+    )
+    .replace(
+      /^- If the current period is negative, name the next favorable window.*$/gm,
+      "- Name a future favorable window only when tool evidence supports it for this specific question. A negative current period does not imply that the next period is favorable. Never invent a window or reuse another topic's timing.",
+    )
     .replace(/# Examples of correct behavior[^]*?(?=# Sensitive Questions Policy)/, "")
     .replace(
       /# Voice[^]*?(?=# Persistent Memory)/,

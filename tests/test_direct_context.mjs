@@ -56,6 +56,20 @@ const chartCall = () =>
     }),
   );
 
+void test("textual calculation failures cannot count as successful chart evidence", async () => {
+  let calls = 0;
+  await assert.rejects(
+    directAnswer(input, {
+      env,
+      makeMemory: () => ({ read: async () => [] }),
+      makeTools: () => async () => "Calculation failed: missing ephemeris",
+      fetchImpl: async () =>
+        ++calls === 1 ? chartCall() : reply("Marriage will happen next year."),
+    }),
+    /requires a successful chart tool/,
+  );
+});
+
 void test("first request contains selected profile and caller memory inside the source placeholders", async () => {
   const context = await readingContext(
     input,

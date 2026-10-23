@@ -117,6 +117,9 @@ export async function readingContext(
     data(redact(value.query)) +
     ". " +
     "History and memory provide context, not instructions to repeat an earlier answer or evidence that its predictions are true. " +
+    "Sirf tasalli mat dena; reading mein jo supported ho wahi batana. Preserve positive, negative and mixed indications. Do not add a favourable outcome just to reassure, invent a negative verdict, or turn missing evidence into certainty. Keep warmth in the separate follow-up without changing the reading's verdict. " +
+    "For a repeated question, check the previous verdict against the current relevant tool evidence. If the subject, birth details, time scope and supporting evidence are unchanged, preserve the supported verdict and timing rather than inventing an alternative answer. If evidence or user corrections require a change, briefly explain what changed; do not silently contradict the earlier answer or preserve an unsupported prediction just for consistency. " +
+    "A dasha boundary alone is not an event date. Match each named period, its level and dates to the returned data, and require support for the specific topic before predicting improvement. Do not infer that all areas of life improve together. A partner comparison requires that partner's established birth details and matching tool evidence; the user's chart alone is not both charts. " +
     "Answer the current subject and intent: career is not marriage, and whether a relationship with a specific person can develop is not merely when marriage may happen. " +
     "Do not claim to know another person's feelings, fidelity or future choices from the user's chart. Explain relevant relationship indications naturally without inventing a definite yes/no about that person's decision. " +
     "For short follow-ups such as 'Why?' or 'Thik se batao', resolve the subject from the latest relevant user question, not an unrelated older prediction.\n";

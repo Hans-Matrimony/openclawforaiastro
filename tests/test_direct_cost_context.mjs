@@ -23,6 +23,9 @@ void test("runtime compaction keeps reading and memory contracts but removes rep
     assert.ok(compact.includes(rule), rule);
   }
   assert.ok(!compact.includes("# Examples of correct behavior"));
+  assert.ok(!compact.includes("2027 ke baad"));
+  assert.ok(!compact.includes("Marriage likely after 30"));
+  assert.match(compact, /negative current period does not imply/);
 });
 
 void test("memory cleanup removes duplicates without losing corrections or separate people", () => {
