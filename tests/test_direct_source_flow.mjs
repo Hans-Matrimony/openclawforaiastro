@@ -4,6 +4,75 @@ import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { sourceReading } from "../extensions/reviewed-reading/direct/source-engine.mjs";
 import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
 import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
+import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
+
+void test("source personal reading requires a new chart despite previous predictions", async () => {
+  let calls = 0;
+  let calculations = 0;
+  const result = await directAnswer(
+    { ...value, history: [{ role: "assistant", text: "Old prediction: 2027." }] },
+    {
+      env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+      makeMemory: () => ({ read: async () => ["Previous prediction: 2027."] }),
+      makeTools: () => async () => {
+        calculations++;
+        return '{"current_chart":true}';
+      },
+      fetchImpl: async (_, options) => {
+        const body = JSON.parse(options.body);
+        if (++calls === 1) {
+          assert.equal(body.tool_choice, "required");
+          assert.ok(
+            body.tools.every((t) =>
+              /get_(horoscope_predictions|current_transits|match_report|horary_prediction)$/.test(
+                t.function.name,
+              ),
+            ),
+          );
+          return response(
+            {
+              role: "assistant",
+              tool_calls: [
+                {
+                  id: "fresh",
+                  type: "function",
+                  function: { name: "mcp__VedAstro__get_horoscope_predictions", arguments: "{}" },
+                },
+              ],
+            },
+            "tool_calls",
+          );
+        }
+        assert.equal(body.tool_choice, "auto");
+        assert.ok(
+          body.messages.some((m) => m.role === "tool" && m.content.includes("current_chart")),
+        );
+        return response({
+          role: "assistant",
+          content: "Explanation.\n\nMore evidence.\n\nVerdict.",
+        });
+      },
+    },
+  );
+  assert.equal(calculations, 1);
+  assert.ok(result.reply.startsWith("Explanation. More evidence.\n\nVerdict."));
+  assert.equal(result.reply.split(/\n\s*\n/).length, 3);
+});
+
+void test("companion rejects the observed invented opportunity forecast while preserving the reading", async () => {
+  const reading = "Explanation.\n\nVerdict.";
+  const result = await contextualClosing(
+    reading,
+    { query: "Meri financial condition kab behtar hogi?", language: "hinglish", history: [] },
+    {
+      generate: async () =>
+        "Next 6 to 8 months mein unexpected opportunity aa sakti hai, kya side hustle shuru kiya?",
+    },
+  );
+  assert.ok(result.startsWith(reading + "\n\n"));
+  assert.doesNotMatch(result, /opportunity|6 to 8/);
+  assert.equal(result.split(/\n\s*\n/).length, 3);
+});
 
 const env = {
   OPENROUTER_API_KEY: "test",
@@ -32,37 +101,40 @@ const response = (message, finish_reason = "stop") =>
 for (const malformed of ['{"query":"marriage"}\n<tool_call>{}', "null", "[]", '"text"']) {
   void test(`invalid tool arguments are not executed or forwarded: ${malformed}`, async () => {
     let calls = 0;
-    const result = await directAnswer(value, {
-      env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
-      makeMemory: () => ({ read: async () => [] }),
-      makeTools: () => async () => assert.fail("Malformed arguments must not reach calculations"),
-      fetchImpl: async (_, options) => {
-        const body = JSON.parse(options.body);
-        if (++calls === 1) {
-          return response(
-            {
-              role: "assistant",
-              content: null,
-              tool_calls: [
-                {
-                  id: "broken",
-                  type: "function",
-                  function: {
-                    name: "mcp__VedAstro__get_horoscope_predictions",
-                    arguments: malformed,
+    const result = await directAnswer(
+      { ...value, query: "Hello" },
+      {
+        env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+        makeMemory: () => ({ read: async () => [] }),
+        makeTools: () => async () => assert.fail("Malformed arguments must not reach calculations"),
+        fetchImpl: async (_, options) => {
+          const body = JSON.parse(options.body);
+          if (++calls === 1) {
+            return response(
+              {
+                role: "assistant",
+                content: null,
+                tool_calls: [
+                  {
+                    id: "broken",
+                    type: "function",
+                    function: {
+                      name: "mcp__VedAstro__get_horoscope_predictions",
+                      arguments: malformed,
+                    },
                   },
-                },
-              ],
-            },
-            "tool_calls",
-          );
-        }
-        assert.equal(body.messages.at(-2).tool_calls[0].function.arguments, "{}");
-        assert.equal(body.messages.at(-1).tool_call_id, "broken");
-        assert.match(body.messages.at(-1).content, /Invalid arguments/);
-        return response({ role: "assistant", content: "Calculation could not be completed." });
+                ],
+              },
+              "tool_calls",
+            );
+          }
+          assert.equal(body.messages.at(-2).tool_calls[0].function.arguments, "{}");
+          assert.equal(body.messages.at(-1).tool_call_id, "broken");
+          assert.match(body.messages.at(-1).content, /Invalid arguments/);
+          return response({ role: "assistant", content: "Calculation could not be completed." });
+        },
       },
-    });
+    );
     assert.equal(calls, 2);
     assert.deepEqual(result.answer_reading_tools, []);
   });

@@ -201,6 +201,9 @@ export async function contextualClosing(
       (question.match(/[?？]/g) ?? []).length > 1 ||
       generic.test(question) ||
       stockPresence.test(question) ||
+      /\b(?:next|agle?|agla|aane wale)\s+\d+(?:\s*(?:\p{Pd}|to)\s*\d+)?\s*(?:months?|years?|mahine|saal)\b|\b(?:opportunit\w*|income|paisa|paise|reward|success|growth)\b.{0,65}\b(?:aayeg\w*|mile(?:ga|gi)|hoga|hogi|degi|dega|will)\b/iu.test(
+        question,
+      ) ||
       /ka ja(?:a)?du|your magic|bas aapke liye hi|made only for you/i.test(question) ||
       /(?:faisla|decision).{0,25}(?:bilkul|bahut|definitely|absolutely).{0,10}(?:sahi|right)|(?:tu|tere)\s+(?:liye|saath)/i.test(
         question,

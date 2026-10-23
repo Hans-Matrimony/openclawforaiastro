@@ -144,7 +144,7 @@ export async function directAnswer(
   let nudged = false;
   let upstreamCalls = 0;
   let cacheHits = 0;
-  const readingRequired = !sourceFlow && requiresChartReading(value.query, context.profile);
+  const readingRequired = requiresChartReading(value.query, context.profile);
   const readingTools = new Set();
   let correctedMissingReading = false;
   let correctedQuestion = false;
@@ -153,15 +153,18 @@ export async function directAnswer(
   const chartResults = [];
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
+    // Saved conversation predictions are not a substitute for this turn's chart.
+    const requireChart =
+      readingTools.size === 0 && (correctedMissingReading || (sourceFlow && readingRequired));
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
       tools: ordinaryConcern
         ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
-        : correctedMissingReading && readingTools.size === 0
+        : requireChart
           ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
           : TOOLS,
-      tool_choice: correctedMissingReading && readingTools.size === 0 ? "required" : "auto",
+      tool_choice: requireChart ? "required" : "auto",
       stream: false,
       max_tokens: 4096,
       ...generation,
