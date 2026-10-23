@@ -1,0 +1,10 @@
+{
+  "id": "direct-answer",
+  "name": "Direct answer pilot",
+  "description": "Opt-in direct answers; existing agents and personas remain unchanged.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

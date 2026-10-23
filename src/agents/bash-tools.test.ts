@@ -190,7 +190,9 @@ describe("exec tool backgrounding", () => {
   it("does not default to elevated when not allowed", async () => {
     const customBash = createExecTool({
       elevated: { enabled: true, allowed: false, defaultLevel: "on" },
-      backgroundMs: 1000,
+      // Windows shell startup can exceed one second; this checks permissions,
+      // so wait for the command rather than asserting on a background notice.
+      backgroundMs: 10000,
       timeoutSec: 5,
     });
 

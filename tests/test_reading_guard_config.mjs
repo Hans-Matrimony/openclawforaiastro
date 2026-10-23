@@ -26,7 +26,7 @@ function fixture() {
     plugins: { allow: ["existing"], load: { paths: ["/app/extensions/existing"] } },
   };
 }
-test("scopes primary and fallback aliases, retaining credentials and model options", () => {
+void test("scopes primary and fallback aliases, retaining credentials and model options", () => {
   const original = fixture();
   const cfg = configureReadingGuard(original, { env: { ZAI_API_KEY: "synthetic" } });
   assert.equal(cfg.agents.list[0].model.primary, "astrofriend-reading-deepseek/test");
@@ -41,7 +41,7 @@ test("scopes primary and fallback aliases, retaining credentials and model optio
   assert.equal(original.agents.list[0].model.primary, "deepseek/test");
   assert.ok(!JSON.stringify(cfg).includes("synthetic"));
 });
-test("repeated startup is idempotent and disabling restores original model routing", () => {
+void test("repeated startup is idempotent and disabling restores original model routing", () => {
   const original = fixture();
   const options = { env: { ZAI_API_KEY: "synthetic" } };
   const once = configureReadingGuard(original, options);
@@ -51,7 +51,7 @@ test("repeated startup is idempotent and disabling restores original model routi
   assert.deepEqual(disabled.models, original.models);
   assert.equal(disabled.plugins.entries["astrologer-reading"].enabled, false);
 });
-test("missing auth mapping fails before mutating the supplied configuration", () => {
+void test("missing auth mapping fails before mutating the supplied configuration", () => {
   const cfg = fixture();
   assert.throws(() => configureReadingGuard(cfg, { env: {} }), /configured API key/);
   assert.deepEqual(cfg, fixture());

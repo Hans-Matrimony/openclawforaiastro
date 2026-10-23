@@ -401,7 +401,7 @@ export async function compactEmbeddedPiSessionDirect(
         modelRegistry,
         model,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
-        tools: builtInTools,
+        tools: [...builtInTools, ...customTools.map((tool) => tool.name)],
         customTools,
         sessionManager,
         settingsManager,
@@ -429,7 +429,7 @@ export async function compactEmbeddedPiSessionDirect(
           getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
         );
         if (limited.length > 0) {
-          session.agent.replaceMessages(limited);
+          session.agent.state.messages = limited;
         }
         const result = await session.compact(params.customInstructions);
         // Estimate tokens after compaction by summing token estimates for remaining messages

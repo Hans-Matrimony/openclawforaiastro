@@ -37,8 +37,11 @@ describe("loadModelCatalog", () => {
         throw new Error("boom");
       }
       return {
-        AuthStorage: class {},
+        AuthStorage: { create: () => ({}) },
         ModelRegistry: class {
+          static create() {
+            return new this();
+          }
           getAll() {
             return [{ id: "gpt-4.1", name: "GPT-4.1", provider: "openai" }];
           }
@@ -62,8 +65,11 @@ describe("loadModelCatalog", () => {
     __setModelCatalogImportForTest(
       async () =>
         ({
-          AuthStorage: class {},
+          AuthStorage: { create: () => ({}) },
           ModelRegistry: class {
+            static create() {
+              return new this();
+            }
             getAll() {
               return [
                 { id: "gpt-4.1", name: "GPT-4.1", provider: "openai" },

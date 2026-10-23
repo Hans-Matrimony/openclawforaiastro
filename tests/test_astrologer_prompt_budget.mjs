@@ -11,7 +11,7 @@ function fixture(t) {
   return dir;
 }
 
-test("rejects per-file truncation using runtime UTF-16 characters", (t) => {
+void test("rejects per-file truncation using runtime UTF-16 characters", (t) => {
   const dir = fixture(t);
   fs.writeFileSync(path.join(dir, "SOUL.md"), "😀".repeat(51));
   assert.equal(auditPromptBudget(dir, 102).fits, true);
@@ -19,7 +19,7 @@ test("rejects per-file truncation using runtime UTF-16 characters", (t) => {
   assert.deepEqual(auditPromptBudget(dir, 101).oversized, ["SOUL.md"]);
 });
 
-test("rejects aggregate overflow even when every file fits", (t) => {
+void test("rejects aggregate overflow even when every file fits", (t) => {
   const dir = fixture(t);
   for (const name of ["AGENTS.md", "SOUL.md", "TOOLS.md", "MEMORY.md"]) {
     fs.writeFileSync(path.join(dir, name), "x".repeat(1000));
@@ -28,7 +28,7 @@ test("rejects aggregate overflow even when every file fits", (t) => {
   assert.equal(auditPromptBudget(dir, 2000, 7000).fits, true);
 });
 
-test("counts lower-case memory fallback without exposing its contents", (t) => {
+void test("counts lower-case memory fallback without exposing its contents", (t) => {
   const dir = fixture(t);
   fs.writeFileSync(path.join(dir, "memory.md"), "private".repeat(100));
   const report = auditPromptBudget(dir);

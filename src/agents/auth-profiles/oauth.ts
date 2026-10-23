@@ -3,7 +3,7 @@ import {
   getOAuthProviders,
   type OAuthCredentials,
   type OAuthProvider,
-} from "@mariozechner/pi-ai";
+} from "@mariozechner/pi-ai/oauth";
 import lockfile from "proper-lockfile";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AuthProfileStore } from "./types.js";

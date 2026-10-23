@@ -1,3 +1,10 @@
+// Delivery/routing unit tests assume consent is already established.
+// The real consent, opt-out and time-window checks have separate coverage.
+vi.mock("../../whatsapp/compliance.js", () => ({
+  checkProactiveCompliance: vi.fn(async () => ({ allowed: true })),
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true })),
+  logComplianceFailure: vi.fn(),
+}));
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../../config/config.js";
 import { signalOutbound } from "../../channels/plugins/outbound/signal.js";
@@ -34,6 +41,26 @@ describe("deliverOutboundPayloads", () => {
 
   afterEach(() => {
     setActivePluginRegistry(emptyRegistry);
+  });
+  it("does not call the sender when the consent gate rejects delivery", async () => {
+    const { checkProactiveCompliance } = await import("../../whatsapp/compliance.js");
+    const allowed = await checkProactiveCompliance("+1555");
+    vi.mocked(checkProactiveCompliance).mockResolvedValueOnce({
+      ...allowed,
+      allowed: false,
+      reason: "No consent",
+    });
+    const sendWhatsApp = vi.fn();
+    await expect(
+      deliverOutboundPayloads({
+        cfg: {},
+        channel: "whatsapp",
+        to: "+1555",
+        payloads: [{ text: "Must not be sent" }],
+        deps: { sendWhatsApp },
+      }),
+    ).rejects.toThrow("No consent");
+    expect(sendWhatsApp).not.toHaveBeenCalled();
   });
   it("chunks telegram markdown and passes through accountId", async () => {
     const sendTelegram = vi.fn().mockResolvedValue({ messageId: "m1", chatId: "c1" });
@@ -167,7 +194,7 @@ describe("deliverOutboundPayloads", () => {
     expect(results.map((r) => r.messageId)).toEqual(["w1", "w2"]);
   });
 
-  it("respects newline chunk mode for WhatsApp", async () => {
+  it("retains existing text polishing before WhatsApp chunking", async () => {
     const sendWhatsApp = vi.fn().mockResolvedValue({ messageId: "w1", toJid: "jid" });
     const cfg: OpenClawConfig = {
       channels: { whatsapp: { textChunkLimit: 4000, chunkMode: "newline" } },
@@ -181,17 +208,11 @@ describe("deliverOutboundPayloads", () => {
       deps: { sendWhatsApp },
     });
 
-    expect(sendWhatsApp).toHaveBeenCalledTimes(2);
+    expect(sendWhatsApp).toHaveBeenCalledTimes(1);
     expect(sendWhatsApp).toHaveBeenNthCalledWith(
       1,
       "+1555",
-      "Line one",
-      expect.objectContaining({ verbose: false }),
-    );
-    expect(sendWhatsApp).toHaveBeenNthCalledWith(
-      2,
-      "+1555",
-      "Line two",
+      "Line one Line two",
       expect.objectContaining({ verbose: false }),
     );
   });

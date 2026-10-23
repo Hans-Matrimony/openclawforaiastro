@@ -110,22 +110,22 @@ async function saveOptOutStore(store: OptOutStore): Promise<void> {
  * Check if a message contains opt-out keywords
  */
 export function isOptOutMessage(text: string): boolean {
-  if (!text) return false;
+  if (!text) {
+    return false;
+  }
   const normalized = text.toLowerCase().trim();
-  return OPT_OUT_KEYWORDS.some((keyword) =>
-    normalized.includes(keyword.toLowerCase()),
-  );
+  return OPT_OUT_KEYWORDS.some((keyword) => normalized.includes(keyword.toLowerCase()));
 }
 
 /**
  * Check if a message contains opt-in keywords (re-opting in)
  */
 export function isOptInMessage(text: string): boolean {
-  if (!text) return false;
+  if (!text) {
+    return false;
+  }
   const normalized = text.toLowerCase().trim();
-  return OPT_IN_KEYWORDS.some((keyword) =>
-    normalized.includes(keyword.toLowerCase()),
-  );
+  return OPT_IN_KEYWORDS.some((keyword) => normalized.includes(keyword.toLowerCase()));
 }
 
 /**
@@ -151,8 +151,7 @@ export async function handleOptOut(
     log.info("User already opted out", { phoneNumber: normalized });
     return {
       handled: true,
-      responseMessage:
-        "Aap already opted out ho. Agar baad mein chahte ho toh zaroor batana.",
+      responseMessage: "Aap already opted out ho. Agar baad mein chahte ho toh zaroor batana.",
     };
   }
 
@@ -185,8 +184,7 @@ export async function handleOptIn(
     log.info("User was not opted out", { phoneNumber: normalized });
     return {
       handled: true,
-      responseMessage:
-        "Aap already opted in ho. Koi sawaal ho toh zaroor poochiye.",
+      responseMessage: "Aap already opted in ho. Koi sawaal ho toh zaroor poochiye.",
     };
   }
 
@@ -227,13 +225,9 @@ export async function getOptOutStats(): Promise<{
   const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
   const monthAgo = now - 30 * 24 * 60 * 60 * 1000;
 
-  const optedOutThisWeek = Object.values(store.optedOutAt).filter(
-    (ts) => ts >= weekAgo,
-  ).length;
+  const optedOutThisWeek = Object.values(store.optedOutAt).filter((ts) => ts >= weekAgo).length;
 
-  const optedOutThisMonth = Object.values(store.optedOutAt).filter(
-    (ts) => ts >= monthAgo,
-  ).length;
+  const optedOutThisMonth = Object.values(store.optedOutAt).filter((ts) => ts >= monthAgo).length;
 
   return {
     totalOptedOut: store.optedOutNumbers.length,

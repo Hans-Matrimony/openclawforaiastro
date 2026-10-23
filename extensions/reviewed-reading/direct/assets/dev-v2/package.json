@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "sweph": "2.10.3-8"
+  }
+}

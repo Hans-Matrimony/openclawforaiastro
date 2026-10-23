@@ -69,6 +69,21 @@ function forkSessionFromParent(params: {
       const sessionFile = manager.createBranchedSession(leafId) ?? manager.getSessionFile();
       const sessionId = manager.getSessionId();
       if (sessionFile && sessionId) {
+        // Pi defers persisting user-only branches until an assistant replies.
+        // This manager is discarded here, so persist its history before handing
+        // the filename to the next turn's independently opened session manager.
+        if (!fs.existsSync(sessionFile)) {
+          const header = manager.getHeader();
+          if (!header) {
+            throw new Error("Forked session is missing its header");
+          }
+          const entries = [header, ...manager.getEntries()];
+          fs.writeFileSync(
+            sessionFile,
+            entries.map((entry) => JSON.stringify(entry)).join("\n") + "\n",
+            { encoding: "utf-8", flag: "wx" },
+          );
+        }
         return { sessionId, sessionFile };
       }
     }

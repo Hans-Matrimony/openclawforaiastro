@@ -477,7 +477,7 @@ export async function runEmbeddedAttempt(
         modelRegistry: params.modelRegistry,
         model: params.model,
         thinkingLevel: mapThinkingLevel(params.thinkLevel),
-        tools: builtInTools,
+        tools: [...builtInTools, ...allCustomTools.map((tool) => tool.name)],
         customTools: allCustomTools,
         sessionManager,
         settingsManager,
@@ -567,7 +567,7 @@ export async function runEmbeddedAttempt(
         );
         cacheTrace?.recordStage("session:limited", { messages: limited });
         if (limited.length > 0) {
-          activeSession.agent.replaceMessages(limited);
+          activeSession.agent.state.messages = limited;
         }
       } catch (err) {
         sessionManager.flushPendingToolResults?.();
@@ -759,7 +759,7 @@ export async function runEmbeddedAttempt(
             sessionManager.resetLeaf();
           }
           const sessionContext = sessionManager.buildSessionContext();
-          activeSession.agent.replaceMessages(sessionContext.messages);
+          activeSession.agent.state.messages = sessionContext.messages;
           log.warn(
             `Removed orphaned user message to prevent consecutive user turns. ` +
               `runId=${params.runId} sessionId=${params.sessionId}`,
@@ -790,7 +790,7 @@ export async function runEmbeddedAttempt(
           );
           if (didMutate) {
             // Persist message mutations (e.g., injected history images) so we don't re-scan/reload.
-            activeSession.agent.replaceMessages(activeSession.messages);
+            activeSession.agent.state.messages = activeSession.messages;
           }
 
           cacheTrace?.recordStage("prompt:images", {

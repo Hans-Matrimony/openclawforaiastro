@@ -43,7 +43,11 @@ function isAbortSignal(value: unknown): value is AbortSignal {
 function isLegacyToolExecuteArgs(args: ToolExecuteArgsAny): args is ToolExecuteArgsLegacy {
   const third = args[2];
   const fourth = args[3];
-  return isAbortSignal(third) || typeof fourth === "function";
+  return (
+    isAbortSignal(third) ||
+    typeof fourth === "function" ||
+    (third == null && fourth == null && !isAbortSignal(args[4]))
+  );
 }
 
 function describeToolExecutionError(err: unknown): {
