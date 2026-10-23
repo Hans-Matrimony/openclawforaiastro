@@ -2,6 +2,36 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
+import {
+  concernFallback,
+  companionConcern,
+} from "../extensions/reviewed-reading/direct/companion-concern.mjs";
+
+void test("exhausted fee follow-ups retain the known concern and preserve the reading", async () => {
+  const value = {
+    query: "Main night shift mein kaam karta hoon aur MBA ki fees ko lekar pareshan hoon.",
+    language: "hinglish",
+    history: [],
+  };
+  for (let i = 0; i < 2; i++) {
+    value.history.push({
+      role: "assistant",
+      text: concernFallback(value, companionConcern(value)),
+    });
+  }
+  for (const generate of [
+    async () => "NONE",
+    async () => {
+      throw new Error("unavailable");
+    },
+  ]) {
+    const base = "Existing astrology reading.\n\nExisting short answer.";
+    const reply = await contextualClosing(base, value, { generate });
+    assert.ok(reply.startsWith(base + "\n\n"));
+    assert.match(reply.split("\n\n").at(-1), /Fees/);
+    assert.doesNotMatch(reply, /sabse zyada tension kis baat/i);
+  }
+});
 
 void test("companion cannot repeat astrology timing in the reported misspelled education query", async () => {
   assert.equal(

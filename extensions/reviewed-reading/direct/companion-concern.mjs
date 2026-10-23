@@ -198,7 +198,14 @@ export function concernFallback(value, concern) {
           hindi:
             "फीस की समय सीमा का दबाव है। अभी सब एक साथ सुलझाना ज़रूरी नहीं; अपनी बात आराम से कह सकते हो।",
         }[language]
-      : null)
+      : concern.kind === "fees"
+        ? {
+            hinglish:
+              "Fees ki baat par hi rehte hain. Isko lekar abhi aap kya share karna chahte ho?",
+            english: "Let's stay with the fees. What would you like to share about that right now?",
+            hindi: "फीस की बात पर ही रहते हैं। इसे लेकर अभी आप क्या साझा करना चाहते हैं?",
+          }[language]
+        : null)
   );
 }
 
