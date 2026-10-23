@@ -11,6 +11,9 @@ export function unsupportedPeriodClaim(reply, toolResults) {
       if (Array.isArray(data.dasha?.antardashas)) {
         periods.push(...data.dasha.antardashas);
       }
+      if (Array.isArray(data.dasha?.upcoming_antardashas)) {
+        periods.push(...data.dasha.upcoming_antardashas);
+      }
     } catch {
       /* Non-JSON tools cannot establish a period schedule. */
     }

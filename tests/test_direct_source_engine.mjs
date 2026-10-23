@@ -2,6 +2,29 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { sourceReading } from "../extensions/reviewed-reading/direct/source-engine.mjs";
 import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
+import { get_horoscope_predictions } from "../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs";
+
+void test("new source outlook reaches the agent without changing calculated evidence", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-23T12:00:00Z") });
+  const args = { birth_date: "3/1/2001", birth_time: "05:00", location_name: "Delhi" };
+  const upstream = JSON.parse(get_horoscope_predictions(args).content[0].text);
+  const actual = JSON.parse(
+    (await sourceReading("get_horoscope_predictions", args)).content[0].text,
+  );
+  const { instruction: upstreamInstruction, ...upstreamEvidence } = upstream;
+  const { instruction, ...actualEvidence } = actual;
+  assert.deepEqual(actualEvidence, upstreamEvidence);
+  assert.notEqual(instruction, upstreamInstruction);
+  assert.doesNotMatch(instruction, /2027|3-4/);
+  assert.match(instruction, /period boundaries, not guaranteed event dates/);
+  assert.ok(actual.dasha.upcoming_antardashas.length > 0);
+  assert.ok(actual.dasha.next_mahadasha.from > "2026-10-23");
+  for (const period of actual.dasha.upcoming_antardashas) {
+    assert.ok(period.from > "2026-10-23");
+    assert.ok(period.to > period.from);
+    assert.ok(actual.timeline_note.includes(period.from));
+  }
+});
 
 void test("local source engine is the default and returns tool text without network or rewriting", async () => {
   const execute = createTools({

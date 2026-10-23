@@ -4,7 +4,8 @@
   "files": [
     {
       "path": "engine.mjs",
-      "sha256": "fad1b19acc77294a071f5e2558e5fbfaf89d086f39e08cb7e9bd6f73ed2f2d7e"
+      "sha256": "e3ab64bc053e6236b7da7c25bce75065aab0aac8a91da206d1a3a8430d2fee86",
+      "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9"
     },
     {
       "path": "system-prompt.txt",

@@ -344,8 +344,37 @@ function runChart(dateStr, timeStr, locationName) {
   return { utc, loc, chart, dasha, av, houseBindus: houseBindus(av.sarvashtaka, chart.ascSignIndex) };
 }
 
+function antarsOf(startStr, lord, count) {
+  const ms = DASHA_YEARS[lord] * 365.25 * 86400000;
+  const aIdx = DASHA_ORDER.indexOf(lord);
+  let aStart = new Date(startStr);
+  const out = [];
+  for (let i = 0; i < 9 && out.length < count; i++) {
+    const l = DASHA_ORDER[(aIdx + i) % 9];
+    const aEnd = new Date(aStart.getTime() + ms * (DASHA_YEARS[l] / 120));
+    out.push({ lord: l, from: aStart.toISOString().slice(0, 10), to: aEnd.toISOString().slice(0, 10) });
+    aStart = aEnd;
+  }
+  return out;
+}
+
+function buildDashaOutlook(dasha) {
+  const today = new Date().toISOString().slice(0, 10);
+  let upcoming = (dasha.antardashas || []).filter(p => p.from > today).slice(0, 5);
+  const nextMd = (dasha.periods || []).find(p => p.from > today) || null;
+  if (!upcoming.length && nextMd) upcoming = antarsOf(nextMd.from, nextMd.lord, 3);
+  return {
+    current_mahadasha: dasha.current_mahadasha,
+    current_antardasha: dasha.current_antardasha,
+    upcoming_antardashas: upcoming,
+    next_mahadasha: nextMd,
+  };
+}
+
 function timelineNote(dasha) {
-  return `Abhi ${dasha.current_mahadasha.lord} mahadasha (${dasha.current_mahadasha.from} se ${dasha.current_mahadasha.to}) + ${dasha.current_antardasha.lord} antardasha (${dasha.current_antardasha.from} se ${dasha.current_antardasha.to}) chal rahi hai. Yeh numbers tool se aaye hain — inhi ke hisaab se timing batao, apne andaze se nahi.`;
+  const out = buildDashaOutlook(dasha);
+  const upcoming = out.upcoming_antardashas.map(p => `${p.lord} (${p.from} se ${p.to})`).join(", ");
+  return `Abhi ${dasha.current_mahadasha.lord} mahadasha (${dasha.current_mahadasha.from} se ${dasha.current_mahadasha.to}) + ${dasha.current_antardasha.lord} antardasha (${dasha.current_antardasha.from} se ${dasha.current_antardasha.to}) chal rahi hai.${upcoming ? ` Aane wali antardashas: ${upcoming}.` : ""}${out.next_mahadasha ? ` Aage ${out.next_mahadasha.lord} mahadasha (${out.next_mahadasha.from} se) aayegi.` : ""} Yeh numbers tool se aaye hain — inhi ke hisaab se timing batao, apne andaze se nahi.`;
 }
 
 // ---------- the 4 tool implementations ----------
@@ -362,11 +391,11 @@ export function get_horoscope_predictions({ birth_date, birth_time, location_nam
     engine: "local-sweph-v2", source: "LOCAL (Swiss Ephemeris, Lahiri, Ashtakavarga)",
     birth_chart: fmtChart(r, "natal"),
     ashtakavarga: { sarvashtaka_by_sign: r.av.sarvashtaka, grand_total: r.av.grand_total },
-    dasha: { current_mahadasha: r.dasha.current_mahadasha, current_antardasha: r.dasha.current_antardasha },
+    dasha: buildDashaOutlook(r.dasha),
     timeline_note: timelineNote(r.dasha),
     sade_sati: sadeSati(natalMoon.sign, saturnNow.sign),
     verdict_signals: areas,
-    instruction: "verdict_signals ke positive/negative factors ka USE karke seedha verdict do — negative factors zyada hain to NEGATIVE bolo, mix hai to MIXED. Bindus aur dasha numbers ke bina koi claim nahi.",
+    instruction: "verdict_signals ke positive/negative factors ka USE karke seedha verdict do — negative factors zyada hain to NEGATIVE bolo, mix hai to MIXED. TIMING sawal (kab milega/kab hogi) me current_antardasha ka end year default mat banao — upcoming_antardashas aur next_mahadasha ke windows me se is topic ke liye favorable period chuno aur EXACT month-year do (jaise 'May 2027 se'). JAWAB CHHOTA RAKHO: max 3-4 chhoti lines — seedha verdict + month-year window + sirf 1 line ka reason (dasha/bindu number ke saath). Koi lamba explanation nahi, koi report nahi, koi dobara summary nahi. Yeh result hi final hai — isme saari dasha windows maujood hain, same tools dobara call karne ki zaroorat NAHI, agle round me seedha jawab do. Bindus aur dasha numbers ke bina koi claim nahi.",
   }) }] };
 }
 

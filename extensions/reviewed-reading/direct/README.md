@@ -1,5 +1,14 @@
 # Direct answer integration
 
+The calculation engine alone is updated to source Dev revision
+`fb060c30c10568ab9d954b9e990ba4696528e1a9`, exposing upcoming antardashas and
+the next mahadasha. Other captured assets retain their revisions below.
+The adapter preserves every calculated field and adjusts only the engine's
+output instruction to our existing two-part reading format. It removes the
+upstream example date and does not equate a period boundary with an event date.
+The period validator accepts the newly returned upcoming antardashas.
+Companion prompts, memory, identity, request limits and PWA delivery are unchanged.
+
 This development-only route uses the AstroChat `Dev` branch at source revision
 `c7d63bb92bfb35bf11a8a4748b40a9afd22cc742`. Its prompt, schemas, server reference
 and Swiss Ephemeris calculation/judgment engine are preserved in `assets/dev-v2`.

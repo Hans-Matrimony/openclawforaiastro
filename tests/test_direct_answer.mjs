@@ -65,6 +65,10 @@ void test("supplied prompt, schemas and fallback engine remain identical to the 
   );
   assert.equal(provenance.source_revision, "c7d63bb92bfb35bf11a8a4748b40a9afd22cc742");
   assert.equal(provenance.files.length, 6);
+  assert.equal(
+    provenance.files.find((file) => file.path === "engine.mjs").source_revision,
+    "fb060c30c10568ab9d954b9e990ba4696528e1a9",
+  );
   for (const file of provenance.files) {
     assert.equal(
       createHash("sha256")

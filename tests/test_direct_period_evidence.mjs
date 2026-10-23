@@ -4,6 +4,21 @@ import { unsupportedPeriodClaim } from "../extensions/reviewed-reading/direct/pe
 import { isOrdinaryConcern } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 import { unsupportedClosingDetail } from "../extensions/reviewed-reading/direct/companion-context.mjs";
 
+void test("upcoming source antardashas are accepted without confusing next mahadasha", () => {
+  const evidence = [
+    JSON.stringify({
+      dasha: {
+        current_antardasha: { lord: "Moon", from: "2025-01-01" },
+        upcoming_antardashas: [{ lord: "Mars", from: "2027-06-01", to: "2028-08-01" }],
+        next_mahadasha: { lord: "Sun", from: "2038-01-01" },
+      },
+    }),
+  ];
+  assert.equal(unsupportedPeriodClaim("Mars antardasha starts in 2027.", evidence), false);
+  assert.equal(unsupportedPeriodClaim("Mars antardasha starts in 2026.", evidence), true);
+  assert.equal(unsupportedPeriodClaim("Sun antardasha starts in 2038.", evidence), true);
+});
+
 void test("explicit period start years must match the supplied schedule", () => {
   const evidence = [
     JSON.stringify({ dasha: { antardashas: [{ lord: "Jupiter", from: "2031-11-15" }] } }),
