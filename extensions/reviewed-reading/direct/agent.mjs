@@ -5,6 +5,7 @@ import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
 import { previousSameQuestion } from "./repeated-question.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
+import { ordinaryReply } from "./ordinary-reply.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { readingContext } from "./context.mjs";
@@ -310,6 +311,9 @@ export async function directAnswer(
     }
     if (questionMismatch) {
       reply = unresolvedQuestionReply(value);
+    }
+    if (ordinaryConcern) {
+      reply = ordinaryReply(reply, value);
     }
     const formatted = formatReadingReply(
       sanitizeBindus(deathTimingReply(value.query, reply, value.language)),

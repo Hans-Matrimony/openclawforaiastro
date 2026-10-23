@@ -156,6 +156,12 @@ export function unsupportedClosingDetail(question, value, facts) {
 }
 
 export function asksKnownDetail(question, value, facts) {
+  if (
+    /\bfees?\b/i.test(value.query) &&
+    /(?:sabse zaroori kya|what matters most|kis baat ki.*tension)/i.test(question)
+  ) {
+    return true;
+  }
   const evidence = [
     value.query,
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),

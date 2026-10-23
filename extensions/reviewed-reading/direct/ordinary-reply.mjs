@@ -1,0 +1,24 @@
+// A concern-sharing turn is not permission to generate a chart prediction.
+export function ordinaryReply(reply, value) {
+  if (
+    !/\b(?:house\s*\d+|\d+(?:st|nd|rd|th)\s+house|dasha|antardasha|transits?|Jupiter|Saturn|Venus|Mercury|Rahu|Ketu|kundli|yog|20\d{2})\b/i.test(
+      reply,
+    )
+  ) {
+    return reply;
+  }
+  const fees = /\bfees?\b/i.test(value.query);
+  if (value.language === "english") {
+    return fees
+      ? "The fees are what is worrying you right now. We can focus on that without assuming anything about your future."
+      : "That sounds difficult. We can focus on what you are dealing with right now.";
+  }
+  if (/^(?:hi|hindi)$/i.test(value.language)) {
+    return fees
+      ? "??? ??? ?? ????? ??????? ??? ???? ??? ??? ?? ????? ???? ????"
+      : "?? ??? ??????? ?????? ?? ??? ??? ???? ??? ?? ??? ???? ????";
+  }
+  return fees
+    ? "Abhi fees ki chinta zyada hai. Pehle usi baat par dhyaan dete hain."
+    : "Yeh baat tumhe pareshan kar rahi hai. Pehle isi par baat karte hain.";
+}
