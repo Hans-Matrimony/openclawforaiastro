@@ -49,7 +49,7 @@ export function evidenceFallback(results, language, query = "") {
       (timing
         ? english
           ? "The reading shows the present support and challenges, but does not establish when the change will happen."
-          : `${{ career: "Career mein badlav", money: "Paise ki sthiti mein sudhaar", marriage: "Shaadi" }[area]} ke liye is reading mein koi specific mahina ya saal nahi mila.`
+          : `${{ career: "Career mein badlav ka waqt", money: "Paise ki sthiti kab sudhregi, yeh", marriage: "Shaadi ka waqt" }[area]} abhi saaf nahi dikh raha.`
         : english
           ? area === "career"
             ? "This reading does not identify one career field as better than the others."

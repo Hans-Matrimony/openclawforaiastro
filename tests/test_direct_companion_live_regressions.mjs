@@ -5,6 +5,25 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test("friendly closings cannot invent a person, career preference or recurring feeling", async () => {
+  for (const [query, generated] of [
+    [
+      "Meri girlfriend kab banegi?",
+      "Tumhare dil mein koi specific insaan hai, uske saath kya soch rahe ho?",
+    ],
+    [
+      "Meri job kab lagegi?",
+      "Pata hai ki koi specific field soch rahe ho, usmein kya confidence hai?",
+    ],
+    [
+      "Meri education ke baare mein batao",
+      "Kuch missing feel hota hai, kya aaj bhi wohi feeling hai?",
+    ],
+  ]) {
+    assert.notEqual(await check(query, [], generated), generated);
+  }
+});
+
 void test("marriage follow-up rejects invented fear and an invented specific person", async () => {
   for (const generated of [
     "Aapko kisi ek insaan ke baare mein sochne ka man karta hai, aur main samajh rahi hoon ki usse baat karne ka dar bhi hai... kya aapne kabhi usse apni baat kahi hai?",

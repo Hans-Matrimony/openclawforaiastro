@@ -161,6 +161,12 @@ export function unsupportedClosingDetail(question, value, facts) {
       !/\b(?:my|mere|meri)\s+strengths?\b|\bnaturally\s+fit\b/i.test(evidence)) ||
     inventedParentSituation ||
     inventedConversation ||
+    (/\b(?:tumhare|aapke)\s+dil\s+mein\s+koi\s+(?:specific|khaas)\s+insaan\s+hai\b|\bpata hai ki koi specific field soch\b|\baaj bhi wohi feeling\b/i.test(
+      question,
+    ) &&
+      !/\b(?:meri crush|mera crush|mujhe pasand|meri girlfriend hai|mera boyfriend hai|I like|I love|I want to work|mujhe.*kaam|missing feel)\b/i.test(
+        evidence,
+      )) ||
     (/\b(?:darr?|afraid|scared|fear)\b/i.test(question) &&
       !/\b(?:darr|dar|afraid|scared|fear)\b/i.test(evidence)) ||
     (/\b(?:usse|usko|unse)\s+(?:baat|apni baat)|\b(?:aapko|tumhe)\s+kisi\s+(?:ek\s+)?insaan\s+ke\s+baare\b/i.test(
