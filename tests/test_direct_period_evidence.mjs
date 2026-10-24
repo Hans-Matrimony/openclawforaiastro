@@ -106,3 +106,51 @@ void test("month-specific period starts require the matching month", () => {
     false,
   );
 });
+
+void test("companion does not invent parental waiting from a marriage question", () => {
+  const value = { query: "Meri shaadi kab hogi?", history: [] };
+  assert.equal(
+    unsupportedClosingDetail(
+      "Papa ki baat ka intezaar kar rahe ho, kya kisi se baat ki?",
+      value,
+      [],
+    ),
+    true,
+  );
+  assert.equal(unsupportedClosingDetail("Kya papa se is baare mein baat hui?", value, []), false);
+  assert.equal(
+    unsupportedClosingDetail(
+      "Papa ki baat ka intezaar kar rahe ho?",
+      { ...value, history: [{ role: "user", text: "Papa ke jawab ka intezaar hai" }] },
+      [],
+    ),
+    false,
+  );
+});
+
+void test("a period cannot start after a year later than its actual start", () => {
+  const evidence = [
+    JSON.stringify({ dasha: { upcoming_antardashas: [{ lord: "Mars", from: "2027-09-15" }] } }),
+  ];
+  assert.equal(unsupportedPeriodClaim("2028 ke baad Mars antardasha shuru hoga.", evidence), true);
+  assert.equal(unsupportedPeriodClaim("2027 ke baad Mars antardasha shuru hoga.", evidence), false);
+});
+
+void test("friendship cannot claim chart-derived strengths as user facts", () => {
+  assert.equal(
+    unsupportedClosingDetail(
+      "Tere strengths tech aur communication se jude hain. Koi project try kiya?",
+      { query: "Career ke baare mein batao", history: [] },
+      [],
+    ),
+    true,
+  );
+  assert.equal(
+    unsupportedClosingDetail(
+      "Tech ya design mein kis cheez mein interest hai?",
+      { query: "Career ke baare mein batao", history: [] },
+      [],
+    ),
+    false,
+  );
+});

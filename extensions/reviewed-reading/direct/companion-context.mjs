@@ -144,7 +144,16 @@ export function unsupportedClosingDetail(question, value, facts) {
       new RegExp(`${person}.{0,20}(?:baat ho rahi|baat ho gayi|baat kar li)`, "i").test(question)
     );
   });
+  const inventedParentSituation =
+    /\b(?:papa|mummy|father|mother|dad|mom)\b.{0,45}(?:intezaar|waiting|agree nahi|oppos|rehnumaai)/i.test(
+      question,
+    ) && !/\b(?:papa|mummy|father|mother|dad|mom)\b/i.test(evidence);
   return (
+    (/\b(?:your|tere|tumhare|aapke)\s+strengths?\b|\bnaturally\s+fit\b|\b(?:solid|meaningful)\s+hoga\b/i.test(
+      question,
+    ) &&
+      !/\b(?:my|mere|meri)\s+strengths?\b|\bnaturally\s+fit\b/i.test(evidence)) ||
+    inventedParentSituation ||
     inventedConversation ||
     (/\b(?:darr lag|dar lag|afraid|scared)\b/i.test(question) &&
       !/\b(?:darr|dar|afraid|scared|fear)\b/i.test(evidence)) ||

@@ -32,6 +32,16 @@ export function unsupportedPeriodClaim(reply, toolResults) {
       Math.max(reply.lastIndexOf(".", match.index), reply.lastIndexOf("\n", match.index)) + 1;
     const tail = reply.slice(match.index).search(/[.\n]/);
     const sentence = reply.slice(start, tail < 0 ? undefined : match.index + tail);
+    const afterYear = sentence.match(/\b(20\d{2})\s+ke\s+baad\b|\bafter\s+(20\d{2})\b/i);
+    if (
+      afterYear &&
+      !matching.some(
+        (p) =>
+          !p.from || Number(String(p.from).slice(0, 4)) >= Number(afterYear[1] || afterYear[2]),
+      )
+    ) {
+      return true;
+    }
     // Check explicit month/year starts without treating a later event date as
     // the period start ("after the period starts, finances improve in ...").
     const months =

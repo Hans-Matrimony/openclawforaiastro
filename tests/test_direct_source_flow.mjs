@@ -6,7 +6,7 @@ import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
 import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 
-void test("source personal reading requires a new chart despite previous predictions", async () => {
+void test("source keeps history and automatic tools while obtaining current chart evidence", async () => {
   let calls = 0;
   let calculations = 0;
   const result = await directAnswer(
@@ -28,23 +28,17 @@ void test("source personal reading requires a new chart despite previous predict
       fetchImpl: async (_, options) => {
         const body = JSON.parse(options.body);
         if (++calls === 1) {
-          assert.equal(body.tool_choice, "required");
-          assert.ok(!body.messages.some((m) => m.content === "Mera career kab set hoga?"));
+          assert.equal(body.tool_choice, "auto");
+          assert.ok(body.messages.some((m) => m.content === "Mera career kab set hoga?"));
           assert.ok(
             body.messages.some((m) => m.content === "Family disagrees with my relationship."),
           );
           assert.ok(
-            !body.messages.some(
+            body.messages.some(
               (m) => m.role === "assistant" && m.content?.includes("Old prediction"),
             ),
           );
-          assert.ok(
-            body.tools.every((t) =>
-              /get_(horoscope_predictions|current_transits|match_report|horary_prediction)$/.test(
-                t.function.name,
-              ),
-            ),
-          );
+          assert.ok(body.tools.some((t) => t.function.name === "read_memory"));
           return response(
             {
               role: "assistant",
@@ -252,6 +246,50 @@ void test("source adapter replaces timing instructions while preserving calculat
   assert.deepEqual(actual.dasha, JSON.parse(expected.content[0].text).dasha);
   assert.match(actual.instruction, /period boundaries, not guaranteed event dates/);
   assert.doesNotMatch(actual.instruction, /2027|EXACT month/);
+  assert.match(actual.instruction, /3-4 chhoti lines/);
+  assert.match(actual.instruction, /negative factors zyada hain to negative/);
+  assert.match(actual.instruction, /separate companion stage/);
+});
+
+void test("automatic source routing still corrects a reading that skipped tools", async () => {
+  const requests = [];
+  const result = await directAnswer(value, {
+    env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+    makeMemory: () => ({ read: async () => [] }),
+    makeTools: () => async () => '{"source":"fresh chart"}',
+    fetchImpl: async (_, options) => {
+      const body = JSON.parse(options.body);
+      requests.push(body);
+      if (requests.length === 1) {
+        assert.equal(body.tool_choice, "auto");
+        return response({ role: "assistant", content: "An unsupported reading." });
+      }
+      if (requests.length === 2) {
+        assert.equal(body.tool_choice, "required");
+        assert.ok(!body.messages.some((m) => m.content === "An unsupported reading."));
+        return response(
+          {
+            role: "assistant",
+            tool_calls: [
+              {
+                id: "chart",
+                type: "function",
+                function: {
+                  name: "mcp__VedAstro__get_horoscope_predictions",
+                  arguments: "{}",
+                },
+              },
+            ],
+          },
+          "tool_calls",
+        );
+      }
+      return response({ role: "assistant", content: "Chart explanation.\n\nMixed indication." });
+    },
+  });
+  assert.equal(requests.length, 3);
+  assert.match(result.reply, /Chart explanation/);
+  assert.doesNotMatch(result.reply, /unsupported reading/);
 });
 
 void test("source flow never retries a failed paid submission and cannot run in production", async () => {

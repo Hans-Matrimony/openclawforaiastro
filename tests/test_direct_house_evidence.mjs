@@ -88,7 +88,9 @@ for (const fixed of [true, false]) {
     if (fixed) {
       assert.match((await run).reply, /Mercury/);
     } else {
-      await assert.rejects(run, /contradicts/);
+      const reply = (await run).reply;
+      assert.doesNotMatch(reply, /lord Mars|Income improves/);
+      assert.match(reply, /cannot give a supported event date/);
     }
     assert.equal(calls, 3);
   });

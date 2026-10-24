@@ -12,7 +12,9 @@ void test("new source outlook reaches the agent without changing calculated evid
     (await sourceReading("get_horoscope_predictions", args)).content[0].text,
   );
   const { instruction: upstreamInstruction, ...upstreamEvidence } = upstream;
-  const { instruction, ...actualEvidence } = actual;
+  const { instruction, evidence_scope, ...actualEvidence } = actual;
+  assert.match(evidence_scope.placements, /natal placements only/);
+  assert.match(evidence_scope.timing, /does not calculate event-specific windows/);
   assert.deepEqual(actualEvidence, upstreamEvidence);
   assert.notEqual(instruction, upstreamInstruction);
   assert.doesNotMatch(instruction, /2027|3-4/);

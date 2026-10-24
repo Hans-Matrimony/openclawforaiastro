@@ -5,6 +5,9 @@ import { generationSettings } from "./generation.mjs";
 import { directReplyCache } from "./reply-cache.mjs";
 import { previousSameQuestion } from "./repeated-question.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
+import { unsupportedEventTiming } from "./event-timing.mjs";
+import { evidenceFallback } from "./evidence-fallback.mjs";
+import { chartClaimConflicts } from "./chart-claims.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
@@ -138,18 +141,12 @@ export async function directAnswer(
       JSON.stringify(redactIdentity(value.query, value.user_id)) +
       ". Earlier questions are not the current request. Preserve user circumstances as context, not earlier forecasts or unrelated topics.\n";
   }
-  // Personal source readings use user context plus fresh tools, not old model
-  // predictions. The companion still receives the original value.history.
+  // Preserve source conversation continuity. Prior replies are context, not
+  // calculation evidence; the successful-chart check below remains independent.
   const messages = [
     { role: "system", content: context.prompt },
     ...value.history
-      .filter(
-        (turn) => !(ordinaryConcern || (sourceFlow && readingRequired)) || turn.role === "user",
-      )
-      .filter(
-        (turn) =>
-          !(sourceFlow && readingRequired && requiresChartReading(turn.text, context.profile)),
-      )
+      .filter((turn) => !ordinaryConcern || turn.role === "user")
       .map((turn) => ({
         role: turn.role,
         content: redactIdentity(turn.text, value.user_id),
@@ -168,8 +165,7 @@ export async function directAnswer(
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
     // Saved conversation predictions are not a substitute for this turn's chart.
-    const requireChart =
-      readingTools.size === 0 && (correctedMissingReading || (sourceFlow && readingRequired));
+    const requireChart = readingTools.size === 0 && correctedMissingReading;
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
@@ -324,33 +320,38 @@ export async function directAnswer(
       continue;
     }
     const questionMismatch = mismatchedQuestionReply(value.query, reply);
-    const lordConflicts = sourceFlow ? houseLordConflicts(reply, chartResults) : [];
+    const lordConflicts = sourceFlow
+      ? [...houseLordConflicts(reply, chartResults), ...chartClaimConflicts(reply, chartResults)]
+      : [];
     if (lordConflicts.length) {
       if (correctedHouseLord || modelCalls >= maxRounds) {
-        throw new Error("Reading contradicts calculated house lord");
+        reply = evidenceFallback(chartResults, value.language, value.query);
+      } else {
+        correctedHouseLord = true;
+        messages.push({
+          role: "user",
+          content:
+            "Correct the proposed reading using the existing chart results. These explicit chart claims contradict or lack the required tool evidence: " +
+            JSON.stringify(lordConflicts) +
+            ". Do not repeat the rejected claim. Reconsider any timing rationale depending on it; an upcoming period lord is not automatically this house lord. Answer the original question using supported factors, without calling the same tools again. If current transit evidence is missing, either call get_current_transits or omit the transit claim; never relabel natal placements as transits. Preserve the exact supplied period sequence.",
+        });
+        continue;
       }
-      correctedHouseLord = true;
-      messages.push({
-        role: "user",
-        content:
-          "Correct the proposed reading using the existing chart results. These explicit house-lord claims contradict that chart: " +
-          JSON.stringify(lordConflicts) +
-          ". Do not repeat the rejected claim. Reconsider any timing rationale depending on it; an upcoming period lord is not automatically this house lord. Answer the original question using supported factors, without calling the same tools again.",
-      });
-      continue;
     }
-    if (unsupportedPeriodClaim(reply, chartResults)) {
+    if (
+      unsupportedPeriodClaim(reply, chartResults) ||
+      (sourceFlow && unsupportedEventTiming(reply, chartResults))
+    ) {
       if (correctedPeriod || modelCalls >= 5) {
-        reply =
-          value.language === "english"
-            ? "The returned period schedule does not support the future period I was about to name. I cannot establish an event date from that information.\n\nA future timing window is not verified."
-            : "Jo period details mili hain, unse agla period aur uski date verify nahi ho rahi. Isliye uske basis par shaadi, job ya kisi aur event ka saal batana sahi nahi hoga.\n\nAbhi future timing verify nahi hui hai.";
+        reply = evidenceFallback(chartResults, value.language, value.query);
       } else {
         correctedPeriod = true;
         messages.push({
           role: "user",
           content:
-            "Your proposed future antardasha is not in the returned period schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the active question with the supported current-period indication and explain briefly that an exact future window is not established by these results.",
+            "The proposed timing contains an unsupported event date or a period claim that does not match the schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the original question: " +
+            JSON.stringify(value.query) +
+            ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, distinguish the calculated period from any unestablished event date.",
         });
         continue;
       }

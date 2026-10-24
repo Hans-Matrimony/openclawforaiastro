@@ -35,7 +35,7 @@ export async function sourceReading(
   name,
   args,
   birth,
-  { loadEngine = () => import("./assets/dev-v2/engine.mjs"), rawSource: _rawSource = false } = {},
+  { loadEngine = () => import("./assets/dev-v2/engine.mjs"), rawSource = false } = {},
 ) {
   const input = { ...args };
   if (name === "get_match_report") {
@@ -79,8 +79,19 @@ export async function sourceReading(
       if (!Array.isArray(data.dasha?.upcoming_antardashas)) {
         return part;
       }
-      data.instruction =
-        "Use verdict_signals and the calculated chart to explain this question's positive, negative or mixed indication. For timing, consider upcoming_antardashas and next_mahadasha; do not default to the current antardasha end year or reuse another topic's date. These are period boundaries, not guaranteed event dates or automatically favorable windows. Name a month-year window only when the chart supports its relevance to this topic; explain the specific supporting reason. Do not invent missing dates or a favorable period. Follow the existing two-part reading format and display terminology rules. Reuse this tool result for the same birth inputs in this turn; call another tool only for genuinely missing evidence. Do not generate the companion follow-up here.";
+      const sourceStyle =
+        "Use verdict_signals ke positive/negative factors se seedha topic-specific verdict do: negative factors zyada hain to negative, mixed hain to mixed. JAWAB CHHOTA RAKHO: 3-4 chhoti lines, direct answer aur sirf relevant chart reason; no report or generic reassurance. For timing, consider upcoming_antardashas and next_mahadasha, not a default current-period end year. These are period boundaries, not guaranteed event dates or automatically favorable windows. Any suggested period is an interpretation, not a calculated event date; explain its topic-specific support and do not invent missing dates or factors. For fields/choices questions answer the choices, without an unsolicited year. Use the existing two-part reading format: explanation then short verdict. This result already contains the period schedule; do not call the same tool again for unchanged inputs. Another tool is needed only for missing evidence. Keep technical scores internal and leave the friendly follow-up to the separate companion stage.";
+      data.instruction = rawSource
+        ? sourceStyle
+        : "Use verdict_signals and the calculated chart to explain this question's positive, negative or mixed indication. For timing, consider upcoming_antardashas and next_mahadasha; do not default to the current antardasha end year or reuse another topic's date. These are period boundaries, not guaranteed event dates or automatically favorable windows. Name a month-year window only when the chart supports its relevance to this topic; explain the specific supporting reason. Do not invent missing dates or a favorable period. Follow the existing two-part reading format and display terminology rules. Reuse this tool result for the same birth inputs in this turn; call another tool only for genuinely missing evidence. Do not generate the companion follow-up here.";
+      data.evidence_scope = {
+        placements:
+          "birth_chart contains natal placements only; current house transits require get_current_transits",
+        timing:
+          "dasha dates are calculated period boundaries; this tool does not calculate event-specific windows",
+        interpretation:
+          "verdict_signals describe current topic factors, not future period scores; a new period alone does not establish improvement",
+      };
       changed = true;
       return { ...part, text: JSON.stringify(data) };
     }),
