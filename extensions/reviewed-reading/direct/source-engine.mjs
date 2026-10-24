@@ -35,7 +35,7 @@ export async function sourceReading(
   name,
   args,
   birth,
-  { loadEngine = () => import("./assets/dev-v2/engine.mjs"), rawSource = false } = {},
+  { loadEngine = () => import("./assets/dev-v2/engine.mjs"), rawSource: _rawSource = false } = {},
 ) {
   const input = { ...args };
   if (name === "get_match_report") {
@@ -58,7 +58,7 @@ export async function sourceReading(
     throw new Error("Unknown source reading");
   }
   const result = await engine[name](input);
-  if (rawSource || name !== "get_horoscope_predictions") {
+  if (name !== "get_horoscope_predictions") {
     return result;
   }
   // Keep the upstream calculations intact; adapt its UI instructions to our

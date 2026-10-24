@@ -339,7 +339,7 @@ export async function directAnswer(
       });
       continue;
     }
-    if (!sourceFlow && unsupportedPeriodClaim(reply, chartResults)) {
+    if (unsupportedPeriodClaim(reply, chartResults)) {
       if (correctedPeriod || modelCalls >= 5) {
         reply =
           value.language === "english"

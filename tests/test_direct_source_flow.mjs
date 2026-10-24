@@ -230,7 +230,7 @@ void test("source flow uses raw source prompt, tools and seven rounds with isola
   );
 });
 
-void test("raw source instruction survives the source tool adapter", async () => {
+void test("source adapter replaces timing instructions while preserving calculation data", async () => {
   const expected = {
     content: [
       {
@@ -248,10 +248,10 @@ void test("raw source instruction survives the source tool adapter", async () =>
       loadEngine: async () => ({ get_horoscope_predictions: () => expected }),
     });
   const execute = createTools({ env, memory: {}, birth: value.birth, reading });
-  assert.equal(
-    await execute("mcp__VedAstro__get_horoscope_predictions", {}),
-    expected.content[0].text,
-  );
+  const actual = JSON.parse(await execute("mcp__VedAstro__get_horoscope_predictions", {}));
+  assert.deepEqual(actual.dasha, JSON.parse(expected.content[0].text).dasha);
+  assert.match(actual.instruction, /period boundaries, not guaranteed event dates/);
+  assert.doesNotMatch(actual.instruction, /2027|EXACT month/);
 });
 
 void test("source flow never retries a failed paid submission and cannot run in production", async () => {

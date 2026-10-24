@@ -84,3 +84,25 @@ void test("future period names require actual antardasha evidence, not a mahadas
     false,
   );
 });
+
+void test("month-specific period starts require the matching month", () => {
+  const evidence = [
+    JSON.stringify({ dasha: { upcoming_antardashas: [{ lord: "Mars", from: "2027-09-15" }] } }),
+  ];
+  assert.equal(unsupportedPeriodClaim("Mars antardasha starts in March 2027.", evidence), true);
+  assert.equal(
+    unsupportedPeriodClaim("Mars antardasha starts in September 2027.", evidence),
+    false,
+  );
+  assert.equal(
+    unsupportedPeriodClaim("March 2027 mein Mars antardasha shuru hogi.", evidence),
+    true,
+  );
+  assert.equal(
+    unsupportedPeriodClaim(
+      "After Mars antardasha starts, finances improve in March 2028.",
+      evidence,
+    ),
+    false,
+  );
+});
