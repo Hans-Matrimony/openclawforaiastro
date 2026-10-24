@@ -34,6 +34,29 @@ export function evidenceFallback(results, language, query = "") {
       )
       .filter(Boolean)
       .join(english ? ", while " : ", lekin ");
+    const schedule = rows.map((d) => d.dasha).find(Boolean);
+    const upcoming = (schedule?.upcoming_antardashas ?? []).find(
+      (u) => /^\d{4}-\d{2}-\d{2}$/.test(u.from ?? "") && /^\d{4}-\d{2}-\d{2}$/.test(u.to ?? ""),
+    );
+    const currentEnd = /^\d{4}-\d{2}-\d{2}$/.test(schedule?.current_antardasha?.to ?? "")
+      ? schedule.current_antardasha.to
+      : null;
+    const leadIn = {
+      career: english ? "Career timing" : "Career ka waqt",
+      money: english ? "Money timing" : "Paise ki sthiti",
+      marriage: english ? "Relationship timing" : "Shaadi ka samay",
+    }[area];
+    const timingLine = upcoming
+      ? english
+        ? `${leadIn}: the calculated ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}.`
+        : `${leadIn}: hisaab ke hisaab se ${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai.`
+      : currentEnd
+        ? english
+          ? `${leadIn}: the current sub-period ends ${currentEnd}; the next calculated window follows it.`
+          : `${leadIn}: abhi ki antardasha ${currentEnd} tak hai, uske baad agla window aata hai.`
+        : english
+          ? `${leadIn}: this calculation returned no period data.`
+          : `${leadIn}: is calculation me period data nahi aaya.`;
     return (
       (english
         ? `${label} indications in the calculated chart are ${trend}.`
@@ -46,11 +69,7 @@ export function evidenceFallback(results, language, query = "") {
           }.`) +
       (factors ? " " + factors + "." : "") +
       "\n\n" +
-      (timing
-        ? english
-          ? "The reading shows the present support and challenges, but does not establish when the change will happen."
-          : `${{ career: "Career mein badlav ka waqt", money: "Paise ki sthiti kab sudhregi, yeh", marriage: "Shaadi ka waqt" }[area]} abhi saaf nahi dikh raha.`
-        : english
+      (timing ? timingLine : english
           ? area === "career"
             ? "This reading does not identify one career field as better than the others."
             : `The ${label.toLowerCase()} reading has ${trend} indications.`
@@ -74,18 +93,26 @@ export function evidenceFallback(results, language, query = "") {
     knownPlanet.test(current.lord) &&
     /^\d{4}-\d{2}-\d{2}$/.test(current.to ?? "") &&
     schedules.every((s) => JSON.stringify(s.current_antardasha) === JSON.stringify(current));
+  const upcoming = (schedules[0]?.upcoming_antardashas ?? []).find(
+    (u) => /^\d{4}-\d{2}-\d{2}$/.test(u.from ?? "") && /^\d{4}-\d{2}-\d{2}$/.test(u.to ?? ""),
+  );
+  const nextWindow = upcoming
+    ? english
+      ? ` The next calculated ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}.`
+      : ` Uske baad ${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai.`
+    : "";
   if (language === "english") {
     return (
       (hasPeriod
-        ? `The calculated ${current.lord} sub-period ends on ${current.to}. That is a period boundary, not a calculated date for the event you asked about.`
+        ? `The calculated ${current.lord} sub-period ends on ${current.to}.` + nextWindow
         : "The reading could not be reconciled with the returned chart evidence.") +
-      "\n\nI cannot give a supported event date from these results."
+      (upcoming || hasPeriod ? "" : "\n\nThe returned results did not include period data.")
     );
   }
   return (
     (hasPeriod
-      ? `Calculation mein ${current.lord} antardasha ${current.to} tak hai. Yeh period ki boundary hai, aapke sawaal wale event ki calculated date nahi.`
+      ? `Calculation mein ${current.lord} antardasha ${current.to} tak hai.` + nextWindow
       : "Reading ke daave aur chart ke results aapas mein match nahi hue.") +
-    "\n\nIn results se event ki date tay nahi hoti."
+    (upcoming || hasPeriod ? "" : "\n\nIn results me period data nahi aaya.")
   );
 }

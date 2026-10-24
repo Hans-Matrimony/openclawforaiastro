@@ -33,8 +33,9 @@ void test("observed source factors become complete sentences without scores or r
   assert.match(marriage, /Guru ka 7ve ghar/);
   assert.match(marriage, /7ve ghar se kam sahyog/);
   assert.doesNotMatch(marriage, /specific mahina|saal nahi mila/);
-  assert.match(marriage, /Shaadi ka waqt abhi saaf nahi dikh raha/);
-  assert.doesNotMatch(marriage, /Finance|20\/48|benefic|weak support/);
+  assert.match(marriage, /Shaadi ka samay/);
+  assert.match(marriage, /period data nahi aaya/);
+  assert.doesNotMatch(marriage, /saaf nahi dikh raha|Finance|20\/48|benefic|weak support/);
 });
 
 void test("unrecognized factors are omitted rather than assigned an invented meaning", () => {
