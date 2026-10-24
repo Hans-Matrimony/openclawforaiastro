@@ -161,8 +161,14 @@ export function unsupportedClosingDetail(question, value, facts) {
       !/\b(?:my|mere|meri)\s+strengths?\b|\bnaturally\s+fit\b/i.test(evidence)) ||
     inventedParentSituation ||
     inventedConversation ||
-    (/\b(?:darr lag|dar lag|afraid|scared)\b/i.test(question) &&
+    (/\b(?:darr?|afraid|scared|fear)\b/i.test(question) &&
       !/\b(?:darr|dar|afraid|scared|fear)\b/i.test(evidence)) ||
+    (/\b(?:usse|usko|unse)\s+(?:baat|apni baat)|\b(?:aapko|tumhe)\s+kisi\s+(?:ek\s+)?insaan\s+ke\s+baare\b/i.test(
+      question,
+    ) &&
+      !/\b(?:crush|girlfriend|boyfriend|gf|bf|my partner|meri partner|mera partner|usse|usko|unse|pasand|papa|mummy|father|mother|dad|mom|boss|friend|dost)\b/i.test(
+        evidence,
+      )) ||
     rejectedDetail(question, value) ||
     [/\bMBA\b/i, /night shifts?|raat ki shift/i, /\bEMI\b/i].some(
       (detail) => detail.test(question) && !detail.test(evidence),

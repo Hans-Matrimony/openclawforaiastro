@@ -5,6 +5,71 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test("marriage follow-up rejects invented fear and an invented specific person", async () => {
+  for (const generated of [
+    "Aapko kisi ek insaan ke baare mein sochne ka man karta hai, aur main samajh rahi hoon ki usse baat karne ka dar bhi hai... kya aapne kabhi usse apni baat kahi hai?",
+    "Usse apni baat kehne ka mauka mila?",
+    "Aapke dil mein darr hai. Kya baat karna mushkil hai?",
+  ]) {
+    const closing = await check("Meri shaadi kab hogi?", [], generated);
+    assert.doesNotMatch(closing, /dar|darr|usse|kisi ek insaan/i);
+  }
+});
+
+void test("unsupported previous companion assumptions are excluded from writer context", async () => {
+  const prior = "Usse baat karne ka dar hai. Kya aapne apni baat kahi?";
+  let captured;
+  await contextualClosing(
+    reading,
+    {
+      query: "Meri shaadi kab hogi?",
+      language: "hinglish",
+      history: [
+        user("Meri shaadi kab hogi?"),
+        { role: "assistant", text: reading + "\n\n" + prior },
+      ],
+    },
+    {
+      generate: async (_prompt, payload) => {
+        captured = JSON.parse(payload);
+        return "Shaadi ko lekar aapki apni kya soch hai?";
+      },
+    },
+  );
+  assert.ok(captured);
+  assert.ok(!captured.history.some((turn) => turn.text === prior));
+});
+
+void test("neutral questions and actual user disclosures remain available", async () => {
+  const neutral = "Shaadi ko lekar aapki apni kya soch hai?";
+  assert.equal(await check("Meri shaadi kab hogi?", [], neutral), neutral);
+  const { unsupportedClosingDetail } =
+    await import("../extensions/reviewed-reading/direct/companion-context.mjs");
+  const detail = "Usse baat karne ka dar hai. Kis baat ka dar hai?";
+  assert.equal(
+    unsupportedClosingDetail(
+      detail,
+      {
+        query: "Meri shaadi kab hogi?",
+        history: [user("Meri crush hai, usse baat karne ka dar hai")],
+      },
+      [],
+    ),
+    false,
+  );
+  assert.equal(
+    unsupportedClosingDetail(
+      detail,
+      {
+        query: "Meri shaadi kab hogi?",
+        history: [],
+      },
+      ["Meri crush hai, usse baat karne ka dar hai"],
+    ),
+    false,
+  );
+});
+
 void test("exhausted fee questions retain the known concern instead of restarting broadly", async () => {
   const closing = await check(
     "Ghar se financial help nahi mil sakti.",
