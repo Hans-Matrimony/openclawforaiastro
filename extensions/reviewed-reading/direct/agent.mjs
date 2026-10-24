@@ -136,6 +136,11 @@ export async function directAnswer(
       );
   }
   const readingRequired = requiresChartReading(value.query, context.profile);
+  const timingRequired =
+    sourceFlow &&
+    readingRequired &&
+    !isDeathTimingQuestion(value.query) &&
+    /\b(?:kab|when|timing)\b/i.test(value.query);
   if (sourceFlow && readingRequired) {
     context.prompt +=
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
@@ -159,6 +164,7 @@ export async function directAnswer(
   let cacheHits = 0;
   const readingTools = new Set();
   let correctedMissingReading = false;
+  let correctedMissingTiming = false;
   let correctedQuestion = false;
   let correctedPeriod = false;
   let correctedHouseLord = false;
@@ -167,6 +173,7 @@ export async function directAnswer(
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
     // Saved conversation predictions are not a substitute for this turn's chart.
     const requireChart = readingTools.size === 0 && correctedMissingReading;
+    const requireTiming = correctedMissingTiming && !readingTools.has("get_horoscope_predictions");
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages,
@@ -175,7 +182,11 @@ export async function directAnswer(
         : requireChart
           ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
           : TOOLS,
-      tool_choice: requireChart ? "required" : "auto",
+      tool_choice: requireTiming
+        ? { type: "function", function: { name: "mcp__VedAstro__get_horoscope_predictions" } }
+        : requireChart
+          ? "required"
+          : "auto",
       stream: false,
       max_tokens: 4096,
       ...generation,
@@ -317,6 +328,18 @@ export async function directAnswer(
           "Use the supplied birth context and a relevant reading tool to answer this exact active question: " +
           JSON.stringify(redactIdentity(value.query, value.user_id)) +
           ". Preserve its subject and intent; a question about a particular partner is not a general marriage-timing question. Previous assistant predictions are not chart evidence. Call the appropriate reading tool now, then answer this question directly.",
+      });
+      continue;
+    }
+    if (timingRequired && !readingTools.has("get_horoscope_predictions") && !clarification) {
+      if (correctedMissingTiming) {
+        throw new Error("Timing reading requires the period schedule");
+      }
+      correctedMissingTiming = true;
+      messages.push({
+        role: "user",
+        content:
+          "The current question asks WHEN, not only whether. A horary yes/no result has no period schedule. Call get_horoscope_predictions with the supplied birth details, then answer the current timing question using its real periods and relevant chart reasons. Keep the explanation and short verdict; the separate companion stage handles the follow-up.",
       });
       continue;
     }

@@ -6,6 +6,51 @@ import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
 import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 
+void test("when question obtains horoscope periods after a horary yes/no answer", async () => {
+  let calls = 0;
+  const tools = [];
+  const result = await directAnswer(value, {
+    env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+    makeMemory: () => ({ read: async () => [] }),
+    makeTools: () => async (name) => {
+      tools.push(name);
+      return JSON.stringify({ current_chart: true });
+    },
+    fetchImpl: async (_, options) => {
+      const body = JSON.parse(options.body);
+      calls++;
+      if (calls === 1 || calls === 3) {
+        const name =
+          calls === 1
+            ? "mcp__VedAstro__get_horary_prediction"
+            : "mcp__VedAstro__get_horoscope_predictions";
+        if (calls === 3) {
+          assert.deepEqual(body.tool_choice, { type: "function", function: { name } });
+        }
+        return response(
+          {
+            role: "assistant",
+            tool_calls: [
+              { id: String(calls), type: "function", function: { name, arguments: "{}" } },
+            ],
+          },
+          "tool_calls",
+        );
+      }
+      return response({
+        role: "assistant",
+        content:
+          calls === 2
+            ? "Horary says yes.\n\nHaan, shaadi hogi."
+            : "Period interpretation.\n\nNovember 2031 se July 2034 sambhavit.",
+      });
+    },
+  });
+  assert.equal(calls, 4);
+  assert.equal(tools.length, 2);
+  assert.match(result.reply, /November 2031 se July 2034/);
+});
+
 void test("source keeps history and automatic tools while obtaining current chart evidence", async () => {
   let calls = 0;
   let calculations = 0;
