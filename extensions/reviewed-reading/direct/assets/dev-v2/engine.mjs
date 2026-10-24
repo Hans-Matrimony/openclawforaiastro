@@ -395,7 +395,7 @@ export function get_horoscope_predictions({ birth_date, birth_time, location_nam
     timeline_note: timelineNote(r.dasha),
     sade_sati: sadeSati(natalMoon.sign, saturnNow.sign),
     verdict_signals: areas,
-    instruction: "verdict_signals ke positive/negative factors ka USE karke seedha verdict do — negative factors zyada hain to NEGATIVE bolo, mix hai to MIXED. TIMING sawal (kab milega/kab hogi) me current_antardasha ka end year default mat banao — upcoming_antardashas aur next_mahadasha ke windows me se is topic ke liye favorable period chuno aur EXACT month-year do (jaise 'May 2027 se'). JAWAB CHHOTA RAKHO: max 3-4 chhoti lines — seedha verdict + month-year window + sirf 1 line ka reason (dasha/bindu number ke saath). Koi lamba explanation nahi, koi report nahi, koi dobara summary nahi. Yeh result hi final hai — isme saari dasha windows maujood hain, same tools dobara call karne ki zaroorat NAHI, agle round me seedha jawab do. Bindus aur dasha numbers ke bina koi claim nahi.",
+    instruction: "verdict_signals ke positive/negative factors ka USE karke seedha verdict do — negative factors zyada hain to NEGATIVE bolo, mix hai to MIXED. TIMING sawal (kab milega/kab hogi) me: (1) pehli hi line me EXACT window do — dasha ka naam + month-year, sirf upcoming_antardashas/next_mahadasha ki REAL dates se; andaze se ya kisi udaharan se date kabhi mat banao. (2) Har sawal ke topic ke hisaab se window chuno — career, paise, property, santan, shaadi sabki favorable dasha alag ho sakti hai; pehli aane wali window ko har sawal ka default mat banao, poori upcoming list scan karo. Generic saal-level pattern tabhi bolo jab window sach me usi saal ki ho. (3) Har chart ki apni dates hoti hain — do alag charts ka timing jawab ek jaisi generic line NAHI hona chahiye. (4) JAWAB CHHOTA RAKHO: max 3-4 chhoti lines — seedha verdict + exact window + 1 line ka reason (dasha/bindu number ke saath). SAWAL haan/na me ho to pehli line me HI HAAN ya NAHI — beech ka neutral jawab ya user ko satisfy karne ke liye answer ghumana mana hai. Koi template repeat nahi, koi report nahi. Yeh result hi final hai — same tools dobara call karne ki zaroorat NAHI, agle round me seedha jawab do. Bindus aur dasha numbers ke bina koi claim nahi.",
   }) }] };
 }
 
@@ -452,7 +452,7 @@ export function get_horary_prediction({ horary_number, question_text, birth_date
     moon: { sign: moon.sign, nakshatra: moon.nakshatra.name, nakshatra_lord: moonNakLord },
     judgment: `Prashna rule: lagna lord ${lagnaLord} strong (${lagnaLordP?.dignity || "neutral"}) + Moon benefic nakshatra lord (${moonNakLord}) mein = positive; weak/debilitated = negative. Sarvashtaka total moment chart: ${av.grand_total}.`,
     moment_bindus_by_sign: av.sarvashtaka,
-    instruction: "Lagna lord ki condition + Moon ke nakshatra lord se yes/no verdict do — strong = YES, weak/debilitated = NO. Ghusa mat, seedha bolo.",
+    instruction: "Lagna lord ki condition + Moon ke nakshatra lord se yes/no verdict do — strong = YES, weak/debilitated = NO. Ghusa mat, seedha bolo. DHYAN DO: is tool me koi DATE/timing nahi hai — sirf YES/NO evidence hai. 'Kab' ka jawab isse NAHI dena; timing ke liye horoscope ki dasha windows (upcoming_antardashas ki REAL dates) use karo. Apni taraf se koi date invent mat karo, especially past ki.",
   }) }] };
 }
 
