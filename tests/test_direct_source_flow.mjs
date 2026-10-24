@@ -10,7 +10,14 @@ void test("source personal reading requires a new chart despite previous predict
   let calls = 0;
   let calculations = 0;
   const result = await directAnswer(
-    { ...value, history: [{ role: "assistant", text: "Old prediction: 2027." }] },
+    {
+      ...value,
+      history: [
+        { role: "assistant", text: "Old prediction: 2027." },
+        { role: "user", text: "Mera career kab set hoga?" },
+        { role: "user", text: "Family disagrees with my relationship." },
+      ],
+    },
     {
       env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
       makeMemory: () => ({ read: async () => ["Previous prediction: 2027."] }),
@@ -22,6 +29,10 @@ void test("source personal reading requires a new chart despite previous predict
         const body = JSON.parse(options.body);
         if (++calls === 1) {
           assert.equal(body.tool_choice, "required");
+          assert.ok(!body.messages.some((m) => m.content === "Mera career kab set hoga?"));
+          assert.ok(
+            body.messages.some((m) => m.content === "Family disagrees with my relationship."),
+          );
           assert.ok(
             !body.messages.some(
               (m) => m.role === "assistant" && m.content?.includes("Old prediction"),

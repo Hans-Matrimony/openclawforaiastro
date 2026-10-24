@@ -132,6 +132,12 @@ export async function directAnswer(
       );
   }
   const readingRequired = requiresChartReading(value.query, context.profile);
+  if (sourceFlow && readingRequired) {
+    context.prompt +=
+      "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
+      JSON.stringify(redactIdentity(value.query, value.user_id)) +
+      ". Earlier questions are not the current request. Preserve user circumstances as context, not earlier forecasts or unrelated topics.\n";
+  }
   // Personal source readings use user context plus fresh tools, not old model
   // predictions. The companion still receives the original value.history.
   const messages = [
@@ -139,6 +145,10 @@ export async function directAnswer(
     ...value.history
       .filter(
         (turn) => !(ordinaryConcern || (sourceFlow && readingRequired)) || turn.role === "user",
+      )
+      .filter(
+        (turn) =>
+          !(sourceFlow && readingRequired && requiresChartReading(turn.text, context.profile)),
       )
       .map((turn) => ({
         role: turn.role,
@@ -313,7 +323,7 @@ export async function directAnswer(
       });
       continue;
     }
-    const questionMismatch = !sourceFlow && mismatchedQuestionReply(value.query, reply);
+    const questionMismatch = mismatchedQuestionReply(value.query, reply);
     const lordConflicts = sourceFlow ? houseLordConflicts(reply, chartResults) : [];
     if (lordConflicts.length) {
       if (correctedHouseLord || modelCalls >= maxRounds) {

@@ -2,6 +2,8 @@ const wedding = /\b(?:sha+di|marri(?:age|ed)|marry|wedding|spouse|vivah)\b|श�
 const dating =
   /\b(?:g\s*\.?\s*f|b\s*\.?\s*f|girl\s*friend|boy\s*friend|relationship|risht[ae]|dating)\b|गर्लफ्रेंड|बॉयफ्रेंड|रिश्त/i;
 const career = /\b(?:career|job|naukri|employment|promotion)\b|नौकरी|करियर/i;
+const finance = /\b(?:finances?|financial|money|income|paisa|paise)\b/i;
+const education = /\b(?:education|studies|study|exam|padhai)\b/i;
 
 // A wedding involving an existing partner is still a marriage question. Only
 // explicit formation questions are scoped as finding a new partner.
@@ -20,6 +22,12 @@ export function questionScope(query) {
   if (career.test(query)) {
     return "career";
   }
+  if (finance.test(query)) {
+    return "finance";
+  }
+  if (education.test(query)) {
+    return "education";
+  }
   return null;
 }
 
@@ -28,20 +36,30 @@ export function questionScopeInstruction(query) {
   if (topic === "dating") {
     return "The current question asks about forming a girlfriend/boyfriend relationship, not marriage or a wedding. GF means girlfriend; BF means boyfriend. Answer the start of a romantic relationship. An earlier marriage prediction is not a dating timeline. Use current relevant tool evidence; do not simply rename a wedding date as a girlfriend/boyfriend date. Preserve the normal explanation and short direct verdict style.";
   }
+  if (["career", "finance", "education"].includes(topic)) {
+    return `Answer the current ${topic} question using relevant chart factors. Do not answer an earlier marriage question or reuse its verdict.`;
+  }
   return "";
 }
 
 export function mismatchedQuestionReply(query, reply) {
   const topic = questionScope(query);
-  if (topic !== "dating" && topic !== "career") {
+  const expected = { dating, career, finance, education }[topic];
+  if (!expected) {
     return false;
   }
   const parts = reply.trim().split(/\r?\n\s*\r?\n/);
   const verdict = parts.length >= 3 ? parts[1] : parts.at(-1);
-  return wedding.test(verdict) && !(topic === "dating" ? dating : career).test(verdict);
+  return wedding.test(verdict) && !expected.test(verdict);
 }
 
 export function unresolvedQuestionReply(value) {
+  const topic = questionScope(value.query);
+  if (["finance", "education"].includes(topic)) {
+    return value.language === "hinglish"
+      ? `Aapka sawaal ${topic} ke baare mein hai; shaadi ki reading iska jawab nahi hai.\n\nIs sawaal ki reading abhi verify nahi hui.`
+      : `Your question concerns ${topic}; a marriage reading does not answer it.\n\nThis reading has not established an answer to your question.`;
+  }
   // Used only when a bounded repair still answers the wrong question. Do not
   // return the stale marriage prediction or fabricate a replacement date.
   const datingQuestion = questionScope(value.query) === "dating";

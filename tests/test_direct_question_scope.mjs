@@ -8,6 +8,17 @@ import { companionFallback } from "../extensions/reviewed-reading/direct/compani
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 
 const oldMarriage = "Venus aur Moon rishton se jude hain.\n\nShadi 2027 ke baad possible hai.";
+void test("finance and education reject the observed marriage-only verdict", () => {
+  assert.ok(mismatchedQuestionReply("Meri financial condition kab behtar hogi?", oldMarriage));
+  assert.ok(mismatchedQuestionReply("Mere education ke baare mein batao", oldMarriage));
+  assert.equal(
+    mismatchedQuestionReply(
+      "Meri financial condition kab behtar hogi?",
+      "Mixed factors.\n\nIncome improves.",
+    ),
+    false,
+  );
+});
 const datingReply =
   "Naye rishte ke liye sahyog ke sanket hain.\n\nGirlfriend banne ki sambhavna hai.";
 const value = {
