@@ -1,3 +1,5 @@
+import { fallbackFactor } from "./fallback-factors.mjs";
+
 // A failed bounded correction must not become a transport failure or publish
 // the rejected prediction. This fallback uses only returned period facts.
 export function evidenceFallback(results, language, query = "") {
@@ -26,10 +28,12 @@ export function evidenceFallback(results, language, query = "") {
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
     const trend = { POSITIVE: "supportive", NEGATIVE: "challenging", MIXED: "mixed" }[signal.trend];
     const timing = /\b(?:when|kab|year|saal|date|timing)\b/i.test(query);
-    const factors = [...(signal.positive ?? []).slice(0, 1), ...(signal.negative ?? []).slice(0, 1)]
-      .filter((s) => typeof s === "string")
-      .map((s) => s.replace(/\bbindus?\s*(?:sirf\s*)?\d+(?:\/\d+)?\s*/gi, ""))
-      .join(". ");
+    const factors = [signal.positive, signal.negative]
+      .map((items) =>
+        (Array.isArray(items) ? items : []).map((s) => fallbackFactor(s, english)).find(Boolean),
+      )
+      .filter(Boolean)
+      .join(english ? ", while " : ", lekin ");
     return (
       (english
         ? `${label} indications in the calculated chart are ${trend}.`
@@ -45,10 +49,14 @@ export function evidenceFallback(results, language, query = "") {
       (timing
         ? english
           ? "The reading shows the present support and challenges, but does not establish when the change will happen."
-          : `${{ career: "Career mein badlav", money: "Paise ki sthiti mein sudhaar", marriage: "Rishta aage badhne" }[area]} ka waqt is reading se saaf nahi hai.`
+          : `${{ career: "Career mein badlav", money: "Paise ki sthiti mein sudhaar", marriage: "Shaadi" }[area]} ke liye is reading mein koi specific mahina ya saal nahi mila.`
         : english
-          ? "These are broad chart factors; the tool does not rank specific career fields or choices."
-          : "Yeh broad chart factors hain; tool specific fields ya choices ki ranking nahi deta.")
+          ? area === "career"
+            ? "This reading does not identify one career field as better than the others."
+            : `The ${label.toLowerCase()} reading has ${trend} indications.`
+          : area === "career"
+            ? "Is reading mein kisi ek career field ko baaki se behtar batane ka aadhar nahi mila."
+            : `${label} ki reading mein ${trend} sanket hain.`)
     );
   }
   const schedules = results.flatMap((raw) => {

@@ -4,6 +4,42 @@ import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence
 import { unsupportedClosingDetail } from "../extensions/reviewed-reading/direct/companion-context.mjs";
 import { formatDisplayReply } from "../extensions/reviewed-reading/direct/format-reply.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
+import { fallbackFactor } from "../extensions/reviewed-reading/direct/fallback-factors.mjs";
+
+void test("observed source factors become complete sentences without scores or raw labels", () => {
+  const row = {
+    engine: "local-sweph-v2",
+    verdict_signals: [
+      {
+        area: "money",
+        trend: "MIXED",
+        positive: ["house 2 (Sagittarius) bindus 29/48 — strong support"],
+        negative: ["malefic Ketu house 2 mein baitha hai"],
+      },
+    ],
+  };
+  const answer = evidenceFallback([JSON.stringify(row)], "hinglish", "Paise kab behtar honge?");
+  assert.match(answer, /2ve ghar se achha sahyog milta hai/);
+  assert.match(answer, /Ketu ka 2ve ghar mein hona rukawat ka sanket hai/);
+  assert.doesNotMatch(answer, /strong support|malefic|bindus|29|2027|event ki date/);
+  assert.equal(answer.split("\n\n").length, 2);
+  row.verdict_signals[0] = {
+    area: "marriage",
+    trend: "MIXED",
+    positive: ["benefic Jupiter house 7 mein"],
+    negative: ["house 7 (Taurus) bindus sirf 20/48 — weak support"],
+  };
+  const marriage = evidenceFallback([JSON.stringify(row)], "hinglish", "Shaadi kab hogi?");
+  assert.match(marriage, /Guru ka 7ve ghar/);
+  assert.match(marriage, /7ve ghar se kam sahyog/);
+  assert.doesNotMatch(marriage, /Finance|20\/48|benefic|weak support/);
+});
+
+void test("unrecognized factors are omitted rather than assigned an invented meaning", () => {
+  assert.equal(fallbackFactor("unverified Jupiter implies a lottery win", false), null);
+  assert.equal(fallbackFactor(null, false), null);
+  assert.equal(fallbackFactor("benefic Unknown house 7 mein", false), null);
+});
 
 void test("observed companion chart claim cannot extend the reading", async () => {
   const base = "Original reading.\n\nOriginal verdict.";
