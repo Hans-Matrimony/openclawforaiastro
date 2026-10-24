@@ -48,11 +48,11 @@ export function evidenceFallback(results, language, query = "") {
     }[area];
     const timingLine = upcoming
       ? english
-        ? `${leadIn}: the calculated ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}.`
-        : `${leadIn}: hisaab ke hisaab se ${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai.`
+        ? `${leadIn}: the ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}.`
+        : `${leadIn}: ${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai.`
       : currentEnd
         ? english
-          ? `${leadIn}: the current sub-period ends ${currentEnd}; the next calculated window follows it.`
+          ? `${leadIn}: the current sub-period ends ${currentEnd}; the next window follows it.`
           : `${leadIn}: abhi ki antardasha ${currentEnd} tak hai, uske baad agla window aata hai.`
         : english
           ? `${leadIn}: this calculation returned no period data.`

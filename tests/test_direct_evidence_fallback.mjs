@@ -38,6 +38,22 @@ void test("observed source factors become complete sentences without scores or r
   assert.doesNotMatch(marriage, /saaf nahi dikh raha|Finance|20\/48|benefic|weak support/);
 });
 
+void test("timing fallback gives the dated upcoming window without filler phrases", () => {
+  const row = {
+    engine: "local-sweph-v2",
+    verdict_signals: [
+      { area: "marriage", trend: "MIXED", positive: ["benefic Jupiter house 7 mein"], negative: [] },
+    ],
+    dasha: {
+      current_antardasha: { lord: "Mars", to: "2027-09-15" },
+      upcoming_antardashas: [{ lord: "Mars", from: "2027-09-15", to: "2028-11-14" }],
+    },
+  };
+  const reply = evidenceFallback([JSON.stringify(row)], "hinglish", "Shaadi kab hogi?");
+  assert.match(reply, /Shaadi ka samay: Mars antardasha 2027-09-15 se 2028-11-14 tak hai/);
+  assert.doesNotMatch(reply, /hisaab ke hisaab|saaf nahi dikh raha/);
+});
+
 void test("unrecognized factors are omitted rather than assigned an invented meaning", () => {
   assert.equal(fallbackFactor("unverified Jupiter implies a lottery win", false), null);
   assert.equal(fallbackFactor(null, false), null);
