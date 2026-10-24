@@ -90,7 +90,10 @@ void test("reported ordinary questions reach companion writer without chart call
     assert.equal(calls, 2);
     assert.ok(result.reply.startsWith("Existing answer.\n\n"));
     assert.match(result.reply.split("\n\n")[1], /\?$/);
-    assert.match(result.reply.split("\n\n")[1], query.startsWith("educ") ? /Padhai/ : /Paise/);
+    assert.match(
+      result.reply.split("\n\n")[1],
+      query.startsWith("educ") ? /Padhai/ : /aamdani|kharchon/,
+    );
   }
 });
 
@@ -99,7 +102,7 @@ void test("reported education and money questions retain companionship on writer
     ["educatoin ke baare main batao", "Padhai mein abhi kis cheez par dhyaan dena chahte ho?"],
     [
       "thodi pareshani hai paiso ko leke kab poori hogi",
-      "Paise ki is pareshani mein abhi sabse zaroori kya sambhalna hai?",
+      "Aap pehle aamdani ki baat karna chahenge ya kharchon ki?",
     ],
   ]) {
     const value = { query, language: "hinglish", history: [] };
@@ -237,7 +240,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
       await contextualClosing("Answer. Iske baare mein thoda aur bataun?", value, {
         generate: async () => question,
       }),
-      "Answer.\n\nKaam ko lekar abhi aapke mann mein sabse zyada kya chal raha hai?",
+      "Answer.\n\nKaam mein apni kaunsi skill ko aur use karne ka mann hai?",
     );
   }
   assert.equal(
@@ -246,7 +249,7 @@ void test("no generic, duplicated, malformed or failed closing is forced", async
         throw Error("offline");
       },
     }),
-    "Answer.\n\nKaam ko lekar abhi aapke mann mein sabse zyada kya chal raha hai?",
+    "Answer.\n\nKaam mein apni kaunsi skill ko aur use karne ka mann hai?",
   );
   assert.equal(
     await contextualClosing("Answer.\n\nWhich course interests you?", value, {

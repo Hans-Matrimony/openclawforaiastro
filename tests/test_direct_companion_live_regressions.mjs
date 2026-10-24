@@ -5,6 +5,25 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test("career and finance replace stock priority questions with concrete invitations", async () => {
+  for (const query of [
+    "Mere career ke liye kaunsi fields achhi rahengi?",
+    "Meri financial condition kab behtar hogi?",
+  ]) {
+    const generated = "Kaam ko lekar aapke liye abhi sabse zaroori kya hai?";
+    const closing = await check(query, [], generated);
+    assert.doesNotMatch(closing, /sabse zaroori|sabse zyada/i);
+    assert.match(closing, /skill|aamdani/i);
+    const next = await check(
+      query,
+      [{ role: "assistant", text: reading + "\n\n" + closing }],
+      generated,
+    );
+    assert.notEqual(next, closing);
+    assert.doesNotMatch(next, /sabse zaroori|sabse zyada/i);
+  }
+});
+
 void test("friendly closings cannot invent a person, career preference or recurring feeling", async () => {
   for (const [query, generated] of [
     [

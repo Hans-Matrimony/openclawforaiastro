@@ -1,6 +1,6 @@
 import { fallbackGrammar } from "./persona.mjs";
 import { questionScope } from "./question-scope.mjs";
-import { companionFocus, companionNotes } from "./companion-context.mjs";
+import { companionFocus, companionNotes, asksKnownDetail } from "./companion-context.mjs";
 // Used only when the companion writer fails or offers no usable closing.
 // Topic acknowledgments do not infer personal circumstances from chart claims.
 export function companionFallback(value, facts = [], { requireQuestion = false } = {}) {
@@ -177,6 +177,19 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
           : "अपनी ज़िंदगी";
   const candidates = [
     contextual?.[{ en: "english", hi: "hindi" }[language] ?? language],
+    // Concrete invitations for broad questions, without inventing a problem or
+    // asking for a preference the user may already have supplied in memory.
+    ...(language === "hinglish" && career && !education && !finance
+      ? [
+          "Kaam mein apni kaunsi skill ko aur use karne ka mann hai?",
+          "Career mein agla kadam lene se pehle kis baat par saath mein sochna chahenge?",
+        ]
+      : language === "hinglish" && finance
+        ? [
+            "Aap pehle aamdani ki baat karna chahenge ya kharchon ki?",
+            "Paison ko lekar koi khaas faisla soch rahe hain jiske baare mein baat karein?",
+          ]
+        : []),
     ...options,
     ...(requireQuestion
       ? language === "hinglish"
@@ -200,6 +213,11 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
       : []),
   ]
     .filter(Boolean)
+    .filter(
+      (text) =>
+        !((career || finance) && /\bsabse (?:zyada|zaroori) kya\b/i.test(text)) &&
+        !asksKnownDetail(text, value, facts),
+    )
     .map((text) => fallbackGrammar(text, value))
     .filter(
       (text) => (!requireQuestion || /[?？]\s*$/.test(text)) && text.split(/\s+/u).length <= 20,

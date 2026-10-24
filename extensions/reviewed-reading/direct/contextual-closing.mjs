@@ -203,6 +203,8 @@ export async function contextualClosing(
       /[\r\n]/.test(question) ||
       (question.match(/[?？]/g) ?? []).length > 1 ||
       generic.test(question) ||
+      (/\b(?:career|finance)\b/.test(focus.topics.join(" ")) &&
+        /\bsabse (?:zyada|zaroori) kya\b|\bwhat matters most\b/i.test(question)) ||
       stockPresence.test(question) ||
       /\b(?:next|agle?|agla|aane wale)\s+\d+(?:\s*(?:\p{Pd}|to)\s*\d+)?\s*(?:months?|years?|mahine|saal)\b|\b(?:opportunit\w*|income|paisa|paise|reward|success|growth)\b.{0,65}\b(?:aayeg\w*|mile(?:ga|gi)|hoga|hogi|degi|dega|will)\b/iu.test(
         question,
