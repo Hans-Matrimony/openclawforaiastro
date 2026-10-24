@@ -19,6 +19,7 @@ import {
   remedyUnavailableReply,
 } from "./friendly-closing.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
+import { limitResponseLength } from "./response-length.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
 import {
   asksForRemedy,
@@ -451,7 +452,7 @@ export async function directAnswer(
     }
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: formatDisplayReply(finalReply),
+      reply: limitResponseLength(formatDisplayReply(finalReply)),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],

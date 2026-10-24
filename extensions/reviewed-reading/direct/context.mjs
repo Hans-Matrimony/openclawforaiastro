@@ -123,6 +123,7 @@ export async function readingContext(
       "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
   prompt +=
     "\n\n# Simple user-facing wording\n" +
+    "Keep the complete user-facing response within 140 words and at most three paragraphs, including the separate companion follow-up. Aim for 120 words or fewer when sufficient; do not pad a short answer. Budget at most 70 words for the explanation and 25 for the short verdict, reserving up to 45 for the separate companion. Preserve the supported conclusion, dates and necessary qualifications; omit repeated reasons instead. " +
     "Do not display bindu totals, bindu scores, ashtakavarga numbers, or the words bindu, bindus, retrograde, combust, vakri or their Hindi technical equivalents. Explain only the relevant practical meaning already supported by the tools in familiar language. Do not substitute another technical label. Do not turn a technical placement into a new prediction or claim. Keep the second paragraph to one short direct answer; all companionship belongs in the third paragraph. Raw structured output requested by the user is exempt.\n";
   prompt +=
     "\nDo not leave an unlabeled internal score after omitting its technical term (for example, 'house ka sirf 20 hai'). Omit the score phrase and express only the supported meaning. Keep actual house numbers, dates, ages and amounts intact.\n";
