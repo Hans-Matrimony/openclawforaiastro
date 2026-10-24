@@ -25,6 +25,21 @@ const input = {
   history: [],
 };
 const env = { OPENROUTER_API_KEY: "test-only", VEDASTRO_DIRECT_REPLY_CACHE: "0" };
+void test("active source flow includes honest verdict and concise output rules", async () => {
+  const context = await readingContext(
+    input,
+    { read: async () => ["User prefers concise answers."] },
+    (text) => text,
+    new Date("2026-10-24"),
+    { sourceFlow: true, separateCompanion: true },
+  );
+  assert.match(context.prompt, /Sirf tasalli mat dena/);
+  assert.match(context.prompt, /NEGATIVE.*unfavorable indication/);
+  assert.match(context.prompt, /Keep POSITIVE and MIXED/);
+  assert.match(context.prompt, /100 words/);
+  assert.match(context.prompt, /Never invent a negative outcome or discard supported timing/);
+  assert.ok(context.memoryFacts.includes("User prefers concise answers."));
+});
 const reply = (text) =>
   new Response(
     JSON.stringify({

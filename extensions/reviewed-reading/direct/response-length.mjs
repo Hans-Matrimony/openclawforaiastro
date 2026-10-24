@@ -32,19 +32,19 @@ export function limitResponseLength(reply) {
     .trim()
     .split(/\n\s*\n/u)
     .filter(Boolean);
-  if (parts.length <= 3 && words(reply).length <= 140) {
+  if (parts.length <= 3 && words(reply).length <= 100) {
     return reply;
   }
   if (parts.length > 3) {
     parts = [parts.slice(0, -2).join(" "), ...parts.slice(-2)];
   }
-  if (words(parts.join(" ")).length <= 140) {
+  if (words(parts.join(" ")).length <= 100) {
     return parts.join("\n\n");
   }
   if (parts.length === 1) {
-    return fit(parts[0], 140);
+    return fit(parts[0], 100);
   }
-  const tail = parts.slice(1).map((part) => fit(part, 45));
-  const remaining = 140 - words(tail.join(" ")).length;
+  const tail = parts.slice(1).map((part, index) => fit(part, index === 0 ? 30 : 25));
+  const remaining = 100 - words(tail.join(" ")).length;
   return [fit(parts[0], remaining), ...tail].join("\n\n");
 }
