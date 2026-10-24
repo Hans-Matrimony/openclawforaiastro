@@ -28,7 +28,7 @@ export function unsupportedEventTiming(reply, results) {
       (sentence) =>
         /\b20\d{2}\b/.test(sentence) &&
         (eventTopic || /\b(?:girlfriend|boyfriend|gf|bf|rishta)\b/i.test(sentence)) &&
-        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|shaadi|marriage|marry|wait|intezaar|intazaar)\b/i.test(
+        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|shaadi|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b/i.test(
           sentence,
         ) &&
         !/\b(?:not a calculated|not an event|date nahi|tay nahi|establish|cannot|does not|no verified)\b/i.test(

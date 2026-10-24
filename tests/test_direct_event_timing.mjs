@@ -9,6 +9,8 @@ void test("period-only evidence cannot establish a dated event prediction", () =
     "2027 ke baad financial flow improve hoga.",
     "2028 ke baad shaadi ka mauka strong hai.",
     "Your career will improve in 2027.",
+    "2027 ke baad financial situation behtar hogi.",
+    "Shaadi ke liye 2028 ke baad ek possible window khul sakta hai.",
   ]) {
     assert.equal(unsupportedEventTiming(reply, evidence), true);
   }

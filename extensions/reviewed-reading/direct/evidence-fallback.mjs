@@ -16,7 +16,11 @@ export function evidenceFallback(results, language, query = "") {
       return [];
     }
   });
-  const signal = rows.flatMap((d) => d.verdict_signals ?? []).find((s) => s.area === area);
+  const signals = rows.flatMap((d) => d.verdict_signals ?? []).filter((s) => s.area === area);
+  // Never combine conflicting readings or different subjects into one verdict.
+  const signal = signals.every((s) => JSON.stringify(s) === JSON.stringify(signals[0]))
+    ? signals[0]
+    : null;
   if (signal && ["POSITIVE", "NEGATIVE", "MIXED"].includes(signal.trend)) {
     const english = language === "english";
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
@@ -29,13 +33,19 @@ export function evidenceFallback(results, language, query = "") {
     return (
       (english
         ? `${label} indications in the calculated chart are ${trend}.`
-        : `${label} ke chart mein ${trend} sanket hain.`) +
+        : `${{ career: "Career", money: "Paise", marriage: "Rishte" }[area]} ko lekar ${
+            {
+              POSITIVE: "sahyog ke sanket hain",
+              NEGATIVE: "rukawaton ke sanket zyada hain",
+              MIXED: "sahyog bhi hai aur rukawatein bhi",
+            }[signal.trend]
+          }.`) +
       (factors ? " " + factors + "." : "") +
       "\n\n" +
       (timing
         ? english
-          ? "These factors do not establish an event date."
-          : "In factors se event ki date tay nahi hoti."
+          ? "The reading shows the present support and challenges, but does not establish when the change will happen."
+          : `${{ career: "Career mein badlav", money: "Paise ki sthiti mein sudhaar", marriage: "Rishta aage badhne" }[area]} ka waqt is reading se saaf nahi hai.`
         : english
           ? "These are broad chart factors; the tool does not rank specific career fields or choices."
           : "Yeh broad chart factors hain; tool specific fields ya choices ki ranking nahi deta.")

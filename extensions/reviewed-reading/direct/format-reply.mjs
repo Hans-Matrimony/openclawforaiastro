@@ -34,6 +34,11 @@ export function removeReplyDashes(reply) {
 export function removeDisplayTerms(reply) {
   return (
     reply
+      .replace(
+        /\bashtakavarga\s+(?:score\s+|count\s+)?(?:sirf\s+)?\d{1,3}(?:\/48)?\s+hai,?\s+jo\s+(bahut\s+kam|kamzor|strong|weak)\s+hai/gi,
+        "$1 sahyog hai",
+      )
+      .replace(/\bashtakavarga\s+strong\b/gi, "sahyog strong")
       // Remove only an unlabeled house-score fragment, retaining the house and meaning.
       .replace(
         /\b(house\s+\d{1,2}|\d{1,2}(?:st|nd|rd|th)\s+house)\s+ka\s+(?:sirf\s+)?\d{1,3}\s+(?:bindus?\s+)?(?:hai\s+)?(?=(?:bahut\s+)?(?:weak|strong|kamzor)\b)/gi,

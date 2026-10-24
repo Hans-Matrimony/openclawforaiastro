@@ -222,7 +222,7 @@ export async function contextualClosing(
     }
     // The companion writer cannot add a second reading or repeat its timing claims.
     if (
-      /\b(?:20\d{2}|dasha|antardasha|transit|kundli|natal|saturn|jupiter|rahu|ketu|shani|guru|mercury|venus)\b/i.test(
+      /\b(?:20\d{2}|chart|dasha|antardasha|transit|kundli|natal|saturn|jupiter|rahu|ketu|shani|guru|mercury|venus|mars|moon)\b|emotional readiness.{0,20}(?:badh|improv)/i.test(
         question,
       )
     ) {

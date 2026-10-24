@@ -149,6 +149,12 @@ export function unsupportedClosingDetail(question, value, facts) {
       question,
     ) && !/\b(?:papa|mummy|father|mother|dad|mom)\b/i.test(evidence);
   return (
+    (/\b(?:abhi jo bhi kaam kar rahe|your current job|aapki current job|tumhari current job)\b/i.test(
+      question,
+    ) &&
+      !/\b(?:I work|I am working|meri job|meri naukri|main kaam karta|main kaam karti|night shift)\b/i.test(
+        evidence,
+      )) ||
     (/\b(?:your|tere|tumhare|aapke)\s+strengths?\b|\bnaturally\s+fit\b|\b(?:solid|meaningful)\s+hoga\b/i.test(
       question,
     ) &&
