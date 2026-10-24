@@ -352,7 +352,7 @@ export async function directAnswer(
           content:
             "The proposed timing contains an unsupported event date or a period claim that does not match the schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the original question: " +
             JSON.stringify(value.query) +
-            ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, distinguish the calculated period from any unestablished event date.",
+            ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, a topic-supported period interpretation is allowed: name the returned upcoming antardasha lord, its exact start and end as English month-year, and the checked house/lord reason relevant to this question. Clearly label it sambhavit or an interpretation, not a guaranteed event. Do not invent a period or supporting factor. Keep the short verdict within the same qualified window. Do not discard a supported period merely because the tool does not calculate an event date.",
         });
         continue;
       }
