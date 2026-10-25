@@ -87,6 +87,18 @@ export async function readingContext(
   if (value.quota_context) {
     prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
   }
+  // Keep both requested parts visible when a short reading asks about timing
+  // and partner nature. This controls coverage, never the tool evidence.
+  if (
+    /\b(?:shaadi|shadi|marriage|marry|married)\b|शादी|विवाह/iu.test(value.query) &&
+    /\b(?:kab|kb|when|timing)\b|कब/iu.test(value.query) &&
+    /\b(?:partner|spouse|wife|husband|saathi|jeevansathi)\b|जीवनसाथी|साथी/iu.test(value.query) &&
+    /\b(?:kaisa|kaisi|nature|like|traits|personality)\b|कैसा|कैसी|स्वभाव/iu.test(value.query)
+  ) {
+    prompt +=
+      "\n\n# Two requested reading parts\n" +
+      "The current question asks BOTH marriage timing and the future partner's nature. Cover both; shortening must not drop either part. Use the explanation for one relevant chart reason plus a short, clearly interpretive partner description supported by the current tool evidence. Use the verdict for the supported timing window. Do not invent personality traits or turn them into facts about a real person. Apply the supplied partner wording and current user preferences. Avoid repeating the same planet/house statement or filling the explanation with internal scores. Keep the existing positive, negative or mixed indication and necessary qualification. The companion question is separate and cannot substitute for the requested partner description.\n";
+  }
   if (sourceFlow) {
     prompt +=
       "\n\n# App integration boundary\n" +

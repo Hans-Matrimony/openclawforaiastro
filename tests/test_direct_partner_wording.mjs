@@ -54,6 +54,27 @@ void test("unknown gender has no invented partner gender or Meera/Aarav assignme
   assert.doesNotMatch(instruction, /future wife|future husband|you are Meera|you are Aarav/);
 });
 
+void test("combined marriage questions retain both requested parts without changing chart or memory data", async () => {
+  for (const sourceFlow of [true, false]) {
+    const birth = { date: "2001-01-03", time: "05:00", location_name: "Delhi" };
+    const facts = ["User has discussed a relationship with family."];
+    const context = await readingContext(
+      { ...value, birth, query: "Meri shaadi kab hogi aur mera life partner kaisa hoga?" },
+      { read: async () => facts },
+      (text) => text,
+      new Date("2026-10-25"),
+      { sourceFlow, separateCompanion: true },
+    );
+    assert.match(context.prompt, /Cover both; shortening must not drop either part/);
+    assert.match(context.prompt, /Do not invent personality traits/);
+    assert.match(context.prompt, /positive, negative or mixed indication/);
+    assert.deepEqual(context.profile.fields, birth);
+    assert.deepEqual(context.memoryFacts, facts);
+  }
+  const context = await readingContext(value, { read: async () => [] }, (text) => text);
+  assert.doesNotMatch(context.prompt, /# Two requested reading parts/);
+});
+
 void test("identity question has a brief warm AI identity without dismissing the user", () => {
   for (const [user_gender, name] of [
     ["male", "Meera"],
