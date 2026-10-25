@@ -219,6 +219,9 @@ export async function contextualClosing(
       stockPresence.test(question) ||
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
+      /\b(?:main|I am|I'm)\s+(?:Meera|Aarav|AstroFriend)\b|\b(?:Banaras|Varanasi)\b[^.!?\n]{0,50}\b(?:paida|janm|born)\b/i.test(
+        question,
+      ) ||
       /\bkahin tak toh\b|\bdil ki (?:aawaz|awaaz)\b/i.test(question) ||
       /\b(?:ladki|ladka|wife|husband|partner|saathi)\b[^.!?\n]{0,55}\b(?:hogi|hoga|will be)\b/i.test(
         question,

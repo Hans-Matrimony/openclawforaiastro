@@ -5,7 +5,10 @@ import { get_horoscope_predictions } from "../extensions/reviewed-reading/direct
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { unsupportedEventTiming } from "../extensions/reviewed-reading/direct/event-timing.mjs";
 import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence-fallback.mjs";
-import { partnerFallback } from "../extensions/reviewed-reading/direct/partner-fallback.mjs";
+import {
+  partnerFallback,
+  missingPartnerNature,
+} from "../extensions/reviewed-reading/direct/partner-fallback.mjs";
 
 const now = new Date("2026-10-25T12:00:00Z");
 beforeEach((t) => t.mock.timers.enable({ apis: ["Date"], now }));
@@ -162,4 +165,91 @@ void test("awkward companion phrases fall back without rewriting the reading or 
     { generate: async () => natural },
   );
   assert.equal(result, base + "\n\n" + natural);
+});
+
+void test("normal reading omission is repaired once using existing tools and preserves the two requested parts", async () => {
+  const row = source();
+  const incomplete =
+    "Mars antardasha September 2027 se November 2028 tak hai.\n\nShaadi ke sanket mixed hain.";
+  assert.equal(missingPartnerNature(incomplete, query), true);
+  const complete =
+    "Saathi ke swabhav mein ghar aur saath rehne ke sukoon ka rujhaan hai.\n\nSeptember 2027 se November 2028 Mars ka daur hai.";
+  assert.equal(missingPartnerNature(complete, query), false);
+  for (const stubborn of [false, true]) {
+    let calls = 0,
+      tools = 0;
+    const result = await directAnswer(value, {
+      now: () => now,
+      env: {
+        OPENROUTER_API_KEY: "test",
+        VEDASTRO_DIRECT_FLOW: "source",
+        VEDASTRO_DIRECT_ENVIRONMENT: "development",
+        VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
+        VEDASTRO_DIRECT_REPLY_CACHE: "0",
+      },
+      makeMemory: () => ({ read: async () => [] }),
+      makeTools: () => async () => {
+        tools++;
+        return JSON.stringify(row);
+      },
+      fetchImpl: async (_, options) => {
+        calls++;
+        const body = JSON.parse(options.body);
+        if (calls === 1) {
+          return new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  finish_reason: "tool_calls",
+                  message: {
+                    tool_calls: [
+                      {
+                        id: "chart",
+                        type: "function",
+                        function: {
+                          name: "mcp__VedAstro__get_horoscope_predictions",
+                          arguments: "{}",
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            }),
+          );
+        }
+        if (calls === 3) {
+          assert.ok(
+            body.messages.some((m) => m.content?.includes("omitted the requested partner nature")),
+          );
+        }
+        return new Response(
+          JSON.stringify({
+            choices: [
+              {
+                finish_reason: "stop",
+                message: { content: calls === 2 || stubborn ? incomplete : complete },
+              },
+            ],
+          }),
+        );
+      },
+    });
+    assert.equal(calls, 3);
+    assert.equal(tools, 1);
+    assert.match(result.reply, /Saathi ke swabhav/);
+    assert.match(result.reply, /2027/);
+    assert.ok(result.reply.split(/\s+/u).length <= 100);
+  }
+});
+
+void test("companion cannot repeat the fixed backstory or replace AI identity with a human introduction", async () => {
+  const base =
+    "Mere Meera kirdaar ki kahani mein umar 25 saal hai. Main AstroFriend ki AI dost hoon.";
+  const result = await contextualClosing(
+    base,
+    { ...value, query: "Apni backstory batao" },
+    { generate: async () => "Main Meera hoon, Banaras ke ghaton par paida hui, tumhari dost." },
+  );
+  assert.equal(result, base);
 });

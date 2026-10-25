@@ -7,6 +7,17 @@ export function asksPartnerNature(query) {
   );
 }
 
+export function missingPartnerNature(reply, query) {
+  if (!asksPartnerNature(query)) {
+    return false;
+  }
+  // A planet, period or marriage date alone does not answer a nature question.
+  // Keep this lexical coverage check separate from chart-claim validation.
+  return !/\b(?:partner|spouse|wife|husband|saathi|ladki|ladka|woh|wo|she|he)\b[^.!?\n]{0,110}\b(?:swabhav|nature|personality|samajhdaar|samajhdar|shant|shaant|calm|mature|serious|practical|independent|creative|sensitive|reserved|caring|patient|sabr|zimmedar|responsible|valu\w*|parivaar|family|home|sukoon)\b|(?:साथी|जीवनसाथी)[^।!?\n]{0,80}(?:स्वभाव|शांत|समझदार|परिवार)/iu.test(
+    reply,
+  );
+}
+
 // Reuse only the two reviewed marriage themes in assets/engine/reading.py.
 // This fallback describes symbolism, not facts about an unknown real partner.
 export function partnerFallback(rows, language, query) {
