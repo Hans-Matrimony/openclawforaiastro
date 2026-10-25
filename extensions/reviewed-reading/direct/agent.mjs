@@ -14,6 +14,7 @@ import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
+import { selfIntroduction } from "./persona.mjs";
 import {
   questionScopeInstruction,
   mismatchedQuestionReply,
@@ -409,6 +410,7 @@ export async function directAnswer(
     if (ordinaryConcern) {
       reply = ordinaryReply(reply, value);
     }
+    reply = selfIntroduction(value) ?? reply;
     const formatted = formatReadingReply(
       sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
       readingTools.size > 0 && !isDeathTimingQuestion(value.query),

@@ -1,8 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { readingContext } from "../extensions/reviewed-reading/direct/context.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
-import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
+import {
+  personaInstruction,
+  selfIntroduction,
+} from "../extensions/reviewed-reading/direct/persona.mjs";
 import { limitResponseLength } from "../extensions/reviewed-reading/direct/response-length.mjs";
 
 const value = {
@@ -61,6 +65,90 @@ void test("identity question has a brief warm AI identity without dismissing the
     assert.match(instruction, /one or two warm sentences/);
     assert.match(instruction, /Do not give an unsolicited reading/);
     assert.match(instruction, /or say you do not want a close conversation/);
+  }
+});
+
+void test("standalone identity answers use the app persona without inventing a human identity", () => {
+  for (const query of [
+    "Apne baare mein batao, kaun ho tum?",
+    "Apne Baare mai Kuch Batao Kon ho tum",
+    "Tum kaun ho?",
+    "Who are you?",
+    "आप कौन हैं?",
+  ]) {
+    for (const [user_gender, name] of [
+      ["male", "Meera"],
+      ["female", "Aarav"],
+      ["unknown", "AstroFriend"],
+    ]) {
+      const reply = selfIntroduction({ ...value, query, user_gender });
+      assert.ok(reply.includes(name));
+      assert.match(reply, /AI dost/);
+      assert.ok(reply.split(/\s+/u).length <= 30);
+      assert.doesNotMatch(reply, /robot nahi|samjhti|samajhti|dunga|karna chahti/);
+    }
+  }
+  assert.match(
+    selfIntroduction({ ...value, query: "Who are you?", language: "english" }),
+    /AI companion/,
+  );
+  assert.match(
+    selfIntroduction({ ...value, query: "आप कौन हैं?", language: "hindi", user_gender: "female" }),
+    /आरव.*AI साथी/,
+  );
+});
+
+void test("identity handling cannot replace readings or combined user questions", () => {
+  for (const query of [
+    "Mere baare mein kuch batao",
+    "Who am I?",
+    "Meri shaadi kab hogi?",
+    "Who are you and when will I marry?",
+    "Tum kaun ho aur meri job kab lagegi?",
+    "Meri wife kaun hogi?",
+    "आप कौन हैं और मेरी शादी कब होगी?",
+  ]) {
+    assert.equal(selfIntroduction({ ...value, query }), null);
+  }
+});
+
+void test("agent displays trusted identity even when the writer repeats a misleading old introduction", async () => {
+  for (const user_gender of ["male", "female"]) {
+    const input = {
+      ...value,
+      user_gender,
+      query: "Apne baare mein batao, kaun ho tum?",
+      birth: {},
+      history: [{ role: "assistant", text: "Main koi robot nahi, main insaan hoon." }],
+    };
+    const result = await directAnswer(input, {
+      env: {
+        OPENROUTER_API_KEY: "test",
+        VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
+        VEDASTRO_DIRECT_REPLY_CACHE: "0",
+      },
+      makeMemory: () => ({ read: async () => [] }),
+      makeTools: () => async () => {
+        throw new Error("Identity needs no chart calculation");
+      },
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            choices: [
+              {
+                finish_reason: "stop",
+                message: {
+                  content: "Main koi robot nahi, main tumhari dost hoon. Na tasalli dunga.",
+                },
+              },
+            ],
+            usage: { cost: 0 },
+          }),
+        ),
+    });
+    assert.equal(result.reply, selfIntroduction(input));
+    assert.equal(result.answer_model_calls, 1);
+    assert.deepEqual(result.answer_reading_tools, []);
   }
 });
 
