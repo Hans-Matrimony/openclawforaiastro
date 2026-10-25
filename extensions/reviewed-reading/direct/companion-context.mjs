@@ -195,6 +195,10 @@ export function asksKnownDetail(question, value, facts) {
     ...facts,
   ].join("\n");
   return (
+    (/\bfeelings (?:share|bata)|\bapni (?:baat|feelings)\b/i.test(question) &&
+      /\b(?:crush|usse|usko|unse)\b[^.!?\n]{0,55}\b(?:feelings|dil ki baat)\b[^.!?\n]{0,30}\b(?:bata|bol|share|nahi|nahin|nhi)|\b(?:told|confessed to) my crush\b/i.test(
+        evidence,
+      )) ||
     (/which (?:course|degree)|kaun\s*sa\s*(?:course|degree)|कौन\s*सा\s*(?:कोर्स|डिग्री)/i.test(
       question,
     ) &&

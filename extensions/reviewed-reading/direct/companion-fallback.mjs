@@ -82,6 +82,7 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
             hindi: "घरवालों वाली बात को लेकर अब कैसा महसूस हो रहा है?",
           }
         : null;
+  const crush = relationship && /\bcrush\b/i.test(topicQuery);
   const options =
     language === "hinglish"
       ? education
@@ -177,6 +178,12 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
           : "अपनी ज़िंदगी";
   const candidates = [
     contextual?.[{ en: "english", hi: "hindi" }[language] ?? language],
+    ...(language === "hinglish" && crush
+      ? [
+          "Kya aapne unse apni feelings share ki hain?",
+          "Unke saath abhi baatcheet kaisi chal rahi hai?",
+        ]
+      : []),
     // Concrete invitations for broad questions, without inventing a problem or
     // asking for a preference the user may already have supplied in memory.
     ...(language === "hinglish" && career && !education && !finance

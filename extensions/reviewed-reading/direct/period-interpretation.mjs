@@ -9,7 +9,9 @@ const months =
 // calculated event date. Chart-claim validation still runs before this check.
 export function isPeriodInterpretation(reply, data) {
   if (
-    !/\b(?:interpretation|sambhavit|sambhavna|may|could|potential)\b/i.test(reply) ||
+    !/\b(?:interpretation|sambhavit|sambhavna|sambhav|may|could|potential|possible)\b|\bho sak(?:ta|ti|te)\b/i.test(
+      reply,
+    ) ||
     !/\b(?:because|kyunki|lord|swami|house|ghar|drishti|aspect)\b/i.test(reply) ||
     hasPredictionGuarantee(reply) ||
     /\b(?:zaroor|will (?:happen|marry)|ho(?:gi|ga) hi)\b/i.test(reply)

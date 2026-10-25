@@ -15,6 +15,10 @@ const rulers = {
   Pisces: "Jupiter",
 };
 
+export function sourceHouseRuler(chart, house) {
+  return rulers[chart?.ashtakavarga_house_bindus?.[`house_${house}`]?.sign];
+}
+
 export function houseLordConflicts(reply, results) {
   const charts = results.flatMap((text) => {
     try {

@@ -1,4 +1,5 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
+import { partnerFallback } from "./partner-fallback.mjs";
 import { periodFallback } from "./period-fallback.mjs";
 
 // A failed bounded correction must not become a transport failure or publish
@@ -46,6 +47,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       (english
         ? "The returned calculation has no consistent current or future period schedule."
         : "Is calculation mein ek saaf current ya aane wali dasha ka schedule nahi aaya.");
+    const partner = area === "marriage" ? partnerFallback(rows, language, query) : "";
     return (
       (english
         ? `${label} indications in the calculated chart are ${trend}.`
@@ -57,6 +59,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
             }[signal.trend]
           }.`) +
       (factors ? " " + factors + "." : "") +
+      (partner ? " " + partner : "") +
       "\n\n" +
       (timing
         ? timingLine
