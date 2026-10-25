@@ -78,6 +78,92 @@ void test("ordinary qualified wording retains the exact supported period, never 
   }
 });
 
+void test("abbreviated period dates preserve qualified timing but never admit changed boundaries", () => {
+  const row = source();
+  row.evidence_scope = { timing: "does not calculate event-specific windows" };
+  const data = [JSON.stringify(row)];
+  const prefix =
+    "Jupiter aur Saturn 7ve ghar mein hain. Saathi ke swabhav mein ghar ka sukoon hai.\n\n";
+  for (const window of [
+    "15 Sept 2027 se 14 Nov 2028",
+    "15 September 2027 se 14 November 2028",
+    "Sept. 15, 2027 to Nov. 14, 2028",
+    "Sep 2027 to Nov 2028",
+  ]) {
+    const reply =
+      prefix + `Shaadi 2027 ke baad, Mars ki antardasha (${window}) mein sambhavit hai.`;
+    assert.equal(unsupportedEventTiming(reply, data), false, reply);
+  }
+  for (const window of [
+    "16 Sept 2027 se 14 Nov 2028",
+    "15 Sept 2027 se 15 Nov 2028",
+    "15 Oct 2027 se 14 Nov 2028",
+    "15 Sept 2029 se 14 Nov 2030",
+    "15 Sept 2027",
+    "15 Sept 2027 se 2028-11-14",
+  ]) {
+    assert.equal(
+      unsupportedEventTiming(prefix + `Mars antardasha ${window} mein shaadi sambhavit hai.`, data),
+      true,
+      window,
+    );
+  }
+});
+
+void test("a corrected abbreviated window reaches delivery without replacing the reading with a schedule", async () => {
+  const row = source();
+  row.evidence_scope = { timing: "does not calculate event-specific windows" };
+  const explanation =
+    "Jupiter aur Saturn 7ve ghar mein hain, isliye sahyog aur rukawat dono hain. Saathi ke swabhav mein ghar ka sukoon hai.";
+  let calls = 0;
+  const result = await directAnswer(value, {
+    now: () => now,
+    env: {
+      OPENROUTER_API_KEY: "test",
+      VEDASTRO_DIRECT_FLOW: "source",
+      VEDASTRO_DIRECT_ENVIRONMENT: "development",
+      VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
+      VEDASTRO_DIRECT_REPLY_CACHE: "0",
+    },
+    makeMemory: () => ({ read: async () => [] }),
+    makeTools: () => async () => JSON.stringify(row),
+    fetchImpl: async () => {
+      calls++;
+      const message =
+        calls === 1
+          ? {
+              tool_calls: [
+                {
+                  id: "natal",
+                  type: "function",
+                  function: {
+                    name: "mcp__VedAstro__get_horoscope_predictions",
+                    arguments: "{}",
+                  },
+                },
+              ],
+            }
+          : {
+              content:
+                explanation +
+                "\n\n" +
+                (calls === 2
+                  ? "Shaadi 2027 ke baad Mars antardasha mein possible hai."
+                  : "Shaadi Mars antardasha (15 Sept 2027 se 14 Nov 2028) mein sambhavit hai."),
+            };
+      return new Response(
+        JSON.stringify({
+          choices: [{ finish_reason: calls === 1 ? "tool_calls" : "stop", message }],
+        }),
+      );
+    },
+  });
+  assert.equal(calls, 3);
+  assert.match(result.reply, /Saathi ke swabhav/);
+  assert.match(result.reply, /15 Sept 2027 se 14 Nov 2028.*sambhavit/);
+  assert.doesNotMatch(result.reply, /schedule hai|event ki bhavishyavani nahi/);
+});
+
 void test("bounded corrections receive the rejected draft and fallback keeps coverage through final formatting", async () => {
   const row = source();
   row.evidence_scope = { timing: "does not calculate event-specific windows" };
@@ -252,4 +338,20 @@ void test("companion cannot repeat the fixed backstory or replace AI identity wi
     { generate: async () => "Main Meera hoon, Banaras ke ghaton par paida hui, tumhari dost." },
   );
   assert.equal(result, base);
+});
+
+void test("companion cannot add marriage reassurance or poetic advice to the checked reading", async () => {
+  const base = "Original mixed astrology reading.\n\nOriginal timing verdict.";
+  for (const generated of [
+    "Tumhari shaadi ka waqt apne aap aayega, par sabse pehle yeh socho kya tumne kisi ko apne dil ki baat sunai hai?",
+    "Tumhari crush ke liye dil kitna bhaavuk hai, yeh sabse zaroori baat hai... kya abhi tak tumne usse apni baat kahi hai?",
+    "Your marriage time will come. Have you shared your feelings with your crush?",
+  ]) {
+    const reply = await contextualClosing(
+      base,
+      { ...value, query: "Meri crush se shaadi hogi?" },
+      { generate: async () => generated },
+    );
+    assert.equal(reply, base + "\n\nKya aapne unse apni feelings share ki hain?");
+  }
 });

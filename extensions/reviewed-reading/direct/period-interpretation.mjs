@@ -4,6 +4,9 @@ const months =
   "January February March April May June July August September October November December".split(
     " ",
   );
+const monthNames = months
+  .flatMap((name) => [name, name.slice(0, 3), ...(name === "September" ? ["Sept"] : [])])
+  .join("|");
 
 // Admit an explicitly qualified interpretation of a returned period, not a
 // calculated event date. Chart-claim validation still runs before this check.
@@ -19,11 +22,17 @@ export function isPeriodInterpretation(reply, data) {
     return false;
   }
   const dates = [
-    ...reply.matchAll(new RegExp(`\\b(${months.join("|")})\\s+(20\\d{2})\\b`, "gi")),
-  ].map(
-    (m) =>
-      `${m[2]}-${String(months.findIndex((v) => v.toLowerCase() === m[1].toLowerCase()) + 1).padStart(2, "0")}`,
-  );
+    ...reply.matchAll(
+      new RegExp(
+        `\\b(?:(\\d{1,2})(?:st|nd|rd|th)?\\s+)?(${monthNames})\\.?\\s+(?:(\\d{1,2})(?:st|nd|rd|th)?,?\\s+)?(20\\d{2})\\b`,
+        "gi",
+      ),
+    ),
+  ].map((m) => ({
+    month: `${m[4]}-${String(months.findIndex((v) => v.slice(0, 3).toLowerCase() === m[2].slice(0, 3).toLowerCase()) + 1).padStart(2, "0")}`,
+    day: m[1] || m[3] ? (m[1] ?? m[3]).padStart(2, "0") : null,
+    invalid: Boolean(m[1] && m[3]),
+  }));
   if (dates.length < 2 || /\b20\d{2}-\d{2}-\d{2}\b/.test(reply)) {
     return false;
   }
@@ -36,9 +45,19 @@ export function isPeriodInterpretation(reply, data) {
       to = String(p.to ?? "").slice(0, 7);
     return (
       new RegExp(`\\b${p.lord}\\b`, "i").test(reply) &&
-      dates.includes(from) &&
-      dates.includes(to) &&
-      dates.every((d) => d === from || d === to) &&
+      dates.some((d) => d.month === from) &&
+      dates.some((d) => d.month === to) &&
+      // Abbreviations and full dates represent the same period. When a day is
+      // supplied, it must match the actual boundary, not merely its month.
+      dates.every(
+        (d) =>
+          !d.invalid &&
+          [p.from, p.to].some(
+            (boundary) =>
+              String(boundary).slice(0, 7) === d.month &&
+              (!d.day || String(boundary).slice(8, 10) === d.day),
+          ),
+      ) &&
       [...reply.matchAll(/\b20\d{2}\b/g)].every((m) =>
         [from.slice(0, 4), to.slice(0, 4)].includes(m[0]),
       )

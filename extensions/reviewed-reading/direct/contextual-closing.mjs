@@ -30,6 +30,8 @@ const partnerAlternatives =
   /\b(?:aadmi|admi|mard|ladka|man|boy|male)\s+(?:ya|aur|or|and)\s+(?:aurat|ladki|woman|girl|female)\b|\b(?:aurat|ladki|woman|girl|female)\s+(?:ya|aur|or|and)\s+(?:aadmi|admi|mard|ladka|man|boy|male)\b|(?:आदमी|लड़का|पुरुष)\s*(?:या|और)\s*(?:औरत|लड़की|महिला)/i;
 const timingDisclaimer =
   /\b(?:shaa?di|marriage|wedding|timing|prediction|date|saal|mahina)\b[^.!?\n]{0,55}\b(?:nahi|nahin|nhi|cannot|can't)\s+(?:bata\w*|predict|tell|confirm)\b|\b(?:cannot|can't)\s+(?:tell|predict|confirm)\b[^.!?\n]{0,45}\b(?:marry|marriage|wedding|timing|date)\b|शादी[^।!?\n]{0,35}नहीं\s*बता/i;
+const closingPrediction =
+  /\b(?:shaa?di|marriage|wedding|rishta|relationship|career|job|paisa|paise)\b[^.!?\n]{0,70}\b(?:aayega|aayegi|hoga|hogi|ho jayeg[aie]|will (?:come|happen|improve|work))\b/i;
 
 // Keep a complete final question when the writer adds an overlong preamble.
 // Do not truncate a question mid-sentence or add another paid rewrite call.
@@ -219,6 +221,8 @@ export async function contextualClosing(
       stockPresence.test(question) ||
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
+      closingPrediction.test(question) ||
+      /\bsabse pehle (?:yeh|ye) socho\b|\bdil kitna bhaavuk\b/i.test(question) ||
       /\b(?:main|I am|I'm)\s+(?:Meera|Aarav|AstroFriend)\b|\b(?:Banaras|Varanasi)\b[^.!?\n]{0,50}\b(?:paida|janm|born)\b/i.test(
         question,
       ) ||
