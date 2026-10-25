@@ -47,8 +47,15 @@ vi.mock("../agents/model-auth.js", () => ({
 }));
 
 vi.mock("@mariozechner/pi-coding-agent", () => ({
-  AuthStorage: class {},
+  AuthStorage: class {
+    static create() {
+      return new this();
+    }
+  },
   ModelRegistry: class {
+    static create() {
+      return new this();
+    }
     getAll() {
       return modelRegistryState.models;
     }

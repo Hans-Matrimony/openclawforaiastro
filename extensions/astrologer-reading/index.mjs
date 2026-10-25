@@ -3,7 +3,9 @@ import { wrapAstrologerReadingStream } from "./astrologer-reading-stream.js";
 export const PREFIX = "astrofriend-reading-";
 export function latestUserText(context) {
   const user = context.messages?.findLast((message) => message.role === "user");
-  if (typeof user?.content === "string") return user.content;
+  if (typeof user?.content === "string") {
+    return user.content;
+  }
   return (user?.content ?? [])
     .filter((block) => block.type === "text")
     .map((block) => block.text)

@@ -28,6 +28,15 @@ const mocks = vi.hoisted(() => ({
   sendMessageTelegram: vi.fn(async () => ({ messageId: "m1", chatId: "c1" })),
   sendMessageWhatsApp: vi.fn(async () => ({ messageId: "m1", toJid: "jid" })),
   deliverOutboundPayloads: vi.fn(),
+  checkProactiveCompliance: vi.fn(),
+}));
+
+// Routing fixtures need an explicit consent result. Consent enforcement itself
+// remains active and is checked by the rejection case below.
+vi.mock("../../whatsapp/compliance.js", () => ({
+  checkProactiveCompliance: mocks.checkProactiveCompliance,
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true })),
+  logComplianceFailure: vi.fn(),
 }));
 
 vi.mock("../../discord/send.js", () => ({
@@ -110,10 +119,28 @@ describe("routeReply", () => {
   beforeEach(() => {
     setActivePluginRegistry(defaultRegistry);
     mocks.deliverOutboundPayloads.mockImplementation(actualDeliver.deliverOutboundPayloads);
+    mocks.checkProactiveCompliance.mockResolvedValue({ allowed: true });
   });
 
   afterEach(() => {
     setActivePluginRegistry(emptyRegistry);
+  });
+
+  it("reports a consent denial without sending a WhatsApp reply", async () => {
+    mocks.sendMessageWhatsApp.mockClear();
+    mocks.checkProactiveCompliance.mockResolvedValueOnce({
+      allowed: false,
+      reason: "Consent denied",
+    });
+    const result = await routeReply({
+      payload: { text: "Synthetic" },
+      channel: "whatsapp",
+      to: "+19999999999",
+      cfg: {},
+    });
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("Consent denied");
+    expect(mocks.sendMessageWhatsApp).not.toHaveBeenCalled();
   });
 
   it("skips sends when abort signal is already aborted", async () => {

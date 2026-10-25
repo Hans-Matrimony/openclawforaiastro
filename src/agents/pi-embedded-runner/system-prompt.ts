@@ -5,7 +5,12 @@ import type { ResolvedTimeFormat } from "../date-time.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
 import type { EmbeddedSandboxInfo } from "./types.js";
 import type { ReasoningLevel, ThinkLevel } from "./utils.js";
-import { buildAgentSystemPrompt, buildCacheOptimizedSystemPrompt, isGeminiModel, type PromptMode } from "../system-prompt.js";
+import {
+  buildAgentSystemPrompt,
+  buildCacheOptimizedSystemPrompt,
+  isGeminiModel,
+  type PromptMode,
+} from "../system-prompt.js";
 import { buildToolSummaryMap } from "../tool-summaries.js";
 
 export function buildEmbeddedSystemPrompt(params: {
@@ -98,7 +103,7 @@ export function applySystemPromptOverrideToSession(
   override: string | ((defaultPrompt?: string) => string),
 ) {
   const prompt = typeof override === "function" ? override() : override.trim();
-  session.agent.setSystemPrompt(prompt);
+  session.agent.state.systemPrompt = prompt;
   const mutableSession = session as unknown as {
     _baseSystemPrompt?: string;
     _rebuildSystemPrompt?: (toolNames: string[]) => string;

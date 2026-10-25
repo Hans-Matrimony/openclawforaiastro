@@ -193,12 +193,10 @@ export const ASTROLOGY_TEMPLATES = {
   RE_ENGAGEMENT_EN: {
     name: "astrology_re_engagement_01",
     language: "en",
-    getComponents: (userName: string) => [
+    getComponents: (userName: string): TemplateComponent[] => [
       {
         type: "body",
-        parameters: [
-          { type: "text", text: userName },
-        ],
+        parameters: [{ type: "text", text: userName }],
       },
     ],
   },
@@ -255,12 +253,10 @@ export const ASTROLOGY_TEMPLATES = {
   CHECK_IN_EN: {
     name: "astrology_check_in",
     language: "en",
-    getComponents: (userName: string) => [
+    getComponents: (userName: string): TemplateComponent[] => [
       {
         type: "body",
-        parameters: [
-          { type: "text", text: userName },
-        ],
+        parameters: [{ type: "text", text: userName }],
       },
     ],
   },
@@ -309,9 +305,10 @@ export async function sendCheckInTemplate(
 /**
  * Validate template configuration before sending
  */
-export function validateTemplateConfig(
-  config: Partial<WhatsAppBusinessConfig>,
-): { valid: boolean; error?: string } {
+export function validateTemplateConfig(config: Partial<WhatsAppBusinessConfig>): {
+  valid: boolean;
+  error?: string;
+} {
   if (!config.accessToken) {
     return { valid: false, error: "Missing access token" };
   }

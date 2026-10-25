@@ -1,6 +1,11 @@
-import type { Context, Model, Tool } from "@mariozechner/pi-ai/dist/types.js";
-import { convertMessages, convertTools } from "@mariozechner/pi-ai/dist/providers/google-shared.js";
+import type { Context, Model, Tool } from "@mariozechner/pi-ai";
 import { describe, expect, it } from "vitest";
+
+// This test intentionally inspects the installed SDK contract. Its internal
+// helper is no longer a package export; application code uses public exports.
+const { convertMessages, convertTools } = await import(
+  new URL("./providers/google-shared.js", import.meta.resolve("@mariozechner/pi-ai")).href
+);
 
 const asRecord = (value: unknown): Record<string, unknown> => {
   expect(value).toBeTruthy();
@@ -53,7 +58,7 @@ describe("google-shared convertTools", () => {
     ] as unknown as Tool[];
 
     const converted = convertTools(tools);
-    const params = asRecord(converted?.[0]?.functionDeclarations?.[0]?.parameters);
+    const params = asRecord(converted?.[0]?.functionDeclarations?.[0]?.parametersJsonSchema);
 
     expect(params.type).toBeUndefined();
     expect(params.properties).toBeDefined();
@@ -93,7 +98,7 @@ describe("google-shared convertTools", () => {
     ] as unknown as Tool[];
 
     const converted = convertTools(tools);
-    const params = asRecord(converted?.[0]?.functionDeclarations?.[0]?.parameters);
+    const params = asRecord(converted?.[0]?.functionDeclarations?.[0]?.parametersJsonSchema);
     const properties = asRecord(params.properties);
     const mode = asRecord(properties.mode);
     const options = asRecord(properties.options);
@@ -134,7 +139,7 @@ describe("google-shared convertTools", () => {
     ] as unknown as Tool[];
 
     const converted = convertTools(tools);
-    const params = asRecord(converted?.[0]?.functionDeclarations?.[0]?.parameters);
+    const params = asRecord(converted?.[0]?.functionDeclarations?.[0]?.parametersJsonSchema);
     const config = asRecord(asRecord(params.properties).config);
     const configProps = asRecord(config.properties);
     const retries = asRecord(configProps.retries);

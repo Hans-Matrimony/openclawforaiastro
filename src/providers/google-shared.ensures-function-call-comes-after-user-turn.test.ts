@@ -1,6 +1,10 @@
-import type { Context, Model } from "@mariozechner/pi-ai/dist/types.js";
-import { convertMessages } from "@mariozechner/pi-ai/dist/providers/google-shared.js";
+import type { Context, Model } from "@mariozechner/pi-ai";
 import { describe, expect, it } from "vitest";
+
+// Exercise the installed SDK without relying on a removed package subpath export.
+const { convertMessages } = await import(
+  new URL("./providers/google-shared.js", import.meta.resolve("@mariozechner/pi-ai")).href
+);
 
 const asRecord = (value: unknown): Record<string, unknown> => {
   expect(value).toBeTruthy();
@@ -38,7 +42,7 @@ const makeGeminiCliModel = (id: string): Model<"google-gemini-cli"> =>
   }) as Model<"google-gemini-cli">;
 
 describe("google-shared convertTools", () => {
-  it("ensures function call comes after user turn, not after model turn", () => {
+  it("preserves the tool call and closes it with a missing-result error", () => {
     const model = makeModel("gemini-1.5-pro");
     const context = {
       messages: [
@@ -103,7 +107,7 @@ describe("google-shared convertTools", () => {
     } as unknown as Context;
 
     const contents = convertMessages(model, context);
-    expect(contents).toHaveLength(3);
+    expect(contents).toHaveLength(4);
     expect(contents[0].role).toBe("user");
     expect(contents[1].role).toBe("model");
     expect(contents[2].role).toBe("model");
@@ -112,6 +116,10 @@ describe("google-shared convertTools", () => {
     );
     const toolCall = asRecord(toolCallPart);
     expect(toolCall.functionCall).toBeTruthy();
+    expect(contents[3].role).toBe("user");
+    expect(contents[3].parts).toEqual([
+      { functionResponse: { name: "myTool", response: { error: "No result provided" } } },
+    ]);
   });
 
   it("strips tool call and response ids for google-gemini-cli", () => {

@@ -1,3 +1,10 @@
+// Delivery/routing unit tests assume consent is already established.
+// The denied-delivery boundary is covered in deliver.compliance-contract.test.ts.
+vi.mock("../whatsapp/compliance.js", () => ({
+  checkProactiveCompliance: vi.fn(async () => ({ allowed: true })),
+  checkReplyCompliance: vi.fn(async () => ({ allowed: true })),
+  logComplianceFailure: vi.fn(),
+}));
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

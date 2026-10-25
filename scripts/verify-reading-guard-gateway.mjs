@@ -9,14 +9,18 @@ import path from "node:path";
 import { configureReadingGuard } from "./configure-reading-guard.mjs";
 
 const plugin = process.argv[2];
-if (!plugin) throw new Error("Expected built reading plugin path");
+if (!plugin) {
+  throw new Error("Expected built reading plugin path");
+}
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), "reading-guard-smoke-"));
 const reading =
   "Career progress looks gradual rather than sudden. Saturn supports steady effort and patience as you take on responsibility, while Mercury supports analytical work and clear communication with colleagues. These factors suggest focusing on work that rewards consistency and careful thinking.";
 const calls = [];
 const fakeModel = http.createServer(async (request, response) => {
   let body = "";
-  for await (const chunk of request) body += chunk;
+  for await (const chunk of request) {
+    body += chunk;
+  }
   const payload = JSON.parse(body);
   const rewrite = payload.messages.some(
     (message) =>
@@ -156,7 +160,9 @@ try {
         await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(1000) })
       ).ok;
     } catch {}
-    if (ready) break;
+    if (ready) {
+      break;
+    }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   assert.ok(ready, "Isolated gateway did not start: " + logs.slice(-6000));

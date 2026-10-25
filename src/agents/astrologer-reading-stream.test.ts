@@ -58,8 +58,9 @@ describe("reading delivery guard", () => {
     });
     const deltas: string[] = [];
     agent.subscribe((event) => {
-      if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta")
+      if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta") {
         deltas.push(event.assistantMessageEvent.delta);
+      }
     });
     await agent.prompt("Shaadi kab?");
     expect(deltas).toEqual([clean]);
@@ -120,7 +121,9 @@ describe("reading delivery guard", () => {
       { apiKey: "test" },
     );
     const events = [];
-    for await (const event of stream) events.push(event);
+    for await (const event of stream) {
+      events.push(event);
+    }
     const final = await stream.result();
     expect(final.content).toEqual([{ type: "text", text: reading }]);
     expect(final.usage.totalTokens).toBe(60);

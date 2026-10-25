@@ -127,8 +127,9 @@ export function wrapAstrologerReadingStream(base: StreamFn, prompt: string): Str
         // The agent persists this same message and subscribers receive only the reviewed text.
         output.push({ type: "start", partial: { ...message, content: [] } });
         message.content.forEach((block, contentIndex) => {
-          if (block.type === "text")
+          if (block.type === "text") {
             output.push({ type: "text_delta", contentIndex, delta: block.text, partial: message });
+          }
         });
         output.push({ type: "done", reason: message.stopReason, message });
       }
