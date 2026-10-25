@@ -1,3 +1,5 @@
+import { hasPredictionGuarantee } from "./prediction-certainty.mjs";
+
 const months =
   "January February March April May June July August September October November December".split(
     " ",
@@ -9,9 +11,8 @@ export function isPeriodInterpretation(reply, data) {
   if (
     !/\b(?:interpretation|sambhavit|sambhavna|may|could|potential)\b/i.test(reply) ||
     !/\b(?:because|kyunki|lord|swami|house|ghar|drishti|aspect)\b/i.test(reply) ||
-    /\b(?:definitely|guaranteed|certainly|pakka|zaroor|will (?:happen|marry)|ho(?:gi|ga) hi)\b/i.test(
-      reply,
-    )
+    hasPredictionGuarantee(reply) ||
+    /\b(?:zaroor|will (?:happen|marry)|ho(?:gi|ga) hi)\b/i.test(reply)
   ) {
     return false;
   }

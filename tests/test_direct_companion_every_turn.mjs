@@ -3,6 +3,7 @@ import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { formatReadingReply } from "../extensions/reviewed-reading/direct/format-reply.mjs";
+import { isPersonalChartQuestion } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
 const main =
   "Original astrology explanation remains unchanged.\n\nOriginal short verdict remains unchanged.";
@@ -36,6 +37,8 @@ void test("all reported turns and subsequent explanations retain one question as
     "Explain this",
   ]) {
     let calls = 0;
+    let calculations = 0;
+    const chartRequired = isPersonalChartQuestion(query);
     const result = await directAnswer(
       { ...value, query, history: [...history] },
       {
@@ -46,7 +49,8 @@ void test("all reported turns and subsequent explanations retain one question as
         },
         makeMemory: () => ({ read: async () => [] }),
         makeTools: () => async () => {
-          assert.fail("Companion must not add calculations");
+          assert.ok(chartRequired && calculations++ === 0, "Companion must not add calculations");
+          return '{"current_chart":true}';
         },
         fetchImpl: async (_url, options) => {
           calls++;
@@ -54,11 +58,35 @@ void test("all reported turns and subsequent explanations retain one question as
           if (!body.tools) {
             return completion(query.includes("baare") ? support : "NONE");
           }
+          if (chartRequired && calls === 1) {
+            return new Response(
+              JSON.stringify({
+                choices: [
+                  {
+                    finish_reason: "tool_calls",
+                    message: {
+                      tool_calls: [
+                        {
+                          id: "current",
+                          type: "function",
+                          function: {
+                            name: "mcp__VedAstro__get_horoscope_predictions",
+                            arguments: "{}",
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              }),
+            );
+          }
           return completion(main + (query.includes("baare") ? "\n\n" + support : ""));
         },
       },
     );
-    assert.equal(calls, 2);
+    assert.equal(calls, chartRequired ? 3 : 2);
+    assert.equal(calculations, chartRequired ? 1 : 0);
     const parts = result.reply.split("\n\n");
     assert.equal(parts.length, 3, query);
     assert.equal(parts.slice(0, 2).join("\n\n"), main, query);

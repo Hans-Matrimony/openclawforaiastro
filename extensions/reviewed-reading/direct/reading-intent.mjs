@@ -15,9 +15,10 @@ export function isOrdinaryConcern(query) {
 }
 
 export function requiresChartReading(query, profile) {
-  if (profile.status !== "READY") {
-    return false;
-  }
+  return profile.status === "READY" && isPersonalChartQuestion(query);
+}
+
+export function isPersonalChartQuestion(query) {
   const text = query.toLowerCase().trim();
   // Keep general explanations, ordinary chat and another person's profile on auto routing.
   if (

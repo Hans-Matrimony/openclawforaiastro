@@ -15,6 +15,7 @@ import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
 import { selfIntroduction } from "./persona.mjs";
+import { hasPredictionGuarantee } from "./prediction-certainty.mjs";
 import {
   questionScopeInstruction,
   mismatchedQuestionReply,
@@ -23,7 +24,7 @@ import {
 import {
   CHART_TOOL_NAMES,
   bareToolName,
-  requiresChartReading,
+  isPersonalChartQuestion,
   isOrdinaryConcern,
 } from "./reading-intent.mjs";
 import { directReleaseEnabled } from "./release.mjs";
@@ -144,7 +145,7 @@ export async function directAnswer(
         "\\u003c",
       );
   }
-  const readingRequired = requiresChartReading(value.query, context.profile);
+  const readingRequired = isPersonalChartQuestion(value.query);
   const timingRequired =
     sourceFlow &&
     readingRequired &&
@@ -181,7 +182,10 @@ export async function directAnswer(
   const answerUsage = [];
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
     // Saved conversation predictions are not a substitute for this turn's chart.
-    const requireChart = readingTools.size === 0 && correctedMissingReading;
+    // Without a complete profile, leave room to retrieve memory or clarify.
+    // Missing profile data never makes an old prediction valid evidence.
+    const requireChart =
+      readingTools.size === 0 && correctedMissingReading && context.profile.status === "READY";
     const requireTiming = correctedMissingTiming && !readingTools.has("get_horoscope_predictions");
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
@@ -336,7 +340,7 @@ export async function directAnswer(
         content:
           "Use the supplied birth context and a relevant reading tool to answer this exact active question: " +
           JSON.stringify(redactIdentity(value.query, value.user_id)) +
-          ". Preserve its subject and intent; a question about a particular partner is not a general marriage-timing question. Previous assistant predictions are not chart evidence. Call the appropriate reading tool now, then answer this question directly.",
+          ". Preserve its subject and intent; a question about a particular partner is not a general marriage-timing question. Previous assistant predictions are not chart evidence. If needed birth details are missing or conflicting, ask only for those details instead of guessing. Otherwise call the appropriate reading tool now, then answer this question directly.",
       });
       continue;
     }
@@ -371,7 +375,12 @@ export async function directAnswer(
         continue;
       }
     }
+    const guaranteedReading =
+      !ordinaryConcern &&
+      (readingRequired || readingTools.size > 0) &&
+      hasPredictionGuarantee(reply);
     if (
+      guaranteedReading ||
       unsupportedPeriodClaim(reply, chartResults) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults))
     ) {
@@ -382,7 +391,10 @@ export async function directAnswer(
         messages.push({
           role: "user",
           content:
-            "The proposed timing contains an unsupported event date or a period claim that does not match the schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the original question: " +
+            (guaranteedReading
+              ? "The proposed reading presents an interpretation as guaranteed (for example pakki/pakka). Remove the guarantee while preserving the supported positive, negative or mixed conclusion, dates and reasons. Use one natural qualification, not repeated disclaimers or a reversal of the reading. "
+              : "The proposed timing contains an unsupported event date or a period claim that does not match the schedule. ") +
+            "Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the original question: " +
             JSON.stringify(value.query) +
             ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, a topic-supported period interpretation is allowed: name the returned upcoming antardasha lord, its exact start and end as English month-year, and the checked house/lord reason relevant to this question. Clearly label it sambhavit or an interpretation, not a guaranteed event. Do not invent a period or supporting factor. Keep the short verdict within the same qualified window. Do not discard a supported period merely because the tool does not calculate an event date.",
         });
