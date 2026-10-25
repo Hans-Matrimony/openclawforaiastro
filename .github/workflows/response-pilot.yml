@@ -1,0 +1,70 @@
+name: Response pilot regression
+
+on:
+  pull_request:
+    paths:
+      - "extensions/direct-answer/**"
+      - "extensions/reviewed-reading/direct/**"
+      - "extensions/reviewed-reading/direct-*.mjs"
+      - "scripts/configure-direct-answer.mjs"
+      - "scripts/verify-direct-answer-gateway.mjs"
+      - "scripts/verify-direct-answer-rollback.mjs"
+      - "src/agents/astrologer-reading-*.ts"
+      - "scripts/*reading-guard*.mjs"
+      - "scripts/*astrologer-prompt*.mjs"
+      - "scripts/start-openclaw-gateway.sh"
+      - "tests/test_direct_*.mjs"
+      - "tests/test_astrologer_prompt_budget.mjs"
+      - "tests/test_reading_guard_config.mjs"
+      - "Dockerfile"
+      - ".github/workflows/response-pilot.yml"
+  push:
+    branches: [main, dev, "release/**"]
+    paths:
+      - "extensions/direct-answer/**"
+      - "extensions/reviewed-reading/direct/**"
+      - "extensions/reviewed-reading/direct-*.mjs"
+      - "scripts/configure-direct-answer.mjs"
+      - "scripts/verify-direct-answer-gateway.mjs"
+      - "scripts/verify-direct-answer-rollback.mjs"
+      - "src/agents/astrologer-reading-*.ts"
+      - "scripts/*reading-guard*.mjs"
+      - "scripts/*astrologer-prompt*.mjs"
+      - "scripts/start-openclaw-gateway.sh"
+      - "tests/test_direct_*.mjs"
+      - "tests/test_astrologer_prompt_budget.mjs"
+      - "tests/test_reading_guard_config.mjs"
+      - "Dockerfile"
+      - ".github/workflows/response-pilot.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  response-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      # These tests use built-in Node modules and injected synthetic services.
+      # They supplement the existing core CI; they do not replace its gates.
+      - name: Test response, memory, identity, quota and rollback contracts
+        run: node --test tests/test_direct_*.mjs tests/test_astrologer_prompt_budget.mjs tests/test_reading_guard_config.mjs
+
+  packaged-response:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      # The existing Dockerfile also runs its synthetic pinned-gateway smoke
+      # checks. No service credentials or deployment steps belong in this job.
+      - name: Build and verify the packaged response engine
+        run: docker build -t astrofriend-response-release:ci .
+      - name: Verify rollback on the same image without network access
+        run: >-
+          docker run --rm --network none --read-only --tmpfs /tmp
+          --mount "type=bind,src=${{ github.workspace }}/scripts/verify-direct-answer-rollback.mjs,dst=/verify-rollback.mjs,readonly"
+          --entrypoint node astrofriend-response-release:ci /verify-rollback.mjs

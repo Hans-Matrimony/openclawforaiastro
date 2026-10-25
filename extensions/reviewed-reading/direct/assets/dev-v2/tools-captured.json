@@ -1,0 +1,369 @@
+[
+ {
+  "type": "function",
+  "function": {
+   "name": "mcp__VedAstro__get_horary_prediction",
+   "description": "[MCP:VedAstro] Produces a Prashna/Horary prediction for one narrow concrete outcome, timing, yes/no, or unknown-event question. Horary is complementary to Horoscope and Current Transits, not a global default. Use it only when a fresh 3-digit number from 100 through 999 was personally chosen by the user for the exact active question. Never reuse a Horary number from a different question. If the question changes materially, require a fresh number before calling this tool.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "horary_number": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 999,
+      "description": "The 3-digit number (100-999) the user personally picked while focused on their question. It must come from the user — never invent, guess, or generate it. If the user hasn't given one, ask for it before calling."
+     },
+     "question_text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The user's exact question, word for word. Do not paraphrase."
+     },
+     "desired_answer_type": {
+      "type": "string",
+      "enum": [
+       "yes_no",
+       "guidance",
+       "timing",
+       "percentage",
+       "marks",
+       "score",
+       "rank",
+       "quantity",
+       "open"
+      ],
+      "description": "Optional hint for the kind of answer expected."
+     },
+     "birth_location_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "The user's birth city (e.g. 'Mumbai, India'). Coordinates and timezone are resolved internally."
+     },
+     "birth_time": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "description": "Birth time, HH:MM 24-hour (e.g. '14:30')."
+     },
+     "birth_date": {
+      "type": "string",
+      "pattern": "^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$",
+      "description": "Birth date, DD/MM/YYYY day-first (e.g. '25/10/1992'). Never month-first."
+     },
+     "query_location_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "The city where the user is asking the question now (e.g. 'Mumbai, India'). Coordinates and timezone are resolved internally."
+     },
+     "query_time": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "description": "Optional; the current time the question is asked (HH:MM 24-hour). Defaults to now."
+     },
+     "query_date": {
+      "type": "string",
+      "pattern": "^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$",
+      "description": "Optional; the current date the question is asked (DD/MM/YYYY). Defaults to now."
+     }
+    },
+    "required": [
+     "horary_number",
+     "question_text",
+     "birth_location_name",
+     "birth_time",
+     "birth_date",
+     "query_location_name"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "mcp__VedAstro__get_horoscope_predictions",
+   "description": "[MCP:VedAstro] Reads one person's natal chart for durable life patterns and baseline tendencies such as personality, career, money, health, marriage, strengths, weaknesses, and long-term themes. Use it whenever natal evidence materially helps the user's question. It can be combined with Current Transits for the present climate and with Horary for a separate precise question; these methods are not mutually exclusive.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "location_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "The person's birth city (e.g. 'Mumbai, India'). Coordinates and timezone are resolved internally."
+     },
+     "birth_time": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "description": "Birth time, HH:MM 24-hour (e.g. '14:30')."
+     },
+     "birth_date": {
+      "type": "string",
+      "pattern": "^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$",
+      "description": "Birth date, DD/MM/YYYY day-first (e.g. '25/10/1992'). Never month-first."
+     },
+     "query_text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The user's question or focus area in their own words (e.g. 'career prospects', 'will my marriage be happy')."
+     }
+    },
+    "required": [
+     "location_name",
+     "birth_time",
+     "birth_date",
+     "query_text"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "mcp__VedAstro__get_match_report",
+   "description": "[MCP:VedAstro] Checks romantic or marriage compatibility between two specific people. Use only when compatibility between two people is part of the user's request and all required birth details for both people are available. It may be combined with Current Transits or other relevant evidence. Never fabricate missing partner details and never infer the male/female tool mapping from names alone.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "male_location_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Male partner's birth city (e.g. 'Delhi, India'). Coordinates and timezone are resolved internally."
+     },
+     "male_birth_time": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "description": "Male partner's birth time, HH:MM 24-hour (e.g. '08:30')."
+     },
+     "male_birth_date": {
+      "type": "string",
+      "pattern": "^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$",
+      "description": "Male partner's birth date, DD/MM/YYYY day-first (e.g. '15/06/1990'). Never month-first."
+     },
+     "female_location_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Female partner's birth city (e.g. 'Los Angeles, USA'). Coordinates and timezone are resolved internally."
+     },
+     "female_birth_time": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "description": "Female partner's birth time, HH:MM 24-hour (e.g. '14:20')."
+     },
+     "female_birth_date": {
+      "type": "string",
+      "pattern": "^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$",
+      "description": "Female partner's birth date, DD/MM/YYYY day-first (e.g. '22/09/1992'). Never month-first."
+     },
+     "query_text": {
+      "type": "string",
+      "default": "overall compatibility",
+      "description": "What to focus the compatibility check on (e.g. 'overall', 'marriage stability')."
+     }
+    },
+    "required": [
+     "male_location_name",
+     "male_birth_time",
+     "male_birth_date",
+     "female_location_name",
+     "female_birth_time",
+     "female_birth_date"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "mcp__VedAstro__get_current_transits",
+   "description": "[MCP:VedAstro] Reads the current planetary climate for one person using their birth details. Use when the present phase, current luck, near-term atmosphere, or what is active now materially matters to the answer. It is complementary to the natal Horoscope tool and may be called alongside it in the same turn when both baseline patterns and current timing matter.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "location_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "The person's birth city (e.g. 'Mumbai, India'). Coordinates and timezone are resolved internally."
+     },
+     "birth_time": {
+      "type": "string",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "description": "Birth time, HH:MM 24-hour (e.g. '14:30')."
+     },
+     "birth_date": {
+      "type": "string",
+      "pattern": "^(0[1-9]|[12]\\d|3[01])\\/(0[1-9]|1[0-2])\\/\\d{4}$",
+      "description": "Birth date, DD/MM/YYYY day-first (e.g. '25/10/1992'). Never month-first."
+     }
+    },
+    "required": [
+     "location_name",
+     "birth_time",
+     "birth_date"
+    ],
+    "additionalProperties": false,
+    "$schema": "http://json-schema.org/draft-07/schema#"
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "get_current_datetime",
+   "description": "Returns the current local date and time, day of week, UTC offset, and Unix timestamp.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "format": {
+      "type": "string",
+      "enum": [
+       "full",
+       "date",
+       "time"
+      ],
+      "description": "full = date+time, date = date only, time = time only. Default: full"
+     }
+    },
+    "required": []
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "read_memory",
+   "description": "Read the current user-scoped persistent memory and its version. Use when the user asks what you remember, when memory freshness matters, or after an update conflict. Memory is shared across chat sessions for this user or guest identity.",
+   "parameters": {
+    "type": "object",
+    "properties": {},
+    "required": []
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "update_memory",
+   "description": "Replace the complete current user-scoped persistent memory. Preserve all still-valid lines (especially [birth]), merge richer user context by subject/topic, remove stale duplicates, and stay within 200 lines / 25000 UTF-8 bytes (prefer 150 / 18000). Use immediately for explicit birth details or corrections and explicit remember/forget requests. Pass an empty string only when all memory should be cleared.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "memory_text": {
+      "type": "string",
+      "description": "Complete replacement memory as concise plain-text lines. Types: [birth], [profile], [concern], [goal], [need], [pattern], [wellbeing], [relationship], [support], [preference], and [plan]; legacy types remain accepted."
+     }
+    },
+    "required": [
+     "memory_text"
+    ]
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "manage_chat_person_context",
+   "description": "Manage the active people shown in the chat header. Use this when the conversation should add, remove, promote, replace, clear, or inspect the current chat person context.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "action": {
+      "type": "string",
+      "enum": [
+       "list",
+       "add",
+       "remove",
+       "promote",
+       "replace",
+       "clear"
+      ],
+      "description": "Chat person context operation."
+     },
+     "person_id": {
+      "type": "string",
+      "description": "PersonId to target for add/remove/promote/replace."
+     },
+     "person": {
+      "type": "object",
+      "description": "Optional full person object when the tool already has it."
+     }
+    },
+    "required": [
+     "action"
+    ]
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "save_birth_details",
+   "description": "OPTIONAL: create a persistent VedAstro Person and add it to the saved-profile header only when the user explicitly asks to save/add a profile. It is NOT required for a reading: normal astrology tools accept raw birth details from the selected header person, persistent [birth] memory, or conversation. Requires explicit gender, birth date, exact time, and birthplace. Never infer from name, culture, grammar, pronoun, or probability. Name is optional and must never be requested solely for this tool.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string",
+      "description": "Optional. Person name only if the user already stated one. Never ask for a name — when omitted, a name is auto-generated."
+     },
+     "date": {
+      "type": "string",
+      "description": "Birth date as dd/MM/yyyy, e.g. \"13/05/1994\""
+     },
+     "time": {
+      "type": "string",
+      "description": "Birth time 24h HH:mm, e.g. \"22:30\". If unknown, ASK the user — never guess or use 12:00."
+     },
+     "location_name": {
+      "type": "string",
+      "description": "Birth city and country. VedAstro resolves the location and timezone internally."
+     },
+     "gender": {
+      "type": "string",
+      "enum": [
+       "Male",
+       "Female"
+      ],
+      "description": "Gender explicitly stated by the user or unambiguously communicated through relationship wording such as son/husband/father = Male or daughter/wife/mother = Female, including equivalents in other languages. Never infer from name, culture, grammar, or probability. If still unknown, ask."
+     }
+    },
+    "required": [
+     "gender",
+     "date",
+     "time",
+     "location_name"
+    ]
+   }
+  }
+ },
+ {
+  "type": "function",
+  "function": {
+   "name": "Agent",
+   "description": "Delegate a focused task to an enabled VedAstro specialist agent. The specialist uses the same model/tool loop with its own prompt and restricted tools. Its final response is shown to the user and returned here so the parent can continue without repeating it.",
+   "parameters": {
+    "type": "object",
+    "properties": {
+     "subagent_type": {
+      "type": "string",
+      "description": "Enabled specialist agent key from the system prompt agent directory."
+     },
+     "prompt": {
+      "type": "string",
+      "description": "Clear task for the specialist, including the outcome needed."
+     },
+     "description": {
+      "type": "string",
+      "description": "Short user-facing activity description."
+     }
+    },
+    "required": [
+     "subagent_type",
+     "prompt"
+    ]
+   }
+  }
+ }
+]
