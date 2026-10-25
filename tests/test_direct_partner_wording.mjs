@@ -3,6 +3,7 @@ import test from "node:test";
 import { readingContext } from "../extensions/reviewed-reading/direct/context.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
+import { limitResponseLength } from "../extensions/reviewed-reading/direct/response-length.mjs";
 
 const value = {
   user_id: "synthetic",
@@ -103,4 +104,30 @@ void test("short contextual partner follow-up keeps negative reading untouched",
     },
   );
   assert.equal(result, reading + "\n\n" + closing);
+});
+
+void test("long partner follow-up keeps a complete question through final display formatting", async () => {
+  const reading =
+    "One relevant supporting reason. ".repeat(13).trim() +
+    "\n\nSeptember 2027 to November 2028 is the indicated period.";
+  const generated =
+    "Tumhare liye woh ladki shayad ek aisi hogi jo baat karne mein sharmati hai, lekin dil se sachchi hai… Aap apne partner mein kin baaton ko ahmiyat dete hain?";
+  const reply = await contextualClosing(reading, value, { generate: async () => generated });
+  assert.equal(reply, reading + "\n\nAap apne partner mein kin baaton ko ahmiyat dete hain?");
+  assert.equal(limitResponseLength(reply), reply);
+});
+
+void test("companion rejects partner predictions and overlong unbroken questions without changing reading", async () => {
+  for (const generated of [
+    "Aapki future wife sharmili hogi. Aapko kaisa lagta hai?",
+    "Aapka partner imaandar hoga, kya aap bhi aisa hi chahte hain?",
+    "Aap apne hone wale partner ke saath waqt bitane ke baare mein sochte hue apne rishte aur zindagi ki kin baaton ko sabse zyada ahmiyat dena chahenge?",
+  ]) {
+    const reply = await contextualClosing(base, value, { generate: async () => generated });
+    assert.ok(reply.startsWith(base + "\n\n"));
+    const closing = reply.split("\n\n")[2];
+    assert.notEqual(closing, generated);
+    assert.ok(closing.trim().split(/\s+/u).length <= 25);
+    assert.match(closing, /\?$/);
+  }
 });

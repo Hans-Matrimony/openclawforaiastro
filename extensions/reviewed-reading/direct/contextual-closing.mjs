@@ -35,15 +35,17 @@ const timingDisclaimer =
 // Do not truncate a question mid-sentence or add another paid rewrite call.
 function compactClosing(text) {
   const paragraph = text.replace(/\s+/gu, " ").trim();
-  if (paragraph.split(/\s+/u).length <= 45) {
+  // The final response formatter reserves 25 words for this bubble. Compact
+  // here so it never clips a longer conversational question mid-sentence.
+  if (paragraph.split(/\s+/u).length <= 25) {
     return paragraph;
   }
   const last = text
-    .split(/(?:\r?\n)+|(?<=[.!।])\s+|\s*[—–]\s*/u)
+    .split(/(?:\r?\n)+|(?<=[.!।…])\s+|\s*[—–]\s*/u)
     .filter(Boolean)
     .at(-1)
     ?.trim();
-  return last && /[?？]$/.test(last) && last.split(/\s+/u).length <= 45 ? last : text;
+  return last && /[?？]$/.test(last) && last.split(/\s+/u).length <= 25 ? last : text;
 }
 
 export async function contextualClosing(
@@ -165,7 +167,7 @@ export async function contextualClosing(
     "Reply to what the user just shared, including their answer to your previous follow-up; resolve the current message first. Use one relevant detail from recent user messages or saved_user_facts naturally. Current corrections override older facts. Do not ask for information already supplied. If the user told you the problem or answered your question, acknowledge it and continue with something still unresolved. When known_concern is present, do not ask again what is wrong. " +
     "Prefer the specific person or difficulty the user named over the broad topic: if they can talk to mummy but fear papa's reaction, continue with that fear, not 'what is difficult with family?' or 'who can you talk to?'. If they already described the feared reaction, do not ask them to name it again. This is an example of continuity, not a fact to copy into other conversations. " +
     "Preserve what has actually happened: 'can talk to mummy' does not mean they have spoken or that mummy agrees. 'Want a job' does not mean they already have one. Acknowledge only the stated fact, not an assumed next step. A parent's disagreement does not mean they prevent everything, or that the user is afraid to speak. Do not assign blame, exaggerate a concern into a total blockage, or presume fear. " +
-    "Use one or two short sentences: a specific acknowledgment only when needed and one easy conversational question when useful. Aim for 10 to 20 words; keep it under 30 words when possible. At most 45 words and 280 characters in one paragraph. Do not restate the question or recap the user's whole situation before asking. Keep the warmth instead of turning every reply into an interview. A supportive statement alone is appropriate when they are venting, celebrating, or do not want questions. Avoid repeating the same acknowledgment across turns. Use plain everyday language, not poetic flattery about magic, destiny, or being special. " +
+    "Use one or two short sentences: a specific acknowledgment only when needed and one easy conversational question when useful. Aim for 10 to 20 words. At most 25 words and 280 characters in one paragraph. Do not restate the question or recap the user's whole situation before asking. Keep the warmth instead of turning every reply into an interview. A supportive statement alone is appropriate when they are venting, celebrating, or do not want questions. Avoid repeating the same acknowledgment across turns. Use plain everyday language, not poetic flattery about magic, destiny, or being special. " +
     "Stay with the current subject; do not pull an unrelated old memory into it. Assistant history contains prior companion bubbles only, not evidence about the user's life. Never ask the user to predict the future or answer their original astrology question. Do not invent feelings, circumstances or memories, approve major decisions as definitely right, give unrequested plans, or promise outcomes. " +
     "A marriage timing question alone does not establish a particular person, a crush, hope, or fear of speaking. If no personal detail was supplied, ask a neutral open question without an invented acknowledgment. Never treat an earlier assistant assumption as a user disclosure. " +
     "Do not comment on whether a marriage date can be predicted, or say you cannot tell the timing: this bubble continues the personal conversation, not the already-completed reading. Use the partner wording from the app context rather than listing male and female alternatives. " +
@@ -207,7 +209,7 @@ export async function contextualClosing(
       !question ||
       (requireQuestion && !/[?？]\s*$/.test(question)) ||
       question.length > 280 ||
-      question.split(/\s+/u).length > 45 ||
+      question.split(/\s+/u).length > 25 ||
       /[\r\n]/.test(question) ||
       (question.match(/[?？]/g) ?? []).length > 1 ||
       generic.test(question) ||
@@ -216,6 +218,9 @@ export async function contextualClosing(
       stockPresence.test(question) ||
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
+      /\b(?:ladki|ladka|wife|husband|partner|saathi)\b[^.!?\n]{0,55}\b(?:hogi|hoga|will be)\b/i.test(
+        question,
+      ) ||
       /\b(?:next|agle?|agla|aane wale)\s+\d+(?:\s*(?:\p{Pd}|to)\s*\d+)?\s*(?:months?|years?|mahine|saal)\b|\b(?:opportunit\w*|income|paisa|paise|reward|success|growth)\b.{0,65}\b(?:aayeg\w*|mile(?:ga|gi)|hoga|hogi|degi|dega|will)\b/iu.test(
         question,
       ) ||
