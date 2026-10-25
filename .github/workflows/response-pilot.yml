@@ -49,8 +49,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-      # These tests use built-in Node modules and injected synthetic services.
-      # They supplement the existing core CI; they do not replace its gates.
+      # The source-engine contract exercises the vendored Swiss Ephemeris
+      # dependency. Network services and model calls remain synthetic.
+      - name: Install the pinned calculation dependency
+        run: npm ci --omit=dev --prefix extensions/reviewed-reading/direct/assets/dev-v2
+      # These tests supplement the existing core CI; they do not replace it.
       - name: Test response, memory, identity, quota and rollback contracts
         run: node --test tests/test_direct_*.mjs tests/test_astrologer_prompt_budget.mjs tests/test_reading_guard_config.mjs
 

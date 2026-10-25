@@ -1,0 +1,8 @@
+# Preserve captured source bytes so provenance hashes survive every checkout.
+engine.mjs -text
+system-prompt.txt -text
+tools-captured.json -text
+server.mjs -text
+config.example.json -text
+friend-mode.txt -text
+source-friend-mode.txt -text
