@@ -10,6 +10,14 @@ const row = {
   engine: "local-sweph-v2",
   evidence_scope: { timing: "does not calculate event-specific windows" },
   dasha: { upcoming_antardashas: [{ lord: "Mars", from: "2027-09-15", to: "2028-11-14" }] },
+  verdict_signals: [
+    {
+      area: "marriage",
+      trend: "MIXED",
+      positive: ["benefic Jupiter house 7 mein"],
+      negative: ["Mars ki drishti house 7 par"],
+    },
+  ],
 };
 const supported =
   "Jupiter 7ve ghar mein hai.\n\nMars antardasha 15 Sept 2027 se 14 Nov 2028 mein shaadi sambhavit hai.";
@@ -182,14 +190,19 @@ void test("source flow can repair timing on round six within its existing seven-
       },
       makeMemory: () => ({ read: async () => [] }),
       makeTools: () => async () => JSON.stringify(row),
-      fetchImpl: async () => {
+      fetchImpl: async (_url, options) => {
         calls++;
         const tool = calls <= 4;
+        const body = JSON.parse(options.body);
+        const correction = calls === 6;
+        if (correction) {
+          assert.equal(body.tool_choice.function.name, "submit_timing_reading");
+        }
         return new Response(
           JSON.stringify({
             choices: [
               {
-                finish_reason: tool ? "tool_calls" : "stop",
+                finish_reason: tool || correction ? "tool_calls" : "stop",
                 message: tool
                   ? {
                       tool_calls: [
@@ -203,7 +216,24 @@ void test("source flow can repair timing on round six within its existing seven-
                         },
                       ],
                     }
-                  : { content: calls === 5 ? "Shaadi 2029 mein hogi." : supported },
+                  : correction
+                    ? {
+                        tool_calls: [
+                          {
+                            id: "repair",
+                            type: "function",
+                            function: {
+                              name: "submit_timing_reading",
+                              arguments: JSON.stringify({
+                                period_id: "p0",
+                                outlook: "mixed",
+                                factor_ids: ["f1"],
+                              }),
+                            },
+                          },
+                        ],
+                      }
+                    : { content: "Shaadi 2029 mein hogi." },
               },
             ],
           }),
@@ -212,7 +242,7 @@ void test("source flow can repair timing on round six within its existing seven-
     },
   );
   assert.equal(calls, 6);
-  assert.match(result.reply, /15 Sept 2027 se 14 Nov 2028/);
+  assert.match(result.reply, /September 2027 se November 2028/);
   assert.match(result.reply, /shaadi sambhavit/);
   assert.doesNotMatch(result.reply, /2029|sub-period runs|schedule/);
 });
