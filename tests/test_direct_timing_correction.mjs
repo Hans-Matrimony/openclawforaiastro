@@ -44,7 +44,10 @@ const message = (data) => ({
 void test("structured timing uses the selected period, never automatically the next one", () => {
   const correction = timingCorrection(evidence, "shaadi kb hogi", "hinglish", now());
   const reply = correction.render(message(value));
-  assert.match(reply, /November 2031 se July 2034.*shaadi ki sambhavna hai/);
+  assert.equal(
+    reply.split("\n\n")[1],
+    "Jupiter ki antardasha mein November 2031 se July 2034 ke beech shaadi hone ki sambhavna hai.",
+  );
   assert.doesNotMatch(reply, /2027|2028/);
   assert.equal(unsupportedEventTiming(reply, evidence), false);
   assert.equal(reply.split("\n\n").length, 2);

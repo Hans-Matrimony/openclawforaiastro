@@ -190,14 +190,17 @@ export function timingCorrection(results, query, language, asOf) {
             mixed: `${subject[1]} may be possible, with obstacles`,
           }[data.outlook]
         : {
-            possible: `${subject[0]} ki sambhavna hai`,
-            unfavorable: `${subject[0]} ki sambhavna kam hai`,
+            possible: `${subject[0]}${area === "marriage" ? " hone" : ""} ki sambhavna hai`,
+            unfavorable: `${subject[0]}${area === "marriage" ? " hone" : ""} ki sambhavna kam hai`,
             mixed: `${subject[0]} sambhavit hai, lekin rukawatein bhi hain`,
           }[data.outlook];
       if (!verdict) {
         return null;
       }
-      return `${first}\n\n${period.from} ${english ? "to" : "se"} ${period.to} (${period.lord} antardasha): ${verdict}.`;
+      const timing = english
+        ? `${period.from} to ${period.to} (${period.lord} antardasha): ${verdict}.`
+        : `${period.lord} ki antardasha mein ${period.from} se ${period.to} ke beech ${verdict}.`;
+      return `${first}\n\n${timing}`;
     },
   };
 }
