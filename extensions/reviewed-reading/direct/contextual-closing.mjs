@@ -32,7 +32,19 @@ const awkwardThinking =
   /\b(?:sabse\s+zyada\s+)?dh(?:i|ee)re\s+dh(?:i|ee)re\s+soch\b|धीरे\s*धीरे\s*सोच[^।!?\n]{0,20}[?？]/iu;
 
 function poorCompanion(text) {
-  return blanketApproval.test(text) || awkwardThinking.test(text);
+  return blanketApproval.test(text) || awkwardThinking.test(text) || malformedDisclosure.test(text);
+}
+
+// Do not teach the writer broken phrasing from earlier assistant bubbles.
+const malformedDisclosure =
+  /\b(?:kisi\s+ko|unko|usse|kisi\s+se)\s+apni\s+baat\s+(?:abhi\s+tak\s+)?khuli\s+hai\b/i;
+
+function repairDisclosureGrammar(text) {
+  return text.replace(
+    /\b(kisi\s+ko|unko|usse|kisi\s+se)\s+apni\s+baat\s+(abhi\s+tak\s+)?khuli\s+hai\b/gi,
+    (_match, person, time = "") =>
+      `${/^(?:kisi)/i.test(person) ? "kisi se" : "unse"} ${time}apni baat kahi hai`,
+  );
 }
 
 // The third bubble cannot reopen the reading or hedge the partner's identity.
@@ -47,6 +59,7 @@ const closingPrediction =
 // Keep a complete final question when the writer adds an overlong preamble.
 // Do not truncate a question mid-sentence or add another paid rewrite call.
 function compactClosing(text) {
+  text = repairDisclosureGrammar(text);
   const paragraph = text.replace(/\s+/gu, " ").trim();
   // The final response formatter reserves 25 words for this bubble. Compact
   // here so it never clips a longer conversational question mid-sentence.

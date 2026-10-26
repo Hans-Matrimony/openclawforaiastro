@@ -64,6 +64,10 @@ function removeOrphanedHouseScore(reply) {
         ? part
         : part
             .replace(
+              /\b((?:[1-9]|1[0-2])(?:ve|ven|wan|st|nd|rd|th)\s+(?:ghar|house)|house\s+(?:[1-9]|1[0-2]))\s+(?:ka|ki|ke)\s+(?:bindus?\s+)?sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hain?\s*[,\u2013\u2014-]*\s*(bahut\s+kam|kamzor|weak|strong)\s+sahyog\b/gi,
+              "$1 mein $2 sahyog hai",
+            )
+            .replace(
               /\b((?:[1-9]|1[0-2])(?:ve|ven|wan|st|nd|rd|th)\s+(?:ghar|house))\s+ki\s+bindus?\s+sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+hain?\s*[,\u2013\u2014-]*\s*(bahut\s+kam|kamzor|weak|strong)\b/gi,
               "$1 mein sahyog $2 hai",
             )
