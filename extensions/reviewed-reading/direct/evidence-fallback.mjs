@@ -1,11 +1,11 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
-import { partnerFallback } from "./partner-fallback.mjs";
 import { periodFallback } from "./period-fallback.mjs";
 import { asksForTiming } from "./reading-intent.mjs";
 
 // A failed bounded correction must not become a transport failure or publish
 // the rejected prediction. This fallback uses only returned period facts.
 export function evidenceFallback(results, language, query = "", asOf = new Date()) {
+  const english = language === "english";
   const area = /career|job|work|naukri|fields?/i.test(query)
     ? "career"
     : /financ|money|pais|income/i.test(query)
@@ -23,7 +23,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
   });
   const signals = rows
     .flatMap((d) => (Array.isArray(d.verdict_signals) ? d.verdict_signals : []))
-    .filter((s) => s && s.area === area);
+    .filter((s) => s?.area === area);
   const subjects = new Set(
     rows.filter((r) => r.birth_chart).map((r) => JSON.stringify(r.birth_chart)),
   );
@@ -33,7 +33,6 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       ? signals[0]
       : null;
   if (signal && ["POSITIVE", "NEGATIVE", "MIXED"].includes(signal.trend)) {
-    const english = language === "english";
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
     const trend = { POSITIVE: "supportive", NEGATIVE: "challenging", MIXED: "mixed" }[signal.trend];
     const timing = asksForTiming(query);
@@ -43,12 +42,17 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       )
       .filter(Boolean)
       .join(english ? ", while " : ", lekin ");
-    const timingLine =
-      periodFallback(rows, language, asOf) ||
-      (english
-        ? "The returned calculation has no consistent current or future period schedule."
-        : "Is calculation mein ek saaf current ya aane wali dasha ka schedule nahi aaya.");
-    const partner = area === "marriage" ? partnerFallback(rows, language, query) : "";
+    const leadIn = {
+      career: english ? "Career timing" : "Career ka waqt",
+      money: english ? "Money timing" : "Paise ki sthiti",
+      marriage: english ? "Relationship timing" : "Shaadi ka samay",
+    }[area];
+    const checkedSchedule = periodFallback(rows, language, asOf);
+    const timingLine = checkedSchedule
+      ? `${leadIn}: ${checkedSchedule}`
+      : english
+        ? `${leadIn}: this calculation returned no period data.`
+        : `${leadIn}: is calculation me period data nahi aaya.`;
     return (
       (english
         ? `${label} indications in the calculated chart are ${trend}.`
@@ -60,7 +64,6 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
             }[signal.trend]
           }.`) +
       (factors ? " " + factors + "." : "") +
-      (partner ? " " + partner : "") +
       "\n\n" +
       (timing
         ? timingLine
@@ -73,11 +76,11 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
             : `${label} ki reading mein ${trend} sanket hain.`)
     );
   }
-  const schedule = periodFallback(rows, language, asOf);
-  if (schedule) {
-    return schedule;
+  const checkedSchedule = periodFallback(rows, language, asOf);
+  if (checkedSchedule) {
+    return checkedSchedule;
   }
-  return language === "english"
+  return english
     ? "The reading could not be reconciled with the returned chart evidence."
     : "Reading ke daave aur chart ke results aapas mein match nahi hue.";
 }

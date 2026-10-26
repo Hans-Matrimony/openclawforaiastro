@@ -33,8 +33,9 @@ void test("observed source factors become complete sentences without scores or r
   assert.match(marriage, /Guru ka 7ve ghar/);
   assert.match(marriage, /7ve ghar se kam sahyog/);
   assert.doesNotMatch(marriage, /specific mahina|saal nahi mila/);
-  assert.match(marriage, /saaf current ya aane wali dasha ka schedule nahi aaya/);
-  assert.doesNotMatch(marriage, /Shaadi ka samay:|2027/);
+  assert.match(marriage, /is calculation me period data nahi aaya/);
+  assert.match(marriage, /Shaadi ka samay:/);
+  assert.doesNotMatch(marriage, /2027/);
   assert.doesNotMatch(marriage, /saaf nahi dikh raha|Finance|20\/48|benefic|weak support/);
 });
 
@@ -62,7 +63,7 @@ void test("timing fallback labels a returned period without inventing an event w
   );
   assert.match(reply, /Mars antardasha 2027-09-15 se 2028-11-14 tak hai/);
   assert.doesNotMatch(reply, /event ki bhavishyavani nahi/);
-  assert.doesNotMatch(reply, /Shaadi ka samay:/);
+  assert.match(reply, /Shaadi ka samay:/);
   assert.doesNotMatch(reply, /hisaab ke hisaab|saaf nahi dikh raha/);
 });
 
@@ -116,7 +117,7 @@ void test("finance fallback preserves mixed factors without another generic even
   };
   const reply = evidenceFallback([JSON.stringify(row)], "hinglish", "Paise kab behtar honge?");
   assert.match(reply, /sahyog bhi hai aur rukawatein bhi/);
-  assert.match(reply, /dasha ka schedule nahi aaya/);
+  assert.match(reply, /is calculation me period data nahi aaya/);
   assert.doesNotMatch(reply, /2027|event ki date/);
 });
 void test("unrepaired reading provides only supported period facts", () => {

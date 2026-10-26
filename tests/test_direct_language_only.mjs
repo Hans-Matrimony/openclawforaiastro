@@ -48,7 +48,8 @@ void test("plain wording and both partner grammars preserve profile and memory i
         new Date("2026-10-25"),
         { sourceFlow },
       );
-      assert.match(ctx.prompt, /language instruction only: preserve the reading's dates/);
+      assert.doesNotMatch(ctx.prompt, /# Everyday wording/);
+      assert.match(ctx.prompt, /Hinglish means conversational Hindi in Latin letters/);
       assert.match(ctx.prompt, /not personality traits to add/);
       assert.match(
         ctx.prompt,

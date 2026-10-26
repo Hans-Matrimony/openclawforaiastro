@@ -211,7 +211,7 @@ void test("missing birth can be clarified without a forced chart call or fabrica
   assert.deepEqual(result.answer_reading_tools, []);
 });
 
-void test("one bounded correction removes a guarantee without changing supported timing or negative factors", async () => {
+void test("dev baseline does not run the removed pilot-only certainty rewrite", async () => {
   let calls = 0,
     tools = 0;
   const corrected =
@@ -241,8 +241,11 @@ void test("one bounded correction removes a guarantee without changing supported
       },
     },
   );
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
   assert.equal(tools, 1);
-  assert.ok(result.reply.startsWith(corrected));
-  assert.equal(hasPredictionGuarantee(result.reply), false);
+  assert.match(
+    result.reply,
+    /Rukawat hai, lekin September 2027 to November 2028 mein shaadi pakki/,
+  );
+  assert.equal(hasPredictionGuarantee(result.reply), true);
 });

@@ -168,7 +168,7 @@ void test("natural yog wording retains a supported window without allowing certa
   );
 });
 
-void test("source flow can repair timing on round six within its existing seven-round budget", async () => {
+void test("dev source uses its bounded fallback after the fifth reading round", async () => {
   let calls = 0;
   const result = await directAnswer(
     {
@@ -233,8 +233,8 @@ void test("source flow can repair timing on round six within its existing seven-
       },
     },
   );
-  assert.equal(calls, 6);
-  assert.match(result.reply, /September 2027 se November 2028/);
-  assert.match(result.reply, /shaadi sambhavit/);
+  assert.equal(calls, 5);
+  assert.match(result.reply, /2027-09-15 se 2028-11-14/);
+  assert.match(result.reply, /Shaadi ka samay:/);
   assert.doesNotMatch(result.reply, /2029|sub-period runs|schedule/);
 });

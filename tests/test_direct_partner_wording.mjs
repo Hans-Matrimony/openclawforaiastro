@@ -41,10 +41,12 @@ void test("both writer paths receive partner wording and concise style without a
       assert.match(context.prompt, /another person's reading/);
       assert.match(
         context.prompt,
-        sourceFlow ? /40 words of explanation and 15 words of verdict/ : /60 to 80 words/,
+        sourceFlow ? /40 words of explanation and 15 words of verdict/ : /140 words/,
       );
-      assert.match(context.prompt, /100 words/);
-      assert.doesNotMatch(context.prompt, /140 words/);
+      assert.match(context.prompt, sourceFlow ? /100 words/ : /140 words/);
+      if (sourceFlow) {
+        assert.doesNotMatch(context.prompt, /140 words/);
+      }
       assert.deepEqual(context.memoryFacts, facts);
     }
   }
@@ -57,7 +59,7 @@ void test("unknown gender has no invented partner gender or Meera/Aarav assignme
   assert.doesNotMatch(instruction, /future wife|future husband|you are Meera|you are Aarav/);
 });
 
-void test("combined marriage questions retain both requested parts without changing chart or memory data", async () => {
+void test("combined marriage questions use dev prompt with app identity and unchanged profile/memory", async () => {
   for (const sourceFlow of [true, false]) {
     const birth = { date: "2001-01-03", time: "05:00", location_name: "Delhi" };
     const facts = ["User has discussed a relationship with family."];
@@ -68,9 +70,9 @@ void test("combined marriage questions retain both requested parts without chang
       new Date("2026-10-25"),
       { sourceFlow, separateCompanion: true },
     );
-    assert.match(context.prompt, /Cover both; shortening must not drop either part/);
-    assert.match(context.prompt, /Do not invent personality traits/);
-    assert.match(context.prompt, /positive, negative or mixed indication/);
+    assert.doesNotMatch(context.prompt, /# Two requested reading parts/);
+    assert.match(context.prompt, /The app identity overrides|# App speaker identity/);
+    assert.match(context.prompt, /positive, negative and mixed|positive, negative or mixed/);
     assert.deepEqual(context.profile.fields, birth);
     assert.deepEqual(context.memoryFacts, facts);
   }

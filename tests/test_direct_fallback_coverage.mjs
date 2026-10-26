@@ -5,10 +5,7 @@ import { get_horoscope_predictions } from "../extensions/reviewed-reading/direct
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { unsupportedEventTiming } from "../extensions/reviewed-reading/direct/event-timing.mjs";
 import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence-fallback.mjs";
-import {
-  partnerFallback,
-  missingPartnerNature,
-} from "../extensions/reviewed-reading/direct/partner-fallback.mjs";
+import { partnerFallback } from "../extensions/reviewed-reading/direct/partner-fallback.mjs";
 
 const now = new Date("2026-10-25T12:00:00Z");
 beforeEach((t) => t.mock.timers.enable({ apis: ["Date"], now }));
@@ -31,11 +28,11 @@ function source() {
   );
 }
 
-void test("fallback covers partner nature using the existing checked seventh-lord theme", () => {
+void test("dev fallback reports chart factors without injecting an additional partner description", () => {
   const row = source(),
     original = structuredClone(row);
   const reply = evidenceFallback([JSON.stringify(row)], "hinglish", query, now);
-  assert.match(reply, /Saathi ke swabhav.*ghar.*sukoon/);
+  assert.doesNotMatch(reply, /Saathi ke swabhav/);
   assert.match(reply, /sahyog bhi hai aur rukawatein bhi/);
   assert.match(reply, /2027-09-15.*2028-11-14/);
   assert.doesNotMatch(reply, /sharmati|sachchi|bindu|guaranteed/);
@@ -224,7 +221,7 @@ void test("bounded dev-style correction retains chart evidence and fallback keep
   });
   assert.equal(calls, 4);
   assert.equal(result.reply.split("\n\n").length, 3);
-  assert.match(result.reply, /Saathi ke swabhav/);
+  assert.doesNotMatch(result.reply, /Saathi ke swabhav/);
   assert.match(result.reply, /2027-09-15.*2028-11-14/);
   assert.doesNotMatch(result.reply, /2029|pakki/);
   assert.ok(result.reply.split(/\s+/u).length <= 100);
@@ -259,80 +256,45 @@ void test("awkward companion phrases fall back without rewriting the reading or 
   assert.equal(result, base + "\n\n" + natural);
 });
 
-void test("normal reading omission is repaired once using existing tools and preserves the two requested parts", async () => {
+void test("dev reading stays model-written without a pilot-only partner coverage rewrite", async () => {
   const row = source();
-  const incomplete =
+  const draft =
     "Mars antardasha September 2027 se November 2028 tak hai.\n\nShaadi ke sanket mixed hain.";
-  assert.equal(missingPartnerNature(incomplete, query), true);
-  const complete =
-    "Saathi ke swabhav mein ghar aur saath rehne ke sukoon ka rujhaan hai.\n\nSeptember 2027 se November 2028 Mars ka daur hai.";
-  assert.equal(missingPartnerNature(complete, query), false);
-  for (const stubborn of [false, true]) {
-    let calls = 0,
-      tools = 0;
-    const result = await directAnswer(value, {
-      now: () => now,
-      env: {
-        OPENROUTER_API_KEY: "test",
-        VEDASTRO_DIRECT_FLOW: "source",
-        VEDASTRO_DIRECT_ENVIRONMENT: "development",
-        VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
-        VEDASTRO_DIRECT_REPLY_CACHE: "0",
-      },
-      makeMemory: () => ({ read: async () => [] }),
-      makeTools: () => async () => {
-        tools++;
-        return JSON.stringify(row);
-      },
-      fetchImpl: async (_, options) => {
-        calls++;
-        const body = JSON.parse(options.body);
-        if (calls === 1) {
-          return new Response(
-            JSON.stringify({
-              choices: [
+  let calls = 0;
+  const result = await directAnswer(value, {
+    now: () => now,
+    env: {
+      OPENROUTER_API_KEY: "test",
+      VEDASTRO_DIRECT_FLOW: "source",
+      VEDASTRO_DIRECT_ENVIRONMENT: "development",
+      VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
+      VEDASTRO_DIRECT_REPLY_CACHE: "0",
+    },
+    makeMemory: () => ({ read: async () => [] }),
+    makeTools: () => async () => JSON.stringify(row),
+    fetchImpl: async () => {
+      calls++;
+      const message =
+        calls === 1
+          ? {
+              tool_calls: [
                 {
-                  finish_reason: "tool_calls",
-                  message: {
-                    tool_calls: [
-                      {
-                        id: "chart",
-                        type: "function",
-                        function: {
-                          name: "mcp__VedAstro__get_horoscope_predictions",
-                          arguments: "{}",
-                        },
-                      },
-                    ],
-                  },
+                  id: "chart",
+                  type: "function",
+                  function: { name: "mcp__VedAstro__get_horoscope_predictions", arguments: "{}" },
                 },
               ],
-            }),
-          );
-        }
-        if (calls === 3) {
-          assert.ok(
-            body.messages.some((m) => m.content?.includes("omitted the requested partner nature")),
-          );
-        }
-        return new Response(
-          JSON.stringify({
-            choices: [
-              {
-                finish_reason: "stop",
-                message: { content: calls === 2 || stubborn ? incomplete : complete },
-              },
-            ],
-          }),
-        );
-      },
-    });
-    assert.equal(calls, 3);
-    assert.equal(tools, 1);
-    assert.match(result.reply, /Saathi ke swabhav/);
-    assert.match(result.reply, /2027/);
-    assert.ok(result.reply.split(/\s+/u).length <= 100);
-  }
+            }
+          : { content: draft };
+      return new Response(
+        JSON.stringify({
+          choices: [{ finish_reason: calls === 1 ? "tool_calls" : "stop", message }],
+        }),
+      );
+    },
+  });
+  assert.equal(calls, 2);
+  assert.ok(result.reply.startsWith(draft));
 });
 
 void test("companion cannot repeat the fixed backstory or replace AI identity with a human introduction", async () => {

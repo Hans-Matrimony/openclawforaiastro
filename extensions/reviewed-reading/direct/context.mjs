@@ -82,25 +82,8 @@ export async function readingContext(
   prompt = prompt
     .replace(/Today's date is \d{4}-\d{2}-\d{2}/, `Today's date is ${date}`)
     .replace(/Current year is \d{4}/, `Current year is ${date.slice(0, 4)}`);
-  // Apply before the source-flow return as well as the regular writer path.
-  // Only the authenticated application supplies this access guidance.
   if (value.quota_context) {
     prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
-  }
-  // Presentation guidance shared by both writers; no new reading/tool rule.
-  prompt +=
-    "\n\n# Everyday wording\nUse plain, complete sentences in the requested language. Avoid poetic filler, unexplained metaphors or religious gestures as descriptions of a partner's personality. Do not use a phrase such as 'baahar se sajda karta hua' to mean reserved or thoughtful; those meanings are different. If wording is unclear, retain the intelligible supported description instead of inventing a replacement trait. This is a language instruction only: preserve the reading's dates, reasons, positive/negative/mixed conclusion and qualification.\n";
-  // Keep both requested parts visible when a short reading asks about timing
-  // and partner nature. This controls coverage, never the tool evidence.
-  if (
-    /\b(?:shaadi|shadi|marriage|marry|married)\b|शादी|विवाह/iu.test(value.query) &&
-    /\b(?:kab|kb|when|timing)\b|कब/iu.test(value.query) &&
-    /\b(?:partner|spouse|wife|husband|saathi|jeevansathi)\b|जीवनसाथी|साथी/iu.test(value.query) &&
-    /\b(?:kaisa|kaisi|nature|like|traits|personality)\b|कैसा|कैसी|स्वभाव/iu.test(value.query)
-  ) {
-    prompt +=
-      "\n\n# Two requested reading parts\n" +
-      "The current question asks BOTH marriage timing and the future partner's nature. Cover both; shortening must not drop either part. Use the explanation for one relevant chart reason plus a short, clearly interpretive partner description supported by the current tool evidence. Use the verdict for the supported timing window. Do not invent personality traits or turn them into facts about a real person. Apply the supplied partner wording and current user preferences. Avoid repeating the same planet/house statement or filling the explanation with internal scores. Keep the existing positive, negative or mixed indication and necessary qualification. The companion question is separate and cannot substitute for the requested partner description.\n";
   }
   if (sourceFlow) {
     prompt +=
@@ -145,7 +128,7 @@ export async function readingContext(
       "Skip this closing for missing-detail questions, errors, death-date questions, explicit requests for no questions, and raw structured output. Never imply you know a fact that was not established.\n";
   prompt +=
     "\n\n# Simple user-facing wording\n" +
-    "Prefer 60 to 80 words for the complete user-facing response, with a ceiling of 100 words and at most three paragraphs including the separate companion. Aim for 25 to 35 words of explanation and 10 to 15 words of verdict. Do not pad a short answer. Preserve the supported positive/negative/mixed conclusion, dates and necessary qualifications; omit filler and repeated reasons instead. An ordinary introduction needs only one or two short sentences. " +
+    "Keep the complete user-facing response within 140 words and at most three paragraphs, including the separate companion follow-up. Aim for 120 words or fewer when sufficient; do not pad a short answer. Budget at most 70 words for the explanation and 25 for the short verdict, reserving up to 45 for the separate companion. Preserve the supported conclusion, dates and necessary qualifications; omit repeated reasons instead. " +
     "Do not display bindu totals, bindu scores, ashtakavarga numbers, or the words bindu, bindus, retrograde, combust, vakri or their Hindi technical equivalents. Explain only the relevant practical meaning already supported by the tools in familiar language. Do not substitute another technical label. Do not turn a technical placement into a new prediction or claim. Keep the second paragraph to one short direct answer; all companionship belongs in the third paragraph. Raw structured output requested by the user is exempt.\n";
   prompt +=
     "\nDo not leave an unlabeled internal score after omitting its technical term (for example, 'house ka sirf 20 hai'). Omit the score phrase and express only the supported meaning. Keep actual house numbers, dates, ages and amounts intact.\n";

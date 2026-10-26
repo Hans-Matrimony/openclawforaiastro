@@ -1,0 +1,67 @@
+{
+  "referenceCommit": "1e1c3916480dd617b5f7a00935142a04cdfe4120",
+  "fixtures": [
+    {
+      "id": "positive",
+      "query": "Meri shaadi kab hogi?",
+      "verdict": "Jupiter antardasha November 2031 se July 2034 mein shaadi ki sambhavna hai.",
+      "expectedReading": "Jupiter 7ve ghar mein hai, lekin Mars ki drishti se rukawat bhi hai.\n\nJupiter antardasha November 2031 se July 2034 mein shaadi ki sambhavna hai.",
+      "requestHashes": [
+        "9b2c22781aa3cf36f9c01f7ec6c99e0dc537515be2083ae8acc41d7593d496bd",
+        "49c800a2770dbf956bfc7d5c96e22cc21e3aebb24076bc533ac88658d54f3e35"
+      ]
+    },
+    {
+      "id": "negative",
+      "query": "Meri shaadi kab hogi?",
+      "verdict": "Jupiter antardasha November 2031 se July 2034 mein shaadi ki sambhavna kam hai.",
+      "expectedReading": "Jupiter 7ve ghar mein hai, lekin Mars ki drishti se rukawat bhi hai.\n\nJupiter antardasha November 2031 se July 2034 mein shaadi ki sambhavna kam hai.",
+      "requestHashes": [
+        "9b2c22781aa3cf36f9c01f7ec6c99e0dc537515be2083ae8acc41d7593d496bd",
+        "49c800a2770dbf956bfc7d5c96e22cc21e3aebb24076bc533ac88658d54f3e35"
+      ]
+    },
+    {
+      "id": "mixed",
+      "query": "Meri shaadi kab hogi?",
+      "verdict": "Jupiter antardasha November 2031 se July 2034 mein shaadi sambhavit hai, lekin rukawatein bhi hain.",
+      "expectedReading": "Jupiter 7ve ghar mein hai, lekin Mars ki drishti se rukawat bhi hai.\n\nJupiter antardasha November 2031 se July 2034 mein shaadi sambhavit hai, lekin rukawatein bhi hain.",
+      "requestHashes": [
+        "9b2c22781aa3cf36f9c01f7ec6c99e0dc537515be2083ae8acc41d7593d496bd",
+        "49c800a2770dbf956bfc7d5c96e22cc21e3aebb24076bc533ac88658d54f3e35"
+      ]
+    },
+    {
+      "id": "dating",
+      "query": "Meri girlfriend kab banegi?",
+      "verdict": "Jupiter antardasha November 2031 se July 2034 mein girlfriend banne ki sambhavna hai.",
+      "expectedReading": "Jupiter 7ve ghar mein hai, lekin Mars ki drishti se rukawat bhi hai.\n\nJupiter antardasha November 2031 se July 2034 mein girlfriend banne ki sambhavna hai.",
+      "requestHashes": [
+        "bbd4f7a7966b20de584d3812ff738396113e6d94b0a5633f3b6a38f9246b6129",
+        "75bbcaa9e6f0f0154907011709aceba3db81eac2059522a200115cb0ff7321b0"
+      ]
+    },
+    {
+      "id": "repair",
+      "query": "Meri shaadi kab hogi?",
+      "verdict": "Jupiter antardasha November 2031 se July 2034 mein shaadi ki sambhavna hai.",
+      "expectedReading": "Jupiter 7ve ghar mein hai, lekin Mars ki drishti se rukawat bhi hai.\n\nJupiter antardasha November 2031 se July 2034 mein shaadi ki sambhavna hai.",
+      "requestHashes": [
+        "9b2c22781aa3cf36f9c01f7ec6c99e0dc537515be2083ae8acc41d7593d496bd",
+        "49c800a2770dbf956bfc7d5c96e22cc21e3aebb24076bc533ac88658d54f3e35",
+        "a76d61976d14e7b46d7edf96868fc175634a11e0b64ecb53a3453ed52f860fef"
+      ]
+    },
+    {
+      "id": "fallback",
+      "query": "Meri shaadi kab hogi?",
+      "verdict": "2029 mein shaadi hogi.",
+      "expectedReading": "Rishte ko lekar sahyog bhi hai aur rukawatein bhi. Guru ka 7ve ghar mein hona sahyog ka sanket hai, lekin Mangal ki 7ve ghar par drishti dabav aur deri ka sanket deti hai.\n\nShaadi ka samay: Jupiter antardasha 2031-11-15 se 2034-07-16 tak hai.",
+      "requestHashes": [
+        "9b2c22781aa3cf36f9c01f7ec6c99e0dc537515be2083ae8acc41d7593d496bd",
+        "49c800a2770dbf956bfc7d5c96e22cc21e3aebb24076bc533ac88658d54f3e35",
+        "a76d61976d14e7b46d7edf96868fc175634a11e0b64ecb53a3453ed52f860fef"
+      ]
+    }
+  ]
+}
