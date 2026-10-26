@@ -62,11 +62,20 @@ function removeOrphanedHouseScore(reply) {
     .map((part, index) =>
       index % 2
         ? part
-        : part.replace(
-            /\b((?:[1-9]|1[0-2])(?:ve|ven|wan|st|nd|rd|th)\s+(?:ghar|house)|house\s+(?:[1-9]|1[0-2]))\s+ka\s+sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hai[ \t]+(?=(?:Saturn|Jupiter|Venus|Mars|Mercury|Moon|Sun|Rahu|Ketu|Shani|Guru|Shukra|Mangal|Budh|Chandra|Surya)\b)/gi,
-            // Keep the house as a label, without inferring a new strong/weak verdict.
-            "$1: ",
-          ),
+        : part
+            .replace(
+              /[ \t]*\(\s*bindus?\s+(?:sirf\s+)?(?:[0-9]|[1-3][0-9]|4[0-8])(?:\/48)?\s*\)/gi,
+              "",
+            )
+            .replace(
+              /\b((?:[1-9]|1[0-2])(?:ve|ven|wan|st|nd|rd|th)\s+(?:ghar|house)\b[^.!?\n]{0,180}?\b(?:lekin|aur)\s+)sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hai[n]?[ ,]*(weak|strong|kamzor)\s+hai\b/gi,
+              "$1sahyog $2 hai",
+            )
+            .replace(
+              /\b((?:[1-9]|1[0-2])(?:ve|ven|wan|st|nd|rd|th)\s+(?:ghar|house)|house\s+(?:[1-9]|1[0-2]))\s+ka\s+sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hai[ \t]+(?=(?:Saturn|Jupiter|Venus|Mars|Mercury|Moon|Sun|Rahu|Ketu|Shani|Guru|Shukra|Mangal|Budh|Chandra|Surya)\b)/gi,
+              // Keep the house as a label, without inferring a new strong/weak verdict.
+              "$1: ",
+            ),
     )
     .join("");
 }

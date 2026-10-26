@@ -12,7 +12,7 @@ const monthNames = months
 // calculated event date. Chart-claim validation still runs before this check.
 export function isPeriodInterpretation(reply, data) {
   if (
-    !/\b(?:interpretation|sambhavit|sambhavna|sambhav|may|could|potential|possible)\b|\b(?:ho|ban) sak(?:ta|ti|te)\b/i.test(
+    !/\b(?:interpretation|sambhavit|sambhavna|sambhavana|sambhav|may|could|potential|possible)\b|\b(?:ho|ban) sak(?:ta|ti|te)\b/i.test(
       reply,
     ) ||
     !/\b(?:because|kyunki|lord|swami|house|ghar|drishti|aspect)\b/i.test(reply) ||
@@ -63,4 +63,73 @@ export function isPeriodInterpretation(reply, data) {
       )
     );
   });
+}
+
+// Keep a shortened verdict inside the window the model already selected in
+// its explanation. This never chooses a period or adds an event prediction.
+export function alignPeriodVerdict(reply, results) {
+  const parts = reply.split(/\n\s*\n/);
+  if (parts.length !== 2 || /```|https?:\/\//.test(reply)) {
+    return reply;
+  }
+  const data = results.flatMap((text) => {
+    try {
+      const row = JSON.parse(text);
+      return row?.engine === "local-sweph-v2" ? [row] : [];
+    } catch {
+      return [];
+    }
+  });
+  if (!isPeriodInterpretation(reply, data)) {
+    return reply;
+  }
+  const schedules = data.filter((row) => row.dasha);
+  if (
+    new Set(schedules.map((row) => JSON.stringify(row.dasha))).size !== 1 ||
+    new Set(data.filter((row) => row.birth_chart).map((row) => JSON.stringify(row.birth_chart)))
+      .size > 1
+  ) {
+    return reply;
+  }
+  const label = (date) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? "")) {
+      return null;
+    }
+    const parsed = new Date(date + "T00:00:00Z");
+    return Number.isFinite(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === date
+      ? `${months[parsed.getUTCMonth()]} ${parsed.getUTCFullYear()}`
+      : null;
+  };
+  const matches = (schedules[0]?.dasha.upcoming_antardashas ?? []).flatMap((period) => {
+    const from = label(period.from),
+      to = label(period.to);
+    if (
+      !from ||
+      !to ||
+      period.from >= period.to ||
+      !/^(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)$/.test(period.lord ?? "") ||
+      !parts[0].includes(from) ||
+      !parts[0].includes(to) ||
+      !new RegExp(`\\b${period.lord}\\b`).test(parts[0])
+    ) {
+      return [];
+    }
+    const prefix = new RegExp(
+      `^${period.from.slice(0, 4)} ke baad ${period.lord} antardasha mein `,
+      "i",
+    );
+    return prefix.test(parts[1]) &&
+      /\bsambhavna|\bsambhavana|\bsambhavit|\b(?:ho|ban) sak(?:ta|ti|te)\b/i.test(parts[1])
+      ? [{ prefix, from, to, lord: period.lord }]
+      : [];
+  });
+  if (matches.length !== 1) {
+    return reply;
+  }
+  const period = matches[0];
+  parts[1] = parts[1].replace(
+    period.prefix,
+    `${period.from} se ${period.to} ke beech ${period.lord} antardasha mein `,
+  );
+  return parts.join("\n\n");
 }

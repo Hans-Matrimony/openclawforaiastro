@@ -39,7 +39,7 @@ export function unsupportedEventTiming(reply, results) {
       ({ sentence, dated }) =>
         dated &&
         (eventTopic || /\b(?:girlfriend|boyfriend|gf|bf|rishta)\b/i.test(sentence)) &&
-        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|shaadi|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary)\b.{0,60}\b(?:badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
+        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|shaadi|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary)\b.{0,60}\b(?:badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
           sentence,
         ) &&
         !/\b(?:not a calculated|not an event|date nahi|tay nahi|establish|cannot|does not|no verified)\b/i.test(

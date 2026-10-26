@@ -41,6 +41,6 @@ export function timingRepairEvidence(results) {
   return (
     "\nExact returned period boundaries (data, not event predictions): " +
     JSON.stringify(periods) +
-    "\nDo not merely replace '2027 ke baad' with an ISO start date. A topic-supported period interpretation must include BOTH month-year boundaries, its period lord, a relevant checked chart reason and one natural qualification such as sambhavna. 'Tab yog balwaan hoga' is not a reason: a period change alone does not establish improvement. Preserve unfavorable or mixed factors. Do not copy the rejected rationale unless supported by the tool. If no topic-specific support exists, do not invent it or a narrower event month."
+    "\nDo not merely replace an open-ended year claim with an ISO start date. A topic-supported period interpretation must include BOTH month-year boundaries, its period lord, a relevant checked chart reason and one natural qualification such as sambhavna. 'Tab yog balwaan hoga' is not a reason: a period change alone does not establish improvement. Preserve unfavorable or mixed factors. Do not copy the rejected rationale unless supported by the tool. If no topic-specific support exists, do not invent it or a narrower event month."
   );
 }

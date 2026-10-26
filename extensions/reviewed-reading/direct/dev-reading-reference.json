@@ -22,7 +22,11 @@
     "existing display sanitation and response length",
     "defensive date parsing: abbreviated valid boundaries and negated certainty",
     "house-lord evidence checks for Hinglish variants",
-    "fallback schema validation, subject isolation and rejection of past/invalid schedules"
+    "fallback schema validation, subject isolation and rejection of past/invalid schedules",
+    "correction context includes the rejected draft as quoted data and exact returned period boundaries",
+    "dating and job timing validation uses the same rules as marriage",
+    "display-only removal of orphaned house scores",
+    "short verdict retains the same qualified period window already selected in the explanation"
   ],
   "source_sha256": {
     "agent.mjs": "6d51e799e5cb5c9465bfdae70dd7009e98e83c591ceddd4a262072e6666c2880",
