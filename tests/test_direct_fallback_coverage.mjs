@@ -110,7 +110,7 @@ void test("abbreviated period dates preserve qualified timing but never admit ch
   }
 });
 
-void test("a structured corrected window reaches delivery with requested partner nature", async () => {
+void test("a model-written corrected window reaches delivery with requested partner nature", async () => {
   const row = source();
   row.evidence_scope = { timing: "does not calculate event-specific windows" };
   const explanation =
@@ -143,31 +143,14 @@ void test("a structured corrected window reaches delivery with requested partner
                 },
               ],
             }
-          : calls === 3
-            ? {
-                tool_calls: [
-                  {
-                    id: "repair",
-                    type: "function",
-                    function: {
-                      name: "submit_timing_reading",
-                      arguments: JSON.stringify({
-                        period_id: "p2",
-                        outlook: "mixed",
-                        factor_ids: ["f0"],
-                      }),
-                    },
-                  },
-                ],
-              }
-            : {
-                content:
-                  explanation +
-                  "\n\n" +
-                  (calls === 2
-                    ? "Shaadi 2027 ke baad Mars antardasha mein possible hai."
-                    : "Shaadi Mars antardasha (15 Sept 2027 se 14 Nov 2028) mein sambhavit hai."),
-              };
+          : {
+              content:
+                explanation +
+                "\n\n" +
+                (calls === 2
+                  ? "Shaadi 2027 ke baad Mars antardasha mein possible hai."
+                  : "Shaadi Mars antardasha (15 Sept 2027 se 14 Nov 2028) mein sambhavit hai."),
+            };
       return new Response(
         JSON.stringify({
           choices: [{ finish_reason: message.tool_calls ? "tool_calls" : "stop", message }],
@@ -177,11 +160,11 @@ void test("a structured corrected window reaches delivery with requested partner
   });
   assert.equal(calls, 3);
   assert.match(result.reply, /Saathi ke swabhav/);
-  assert.match(result.reply, /November 2031 se July 2034.*sambhavit/);
+  assert.match(result.reply, /15 Sept 2027 se 14 Nov 2028.*sambhavit/);
   assert.doesNotMatch(result.reply, /schedule hai|event ki bhavishyavani nahi/);
 });
 
-void test("bounded timing correction isolates chart evidence and fallback keeps coverage through formatting", async () => {
+void test("bounded dev-style correction retains chart evidence and fallback keeps coverage through formatting", async () => {
   const row = source();
   row.evidence_scope = { timing: "does not calculate event-specific windows" };
   const raw = JSON.stringify(row),
@@ -225,10 +208,13 @@ void test("bounded timing correction isolates chart evidence and fallback keeps 
         );
       }
       if (calls === 3) {
-        assert.equal(body.tool_choice.function.name, "submit_timing_reading");
-        assert.equal(body.messages.length, 2);
-        assert.ok(!body.messages.some((m) => m.content?.includes(JSON.stringify(rejected))));
-        assert.deepEqual(JSON.parse(body.messages[1].content).evidence, [row]);
+        assert.equal(body.tool_choice, "auto");
+        assert.ok(body.messages.some((m) => m.role === "tool" && m.content === raw));
+        assert.match(
+          body.messages.at(-1).content,
+          /Preserve the useful supported topic explanation/,
+        );
+        assert.ok(!body.messages.some((m) => m.role === "assistant" && m.content === rejected));
       }
       const content = body.tools ? rejected : "Rishte mein aapke liye kya maayne rakhta hai?";
       return new Response(

@@ -39,7 +39,10 @@ void test("both writer paths receive partner wording and concise style without a
         /current question, user-authored history or saved user facts takes priority/,
       );
       assert.match(context.prompt, /another person's reading/);
-      assert.match(context.prompt, /60 to 80 words/);
+      assert.match(
+        context.prompt,
+        sourceFlow ? /40 words of explanation and 15 words of verdict/ : /60 to 80 words/,
+      );
       assert.match(context.prompt, /100 words/);
       assert.doesNotMatch(context.prompt, /140 words/);
       assert.deepEqual(context.memoryFacts, facts);

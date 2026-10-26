@@ -190,7 +190,7 @@ void test("repair retains current transit evidence and excludes already-started 
   assert.match(later.instruction, /November 2031/);
 });
 
-void test("agent repairs the captured start-only failure without redoing calculations or memory writes", async () => {
+void test("agent uses dev-style model-written repair without redoing calculations or memory writes", async () => {
   let calls = 0,
     tools = 0;
   const result = await directAnswer(
@@ -238,11 +238,21 @@ void test("agent repairs the captured start-only failure without redoing calcula
               "Shaadi mein delay hai.\n\n2027-09-15 se Mars antardasha shuru hoga, tab 7ve ghar ka yog balwaan hoga.",
           };
         } else if (calls === 3) {
-          assert.equal(body.tool_choice.function.name, "submit_timing_reading");
-          assert.equal(body.tools.length, 1);
-          assert.equal(body.messages.length, 2);
-          assert.doesNotMatch(JSON.stringify(body.messages), /tab 7ve ghar ka yog balwaan/);
-          reply = message(value);
+          assert.equal(body.tools.length > 1, true);
+          assert.equal(body.tool_choice, "auto");
+          assert.ok(body.messages.some((m) => m.role === "tool"));
+          assert.match(
+            body.messages.at(-1).content,
+            /Preserve the useful supported topic explanation/,
+          );
+          assert.doesNotMatch(
+            body.messages.at(-1).content,
+            /submit_timing_reading|factor_ids|period_id/,
+          );
+          reply = {
+            content:
+              "Jupiter 7ve ghar mein hai, lekin Mars ki drishti se rukawat bhi hai.\n\nJupiter ki antardasha mein November 2031 se July 2034 ke beech shaadi ho sakti hai.",
+          };
         } else {
           assert.equal(calls, 4);
           assert.equal(body.tools, undefined);
@@ -260,13 +270,14 @@ void test("agent repairs the captured start-only failure without redoing calcula
   assert.equal(calls, 4);
   assert.match(result.reply, /November 2031 se July 2034/);
   assert.doesNotMatch(result.reply, /2027|2028|antardasha .*tak hai/);
-  assert.ok(result.answer_validation.includes("timing_structure_received"));
+  assert.ok(result.answer_validation.includes("timing_claim_rejected"));
+  assert.ok(!result.answer_validation.includes("timing_structure_received"));
   assert.ok(!result.answer_validation.includes("timing_fallback"));
   assert.equal(result.reply.split(/\n\s*\n/).length, 3);
 });
 
-for (const invalid of ["malformed", "wrong_house_lord"]) {
-  void test(`a ${invalid} structured correction cannot trigger another tool loop or leak its reading`, async () => {
+for (const invalid of ["unsupported_date", "wrong_house_lord"]) {
+  void test(`a ${invalid} model-written correction cannot leak its rejected reading`, async () => {
     let calls = 0,
       executions = 0;
     const chart = JSON.stringify({
@@ -319,18 +330,19 @@ for (const invalid of ["malformed", "wrong_house_lord"]) {
           } else if (calls === 2) {
             reply = { content: "Shaadi 2029 mein pakki hogi." };
           } else if (calls === 3) {
-            reply =
-              invalid === "malformed"
-                ? message({})
-                : message({
-                    ...value,
-                    period_id: "p0",
-                    explanation: "Shaadi mein rukawat bhi hai.",
-                    reason: "Mars 12ve ghar mein hai, jo 7ve ghar ka lord hai.",
-                  });
+            reply = {
+              content:
+                invalid === "unsupported_date"
+                  ? "Jupiter 7ve ghar mein hai.\n\nShaadi 2029 mein pakki hogi."
+                  : "Mars 7ve ghar ka lord hai.\n\nShaadi 2029 mein hogi.",
+            };
           } else {
-            assert.equal(calls, 4);
-            reply = { content: "Ghar mein shaadi ko lekar kya baat chal rahi hai?" };
+            if (invalid === "wrong_house_lord" && calls === 4) {
+              reply = { content: "Mars 7ve ghar ka lord hai.\n\nShaadi 2029 mein hogi." };
+            } else {
+              assert.equal(calls, invalid === "wrong_house_lord" ? 5 : 4);
+              reply = { content: "Ghar mein shaadi ko lekar kya baat chal rahi hai?" };
+            }
           }
           return new Response(
             JSON.stringify({
@@ -342,9 +354,13 @@ for (const invalid of ["malformed", "wrong_house_lord"]) {
         },
       },
     );
-    assert.equal(calls, 4);
+    assert.equal(calls, invalid === "wrong_house_lord" ? 5 : 4);
     assert.equal(executions, 1);
     assert.doesNotMatch(result.reply, /2029|pakki|jo 7ve ghar ka lord/);
-    assert.ok(result.answer_validation.includes("timing_fallback"));
+    assert.ok(
+      result.answer_validation.includes(
+        invalid === "wrong_house_lord" ? "chart_fallback" : "timing_fallback",
+      ),
+    );
   });
 }

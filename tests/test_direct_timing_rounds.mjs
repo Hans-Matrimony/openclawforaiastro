@@ -196,13 +196,17 @@ void test("source flow can repair timing on round six within its existing seven-
         const body = JSON.parse(options.body);
         const correction = calls === 6;
         if (correction) {
-          assert.equal(body.tool_choice.function.name, "submit_timing_reading");
+          assert.equal(body.tool_choice, "auto");
+          assert.match(
+            body.messages.at(-1).content,
+            /Preserve the useful supported topic explanation/,
+          );
         }
         return new Response(
           JSON.stringify({
             choices: [
               {
-                finish_reason: tool || correction ? "tool_calls" : "stop",
+                finish_reason: tool ? "tool_calls" : "stop",
                 message: tool
                   ? {
                       tool_calls: [
@@ -218,20 +222,8 @@ void test("source flow can repair timing on round six within its existing seven-
                     }
                   : correction
                     ? {
-                        tool_calls: [
-                          {
-                            id: "repair",
-                            type: "function",
-                            function: {
-                              name: "submit_timing_reading",
-                              arguments: JSON.stringify({
-                                period_id: "p0",
-                                outlook: "mixed",
-                                factor_ids: ["f1"],
-                              }),
-                            },
-                          },
-                        ],
+                        content:
+                          "Jupiter 7ve ghar mein hai aur Mars ki drishti se rukawat hai.\n\nMars antardasha September 2027 se November 2028 mein shaadi sambhavit hai.",
                       }
                     : { content: "Shaadi 2029 mein hogi." },
               },
