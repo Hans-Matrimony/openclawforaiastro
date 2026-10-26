@@ -11,7 +11,11 @@ void test("upcoming-only evidence works in both languages without turning a sche
   for (const language of ["english", "hinglish"]) {
     const answer = evidenceFallback([JSON.stringify(row([period]))], language, "", now);
     assert.match(answer, /Mars.*2027-09-15.*2028-11-14/);
-    assert.match(answer, /not an event prediction|event ki bhavishyavani nahi/);
+    assert.match(answer, /sub-period runs|antardasha/);
+    assert.doesNotMatch(
+      answer,
+      /not an event prediction|event ki bhavishyavani nahi|shaadi hogi|will marry/,
+    );
   }
 });
 
@@ -56,7 +60,7 @@ void test("fallback rejects malformed factors and avoids conclusions across diff
         "Marriage",
         now,
       ),
-      /period schedule/,
+      /calculated Mars sub-period/,
     );
   }
   const verdict_signals = [{ area: "marriage", trend: "POSITIVE", positive: [], negative: [] }];

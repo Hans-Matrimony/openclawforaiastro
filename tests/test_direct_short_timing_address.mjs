@@ -35,6 +35,7 @@ void test("companion rejects bhai and backstory filler without touching reading"
   for (const text of [
     "Bhai, kya aapne unse baat ki hai?",
     "Tumhari backstory sun ke lagta hai kya aapne crush se baat ki hai?",
+    "Pilot Test, abhi aapki zindagi mein koi naya rishta shuru hone wala hai?",
   ]) {
     const result = await contextualClosing(
       base,

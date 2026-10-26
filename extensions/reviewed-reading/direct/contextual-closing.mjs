@@ -227,6 +227,9 @@ export async function contextualClosing(
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
       closingPrediction.test(question) ||
+      /\b(?:rishta|rishte|relationship|job|career)\b[^.!?\n]{0,45}\b(?:shuru|start)\s+hone\s+wal[aei]\b/i.test(
+        question,
+      ) ||
       /\bsabse pehle (?:yeh|ye) socho\b|\bdil kitna bhaavuk\b/i.test(question) ||
       /\b(?:main|I am|I'm)\s+(?:Meera|Aarav|AstroFriend)\b|\b(?:Banaras|Varanasi)\b[^.!?\n]{0,50}\b(?:paida|janm|born)\b/i.test(
         question,

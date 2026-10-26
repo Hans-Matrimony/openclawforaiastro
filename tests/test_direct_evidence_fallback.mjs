@@ -61,7 +61,7 @@ void test("timing fallback labels a returned period without inventing an event w
     new Date("2026-10-25T12:00:00Z"),
   );
   assert.match(reply, /Mars antardasha 2027-09-15 se 2028-11-14 tak hai/);
-  assert.match(reply, /dasha ka schedule hai, event ki bhavishyavani nahi/);
+  assert.doesNotMatch(reply, /event ki bhavishyavani nahi/);
   assert.doesNotMatch(reply, /Shaadi ka samay:/);
   assert.doesNotMatch(reply, /hisaab ke hisaab|saaf nahi dikh raha/);
 });

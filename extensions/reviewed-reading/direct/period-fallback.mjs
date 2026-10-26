@@ -45,8 +45,8 @@ export function periodFallback(rows, language, asOf = new Date()) {
       (calendarDate(current.from) && current.from <= today && current.from < current.to));
   if (upcoming) {
     return english
-      ? `The calculated ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}. This is a period schedule, not an event prediction.`
-      : `${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai. Yeh dasha ka schedule hai, event ki bhavishyavani nahi.`;
+      ? `The calculated ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}.`
+      : `${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai.`;
   }
   if (validCurrent) {
     return english
