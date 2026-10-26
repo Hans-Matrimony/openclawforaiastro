@@ -145,7 +145,7 @@ function knownWorkPreference(value) {
   return Boolean(latest && !/\b(?:nahi|nahin|not|no longer)\b/i.test(latest));
 }
 
-export function concernFallback(value, concern) {
+export function concernFallback(value, concern, facts = []) {
   if (!concern) {
     return null;
   }
@@ -160,6 +160,7 @@ export function concernFallback(value, concern) {
   const userEvidence = [
     concern.evidence ?? "",
     value.query,
+    ...facts,
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
   ].join("\n");
   const paymentKnown =

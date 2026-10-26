@@ -24,6 +24,17 @@ const generic =
 const stockPresence =
   /\bsun\s+r(?:ah|h)[aie]\s+h(?:oo|u|o)n?\b|\bya(?:ha+n?|hi+n?)\s+h(?:oo|u|o)n?\b|\bi(?:['’]m| am)\s+(?:listening|(?:right )?here)\b|सुन\s*रह[ाीे]|(?:यहाँ|यहां|यहीं|यही)\s*ह[ूँूं]/i;
 
+// Apply only to companion output/context, never user disclosures or readings.
+// Acknowledging a feeling is different from endorsing every thought or choice.
+const blanketApproval =
+  /\bjo\s+bhi\b[^.!?।\n]{0,90}\b(?:sab(?:\s+kuchh?)?|bilkul)\s+sahi\b|\b(?:everything|whatever)\s+you\s+(?:think|do|decide|believe)\b[^.!?\n]{0,55}\b(?:right|correct)\b|जो\s*भी[^।!?\n]{0,70}(?:सब\s*कुछ|बिल्कुल)\s*सही/iu;
+const awkwardThinking =
+  /\b(?:sabse\s+zyada\s+)?dh(?:i|ee)re\s+dh(?:i|ee)re\s+soch\b|धीरे\s*धीरे\s*सोच[^।!?\n]{0,20}[?？]/iu;
+
+function poorCompanion(text) {
+  return blanketApproval.test(text) || awkwardThinking.test(text);
+}
+
 // The third bubble cannot reopen the reading or hedge the partner's identity.
 // Reject only these companion failures; never alter the two reading paragraphs.
 const partnerAlternatives =
@@ -108,6 +119,7 @@ export async function contextualClosing(
     const closing = parts.length === 3 ? parts[2] : null;
     return closing &&
       isCompanionParagraph(closing) &&
+      !poorCompanion(closing) &&
       !unsupportedClosingDetail(closing, value, notes) &&
       !/\b(?:20\d{2}|dasha|antardasha|transit|kundli|saturn|jupiter|rahu|ketu|shani|mercury|venus)\b/i.test(
         closing,
@@ -157,7 +169,7 @@ export async function contextualClosing(
     }
     const question =
       continuityFallback(value) ??
-      concernFallback(value, concern) ??
+      concernFallback(value, concern, notes) ??
       stressFollowup(value, notes) ??
       companionFallback(value, notes, { requireQuestion });
     return question ? base + "\n\n" + fallbackGrammar(question, value) : base;
@@ -172,6 +184,7 @@ export async function contextualClosing(
     "Preserve what has actually happened: 'can talk to mummy' does not mean they have spoken or that mummy agrees. 'Want a job' does not mean they already have one. Acknowledge only the stated fact, not an assumed next step. A parent's disagreement does not mean they prevent everything, or that the user is afraid to speak. Do not assign blame, exaggerate a concern into a total blockage, or presume fear. " +
     "Use one or two short sentences: a specific acknowledgment only when needed and one easy conversational question when useful. Aim for 10 to 20 words. At most 25 words and 280 characters in one paragraph. Do not restate the question or recap the user's whole situation before asking. Keep the warmth instead of turning every reply into an interview. A supportive statement alone is appropriate when they are venting, celebrating, or do not want questions. Avoid repeating the same acknowledgment across turns. Use plain everyday language, not poetic flattery about magic, destiny, or being special. " +
     "Stay with the current subject; do not pull an unrelated old memory into it. Assistant history contains prior companion bubbles only, not evidence about the user's life. Never ask the user to predict the future or answer their original astrology question. Do not invent feelings, circumstances or memories, approve major decisions as definitely right, give unrequested plans, or promise outcomes. " +
+    "Acknowledge stated feelings without blanket approval of everything they think or do. Ask about one concrete unresolved detail of the current topic; avoid empty filler such as 'dhire dhire soch rahe hain'. " +
     "A marriage timing question alone does not establish a particular person, a crush, hope, or fear of speaking. If no personal detail was supplied, ask a neutral open question without an invented acknowledgment. Never treat an earlier assistant assumption as a user disclosure. " +
     "Do not comment on whether a marriage date can be predicted, or say you cannot tell the timing: this bubble continues the personal conversation, not the already-completed reading. Use the partner wording from the app context rather than listing male and female alternatives. " +
     "Match the requested language and persona grammar. Prefer aap, not tu/tere or pet names unless invited. Do not announce your presence: no 'main sun rahi hoon', 'main yahan hoon', 'I am listening' or 'I am here'. No introductions, service menus, 'want more detail?', or stock motivational lines. " +
@@ -217,6 +230,7 @@ export async function contextualClosing(
       /[\r\n]/.test(question) ||
       (question.match(/[?？]/g) ?? []).length > 1 ||
       generic.test(question) ||
+      poorCompanion(question) ||
       (/\b(?:career|finance)\b/.test(focus.topics.join(" ")) &&
         /\bsabse (?:zyada|zaroori) kya\b|\bwhat matters most\b/i.test(question)) ||
       stockPresence.test(question) ||
