@@ -4,7 +4,7 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence-fallback.mjs";
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
 
-test("kb gets the same checked schedule as kab without inventing a marriage date", () => {
+void test("kb gets the same checked schedule as kab without inventing a marriage date", () => {
   const row = {
     engine: "local-sweph-v2",
     verdict_signals: [{ area: "marriage", trend: "MIXED" }],
@@ -17,7 +17,7 @@ test("kb gets the same checked schedule as kab without inventing a marriage date
   assert.doesNotMatch(render("Shaadi kb hogi", { ...row, dasha: undefined }), /2027/);
 });
 
-test("companion rejects bhai and backstory filler without touching reading", async () => {
+void test("companion rejects bhai and backstory filler without touching reading", async () => {
   const base = "Calculated reading stays intact.\n\nOriginal verdict stays intact.";
   for (const text of [
     "Bhai, kya aapne unse baat ki hai?",
@@ -33,7 +33,7 @@ test("companion rejects bhai and backstory filler without touching reading", asy
   }
 });
 
-test("known name passes and all personas prohibit invented names and bhai", async () => {
+void test("known name passes and all personas prohibit invented names and bhai", async () => {
   for (const user_gender of ["male", "female", undefined]) {
     assert.match(personaInstruction({ user_gender }), /Do not address the user as bhai/);
   }
