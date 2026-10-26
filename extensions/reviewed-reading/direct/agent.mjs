@@ -151,7 +151,7 @@ export async function directAnswer(
     sourceFlow &&
     readingRequired &&
     !isDeathTimingQuestion(value.query) &&
-    /\b(?:kab|when|timing)\b/i.test(value.query);
+    /\b(?:kab|kb|when|timing)\b/i.test(value.query);
   if (sourceFlow && readingRequired) {
     context.prompt +=
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +

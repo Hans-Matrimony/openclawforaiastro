@@ -27,7 +27,14 @@ export function isPersonalChartQuestion(query) {
   ) {
     return false;
   }
-  const subjectText = text.replace(/\b(?:girl|boy)\s+friend\b/g, "partner");
+  const subjectText = text
+    .replace(/\b(?:girl|boy)\s+friend\b/g, "partner")
+    // An address correction is not a request to read a relative's chart.
+    .replace(/\b(?:bhai|bhaiya|bro|brother|behen|beta)\s+mat\s+(?:bolo|bulao|kaho)\b/g, "")
+    .replace(
+      /\b(?:do not|don't|dont)\s+call\s+me\s+(?:bhai|bhaiya|bro|brother|sister|beta)\b/g,
+      "",
+    );
   if (
     /\b(?:friend|sister|brother|mother|father|daughter|son|behen|bhai|dost)\b/.test(subjectText)
   ) {

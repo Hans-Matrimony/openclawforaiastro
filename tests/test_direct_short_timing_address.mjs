@@ -3,6 +3,19 @@ import test from "node:test";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence-fallback.mjs";
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
+import { isPersonalChartQuestion } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
+
+void test("address corrections do not bypass personal reading checks; relatives still use their own profile", () => {
+  assert.equal(
+    isPersonalChartQuestion(
+      "Meri shaadi ke timing ke baare mein batao, aur mujhe mere naam se bulao, bhai mat bolo.",
+    ),
+    true,
+  );
+  assert.equal(isPersonalChartQuestion("When will I marry? Don't call me brother."), true);
+  assert.equal(isPersonalChartQuestion("Mere bhai ki shaadi kab hogi?"), false);
+  assert.equal(isPersonalChartQuestion("When will my brother marry? Don't call me bro."), false);
+});
 
 void test("kb gets the same checked schedule as kab without inventing a marriage date", () => {
   const row = {
