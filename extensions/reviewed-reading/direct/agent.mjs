@@ -387,7 +387,7 @@ export async function directAnswer(
       unsupportedPeriodClaim(reply, chartResults) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults))
     ) {
-      if (correctedPeriod || modelCalls >= 5) {
+      if (correctedPeriod || modelCalls >= maxRounds) {
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
         correctedPeriod = true;
@@ -411,7 +411,7 @@ export async function directAnswer(
       readingTools.size > 0 &&
       missingPartnerNature(reply, value.query)
     ) {
-      if (correctedPartnerCoverage || modelCalls >= 5) {
+      if (correctedPartnerCoverage || modelCalls >= maxRounds) {
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
         correctedPartnerCoverage = true;
@@ -424,7 +424,7 @@ export async function directAnswer(
         continue;
       }
     }
-    if (questionMismatch && !correctedQuestion && modelCalls < 5) {
+    if (questionMismatch && !correctedQuestion && modelCalls < maxRounds) {
       correctedQuestion = true;
       // Keep the same tool evidence and call budget. Do not add the rejected
       // marriage answer to history or turn its date into a new prediction.

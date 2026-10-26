@@ -12,7 +12,7 @@ const monthNames = months
 // calculated event date. Chart-claim validation still runs before this check.
 export function isPeriodInterpretation(reply, data) {
   if (
-    !/\b(?:interpretation|sambhavit|sambhavna|sambhav|may|could|potential|possible)\b|\bho sak(?:ta|ti|te)\b/i.test(
+    !/\b(?:interpretation|sambhavit|sambhavna|sambhav|may|could|potential|possible)\b|\b(?:ho|ban) sak(?:ta|ti|te)\b/i.test(
       reply,
     ) ||
     !/\b(?:because|kyunki|lord|swami|house|ghar|drishti|aspect)\b/i.test(reply) ||
