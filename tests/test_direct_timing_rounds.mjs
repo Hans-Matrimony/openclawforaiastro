@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { unsupportedEventTiming } from "../extensions/reviewed-reading/direct/event-timing.mjs";
+import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence-fallback.mjs";
+import { asksForTiming } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
+import { timingRepairEvidence } from "../extensions/reviewed-reading/direct/timing-repair.mjs";
 
 const row = {
   engine: "local-sweph-v2",
@@ -10,6 +13,62 @@ const row = {
 };
 const supported =
   "Jupiter 7ve ghar mein hai.\n\nMars antardasha 15 Sept 2027 se 14 Nov 2028 mein shaadi sambhavit hai.";
+
+void test("timing intent stays consistent across topics and shorthand without adding unsolicited dates", () => {
+  for (const query of [
+    "shaadi kb hogi",
+    "Meri job kab lagegi",
+    "How soon will my career improve?",
+    "Meri shaadi kis saal hogi",
+    "Paise kitni der mein theek honge",
+    "Will I marry by 2028?",
+    "Shaadi 2028 tak hogi?",
+    "मेरी शादी कब होगी?",
+  ]) {
+    assert.equal(asksForTiming(query), true, query);
+  }
+  for (const query of [
+    "Mere career fields batao",
+    "My birth year is 2001",
+    "Explain the seventh house",
+    "What is a dasha?",
+  ]) {
+    assert.equal(asksForTiming(query), false, query);
+  }
+  const evidence = JSON.stringify({
+    ...row,
+    verdict_signals: [{ area: "marriage", trend: "MIXED", positive: [], negative: [] }],
+  });
+  for (const query of ["shaadi kab hogi", "shaadi kb hogi", "shaadi kis saal hogi"]) {
+    const answer = evidenceFallback(
+      [evidence],
+      "hinglish",
+      query,
+      new Date("2026-10-26T00:00:00Z"),
+    );
+    assert.match(answer, /2027-09-15.*2028-11-14/);
+    assert.doesNotMatch(answer, /Relationship ki reading mein mixed/);
+  }
+});
+
+void test("observed start-only correction remains rejected and receives exact repair targets", () => {
+  const draft =
+    "Jupiter 7ve ghar mein hai, shaadi mein delay hai.\n\n2027-09-15 se Mars antardasha shuru hoga, tab 7ve ghar ka yog balwaan hoga.";
+  assert.equal(unsupportedEventTiming(draft, [JSON.stringify(row)]), true);
+  const instruction = timingRepairEvidence([JSON.stringify(row)]);
+  assert.match(instruction, /September 2027/);
+  assert.match(instruction, /November 2028/);
+  assert.match(instruction, /BOTH month-year boundaries/);
+  assert.match(instruction, /period change alone does not establish improvement/);
+  assert.equal(timingRepairEvidence(["bad JSON"]), "");
+  assert.equal(
+    timingRepairEvidence([JSON.stringify(row), JSON.stringify({ ...row, dasha: {} })]),
+    "",
+  );
+  const invalid = structuredClone(row);
+  invalid.dasha.upcoming_antardashas[0].from = "2027-02-30";
+  assert.equal(timingRepairEvidence([JSON.stringify(invalid)]), "");
+});
 
 for (const verdict of [
   "Mars antardasha September 2027 se November 2028 mein shaadi ka yog ban sakta hai.",

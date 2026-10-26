@@ -7,6 +7,13 @@ export const CHART_TOOL_NAMES = new Set([
 
 export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
+// Use the same timing intent for tool selection and fallback presentation.
+export function asksForTiming(query) {
+  return /\b(?:kab|kb|when|timing)\b|\bhow\s+(?:soon|long)\b|\b(?:which|what)\s+(?:year|month|date)\b|\b(?:kis|kaunse|kaun\s+se)\s+(?:saal|mahine|month|year)\b|\bkitn[aei]\s+(?:time|samay|waqt|din|mahine|saal|der)\b|\b20\d{2}\s+tak\b|\bby\s+20\d{2}\b|कब|किस\s+(?:साल|महीने)|कितन[ाीे]\s+(?:समय|दिन|महीने|साल|देर)/iu.test(
+    query,
+  );
+}
+
 export function isOrdinaryConcern(query) {
   return (
     !/[?]|\b(?:kab|when|hoga|hogi|kundli|chart|astrology|predict|horoscope|batao)\b/i.test(query) &&

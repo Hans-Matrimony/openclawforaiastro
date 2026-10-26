@@ -1,6 +1,7 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
 import { periodFallback } from "./period-fallback.mjs";
+import { asksForTiming } from "./reading-intent.mjs";
 
 // A failed bounded correction must not become a transport failure or publish
 // the rejected prediction. This fallback uses only returned period facts.
@@ -35,7 +36,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     const english = language === "english";
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
     const trend = { POSITIVE: "supportive", NEGATIVE: "challenging", MIXED: "mixed" }[signal.trend];
-    const timing = /\b(?:when|kab|kb|year|saal|date|timing)\b|कब|साल|वर्ष/iu.test(query);
+    const timing = asksForTiming(query);
     const factors = [signal.positive, signal.negative]
       .map((items) =>
         (Array.isArray(items) ? items : []).map((s) => fallbackFactor(s, english)).find(Boolean),
