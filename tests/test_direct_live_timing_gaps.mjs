@@ -13,6 +13,15 @@ const evidence = [
   }),
 ];
 
+test("plural house-score wording retains meaning without an orphaned number", () => {
+  const text = "7ve ghar ki bindus sirf 20 hain \u2014 bahut kam.";
+  assert.equal(formatDisplayReply(text), "7ve ghar mein sahyog bahut kam hai.");
+  for (const preserved of ["7ve ghar ki keemat sirf 20 lakh hai.", "Age sirf 20 hai."]) {
+    assert.equal(formatDisplayReply(preserved), preserved);
+  }
+  assert.equal(formatDisplayReply(formatDisplayReply(text)), formatDisplayReply(text));
+});
+
 test("observed dating and job promises undergo the same timing check as marriage", () => {
   for (const reply of [
     "Girlfriend 2027-09-15 ke baad banegi.",
