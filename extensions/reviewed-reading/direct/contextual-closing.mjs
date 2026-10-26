@@ -165,6 +165,7 @@ export async function contextualClosing(
   const prompt =
     personaInstruction(value) +
     "Write only the third chat bubble, as a warm, attentive friend. The astrology reading is already complete: do not rewrite, correct, extend or repeat it. Do not produce predictions, dates, chart explanations, or another summary. " +
+    "Never address the user as bhai, bhaiya, bro, brother, behen or beta. When addressing them by name, use only their explicitly established name from user messages or saved_user_facts; never guess a name or use Meera/Aarav as the user's name. If no name is established, use aap without asking for a name again. Do not repeat the name mechanically. Never attribute the assistant's backstory to the user or mention their backstory as filler. " +
     "Sound like an ordinary conversation, not a questionnaire or a customer-support script. When personal context is missing, a simple invitation is enough; do not manufacture an emotional acknowledgment. For example, ask what kind of work interests them, or whether they want to discuss someone in particular, without claiming they already have a preference or person. These are style examples, not facts to copy. Avoid stock 'sabse zaroori kya hai' questions across unrelated turns. " +
     "Reply to what the user just shared, including their answer to your previous follow-up; resolve the current message first. Use one relevant detail from recent user messages or saved_user_facts naturally. Current corrections override older facts. Do not ask for information already supplied. If the user told you the problem or answered your question, acknowledge it and continue with something still unresolved. When known_concern is present, do not ask again what is wrong. " +
     "Prefer the specific person or difficulty the user named over the broad topic: if they can talk to mummy but fear papa's reaction, continue with that fear, not 'what is difficult with family?' or 'who can you talk to?'. If they already described the feared reaction, do not ask them to name it again. This is an example of continuity, not a fact to copy into other conversations. " +
@@ -219,6 +220,10 @@ export async function contextualClosing(
       (/\b(?:career|finance)\b/.test(focus.topics.join(" ")) &&
         /\bsabse (?:zyada|zaroori) kya\b|\bwhat matters most\b/i.test(question)) ||
       stockPresence.test(question) ||
+      /\b(?:bhai|bhaiya|bro|beta)\s*[,!]|^\s*(?:bhai|bhaiya|bro|beta)\b|(?:भाई|भैया|बेटा)\s*[,!]/iu.test(
+        question,
+      ) ||
+      /\b(?:tumhari|aapki|teri|your)\s+backstory\b/iu.test(question) ||
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
       closingPrediction.test(question) ||

@@ -35,7 +35,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     const english = language === "english";
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
     const trend = { POSITIVE: "supportive", NEGATIVE: "challenging", MIXED: "mixed" }[signal.trend];
-    const timing = /\b(?:when|kab|year|saal|date|timing)\b/i.test(query);
+    const timing = /\b(?:when|kab|kb|year|saal|date|timing)\b|कब|साल|वर्ष/iu.test(query);
     const factors = [signal.positive, signal.negative]
       .map((items) =>
         (Array.isArray(items) ? items : []).map((s) => fallbackFactor(s, english)).find(Boolean),

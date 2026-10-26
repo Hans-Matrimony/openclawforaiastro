@@ -87,6 +87,9 @@ export async function readingContext(
   if (value.quota_context) {
     prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
   }
+  // Presentation guidance shared by both writers; no new reading/tool rule.
+  prompt +=
+    "\n\n# Everyday wording\nUse plain, complete sentences in the requested language. Avoid poetic filler, unexplained metaphors or religious gestures as descriptions of a partner's personality. Do not use a phrase such as 'baahar se sajda karta hua' to mean reserved or thoughtful; those meanings are different. If wording is unclear, retain the intelligible supported description instead of inventing a replacement trait. This is a language instruction only: preserve the reading's dates, reasons, positive/negative/mixed conclusion and qualification.\n";
   // Keep both requested parts visible when a short reading asks about timing
   // and partner nature. This controls coverage, never the tool evidence.
   if (

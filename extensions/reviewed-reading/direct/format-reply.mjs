@@ -33,7 +33,7 @@ export function removeReplyDashes(reply) {
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
   return (
-    reply
+    removeOrphanedHouseScore(reply)
       .replace(
         /\bashtakavarga\s+(?:score\s+|count\s+)?(?:sirf\s+)?\d{1,3}(?:\/48)?\s+hai,?\s+jo\s+(bahut\s+kam|kamzor|strong|weak)\s+hai/gi,
         "$1 sahyog hai",
@@ -48,6 +48,27 @@ export function removeDisplayTerms(reply) {
         before && after ? " " : "",
       )
   );
+}
+
+function removeOrphanedHouseScore(reply) {
+  try {
+    JSON.parse(reply);
+    return reply;
+  } catch {
+    // Apply this presentation rule only to prose, never code or structured data.
+  }
+  return reply
+    .split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
+    .map((part, index) =>
+      index % 2
+        ? part
+        : part.replace(
+            /\b((?:[1-9]|1[0-2])(?:ve|ven|wan|st|nd|rd|th)\s+(?:ghar|house)|house\s+(?:[1-9]|1[0-2]))\s+ka\s+sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hai[ \t]+(?=(?:Saturn|Jupiter|Venus|Mars|Mercury|Moon|Sun|Rahu|Ketu|Shani|Guru|Shukra|Mangal|Budh|Chandra|Surya)\b)/gi,
+            // Keep the house as a label, without inferring a new strong/weak verdict.
+            "$1: ",
+          ),
+    )
+    .join("");
 }
 
 // Bindu totals (ashtakavarga point counts like 31/48) are internal judgment

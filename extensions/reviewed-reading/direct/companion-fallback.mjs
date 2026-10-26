@@ -82,7 +82,26 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
             hindi: "घरवालों वाली बात को लेकर अब कैसा महसूस हो रहा है?",
           }
         : null;
-  const crush = relationship && /\bcrush\b/i.test(topicQuery);
+  // A broad marriage question can continue the latest user-authored crush
+  // topic. Do not borrow assistant guesses or revive a topic the user ended.
+  const recentRelationship = (value.history ?? [])
+    .filter((turn) => turn.role === "user")
+    .slice(-6)
+    .toReversed()
+    .find((turn) =>
+      /\b(?:crush|sha+di|marriage|partner|gf|bf|relationship|rishta)\b/i.test(turn.text),
+    );
+  const crush =
+    relationship &&
+    !newRelationship &&
+    (/\bcrush\b/i.test(topicQuery) ||
+      (!/\b(?:nahi|nahin|nhi|not|forget|instead|chhod|chod|koi aur|someone else)\b/i.test(
+        topicQuery,
+      ) &&
+        /\b(?:meri|mera|my)\s+crush\b/i.test(recentRelationship?.text ?? "") &&
+        !/\b(?:nahi|nahin|nhi|not|forget|chhod|chod|koi aur|someone else)\b/i.test(
+          recentRelationship.text,
+        )));
   const options =
     language === "hinglish"
       ? education
