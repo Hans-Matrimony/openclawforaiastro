@@ -15,6 +15,29 @@ const transit = JSON.stringify({
     { planet: "Jupiter", over_natal_house: 9 },
   ],
 });
+void test("live Hinglish house labels receive the same placement checks as English", () => {
+  const natal = JSON.stringify({
+    engine: "local-sweph-v2",
+    birth_chart: {
+      planets: ["Saturn: Taurus | house 7", "Mercury: Sagittarius | house 2"],
+    },
+  });
+  for (const text of [
+    "10ve ghar mein Saturn hai.",
+    "Saturn 10ve ghar mein hai.",
+    "Mercury 5ve ghar mein hai.",
+  ]) {
+    assert.equal(chartClaimConflicts(text, [natal]).length, 1, text);
+  }
+  for (const text of [
+    "Saturn 7ve ghar mein hai.",
+    "7ve ghar mein Saturn hai.",
+    "Saturn ki drishti 10ve ghar par hai.",
+    "10ve ghar mein Saturn ki drishti hai.",
+  ]) {
+    assert.equal(chartClaimConflicts(text, [natal]).length, 0, text);
+  }
+});
 void test("rejects observed natal planets relabelled as current transits", () => {
   assert.equal(
     chartClaimConflicts("Jupiter aur Saturn dono house 7 par transit kar rahe hain.", [

@@ -5,6 +5,23 @@ import { evidenceFallback } from "../extensions/reviewed-reading/direct/evidence
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
 import { isPersonalChartQuestion } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
+void test("education wording cannot bypass the personal chart requirement", () => {
+  for (const query of [
+    "Meri padhai aur exams ke baare mein batao.",
+    "Mere exams kaise honge?",
+    "Meri padhaai kaisi rahegi?",
+  ]) {
+    assert.equal(isPersonalChartQuestion(query), true, query);
+  }
+  for (const query of [
+    "What are exams?",
+    "Mere bhai ki padhai ke baare mein batao",
+    "Meri padhai ke liye interview tips batao",
+  ]) {
+    assert.equal(isPersonalChartQuestion(query), false, query);
+  }
+});
+
 void test("address corrections do not bypass personal reading checks; relatives still use their own profile", () => {
   assert.equal(
     isPersonalChartQuestion(

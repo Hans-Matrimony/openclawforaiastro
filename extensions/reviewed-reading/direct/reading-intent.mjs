@@ -56,7 +56,7 @@ export function isPersonalChartQuestion(query) {
     return false;
   }
   const topic =
-    /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exam|finances?|financial|money|paisa|paise|kundli|horoscope|birth chart)\b/;
+    /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exams?|padhai|padhaai|padhayi|parhai|finances?|financial|money|paisa|paise|kundli|horoscope|birth chart)\b/;
   const personal = /\b(?:i|my|me|meri|mera|mere|mujhe|mujhse|main)\b/;
   const timing = /\b(?:when|kab|kb|hogi|hoga|lagegi)\b/;
   const request =

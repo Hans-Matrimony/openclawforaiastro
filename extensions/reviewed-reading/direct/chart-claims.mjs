@@ -2,6 +2,8 @@
 const planets = "Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu";
 
 export function chartClaimConflicts(reply, results) {
+  // Normalize equivalent house labels for validation only; never rewrite the answer.
+  reply = reply.replace(/\b(\d{1,2})(?:ve|ven|va|wa|we|th|st|nd|rd)?\s+ghar\b/gi, "$1th house");
   const data = results.flatMap((raw) => {
     try {
       const row = JSON.parse(raw);
