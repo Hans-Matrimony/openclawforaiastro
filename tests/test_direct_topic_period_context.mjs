@@ -121,3 +121,14 @@ test("live future-aspect and linked house-lord explanations are rejected", () =>
   );
   assert.equal(chartClaimConflicts("Jupiter 7ve ghar mein hai", results).length, 0);
 });
+
+test("event timing cannot be replaced by a labeled bare schedule", () => {
+  assert.equal(
+    unsupportedTopicOpportunity(
+      "Career mein rukawat hai.\n\nJob ka waqt: Mars antardasha 2027-09-15 se 2028-11-14 tak hai.",
+      results,
+      "job kab",
+    ),
+    true,
+  );
+});

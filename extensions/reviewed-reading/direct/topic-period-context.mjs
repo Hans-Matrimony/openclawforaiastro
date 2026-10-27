@@ -80,6 +80,9 @@ export function topicPeriodContext(results, query) {
 export function unsupportedTopicOpportunity(reply, results, query) {
   const evidence = topicPeriodEvidence(results, query);
   const verdict = reply.split(/\n\s*\n/).at(-1);
+  if (evidence && /(?:waqt|samay|timing|time)\s*:\s*.*antardasha/i.test(verdict)) {
+    return true;
+  }
   if (
     /sambhavn?a\s+(?:bahut\s+)?(?:kam|nahi)|sambhavana\s+(?:kam|nahi)|\b(?:unlikely|unfavorable|not supported)\b|(?:shaadi|job|rishta|girlfriend).{0,40}\bnahi\b/i.test(
       verdict,
