@@ -33,7 +33,7 @@ export function removeReplyDashes(reply) {
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
   return (
-    removeOrphanedHouseScore(reply)
+    removeOrphanedHouseScore(cleanCausalWording(reply))
       .replace(
         /\bashtakavarga\s+(?:score\s+|count\s+)?(?:sirf\s+)?\d{1,3}(?:\/48)?\s+hai,?\s+jo\s+(bahut\s+kam|kamzor|strong|weak)\s+hai/gi,
         "$1 sahyog hai",
@@ -48,6 +48,28 @@ export function removeDisplayTerms(reply) {
         before && after ? " " : "",
       )
   );
+}
+
+// Preserve the existing causal statement when removing technical terminology.
+// Do not leave fragments such as "lekin Jupiter hai, isliye ...".
+function cleanCausalWording(reply) {
+  try {
+    JSON.parse(reply);
+    return reply;
+  } catch {
+    // Only natural-language prose is eligible for this wording repair.
+  }
+  return reply
+    .split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
+    .map((part, index) =>
+      index % 2
+        ? part
+        : part.replace(
+            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+hai\s*[,;]?\s*isliye\s+/gi,
+            "$1 ki sthiti ki wajah se ",
+          ),
+    )
+    .join("");
 }
 
 function removeOrphanedHouseScore(reply) {

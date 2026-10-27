@@ -171,8 +171,8 @@ export function timingCorrection(results, query, language, asOf) {
           first +
           "\n\n" +
           (english
-            ? "These factors do not establish an event year."
-            : "In sanketon se abhi ek saal tay nahi hota.")
+            ? `The timing for ${subject[1]} is not clear from this reading.`
+            : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ki timing is reading mein abhi saaf nahi hai.`)
         );
       }
       if (!/^p\d+$/.test(data.period_id)) {
