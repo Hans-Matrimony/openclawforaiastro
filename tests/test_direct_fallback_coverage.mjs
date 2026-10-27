@@ -323,3 +323,76 @@ void test("companion cannot add marriage reassurance or poetic advice to the che
     assert.equal(reply, base + "\n\nKya aapne unse apni feelings share ki hain?");
   }
 });
+
+void test("adverse-only live timing is repaired with isolated checked IDs within existing call budget", async () => {
+  const row = source();
+  row.evidence_scope = { timing: "does not calculate event-specific windows" };
+  let calls = 0;
+  const result = await directAnswer(
+    {
+      ...value,
+      query: "Meri shaadi kab hogi?",
+      history: [{ role: "assistant", text: "February 2028 pakka." }],
+    },
+    {
+      now: () => now,
+      env: {
+        OPENROUTER_API_KEY: "test",
+        VEDASTRO_DIRECT_FLOW: "source",
+        VEDASTRO_DIRECT_ENVIRONMENT: "development",
+        VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
+        VEDASTRO_DIRECT_REPLY_CACHE: "0",
+      },
+      makeMemory: () => ({ read: async () => [] }),
+      makeTools: () => async () => JSON.stringify(row),
+      fetchImpl: async (url, options) => {
+        calls++;
+        const body = JSON.parse(options.body);
+        let message;
+        if (calls === 1)
+          message = {
+            tool_calls: [
+              {
+                id: "natal",
+                type: "function",
+                function: { name: "mcp__VedAstro__get_horoscope_predictions", arguments: "{}" },
+              },
+            ],
+          };
+        else if (calls === 2)
+          message = {
+            content:
+              "Mars antardasha September 2027 se November 2028 mein shaadi sambhavna hai, Mars ki drishti 7ve ghar par hai.",
+          };
+        else {
+          assert.equal(body.tool_choice.function.name, "submit_timing_reading");
+          assert.doesNotMatch(JSON.stringify(body.messages), /February 2028 pakka/);
+          message = {
+            tool_calls: [
+              {
+                id: "repair",
+                type: "function",
+                function: {
+                  name: "submit_timing_reading",
+                  arguments: JSON.stringify({
+                    period_id: "p2",
+                    outlook: "mixed",
+                    factor_ids: ["f0"],
+                  }),
+                },
+              },
+            ],
+          };
+        }
+        return new Response(
+          JSON.stringify({
+            choices: [{ finish_reason: message.tool_calls ? "tool_calls" : "stop", message }],
+          }),
+        );
+      },
+    },
+  );
+  assert.equal(calls, 3);
+  assert.match(result.reply, /November 2031.*July 2034/);
+  assert.doesNotMatch(result.reply, /2027|2028/);
+});

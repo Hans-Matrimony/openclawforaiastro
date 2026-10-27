@@ -41,6 +41,7 @@ import { limitResponseLength } from "./response-length.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
+import { timingCorrection } from "./timing-correction.mjs";
 import {
   timingAnswerInstruction,
   nonTimingAnswerInstruction,
@@ -199,6 +200,7 @@ export async function directAnswer(
   let correctedMissingTiming = false;
   let correctedQuestion = false;
   let correctedPeriod = false;
+  let pendingTimingRepair = null;
   let correctedHouseLord = false;
   const validation = [];
   const chartResults = [];
@@ -210,17 +212,37 @@ export async function directAnswer(
     const requireTiming = correctedMissingTiming && !readingTools.has("get_horoscope_predictions");
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
-      messages,
-      tools: ordinaryConcern
-        ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
-        : requireChart
-          ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
-          : TOOLS,
-      tool_choice: requireTiming
-        ? { type: "function", function: { name: "mcp__VedAstro__get_horoscope_predictions" } }
-        : requireChart
-          ? "required"
-          : "auto",
+      messages: pendingTimingRepair
+        ? [
+            {
+              role: "system",
+              content:
+                "Repair only the current astrology reading using supplied checked evidence. Prior predictions are not evidence.",
+            },
+            {
+              role: "user",
+              content:
+                JSON.stringify(value.query) +
+                "\n" +
+                pendingTimingRepair.instruction +
+                topicPeriodContext(chartResults, value.query),
+            },
+          ]
+        : messages,
+      tools: pendingTimingRepair
+        ? [pendingTimingRepair.tool]
+        : ordinaryConcern
+          ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
+          : requireChart
+            ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
+            : TOOLS,
+      tool_choice: pendingTimingRepair
+        ? { type: "function", function: { name: pendingTimingRepair.name } }
+        : requireTiming
+          ? { type: "function", function: { name: "mcp__VedAstro__get_horoscope_predictions" } }
+          : requireChart
+            ? "required"
+            : "auto",
       stream: false,
       max_tokens: 4096,
       ...generation,
@@ -266,6 +288,16 @@ export async function directAnswer(
     const choice = completion.choices?.[0];
     if (!choice?.message) {
       throw new Error("Missing direct reply");
+    }
+    if (pendingTimingRepair) {
+      const repaired = pendingTimingRepair.render(choice.message);
+      pendingTimingRepair = null;
+      choice.message = {
+        role: "assistant",
+        content: repaired || evidenceFallback(chartResults, value.language, value.query, now()),
+      };
+      choice.finish_reason = "stop";
+      validation.push(repaired ? "topic_timing_repaired" : "topic_timing_repair_unavailable");
     }
     if (choice.finish_reason === "tool_calls" && choice.message.tool_calls?.length) {
       if (choice.message.tool_calls.length > 8) {
@@ -416,6 +448,12 @@ export async function directAnswer(
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
         correctedPeriod = true;
+        if (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) {
+          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          if (pendingTimingRepair) {
+            continue;
+          }
+        }
         messages.push({
           role: "user",
           content:
