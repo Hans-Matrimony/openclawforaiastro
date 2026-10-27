@@ -340,7 +340,7 @@ for (const invalid of ["unsupported_date", "wrong_house_lord"]) {
             if (invalid === "wrong_house_lord" && calls === 4) {
               reply = { content: "Mars 7ve ghar ka lord hai.\n\nShaadi 2029 mein hogi." };
             } else {
-              assert.equal(calls, invalid === "wrong_house_lord" ? 5 : 4);
+              assert.ok(calls <= (invalid === "wrong_house_lord" ? 6 : 5));
               reply = { content: "Ghar mein shaadi ko lekar kya baat chal rahi hai?" };
             }
           }
@@ -354,13 +354,9 @@ for (const invalid of ["unsupported_date", "wrong_house_lord"]) {
         },
       },
     );
-    assert.equal(calls, invalid === "wrong_house_lord" ? 5 : 4);
+    assert.equal(calls, invalid === "wrong_house_lord" ? 6 : 5);
     assert.equal(executions, 1);
     assert.doesNotMatch(result.reply, /2029|pakki|jo 7ve ghar ka lord/);
-    assert.ok(
-      result.answer_validation.includes(
-        invalid === "wrong_house_lord" ? "chart_fallback" : "timing_fallback",
-      ),
-    );
+    assert.ok(result.answer_validation.includes("topic_timing_repair_unavailable"));
   });
 }

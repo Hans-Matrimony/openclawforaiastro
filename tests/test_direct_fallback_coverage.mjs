@@ -219,7 +219,7 @@ void test("bounded dev-style correction retains chart evidence and fallback keep
       );
     },
   });
-  assert.equal(calls, 4);
+  assert.equal(calls, 5);
   assert.equal(result.reply.split("\n\n").length, 3);
   assert.doesNotMatch(result.reply, /Saathi ke swabhav/);
   assert.match(result.reply, /15 September 2027.*14 November 2028/);
@@ -324,7 +324,8 @@ void test("companion cannot add marriage reassurance or poetic advice to the che
   }
 });
 
-void test("adverse-only live timing is repaired with isolated checked IDs within existing call budget", async () => {
+for (const rejected of ["adverse_only", "repeated_unsupported_date"]) {
+void test(`${rejected} timing is repaired with isolated checked IDs within existing call budget`, async () => {
   const row = source();
   row.evidence_scope = { timing: "does not calculate event-specific windows" };
   let calls = 0;
@@ -359,9 +360,9 @@ void test("adverse-only live timing is repaired with isolated checked IDs within
               },
             ],
           };
-        } else if (calls === 2) {
+        } else if (calls === 2 || (rejected === "repeated_unsupported_date" && calls === 3)) {
           message = {
-            content:
+            content: rejected === "repeated_unsupported_date" ? "February 2028 mein shaadi pakki hogi." :
               "Mars antardasha September 2027 se November 2028 mein shaadi sambhavna hai, Mars ki drishti 7ve ghar par hai.",
           };
         } else {
@@ -392,7 +393,8 @@ void test("adverse-only live timing is repaired with isolated checked IDs within
       },
     },
   );
-  assert.equal(calls, 3);
+  assert.equal(calls, rejected === "repeated_unsupported_date" ? 4 : 3);
   assert.match(result.reply, /November 2031.*July 2034/);
   assert.doesNotMatch(result.reply, /2027|2028/);
 });
+}

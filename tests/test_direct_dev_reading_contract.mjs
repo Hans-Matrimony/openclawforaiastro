@@ -92,7 +92,12 @@ for (const fixture of contract.fixtures) {
             JSON.stringify(personaInstruction({ user_gender: "male" })).slice(1, -1),
             "[APP_PERSONA]",
           );
-          hashes.push(createHash("sha256").update(normalized).digest("hex"));
+          if (body.tool_choice?.function?.name === "submit_timing_reading") {
+            assert.equal(fixture.id, "fallback");
+            assert.equal(calls, fixture.requestHashes.length + 1);
+          } else {
+            hashes.push(createHash("sha256").update(normalized).digest("hex"));
+          }
           const message =
             calls === 1
               ? {

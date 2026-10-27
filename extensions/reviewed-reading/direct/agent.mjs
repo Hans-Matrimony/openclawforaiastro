@@ -201,6 +201,7 @@ export async function directAnswer(
   let correctedQuestion = false;
   let correctedPeriod = false;
   let pendingTimingRepair = null;
+  let attemptedTimingRepair = false;
   let correctedHouseLord = false;
   const validation = [];
   const chartResults = [];
@@ -290,6 +291,7 @@ export async function directAnswer(
       throw new Error("Missing direct reply");
     }
     if (pendingTimingRepair) {
+      attemptedTimingRepair = true;
       const repaired = pendingTimingRepair.render(choice.message);
       pendingTimingRepair = null;
       choice.message = {
@@ -422,6 +424,10 @@ export async function directAnswer(
     if (lordConflicts.length) {
       validation.push("chart_claim_conflict");
       if (correctedHouseLord || modelCalls >= maxRounds) {
+        if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
+          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          if (pendingTimingRepair) continue;
+        }
         validation.push("chart_fallback");
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
@@ -455,6 +461,13 @@ export async function directAnswer(
     ) {
       validation.push("timing_claim_rejected");
       if (correctedPeriod || modelCalls >= maxRounds) {
+        // Keep the dev-style prose correction first. If it fails, spend an
+        // available round on the existing structured verdict repair instead
+        // of immediately substituting the first upcoming dasha schedule.
+        if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
+          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          if (pendingTimingRepair) continue;
+        }
         validation.push("timing_fallback");
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
