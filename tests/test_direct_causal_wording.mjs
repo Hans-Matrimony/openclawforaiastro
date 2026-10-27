@@ -20,3 +20,21 @@ test("ordinary positive and negative conclusions are unchanged", () => {
     assert.equal(formatDisplayReply(text), text);
   }
 });
+
+void test("clear marriage timing keeps dates and contrary indications", () => {
+  assert.equal(
+    formatDisplayReply("Shaadi November 2031 se July 2034 ke beech ki sambhavna hai."),
+    "Shaadi ka yog November 2031 se July 2034 ke beech hai.",
+  );
+  assert.equal(
+    formatDisplayReply(
+      "Jupiter ki antardasha mein November 2031 se July 2034 ke beech shaadi hone ki sambhavna hai.",
+    ),
+    "Jupiter ki antardasha mein November 2031 se July 2034 ke beech shaadi ka yog dikh raha hai.",
+  );
+  const negative = "Shaadi November 2031 se July 2034 ke beech hone ki sambhavna kam hai.";
+  assert.equal(formatDisplayReply(negative), negative);
+  const mixed =
+    "Shaadi November 2031 se July 2034 ke beech ki sambhavna hai, lekin rukawatein bhi hain.";
+  assert.match(formatDisplayReply(mixed), /lekin rukawatein bhi hain/);
+});

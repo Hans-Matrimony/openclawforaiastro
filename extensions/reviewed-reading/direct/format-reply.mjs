@@ -2,7 +2,26 @@ import { isCompanionParagraph } from "./friendly-closing.mjs";
 
 export function formatDisplayReply(reply) {
   // Display-only cleanup; preserve the full response and all bubble boundaries.
-  return removeReplyDashes(removeDisplayTerms(reply));
+  return removeReplyDashes(removeDisplayTerms(clearMarriageTiming(reply)));
+}
+
+// Presentation only, after reading validation. Keep the selected dates and
+// negative/mixed meaning; "yog" remains an interpretation, not a guarantee.
+function clearMarriageTiming(reply) {
+  return reply
+    .split(/(\r?\n[ \t]*\r?\n)/)
+    .map((paragraph) => {
+      if (!/\b20\d{2}\b/.test(paragraph) || /```|`|https?:\/\/|[{}]/.test(paragraph)) {
+        return paragraph;
+      }
+      return paragraph
+        .replace(
+          /\bshaadi\s+([^.!?\n]{1,110}?\bse\b[^.!?\n]{1,60}?)\s+ke\s+beech\s+(?:hone\s+)?ki\s+sambhavna\s+hai\b/gi,
+          "Shaadi ka yog $1 ke beech hai",
+        )
+        .replace(/\bshaadi\s+hone\s+ki\s+sambhavna\s+hai\b/gi, "shaadi ka yog dikh raha hai");
+    })
+    .join("");
 }
 
 export function removeReplyDashes(reply) {
