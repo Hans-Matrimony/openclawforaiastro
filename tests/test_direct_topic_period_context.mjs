@@ -84,3 +84,14 @@ test("live pressure-only Mars opportunity is rejected without suppressing suppor
     false,
   );
 });
+
+test("a known natal planet with no career relationship cannot justify a job window", () => {
+  assert.equal(
+    unsupportedTopicOpportunity(
+      "Mars antardasha September 2027 se November 2028 job lagegi",
+      results,
+      "job kab",
+    ),
+    true,
+  );
+});

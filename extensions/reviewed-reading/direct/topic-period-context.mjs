@@ -76,12 +76,12 @@ export function topicPeriodContext(results, query) {
   );
 }
 
-// A negative-only natal link cannot justify a positive event window.
+// An unrelated or negative-only natal link cannot justify a positive event window.
 export function unsupportedTopicOpportunity(reply, results, query) {
   const evidence = topicPeriodEvidence(results, query);
   if (
     !evidence ||
-    !/sambhavn?a|sambhavana|sambhavit|possible|opportunity|mauka|ban sak|ho sak|improv|sudhar/i.test(
+    !/sambhavn?a|sambhavana|sambhavit|possible|opportunity|mauka|ban sak|ho sak|improv|sudhar|lagegi|lagega|hogi|hoga/i.test(
       reply,
     )
   ) {
@@ -94,7 +94,7 @@ export function unsupportedTopicOpportunity(reply, results, query) {
     return (
       named &&
       dated &&
-      p.adverse_factors.length > 0 &&
+      Boolean(p.natal_placement) &&
       !p.supportive_factors.length &&
       !p.relevant_house_lord.length &&
       !p.occupies_relevant_house
