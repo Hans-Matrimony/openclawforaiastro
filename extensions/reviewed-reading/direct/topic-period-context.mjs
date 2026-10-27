@@ -79,6 +79,14 @@ export function topicPeriodContext(results, query) {
 // An unrelated or negative-only natal link cannot justify a positive event window.
 export function unsupportedTopicOpportunity(reply, results, query) {
   const evidence = topicPeriodEvidence(results, query);
+  const verdict = reply.split(/\n\s*\n/).at(-1);
+  if (
+    /sambhavn?a\s+(?:bahut\s+)?(?:kam|nahi)|sambhavana\s+(?:kam|nahi)|\b(?:unlikely|unfavorable|not supported)\b|(?:shaadi|job|rishta|girlfriend).{0,40}\bnahi\b/i.test(
+      verdict,
+    )
+  ) {
+    return false;
+  }
   if (
     !evidence ||
     !/sambhavn?a|sambhavana|sambhavit|possible|opportunity|mauka|ban sak|ho sak|improv|sudhar|lagegi|lagega|hogi|hoga/i.test(

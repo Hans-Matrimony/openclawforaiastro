@@ -95,3 +95,14 @@ test("a known natal planet with no career relationship cannot justify a job wind
     true,
   );
 });
+
+test("adverse interpretation is preserved rather than forced into positive timing", () => {
+  assert.equal(
+    unsupportedTopicOpportunity(
+      "Mars antardasha September 2027 se November 2028 mein shaadi ki sambhavna kam hai.",
+      results,
+      "shaadi kab",
+    ),
+    false,
+  );
+});
