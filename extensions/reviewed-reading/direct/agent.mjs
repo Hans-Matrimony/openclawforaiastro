@@ -41,7 +41,7 @@ import { limitResponseLength } from "./response-length.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
-import { timingRepairEvidence } from "./timing-repair.mjs";
+import { timingAnswerInstruction, timingRepairEvidence } from "./timing-repair.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
 
 export function redactIdentity(text, userId) {
@@ -168,6 +168,9 @@ export async function directAnswer(
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
       JSON.stringify(redactIdentity(value.query, value.user_id)) +
       ". Earlier questions are not the current request. Preserve user circumstances as context, not earlier forecasts or unrelated topics.\n";
+  }
+  if (timingRequired) {
+    context.prompt += timingAnswerInstruction;
   }
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
@@ -394,7 +397,7 @@ export async function directAnswer(
       (sourceFlow && unsupportedEventTiming(reply, chartResults))
     ) {
       validation.push("timing_claim_rejected");
-      if (correctedPeriod || modelCalls >= 5) {
+      if (correctedPeriod || modelCalls >= maxRounds) {
         validation.push("timing_fallback");
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {

@@ -1,3 +1,7 @@
+// Explain the validation contract before drafting, rather than only after rejection.
+export const timingAnswerInstruction =
+  "\n\n# Timing answer\nThe user asks when. Use get_horoscope_predictions for the actual period schedule. Answer with a relevant chart-based interpretation and a short timing verdict, preserving supportive, unfavorable or mixed indications. If interpreting a returned period, include its lord and BOTH start and end month-year boundaries, with a natural qualification such as sambhavna or ho sakti hai. Explain the checked chart reason; a period change alone does not prove an event. Do not substitute a bare dasha schedule for the answer, invent an exact event month, or copy a date from history. If the evidence cannot support a timing interpretation, say that briefly without inventing one. The separate companion stage handles the friendly question.\n";
+
 // Provide exact correction targets, not a new interpretation or invented event date.
 export function timingRepairEvidence(results) {
   const rows = results.flatMap((raw) => {

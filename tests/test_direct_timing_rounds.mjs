@@ -168,73 +168,79 @@ void test("natural yog wording retains a supported window without allowing certa
   );
 });
 
-void test("dev source uses its bounded fallback after the fifth reading round", async () => {
-  let calls = 0;
-  const result = await directAnswer(
-    {
-      user_id: "synthetic-timing-rounds",
-      query: "Meri shaadi kb hogi?",
-      language: "hinglish",
-      user_gender: "male",
-      history: [],
-      birth: { date: "2001-01-03", time: "05:00", location_name: "Delhi" },
-    },
-    {
-      now: () => new Date("2026-10-26T00:00:00Z"),
-      env: {
-        OPENROUTER_API_KEY: "test",
-        VEDASTRO_DIRECT_FLOW: "source",
-        VEDASTRO_DIRECT_ENVIRONMENT: "development",
-        VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
-        VEDASTRO_DIRECT_REPLY_CACHE: "0",
+for (const toolRounds of [4, 6]) {
+  void test(`source timing correction respects the seven-round cap after ${toolRounds} tool rounds`, async () => {
+    let calls = 0;
+    const result = await directAnswer(
+      {
+        user_id: "synthetic-timing-rounds",
+        query: "Meri shaadi kb hogi?",
+        language: "hinglish",
+        user_gender: "male",
+        history: [],
+        birth: { date: "2001-01-03", time: "05:00", location_name: "Delhi" },
       },
-      makeMemory: () => ({ read: async () => [] }),
-      makeTools: () => async () => JSON.stringify(row),
-      fetchImpl: async (_url, options) => {
-        calls++;
-        const tool = calls <= 4;
-        const body = JSON.parse(options.body);
-        const correction = calls === 6;
-        if (correction) {
-          assert.equal(body.tool_choice, "auto");
-          assert.match(
-            body.messages.at(-1).content,
-            /Preserve the useful supported topic explanation/,
-          );
-        }
-        return new Response(
-          JSON.stringify({
-            choices: [
-              {
-                finish_reason: tool ? "tool_calls" : "stop",
-                message: tool
-                  ? {
-                      tool_calls: [
-                        {
-                          id: `call${calls}`,
-                          type: "function",
-                          function: {
-                            name: "mcp__VedAstro__get_horoscope_predictions",
-                            arguments: "{}",
-                          },
-                        },
-                      ],
-                    }
-                  : correction
+      {
+        now: () => new Date("2026-10-26T00:00:00Z"),
+        env: {
+          OPENROUTER_API_KEY: "test",
+          VEDASTRO_DIRECT_FLOW: "source",
+          VEDASTRO_DIRECT_ENVIRONMENT: "development",
+          VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0",
+          VEDASTRO_DIRECT_REPLY_CACHE: "0",
+        },
+        makeMemory: () => ({ read: async () => [] }),
+        makeTools: () => async () => JSON.stringify(row),
+        fetchImpl: async (_url, options) => {
+          calls++;
+          const tool = calls <= toolRounds;
+          const body = JSON.parse(options.body);
+          const correction = calls === toolRounds + 2;
+          if (correction) {
+            assert.equal(body.tool_choice, "auto");
+            assert.match(
+              body.messages.at(-1).content,
+              /Preserve the useful supported topic explanation/,
+            );
+          }
+          return new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  finish_reason: tool ? "tool_calls" : "stop",
+                  message: tool
                     ? {
-                        content:
-                          "Jupiter 7ve ghar mein hai aur Mars ki drishti se rukawat hai.\n\nMars antardasha September 2027 se November 2028 mein shaadi sambhavit hai.",
+                        tool_calls: [
+                          {
+                            id: `call${calls}`,
+                            type: "function",
+                            function: {
+                              name: "mcp__VedAstro__get_horoscope_predictions",
+                              arguments: "{}",
+                            },
+                          },
+                        ],
                       }
-                    : { content: "Shaadi 2029 mein hogi." },
-              },
-            ],
-          }),
-        );
+                    : correction
+                      ? {
+                          content:
+                            "Jupiter 7ve ghar mein hai aur Mars ki drishti se rukawat hai.\n\nMars antardasha September 2027 se November 2028 mein shaadi sambhavit hai.",
+                        }
+                      : { content: "Shaadi 2029 mein hogi." },
+                },
+              ],
+            }),
+          );
+        },
       },
-    },
-  );
-  assert.equal(calls, 5);
-  assert.match(result.reply, /2027-09-15 se 2028-11-14/);
-  assert.match(result.reply, /Shaadi ka samay:/);
-  assert.doesNotMatch(result.reply, /2029|sub-period runs|schedule/);
-});
+    );
+    assert.equal(calls, Math.min(toolRounds + 2, 7));
+    if (toolRounds === 4) {
+      assert.match(result.reply, /September 2027 se November 2028/);
+      assert.doesNotMatch(result.reply, /Shaadi ka samay:|Rishte ko lekar/);
+    } else {
+      assert.match(result.reply, /Shaadi ka samay:/);
+    }
+    assert.doesNotMatch(result.reply, /2029|sub-period runs|schedule/);
+  });
+}
