@@ -57,7 +57,7 @@ void test("fallback rejects malformed factors and avoids conclusions across diff
       evidenceFallback(
         [JSON.stringify({ ...row([period]), verdict_signals })],
         "english",
-        "Marriage",
+        "When will I marry?",
         now,
       ),
       /calculated Mars sub-period/,

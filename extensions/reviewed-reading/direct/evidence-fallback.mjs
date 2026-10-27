@@ -77,7 +77,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     );
   }
   const checkedSchedule = periodFallback(rows, language, asOf);
-  if (checkedSchedule) {
+  if (checkedSchedule && (!query || asksForTiming(query))) {
     return checkedSchedule;
   }
   return english

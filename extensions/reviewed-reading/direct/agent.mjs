@@ -394,7 +394,7 @@ export async function directAnswer(
     }
     if (
       unsupportedPeriodClaim(reply, chartResults) ||
-      (sourceFlow && unsupportedEventTiming(reply, chartResults))
+      (sourceFlow && unsupportedEventTiming(reply, chartResults, value.query))
     ) {
       validation.push("timing_claim_rejected");
       if (correctedPeriod || modelCalls >= maxRounds) {

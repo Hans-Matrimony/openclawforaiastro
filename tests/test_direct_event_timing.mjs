@@ -4,6 +4,39 @@ import { unsupportedEventTiming } from "../extensions/reviewed-reading/direct/ev
 const evidence = [
   JSON.stringify({ evidence_scope: { timing: "does not calculate event-specific windows" } }),
 ];
+void test("live education wording cannot turn a period boundary into an exam forecast", () => {
+  for (const text of [
+    "Padhai aur exams September 2027 ke baad clear honge.",
+    "Padhaai September 2027 mein behtar hogi.",
+    "Your exams will improve after September 2027.",
+    "Padhai ke factors mixed hain.\n\n2027 ke baad progress hoga.",
+  ]) {
+    assert.equal(unsupportedEventTiming(text, evidence), true, text);
+  }
+  assert.equal(
+    unsupportedEventTiming(
+      "Padhai ke factors mixed hain. Mars antardasha September 2027 se shuru hai.",
+      evidence,
+    ),
+    false,
+  );
+});
+
+void test("requested timing remains available but a general education question does not invite a date", () => {
+  const rows = [
+    JSON.stringify({
+      evidence_scope: { timing: "does not calculate event-specific windows" },
+      dasha: { upcoming_antardashas: [{ lord: "Mars", from: "2027-09-15", to: "2028-11-14" }] },
+    }),
+  ];
+  const answer =
+    "Moon 5ve ghar mein hai.\n\nMars antardasha September 2027 se November 2028 mein exams mein progress sambhavit hai.";
+  assert.equal(unsupportedEventTiming(answer, rows, "Mere exams mein progress kab hoga?"), false);
+  assert.equal(
+    unsupportedEventTiming(answer, rows, "Meri padhai aur exams ke baare mein batao."),
+    true,
+  );
+});
 void test("qualified interpretations retain an exact returned period without inventing event dates", () => {
   const rows = [
     JSON.stringify({

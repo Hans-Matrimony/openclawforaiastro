@@ -1,4 +1,5 @@
 import { companionFocus, companionNotes, asksKnownDetail } from "./companion-context.mjs";
+import { repeatsCompanionIntent } from "./companion-repetition.mjs";
 import { fallbackGrammar } from "./persona.mjs";
 import { questionScope } from "./question-scope.mjs";
 // Used only when the companion writer fails or offers no usable closing.
@@ -242,7 +243,8 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
     .filter(
       (text) =>
         !((career || finance) && /\bsabse (?:zyada|zaroori) kya\b/i.test(text)) &&
-        !asksKnownDetail(text, value, facts),
+        !asksKnownDetail(text, value, facts) &&
+        !repeatsCompanionIntent(text, value.history),
     )
     .map((text) => fallbackGrammar(text, value))
     .filter(

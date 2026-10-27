@@ -13,6 +13,7 @@ import {
   repeatsAnsweredConcern,
 } from "./companion-continuity.mjs";
 import { companionFallback } from "./companion-fallback.mjs";
+import { recentCompanionIntents, repeatsCompanionIntent } from "./companion-repetition.mjs";
 import { isCompanionParagraph } from "./friendly-closing.mjs";
 import { personaInstruction, fallbackGrammar } from "./persona.mjs";
 import { stressFollowup } from "./stress-followup.mjs";
@@ -180,11 +181,14 @@ export async function contextualClosing(
         return base + "\n\n" + support;
       }
     }
-    const question =
+    let question =
       continuityFallback(value) ??
       concernFallback(value, concern, notes) ??
       stressFollowup(value, notes) ??
       companionFallback(value, notes, { requireQuestion });
+    if (question && repeatsCompanionIntent(question, history)) {
+      question = companionFallback(value, notes, { requireQuestion });
+    }
     return question ? base + "\n\n" + fallbackGrammar(question, value) : base;
   };
   const prompt =
@@ -193,6 +197,7 @@ export async function contextualClosing(
     "Never address the user as bhai, bhaiya, bro, brother, behen or beta. When addressing them by name, use only their explicitly established name from user messages or saved_user_facts; never guess a name or use Meera/Aarav as the user's name. If no name is established, use aap without asking for a name again. Do not repeat the name mechanically. Never attribute the assistant's backstory to the user or mention their backstory as filler. " +
     "Sound like an ordinary conversation, not a questionnaire or a customer-support script. When personal context is missing, a simple invitation is enough; do not manufacture an emotional acknowledgment. For example, ask what kind of work interests them, or whether they want to discuss someone in particular, without claiming they already have a preference or person. These are style examples, not facts to copy. Avoid stock 'sabse zaroori kya hai' questions across unrelated turns. " +
     "Reply to what the user just shared, including their answer to your previous follow-up; resolve the current message first. Use one relevant detail from recent user messages or saved_user_facts naturally. Current corrections override older facts. Do not ask for information already supplied. If the user told you the problem or answered your question, acknowledge it and continue with something still unresolved. When known_concern is present, do not ask again what is wrong. " +
+    "The already_asked_question_intents list records questions already asked, even if their wording differed. Do not ask those again: feelings_disclosed means whether they shared their feelings, expenses_recorded means whether they recorded spending. Continue with a different unresolved detail, without assuming the answer. " +
     "Prefer the specific person or difficulty the user named over the broad topic: if they can talk to mummy but fear papa's reaction, continue with that fear, not 'what is difficult with family?' or 'who can you talk to?'. If they already described the feared reaction, do not ask them to name it again. This is an example of continuity, not a fact to copy into other conversations. " +
     "Preserve what has actually happened: 'can talk to mummy' does not mean they have spoken or that mummy agrees. 'Want a job' does not mean they already have one. Acknowledge only the stated fact, not an assumed next step. A parent's disagreement does not mean they prevent everything, or that the user is afraid to speak. Do not assign blame, exaggerate a concern into a total blockage, or presume fear. " +
     "Use one or two short sentences: a specific acknowledgment only when needed and one easy conversational question when useful. Aim for 10 to 20 words. At most 25 words and 280 characters in one paragraph. Do not restate the question or recap the user's whole situation before asking. Keep the warmth instead of turning every reply into an interview. A supportive statement alone is appropriate when they are venting, celebrating, or do not want questions. Avoid repeating the same acknowledgment across turns. Use plain everyday language, not poetic flattery about magic, destiny, or being special. " +
@@ -225,6 +230,7 @@ export async function contextualClosing(
             language: value.language,
             reading_completed: true,
             history: companionHistory,
+            already_asked_question_intents: recentCompanionIntents(history),
             saved_user_facts: notes,
             conversation_focus: { ...focus, user_topic: redact(focus.user_topic) },
             known_concern: concern
@@ -277,6 +283,7 @@ export async function contextualClosing(
     }
     if (
       repeatsAnsweredConcern(question, value) ||
+      repeatsCompanionIntent(question, history) ||
       closingDrifts(question, focus, value, notes) ||
       ignoresKnownConcern(question, concern, value) ||
       unsupportedClosingDetail(question, value, notes) ||
