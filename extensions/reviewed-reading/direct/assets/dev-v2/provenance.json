@@ -1,0 +1,41 @@
+{
+  "source_branch": "Dev",
+  "source_revision": "c7d63bb92bfb35bf11a8a4748b40a9afd22cc742",
+  "files": [
+    {
+      "path": "engine.mjs",
+      "sha256": "33f41b017cc99f0755c1b23949a50ce1817ea021424c5078d18372fdabb23307",
+      "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9",
+      "upstream_sha256": "e3ab64bc053e6236b7da7c25bce75065aab0aac8a91da206d1a3a8430d2fee86",
+      "adaptation_revision": "f9b80ebfff197c284b03a24d85106e99dd094652",
+      "adaptation": "Two output instruction strings changed in OpenClaw dev; calculations unchanged. LF normalized for repository portability.",
+      "non_instruction_lf_sha256": "e1eee687a463a1ee5f1145a3f519aa1e2b26b7bd80b9d9ae05fd3cf8d77b33a9"
+    },
+    {
+      "path": "system-prompt.txt",
+      "sha256": "0c380a2e51179c329726171fb47c02a4c5e87dc4c70064054fb2120f0ef7f6ef"
+    },
+    {
+      "path": "tools-captured.json",
+      "sha256": "58946e45b2a49dbe3140c17fd2c41706af956501123fa60b1bd9d348798a111d"
+    },
+    {
+      "path": "server.mjs",
+      "sha256": "89b4d22bd7161407952b21993eb9741f6030febed36c6db626cb0191f18af299",
+      "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9"
+    },
+    {
+      "path": "config.example.json",
+      "sha256": "1605ce87b664f19d9e9b40156879ac9b076d96f2a6e7ea3694841bf3cafe2f50"
+    },
+    {
+      "path": "friend-mode.txt",
+      "sha256": "81bd7198eee8d0032eda3960c914079774224568dc7380ed74ecd3935701bec1"
+    },
+    {
+      "path": "source-friend-mode.txt",
+      "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9",
+      "sha256": "8a426c3cd741fdf2623188a67d0bca2ed58dd4923b9c8222991b841c53ac53dd"
+    }
+  ]
+}

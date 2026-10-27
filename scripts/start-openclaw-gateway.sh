@@ -37,6 +37,10 @@ if [ -f "$APP_DIR/configure-reading-guard.mjs" ]; then
   node "$APP_DIR/configure-reading-guard.mjs" "$OPENCLAW_CONFIG_PATH"
 fi
 
+if [ -f "$APP_DIR/scripts/configure-direct-answer.mjs" ]; then
+  node "$APP_DIR/scripts/configure-direct-answer.mjs" "$OPENCLAW_CONFIG_PATH"
+fi
+
 if [ -d "$APP_DIR/bootstrap/workspace-tarot-reader" ]; then
   cp -R "$APP_DIR/bootstrap/workspace-tarot-reader/." "$OPENCLAW_STATE_DIR/workspace-tarot-reader/"
 fi

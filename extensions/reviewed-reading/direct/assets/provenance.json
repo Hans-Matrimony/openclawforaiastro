@@ -1,0 +1,42 @@
+﻿{
+    "source_project":  "Vedastro-Simliarity-without-MCP",
+    "source_revision":  "07abaeb040f5bd17e96a5796d963d23d37441fa4",
+    "files":  [
+                  {
+                      "path":  "system-prompt.txt",
+                      "sha256":  "b53ac8926c79ac4d1d6e7dd9f20758075c50358ac09f319af2cb27ccf2a0dd60"
+                  },
+                  {
+                      "path":  "tools-captured.json",
+                      "sha256":  "58946e45b2a49dbe3140c17fd2c41706af956501123fa60b1bd9d348798a111d"
+                  },
+                  {
+                      "path":  "engine/calculate.py",
+                      "sha256":  "59d5c82d5f9ab04083872ef58afe68d03c1b5f4add6c19301909b00f9c0629d9"
+                  },
+                  {
+                      "path":  "engine/reading.py",
+                      "sha256":  "3224c2c7f8094d19162f97750d7bd9e2014e8b8779d2f325337ce1ec21f1dc3b"
+                  },
+                  {
+                      "path":  "engine/reading_language.py",
+                      "sha256":  "5bbd02a5d09a0bf01f05b970e9add015d5410bde8ddef83f20d5fb9f9358886b"
+                  },
+                  {
+                      "path":  "engine/render_reading.py",
+                      "sha256":  "e1629643ab89102235a85aec28321cebbc78761621982c9df23b93cc7d64b779"
+                  },
+                  {
+                      "path":  "engine/vimshottari.py",
+                      "sha256":  "e0e0265202c13fdc21bbc0bf90b7c6f8ea08cf3197d56fb06718c1b330455359"
+                  },
+                  {
+                      "path":  "engine/natal_cache.py",
+                      "sha256":  "2fa850e9252a02899712bb75181a9cc61033d1be322eb799bb643c9d51b69246"
+                  },
+                  {
+                      "path":  "engine/cities_india.json",
+                      "sha256":  "ba1e8b348f46e8a5aaf7b19f999101c08c17a2bf4ef3746452886e3421986abd"
+                  }
+              ]
+}
