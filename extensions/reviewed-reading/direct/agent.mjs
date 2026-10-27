@@ -47,7 +47,7 @@ import {
   timingRepairEvidence,
 } from "./timing-repair.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
-import { topicPeriodContext } from "./topic-period-context.mjs";
+import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-context.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -407,6 +407,7 @@ export async function directAnswer(
     }
     if (
       unsupportedPeriodClaim(reply, chartResults) ||
+      (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults, value.query))
     ) {
       validation.push("timing_claim_rejected");

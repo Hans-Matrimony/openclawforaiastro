@@ -1,7 +1,7 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
 
 // Expose natal relationships for comparison, not invented event scores or dates.
-export function topicPeriodContext(results, query) {
+export function topicPeriodEvidence(results, query) {
   const topics = [
     ["marriage", /sha+di|marri|wedding/i, [7]],
     ["relationship", /girlfriend|boyfriend|\bgf\b|\bbf\b|crush|relationship|rishta/i, [5, 7]],
@@ -54,9 +54,17 @@ export function topicPeriodContext(results, query) {
   if (!periods.length) {
     return "";
   }
+  return { topic, houses, periods };
+}
+
+export function topicPeriodContext(results, query) {
+  const evidence = topicPeriodEvidence(results, query);
+  if (!evidence) {
+    return "";
+  }
   return (
     "\nTopic-specific period comparison (derived natal facts, not future transit calculations): " +
-    JSON.stringify({ topic, houses, periods }) +
+    JSON.stringify(evidence) +
     "\nCompare these candidates before choosing a window. Chronological order is not a ranking. " +
     "A pressure/delay factor does not become positive because its planet's period begins. " +
     "Natal aspects do not start on antardasha boundaries. Do not invent future transits. " +
@@ -66,4 +74,30 @@ export function topicPeriodContext(results, query) {
     "Lead with the question's conclusion, explain briefly, and keep the second bubble a short verdict within that same window. " +
     "Use natural Hinglish, not an ISO schedule or repeated disclaimer. One natural qualification is enough."
   );
+}
+
+// A negative-only natal link cannot justify a positive event window.
+export function unsupportedTopicOpportunity(reply, results, query) {
+  const evidence = topicPeriodEvidence(results, query);
+  if (
+    !evidence ||
+    !/sambhavn?a|sambhavana|sambhavit|possible|opportunity|mauka|ban sak|ho sak|improv|sudhar/i.test(
+      reply,
+    )
+  ) {
+    return false;
+  }
+  return evidence.periods.some((p) => {
+    const named = new RegExp("\\b" + p.lord + "\\s+(?:ki\\s+)?antardasha\\b", "i").test(reply);
+    const dated =
+      reply.includes(String(p.from).slice(0, 4)) && reply.includes(String(p.to).slice(0, 4));
+    return (
+      named &&
+      dated &&
+      p.adverse_factors.length > 0 &&
+      !p.supportive_factors.length &&
+      !p.relevant_house_lord.length &&
+      !p.occupies_relevant_house
+    );
+  });
 }

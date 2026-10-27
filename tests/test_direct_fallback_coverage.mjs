@@ -146,7 +146,7 @@ void test("a model-written corrected window reaches delivery with requested part
                 "\n\n" +
                 (calls === 2
                   ? "Shaadi 2027 ke baad Mars antardasha mein possible hai."
-                  : "Shaadi Mars antardasha (15 Sept 2027 se 14 Nov 2028) mein sambhavit hai."),
+                  : "Shaadi Jupiter antardasha (15 November 2031 se 16 July 2034) mein sambhavit hai."),
             };
       return new Response(
         JSON.stringify({
@@ -157,7 +157,7 @@ void test("a model-written corrected window reaches delivery with requested part
   });
   assert.equal(calls, 3);
   assert.match(result.reply, /Saathi ke swabhav/);
-  assert.match(result.reply, /15 Sept 2027 se 14 Nov 2028.*sambhavit/);
+  assert.match(result.reply, /15 November 2031 se 16 July 2034.*sambhavit/);
   assert.doesNotMatch(result.reply, /schedule hai|event ki bhavishyavani nahi/);
 });
 

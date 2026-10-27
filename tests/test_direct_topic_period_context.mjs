@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { topicPeriodContext } from "../extensions/reviewed-reading/direct/topic-period-context.mjs";
+import {
+  topicPeriodContext,
+  unsupportedTopicOpportunity,
+} from "../extensions/reviewed-reading/direct/topic-period-context.mjs";
 const row = {
   engine: "local-sweph-v2",
   birth_chart: {
@@ -53,4 +56,31 @@ test("missing, conflicting and multiple-topic evidence is not combined", () => {
     "",
   );
   assert.equal(topicPeriodContext(["bad json"], "shaadi kab"), "");
+});
+
+test("live pressure-only Mars opportunity is rejected without suppressing supported Jupiter", () => {
+  assert.equal(
+    unsupportedTopicOpportunity(
+      "Mars antardasha September 2027 se November 2028 shaadi sambhavna hai",
+      results,
+      "shaadi kab",
+    ),
+    true,
+  );
+  assert.equal(
+    unsupportedTopicOpportunity(
+      "Jupiter antardasha November 2031 se July 2034 shaadi sambhavna hai",
+      results,
+      "shaadi kab",
+    ),
+    false,
+  );
+  assert.equal(
+    unsupportedTopicOpportunity(
+      "Mars antardasha September 2027 se November 2028 hai",
+      results,
+      "shaadi kab",
+    ),
+    false,
+  );
 });
