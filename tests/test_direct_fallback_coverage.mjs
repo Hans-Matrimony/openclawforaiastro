@@ -349,7 +349,7 @@ void test("adverse-only live timing is repaired with isolated checked IDs within
         calls++;
         const body = JSON.parse(options.body);
         let message;
-        if (calls === 1)
+        if (calls === 1) {
           message = {
             tool_calls: [
               {
@@ -359,12 +359,12 @@ void test("adverse-only live timing is repaired with isolated checked IDs within
               },
             ],
           };
-        else if (calls === 2)
+        } else if (calls === 2) {
           message = {
             content:
               "Mars antardasha September 2027 se November 2028 mein shaadi sambhavna hai, Mars ki drishti 7ve ghar par hai.",
           };
-        else {
+        } else {
           assert.equal(body.tool_choice.function.name, "submit_timing_reading");
           assert.doesNotMatch(JSON.stringify(body.messages), /February 2028 pakka/);
           message = {
