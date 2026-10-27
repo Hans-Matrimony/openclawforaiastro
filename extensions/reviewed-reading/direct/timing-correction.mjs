@@ -8,11 +8,13 @@ import { partnerFallback } from "./partner-fallback.mjs";
 export function timingCorrection(results, query, language, asOf) {
   const subject = /sha+di|marriage|marry|married/i.test(query)
     ? ["shaadi", "marriage"]
-    : /career|job|naukri/i.test(query)
-      ? ["career", "career"]
-      : /financ|money|pais|income/i.test(query)
-        ? ["aarthik sudhaar", "financial improvement"]
-        : null;
+    : /girlfriend|boyfriend|\bgf\b|\bbf\b|relationship|rishta/i.test(query)
+      ? ["naya rishta", "a new relationship"]
+      : /career|job|naukri/i.test(query)
+        ? ["career", "career"]
+        : /financ|money|pais|income/i.test(query)
+          ? ["aarthik sudhaar", "financial improvement"]
+          : null;
   if (!subject || !Number.isFinite(asOf.valueOf())) {
     return null;
   }
@@ -54,7 +56,11 @@ export function timingCorrection(results, query, language, asOf) {
   if (!periods.length) {
     return null;
   }
-  const area = subject[0] === "shaadi" ? "marriage" : subject[0] === "career" ? "career" : "money";
+  const area = ["shaadi", "naya rishta"].includes(subject[0])
+    ? "marriage"
+    : subject[0] === "career"
+      ? "career"
+      : "money";
   const signals = rows
     .flatMap((r) => (Array.isArray(r.verdict_signals) ? r.verdict_signals : []))
     .filter((s) => s?.area === area);

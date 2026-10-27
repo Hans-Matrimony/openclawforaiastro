@@ -47,6 +47,7 @@ import {
   timingRepairEvidence,
 } from "./timing-repair.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
+import { topicPeriodContext } from "./topic-period-context.mjs";
 
 export function redactIdentity(text, userId) {
   let result = text;
@@ -322,6 +323,12 @@ export async function directAnswer(
           content: results[index],
         });
       });
+      if (timingRequired) {
+        const comparison = topicPeriodContext(chartResults, value.query);
+        if (comparison) {
+          messages.push({ role: "user", content: comparison });
+        }
+      }
       continue;
     }
     let reply = choice.message.content;
@@ -415,7 +422,9 @@ export async function directAnswer(
             JSON.stringify(value.query) +
             ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, a topic-supported period interpretation is allowed: name the returned upcoming antardasha lord, its exact start and end as English month-year, and the checked house/lord reason relevant to this question. Clearly label it sambhavit or an interpretation, not a guaranteed event. Do not invent a period or supporting factor. Keep the short verdict within the same qualified window. Do not discard a supported period merely because the tool does not calculate an event date." +
             rejectedDraftContext(redactIdentity(reply, value.user_id)) +
-            (timingRequired ? timingRepairEvidence(chartResults) : nonTimingAnswerInstruction),
+            (timingRequired
+              ? timingRepairEvidence(chartResults) + topicPeriodContext(chartResults, value.query)
+              : nonTimingAnswerInstruction),
         });
         continue;
       }

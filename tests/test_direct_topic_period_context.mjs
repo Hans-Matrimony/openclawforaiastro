@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { topicPeriodContext } from "../extensions/reviewed-reading/direct/topic-period-context.mjs";
+const row = {
+  engine: "local-sweph-v2",
+  birth_chart: {
+    planets: ["Mars: Libra | house 12", "Jupiter: Taurus | house 7"],
+    ashtakavarga_house_bindus: {
+      house_7: { sign: "Taurus" },
+      house_10: { sign: "Leo" },
+      house_2: { sign: "Sagittarius" },
+      house_11: { sign: "Virgo" },
+    },
+  },
+  dasha: {
+    upcoming_antardashas: [
+      { lord: "Mars", from: "2027-09-15", to: "2028-11-14" },
+      { lord: "Jupiter", from: "2031-11-15", to: "2034-07-16" },
+    ],
+  },
+  verdict_signals: [
+    {
+      area: "marriage",
+      positive: ["benefic Jupiter house 7 mein"],
+      negative: ["Mars ki drishti house 7 par pressure/delay"],
+    },
+    { area: "money", positive: [], negative: [] },
+  ],
+};
+const results = [JSON.stringify(row)];
+function data(query) {
+  const text = topicPeriodContext(results, query);
+  return JSON.parse(text.split("): ")[1].split("\n")[0]);
+}
+test("marriage comparison preserves adverse first period and later supportive period", () => {
+  const d = data("Meri shaadi kab hogi?");
+  assert.equal(d.periods[0].supportive_factors.length, 0);
+  assert.equal(d.periods[0].adverse_factors.length, 1);
+  assert.equal(d.periods[1].supportive_factors.length, 1);
+  assert.equal(d.periods[1].occupies_relevant_house, 7);
+});
+test("money and girlfriend evidence retain distinct subjects", () => {
+  const money = data("Paise kab aayenge?");
+  assert.deepEqual(money.periods[1].relevant_house_lord, [2]);
+  assert.equal(money.periods[0].adverse_factors.length, 0);
+  assert.equal(data("GF kab banegi?").topic, "relationship");
+});
+test("missing, conflicting and multiple-topic evidence is not combined", () => {
+  assert.equal(topicPeriodContext([], "shaadi kab"), "");
+  assert.equal(topicPeriodContext(results, "shaadi aur job kab"), "");
+  assert.equal(
+    topicPeriodContext([...results, JSON.stringify({ ...row, birth_chart: {} })], "shaadi kab"),
+    "",
+  );
+  assert.equal(topicPeriodContext(["bad json"], "shaadi kab"), "");
+});
