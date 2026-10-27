@@ -37,10 +37,19 @@ for (const repairSucceeds of [true, false]) {
         },
         fetchImpl: async (_url, opts) => {
           calls++;
+          assert.match(JSON.parse(opts.body).messages[0].content, /# Non-timing answer/);
           if (calls === 3) {
             assert.match(
               JSON.parse(opts.body).messages.at(-1).content,
               /without adding an unsolicited date/,
+            );
+            assert.match(
+              JSON.parse(opts.body).messages.at(-1).content,
+              /This question does not ask when/,
+            );
+            assert.doesNotMatch(
+              JSON.parse(opts.body).messages.at(-1).content,
+              /Exact returned period boundaries/,
             );
           }
           const message =

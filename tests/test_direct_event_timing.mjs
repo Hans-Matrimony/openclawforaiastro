@@ -100,6 +100,8 @@ void test("implicit waiting verdict cannot turn a period boundary into event tim
 
 void test("financial support claims cannot borrow a date from a dasha boundary", () => {
   for (const reply of [
+    "Paise ki pareshani September 2027 ke baad Mars antardasha se kam hone ki sambhavna hai.",
+    "Pareshani September 2027 ke baad kam hogi. Finance ke factors mixed hain.",
     "Financial support direct nahi hai.\n\n2027 ke baad Mars antardasha shuru hoga isme house 11 ka sahyog badh sakta hai, lekin Mercury hone ki wajah se paise ka flow slow rahega.",
     "Finance is mixed.\n\nMars antardasha starts in September 2027. Income may increase during it.",
     "Paise ke factors mixed hain.\n\n2027 mein dasha badlegi. Isme sahyog badhega.",

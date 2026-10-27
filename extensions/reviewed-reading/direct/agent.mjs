@@ -41,7 +41,11 @@ import { limitResponseLength } from "./response-length.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
-import { timingAnswerInstruction, timingRepairEvidence } from "./timing-repair.mjs";
+import {
+  timingAnswerInstruction,
+  nonTimingAnswerInstruction,
+  timingRepairEvidence,
+} from "./timing-repair.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
 
 export function redactIdentity(text, userId) {
@@ -171,6 +175,8 @@ export async function directAnswer(
   }
   if (timingRequired) {
     context.prompt += timingAnswerInstruction;
+  } else if (sourceFlow && readingRequired && !isDeathTimingQuestion(value.query)) {
+    context.prompt += nonTimingAnswerInstruction;
   }
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
@@ -409,7 +415,7 @@ export async function directAnswer(
             JSON.stringify(value.query) +
             ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, a topic-supported period interpretation is allowed: name the returned upcoming antardasha lord, its exact start and end as English month-year, and the checked house/lord reason relevant to this question. Clearly label it sambhavit or an interpretation, not a guaranteed event. Do not invent a period or supporting factor. Keep the short verdict within the same qualified window. Do not discard a supported period merely because the tool does not calculate an event date." +
             rejectedDraftContext(redactIdentity(reply, value.user_id)) +
-            timingRepairEvidence(chartResults),
+            (timingRequired ? timingRepairEvidence(chartResults) : nonTimingAnswerInstruction),
         });
         continue;
       }
