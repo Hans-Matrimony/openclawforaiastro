@@ -1,3 +1,4 @@
+import { sourceHouseRuler } from "./house-evidence.mjs";
 // Validate explicit claims only. Do not infer predictions from period boundaries.
 const planets = "Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu";
 
@@ -16,6 +17,42 @@ export function chartClaimConflicts(reply, results) {
     return [];
   }
   const conflicts = [];
+  const linkedLord = new RegExp(
+    "\\b(" +
+      planets +
+      ")\\s+(?:ek|a|an)\\s+(?:benefic|malefic)\\s+(?:hai|is)?\\s*(?:aur|and)\\s+(\\d{1,2})(?:st|nd|rd|th)\\s+house\\s+(?:ka|ke|ki)\\s+lord",
+    "gi",
+  );
+  for (const match of reply.matchAll(linkedLord)) {
+    const expected = [
+      ...new Set(
+        data.map((d) => sourceHouseRuler(d.birth_chart, Number(match[2]))).filter(Boolean),
+      ),
+    ];
+    if (expected.length === 1 && expected[0] !== match[1]) {
+      conflicts.push({
+        type: "linked_house_lord",
+        expected: expected[0],
+        claimed: match[1],
+        house: Number(match[2]),
+      });
+    }
+  }
+  // These tools expose natal/current positions, not future aspect start dates.
+  const futureAspect = new RegExp(
+    "\\b(?:jab|when)\\s+(" +
+      planets +
+      ")\\s+(?:ki\\s+)?(?:drishti|aspect)[^.!?\\n]{0,100}\\b(?:aayeg[ai]|aega|aegi|will|start|begin)\\b",
+    "gi",
+  );
+  for (const match of reply.matchAll(futureAspect)) {
+    conflicts.push({
+      type: "unsupported_future_aspect",
+      planet: match[1],
+      reason:
+        "A natal aspect does not begin at an antardasha boundary; no future transit evidence was returned.",
+    });
+  }
   const transits = data.filter((d) => Array.isArray(d.gochara));
   const schedules = data.filter((d) => d.dasha?.upcoming_antardashas);
   // Also recognize reversed Hinglish placement wording from live output.

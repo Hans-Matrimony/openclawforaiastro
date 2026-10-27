@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { chartClaimConflicts } from "../extensions/reviewed-reading/direct/chart-claims.mjs";
 import {
   topicPeriodContext,
   unsupportedTopicOpportunity,
@@ -105,4 +106,18 @@ test("adverse interpretation is preserved rather than forced into positive timin
     ),
     false,
   );
+});
+
+test("live future-aspect and linked house-lord explanations are rejected", () => {
+  assert.ok(
+    chartClaimConflicts("jab Mars ki drishti 10ve ghar par aayegi", results).some(
+      (c) => c.type === "unsupported_future_aspect",
+    ),
+  );
+  assert.ok(
+    chartClaimConflicts("Jupiter ek benefic hai aur 7ve ghar ka lord bhi hai", results).some(
+      (c) => c.type === "linked_house_lord",
+    ),
+  );
+  assert.equal(chartClaimConflicts("Jupiter 7ve ghar mein hai", results).length, 0);
 });

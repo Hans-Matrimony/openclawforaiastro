@@ -426,6 +426,17 @@ export async function directAnswer(
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
         correctedHouseLord = true;
+        if (
+          timingRequired &&
+          lordConflicts.some((c) =>
+            ["unsupported_future_aspect", "linked_house_lord"].includes(c.type),
+          )
+        ) {
+          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          if (pendingTimingRepair) {
+            continue;
+          }
+        }
         messages.push({
           role: "user",
           content:
