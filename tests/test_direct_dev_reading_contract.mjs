@@ -130,6 +130,12 @@ for (const fixture of contract.fixtures) {
     );
     assert.deepEqual(hashes, fixture.requestHashes);
     assert.equal(toolCalls, 1);
-    assert.equal(result.reply.split("\n\n").slice(0, 2).join("\n\n"), fixture.expectedReading);
+    // The source request stays identical; the pilot's display layer localizes
+    // this fallback schedule without changing its dates or chart explanation.
+    const displayedReading = fixture.expectedReading.replace(
+      "Shaadi ka samay: Jupiter antardasha 2031-11-15 se 2034-07-16 tak hai.",
+      "Guru ki antardasha 15 November 2031 se 16 July 2034 tak chalegi.",
+    );
+    assert.equal(result.reply.split("\n\n").slice(0, 2).join("\n\n"), displayedReading);
   });
 }

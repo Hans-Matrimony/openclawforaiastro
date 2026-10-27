@@ -222,7 +222,7 @@ void test("bounded dev-style correction retains chart evidence and fallback keep
   assert.equal(calls, 4);
   assert.equal(result.reply.split("\n\n").length, 3);
   assert.doesNotMatch(result.reply, /Saathi ke swabhav/);
-  assert.match(result.reply, /2027-09-15.*2028-11-14/);
+  assert.match(result.reply, /15 September 2027.*14 November 2028/);
   assert.doesNotMatch(result.reply, /2029|pakki/);
   assert.ok(result.reply.split(/\s+/u).length <= 100);
   assert.equal(JSON.stringify(row), raw);

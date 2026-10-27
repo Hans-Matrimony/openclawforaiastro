@@ -239,7 +239,7 @@ for (const toolRounds of [4, 6]) {
       assert.match(result.reply, /September 2027 se November 2028/);
       assert.doesNotMatch(result.reply, /Shaadi ka samay:|Rishte ko lekar/);
     } else {
-      assert.match(result.reply, /Shaadi ka samay:/);
+      assert.match(result.reply, /Mangal ki antardasha 15 September 2027 se 14 November 2028 tak chalegi/);
     }
     assert.doesNotMatch(result.reply, /2029|sub-period runs|schedule/);
   });

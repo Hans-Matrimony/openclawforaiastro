@@ -14,7 +14,7 @@ function clearMarriageTiming(reply) {
       if (!/\b20\d{2}\b/.test(paragraph) || /```|`|https?:\/\/|[{}]/.test(paragraph)) {
         return paragraph;
       }
-      return paragraph
+      return naturalMarriageSchedule(paragraph)
         .replace(
           /\bshaadi\s+([^.!?\n]{1,110}?\bse\b[^.!?\n]{1,60}?)\s+ke\s+beech\s+(?:hone\s+)?ki\s+sambhavna\s+hai\b/gi,
           "Shaadi ka yog $1 ke beech hai",
@@ -22,6 +22,26 @@ function clearMarriageTiming(reply) {
         .replace(/\bshaadi\s+hone\s+ki\s+sambhavna\s+hai\b/gi, "shaadi ka yog dikh raha hai");
     })
     .join("");
+}
+
+// A fallback contains a period schedule, not a selected marriage prediction.
+// Make it readable without silently changing that meaning or inventing a month.
+function naturalMarriageSchedule(paragraph) {
+  return paragraph.replace(
+    /^Shaadi ka samay: (\w+) antardasha (\d{4}-\d{2}-\d{2}) se (\d{4}-\d{2}-\d{2}) tak hai\.$/i,
+    (original, planet, start, end) => {
+      const dates = [start, end].map((value) => {
+        const date = new Date(`${value}T00:00:00Z`);
+        if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) return null;
+        return new Intl.DateTimeFormat("en-GB", {
+          day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+        }).format(date);
+      });
+      if (dates.includes(null) || start > end) return original;
+      const names = { mars: "Mangal", jupiter: "Guru", venus: "Shukra", saturn: "Shani", mercury: "Budh", moon: "Chandra", sun: "Surya", rahu: "Rahu", ketu: "Ketu" };
+      return `${names[planet.toLowerCase()] || planet} ki antardasha ${dates[0]} se ${dates[1]} tak chalegi.`;
+    },
+  );
 }
 
 export function removeReplyDashes(reply) {
