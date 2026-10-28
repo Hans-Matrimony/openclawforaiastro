@@ -267,7 +267,9 @@ export async function directAnswer(
         body: JSON.stringify(body),
       });
       if (!response.ok) {
-        throw new Error("Direct answer unavailable");
+        const failure = new Error("Direct answer unavailable");
+        failure.code = "model_http_" + response.status;
+        throw failure;
       }
       const text = await response.text();
       if (Buffer.byteLength(text) > 131072) {

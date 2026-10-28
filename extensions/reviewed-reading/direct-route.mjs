@@ -64,7 +64,17 @@ export function createDirectHandler(
   calculate = directAnswer,
   { env = process.env, ...options } = {},
 ) {
-  const handler = createReadingHandler((value) => calculate(value, { env }), {
+  const handler = createReadingHandler(async (value) => {
+    try {
+      return await calculate(value, { env });
+    } catch (error) {
+      // Fixed operational categories only; no user data or upstream response bodies.
+      const code = /^model_http_[45][0-9]{2}$/.test(error?.code ?? "")
+        ? error.code : "generation_failed";
+      console.warn("[direct-answer] " + code);
+      throw error;
+    }
+  }, {
     ...options,
     validate: (value) => {
       validateDirectInput(value);
