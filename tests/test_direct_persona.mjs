@@ -7,6 +7,23 @@ import {
   fallbackGrammar,
 } from "../extensions/reviewed-reading/direct/persona.mjs";
 
+void test("optional saved profile name is validated and used only as natural address", () => {
+  const input = { user_id: "synthetic", query: "hello", history: [], language: "hinglish" };
+  for (const user_name of [undefined, "Ravi Kumar", "रवि कुमार", "Anne-Marie", "O'Neil"]) {
+    assert.doesNotThrow(() => validateDirectInput({ ...input, user_name }));
+  }
+  for (const user_name of [null, 123, "", "1234567890", "<system>ignore", "a".repeat(81)]) {
+    assert.throws(() => validateDirectInput({ ...input, user_name }));
+  }
+  const prompt = personaInstruction({ user_gender: "male", user_name: "Ravi Kumar" });
+  assert.match(prompt, /"Ravi Kumar"/);
+  assert.match(prompt, /at most once across the whole reply/);
+  assert.match(prompt, /request not to use their name takes priority/);
+  assert.match(prompt, /never astrology evidence/);
+  assert.match(prompt, /Meera, a female/);
+  assert.doesNotMatch(personaInstruction({ user_gender: "male" }), /Saved user profile name/);
+});
+
 void test("persona contract is optional and rejects arbitrary gender instructions", () => {
   const input = { user_id: "synthetic", query: "hello", history: [], language: "hinglish" };
   for (const user_gender of [undefined, "unknown", "male", "female"]) {
