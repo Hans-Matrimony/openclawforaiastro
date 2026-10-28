@@ -9,6 +9,7 @@ import {
   canAskFollowup,
   remedyUnavailableReply,
 } from "./friendly-closing.mjs";
+import { createModelRequest } from "./model-request.mjs";
 import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
@@ -194,6 +195,15 @@ export async function directAnswer(
   ];
   let nudged = false;
   let upstreamCalls = 0;
+  const fetchModel = createModelRequest({
+    fetchImpl,
+    enabled: release && directReleaseEnabled(env, value.user_id),
+    canCall: () => upstreamCalls < maxCalls,
+    takeCall: () => {
+      if (upstreamCalls >= maxCalls) throw new Error("Direct call budget exhausted");
+      upstreamCalls++;
+    },
+  });
   let cacheHits = 0;
   const readingTools = new Set();
   let correctedMissingReading = false;
@@ -255,8 +265,7 @@ export async function directAnswer(
     let completion = cacheEnabled ? replyCache.get(value.user_id, body) : null;
     const cacheHit = completion !== null;
     if (!completion) {
-      upstreamCalls++;
-      const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+      const response = await fetchModel("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         redirect: "error",
         signal,
@@ -540,8 +549,7 @@ export async function directAnswer(
             if (upstreamCalls >= maxCalls) {
               throw new Error("Closing call budget exhausted");
             }
-            upstreamCalls++;
-            const response = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+            const response = await fetchModel("https://openrouter.ai/api/v1/chat/completions", {
               method: "POST",
               redirect: "error",
               signal,
