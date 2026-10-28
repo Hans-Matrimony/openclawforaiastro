@@ -17,7 +17,9 @@ void test("optional saved profile name is validated and used only as natural add
   }
   const prompt = personaInstruction({ user_gender: "male", user_name: "Ravi Kumar" });
   assert.match(prompt, /"Ravi Kumar"/);
-  assert.match(prompt, /Name use is optional/);
+  assert.match(prompt, /Use the saved name occasionally/);
+  assert.match(prompt, /acknowledging personal good news/);
+  assert.match(prompt, /Do not use the name in every answer/);
   assert.match(prompt, /there is no quota or cadence/);
   assert.match(prompt, /request not to use their name takes priority/);
   assert.match(prompt, /never astrology evidence/);
