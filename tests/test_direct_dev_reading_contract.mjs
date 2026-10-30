@@ -9,8 +9,9 @@ import {
   nonTimingAnswerInstruction,
 } from "../extensions/reviewed-reading/direct/timing-repair.mjs";
 
-// Captured from the pinned dev implementation with synthetic data and mocked
-// model replies, not from this implementation. Hash the entire model request
+// Based on pinned dev fixtures with synthetic data and mocked model replies.
+// Request hashes include the reviewed date-free prompt adaptation; tool evidence
+// and expected replies remain unchanged. Hash the entire model request
 // after replacing the app persona instruction and excluding the explicitly
 // documented rejected-draft correction suffix (verified separately below).
 const contract = JSON.parse(

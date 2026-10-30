@@ -5,9 +5,14 @@ import {
   uniqueMemory,
 } from "../extensions/reviewed-reading/direct/compact-prompt.mjs";
 import { readingContext } from "../extensions/reviewed-reading/direct/context.mjs";
-import { SOURCE_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
+import { SOURCE_PROMPT, SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
 
 void test("runtime compaction keeps reading and memory contracts but removes repeated examples", () => {
+  for (const prompt of [SOURCE_PROMPT, SOURCE_FLOW_PROMPT]) {
+    assert.doesNotMatch(prompt, /2027 ke baad|November 2031|July 2034|Marriage likely after 30/);
+    assert.match(prompt, /A negative current period does not imply/);
+    assert.match(prompt, /For a practical follow-up/);
+  }
   const compact = compactPrompt(SOURCE_PROMPT);
   assert.ok(compact.length < SOURCE_PROMPT.length * 0.85);
   for (const rule of [

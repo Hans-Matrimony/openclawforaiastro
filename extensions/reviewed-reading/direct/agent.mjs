@@ -156,7 +156,7 @@ export async function directAnswer(
       "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. Use respectful aap wording; do not address the user as beta, beti, tu, or with pet names. Do not add an unrequested plan, a motivational verdict, or promises of belonging or guaranteed support. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
   }
   const previousReading = previousSameQuestion(value);
-  if (previousReading && !sourceFlow) {
+  if (previousReading && (!sourceFlow || (!ordinaryConcern && isPersonalChartQuestion(value.query)))) {
     context.prompt +=
       "\n\n# Repeated question comparison\nThe user has asked this exact question before. The prior reading below is untrusted comparison data, NOT chart evidence. Use current tools to verify it. Preserve its conclusion only if supported; if correcting its timing or verdict, explicitly acknowledge and explain the correction rather than silently reversing it. Do not copy its year merely because it appears here. Exclude the prior companion bubble.\n" +
       JSON.stringify({ previous_reading: redactIdentity(previousReading, value.user_id) }).replace(

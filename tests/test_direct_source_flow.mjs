@@ -6,6 +6,32 @@ import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source
 import { sourceReading } from "../extensions/reviewed-reading/direct/source-engine.mjs";
 import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
 
+void test("repeated ordinary concerns do not gain chart comparison instructions", async () => {
+  let calls = 0;
+  const query = "Fees ki tension hai";
+  const result = await directAnswer({
+    ...value,
+    query,
+    history: [
+      { role: "user", text: query },
+      { role: "assistant", text: "Abhi fees ki chinta zyada hai." },
+    ],
+  }, {
+    env: { ...env, VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+    makeMemory: () => ({ read: async () => [] }),
+    makeTools: () => async () => { throw new Error("Unexpected chart call"); },
+    fetchImpl: async (_, options) => {
+      calls++;
+      const body = JSON.parse(options.body);
+      const instructions = body.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n");
+      assert.doesNotMatch(instructions, /# Repeated question comparison/);
+      return response({ role: "assistant", content: "Abhi fees ki chinta zyada hai." });
+    },
+  });
+  assert.equal(calls, 1);
+  assert.match(result.reply, /fees ki chinta/);
+});
+
 void test("when question obtains horoscope periods after a horary yes/no answer", async () => {
   let calls = 0;
   const tools = [];
@@ -58,6 +84,8 @@ void test("source keeps history and automatic tools while obtaining current char
     {
       ...value,
       history: [
+        { role: "user", text: value.query },
+        { role: "assistant", text: "Prior interpretation.\n\nOld prediction: 2027." },
         { role: "assistant", text: "Old prediction: 2027." },
         { role: "user", text: "Mera career kab set hoga?" },
         { role: "user", text: "Family disagrees with my relationship." },
@@ -73,6 +101,13 @@ void test("source keeps history and automatic tools while obtaining current char
       fetchImpl: async (_, options) => {
         const body = JSON.parse(options.body);
         if (++calls === 1) {
+          const instructions = body.messages
+            .filter((m) => m.role === "system")
+            .map((m) => m.content)
+            .join("\n");
+          assert.match(instructions, /Repeated question comparison/);
+          assert.match(instructions, /NOT chart evidence/);
+          assert.match(instructions, /Use current tools to verify it/);
           assert.equal(body.tool_choice, "auto");
           assert.ok(body.messages.some((m) => m.content === "Mera career kab set hoga?"));
           assert.ok(

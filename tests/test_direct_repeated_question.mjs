@@ -25,3 +25,15 @@ void test("repeat comparison uses latest exact question and excludes companionsh
     "Corrected reason.\n\nCorrected verdict.",
   );
 });
+
+void test("repeat comparison bounds long history text and ignores incomplete turns", () => {
+  const query = "Meri shaadi kab hogi?";
+  const history = [
+    { role: "user", text: query },
+    { role: "assistant", text: "x".repeat(9000) },
+    { role: "user", text: query },
+  ];
+  assert.equal(previousSameQuestion({ query, history }).length, 8000);
+  assert.equal(previousSameQuestion({ query, history: [{ role: "user", text: query }] }), null);
+  assert.equal(previousSameQuestion({ query: "Mere career ka kya?", history }), null);
+});
