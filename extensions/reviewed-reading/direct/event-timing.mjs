@@ -21,6 +21,12 @@ export function unsupportedEventTiming(reply, results, query = "") {
   if (data.some((d) => d.horary_number || d.event_windows?.length)) {
     return false;
   }
+  // A period schedule cannot justify a blanket instruction to stop pursuing work.
+  // Catch the observed Hinglish forms before accepting a qualified interpretation.
+  if (/\b20\d{2}\b/.test(reply) &&
+      /\b(?:solid\s+move\s+nahi\s+hoga|job\s+change\s+(?:mat|nahi)|(?:do not|don't)\s+(?:apply|change jobs))\b/i.test(reply)) {
+    return true;
+  }
   if ((!query || asksForTiming(query)) && isPeriodInterpretation(reply, data)) {
     return false;
   }

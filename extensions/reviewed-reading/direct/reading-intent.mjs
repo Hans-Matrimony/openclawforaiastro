@@ -14,6 +14,14 @@ export function asksForTiming(query) {
   );
 }
 
+// Practical actions are not a request for a new prediction. Explicit timing or
+// chart requests retain their existing route, including mixed-intent questions.
+export function isPracticalFollowup(query) {
+  return !asksForTiming(query) &&
+    !/\b(?:kundli|horoscope|predict|prediction|dasha|transit|chart)\b/i.test(query) &&
+    /\b(?:practical\s+(?:kadam|steps?|advice)|action\s+plan|next\s+steps?|kya\s+(?:karu|karun|karna chahiye)|what should i do)\b/i.test(query);
+}
+
 export function isOrdinaryConcern(query) {
   return (
     !/[?]|\b(?:kab|when|hoga|hogi|kundli|chart|astrology|predict|horoscope|batao)\b/i.test(query) &&
@@ -27,6 +35,7 @@ export function requiresChartReading(query, profile) {
 
 export function isPersonalChartQuestion(query) {
   const text = query.toLowerCase().trim();
+  if (isPracticalFollowup(query)) return false;
   // Keep general explanations, ordinary chat and another person's profile on auto routing.
   if (
     /^(?:what (?:is|are|does)|how does|explain|define|tell me what)\b/.test(text) &&

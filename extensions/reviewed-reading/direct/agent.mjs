@@ -14,6 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
+import { practicalInstruction, repeatsPrediction, practicalFallback } from "./practical-followup.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
 import { alignPeriodVerdict } from "./period-interpretation.mjs";
 import { selfIntroduction } from "./persona.mjs";
@@ -28,6 +29,7 @@ import {
   isPersonalChartQuestion,
   asksForTiming,
   isOrdinaryConcern,
+  isPracticalFollowup,
 } from "./reading-intent.mjs";
 import { directReleaseEnabled } from "./release.mjs";
 import {
@@ -151,6 +153,8 @@ export async function directAnswer(
   // A shared everyday concern is not an astrology request in either flow.
   // Reuse the existing boundary without changing actual reading/tool prompts.
   const ordinaryConcern = isOrdinaryConcern(value.query);
+  const practicalFollowup = sourceFlow && isPracticalFollowup(value.query);
+  if (practicalFollowup) context.prompt += practicalInstruction;
   if (ordinaryConcern) {
     context.prompt +=
       "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. Use respectful aap wording; do not address the user as beta, beti, tu, or with pet names. Do not add an unrequested plan, a motivational verdict, or promises of belonging or guaranteed support. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
@@ -186,7 +190,7 @@ export async function directAnswer(
   const messages = [
     { role: "system", content: context.prompt },
     ...value.history
-      .filter((turn) => !ordinaryConcern || turn.role === "user")
+      .filter((turn) => !(ordinaryConcern || practicalFollowup) || turn.role === "user")
       .map((turn) => ({
         role: turn.role,
         content: redactIdentity(turn.text, value.user_id),
@@ -209,6 +213,7 @@ export async function directAnswer(
   let correctedMissingReading = false;
   let correctedMissingTiming = false;
   let correctedQuestion = false;
+  let correctedPractical = false;
   let correctedPeriod = false;
   let pendingTimingRepair = null;
   let attemptedTimingRepair = false;
@@ -242,7 +247,7 @@ export async function directAnswer(
         : messages,
       tools: pendingTimingRepair
         ? [pendingTimingRepair.tool]
-        : ordinaryConcern
+        : ordinaryConcern || practicalFollowup
           ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
           : requireChart
             ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
@@ -428,6 +433,15 @@ export async function directAnswer(
       });
       continue;
     }
+    if (practicalFollowup && repeatsPrediction(reply)) {
+      validation.push("practical_prediction_rejected");
+      if (!correctedPractical && modelCalls < maxRounds) {
+        correctedPractical = true;
+        messages.push({ role: "user", content: practicalInstruction });
+        continue;
+      }
+      reply = practicalFallback(value);
+    }
     const questionMismatch = mismatchedQuestionReply(value.query, reply);
     const lordConflicts = sourceFlow
       ? [...houseLordConflicts(reply, chartResults), ...chartClaimConflicts(reply, chartResults)]
@@ -467,7 +481,7 @@ export async function directAnswer(
     }
     if (
       unsupportedPeriodClaim(reply, chartResults) ||
-      (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) ||
+      (sourceFlow && unsupportedTopicOpportunity(reply, chartResults, value.query)) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults, value.query))
     ) {
       validation.push("timing_claim_rejected");
