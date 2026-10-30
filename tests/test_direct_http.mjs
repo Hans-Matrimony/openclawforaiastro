@@ -85,3 +85,20 @@ void test("concurrency rejects an extra turn without generation; failures do not
     assert.deepEqual(result.response.body, { error: "direct_answer_unavailable" });
   }
 });
+
+void test("pilot failure diagnostics never log private upstream data", async (t) => {
+  const { createDirectHandler } = await import("../extensions/reviewed-reading/direct-route.mjs");
+  const log = t.mock.method(console, "warn", () => {});
+  for (const code of ["model_http_404", "private profile secret", undefined]) {
+    const error = Object.assign(new Error("private upstream payload"), { code });
+    const handler = createDirectHandler(async () => { throw error; }, { env: {
+      ASTROFRIEND_DIRECT_MODE: "pilot", ASTROFRIEND_DIRECT_ENVIRONMENT: "production",
+      ASTROFRIEND_DIRECT_TEST_USERS: "synthetic-a",
+    }});
+    const { request, response } = exchange(JSON.stringify({user_id:"synthetic-a", query:"Hello", history:[], language:"english"}));
+    await handler(request, response);
+    assert.equal(response.status, 503);
+    assert.deepEqual(response.body, {error:"direct_answer_unavailable"});
+  }
+  assert.deepEqual(log.mock.calls.map(c => c.arguments[0]), ["[direct-answer] model_http_404", "[direct-answer] generation_failed", "[direct-answer] generation_failed"]);
+});

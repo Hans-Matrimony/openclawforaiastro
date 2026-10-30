@@ -17,6 +17,7 @@ export function validateDirectInput(value) {
           "birth",
           "language",
           "user_gender",
+          "user_name",
           "quota_context",
         ].includes(k),
     ) ||
@@ -37,6 +38,9 @@ export function validateDirectInput(value) {
     ) ||
     (value.user_gender !== undefined &&
       !["male", "female", "unknown"].includes(value.user_gender)) ||
+    (value.user_name !== undefined &&
+      (typeof value.user_name !== "string" || value.user_name.length > 80 ||
+        !/^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u.test(value.user_name))) ||
     (value.quota_context !== undefined &&
       (typeof value.quota_context !== "string" || value.quota_context.length > 2048)) ||
     typeof value.language !== "string" ||
@@ -60,7 +64,17 @@ export function createDirectHandler(
   calculate = directAnswer,
   { env = process.env, ...options } = {},
 ) {
-  const handler = createReadingHandler((value) => calculate(value, { env }), {
+  const handler = createReadingHandler(async (value) => {
+    try {
+      return await calculate(value, { env });
+    } catch (error) {
+      // Fixed operational categories only; no user data or upstream response bodies.
+      const code = /^model_http_[45][0-9]{2}$/.test(error?.code ?? "")
+        ? error.code : "generation_failed";
+      console.warn("[direct-answer] " + code);
+      throw error;
+    }
+  }, {
     ...options,
     validate: (value) => {
       validateDirectInput(value);

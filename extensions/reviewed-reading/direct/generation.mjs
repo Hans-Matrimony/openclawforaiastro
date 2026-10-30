@@ -1,6 +1,15 @@
+import { directReleaseEnabled } from "./release.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 
 export function generationSettings(env = process.env) {
+  const pilotQwen = env.ASTROFRIEND_DIRECT_MODE === "pilot" && directReleaseEnabled(env) &&
+    (env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model) === SOURCE_CONFIG.model;
+  const pilotProviders = {
+    order: ["parasail/fp8", "deepinfra/fp8"],
+    only: ["parasail", "deepinfra"],
+    allow_fallbacks: true,
+    max_price: { prompt: 0.15, completion: 1.5 },
+  };
   const mode = env.VEDASTRO_DIRECT_GENERATION_MODE || "stable";
   if (mode === "source") {
     // Keep the source sampling settings. Pinning is opt-in so both comparison
@@ -20,7 +29,7 @@ export function generationSettings(env = process.env) {
               allow_fallbacks: false,
               max_price: { prompt: 0.15, completion: 1.5 },
             }
-          : {}),
+          : pilotQwen ? pilotProviders : {}),
       },
     };
   }
@@ -54,6 +63,7 @@ export function generationSettings(env = process.env) {
       allow_fallbacks: Boolean(fallback),
       // A configured backup must not silently increase the dev comparison price ceiling.
       ...(fallback ? { max_price: { prompt: 0.15, completion: 1.5 } } : {}),
+      ...(pilotQwen && !env.VEDASTRO_DIRECT_PROVIDER && !fallback ? pilotProviders : {}),
     },
   };
 }
