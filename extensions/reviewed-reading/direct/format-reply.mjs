@@ -72,7 +72,7 @@ export function removeReplyDashes(reply) {
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
   return (
-    removeOrphanedHouseScore(cleanCausalWording(reply))
+    removeOrphanedHouseScore(cleanCausalWording(plainQualitativeScores(reply)))
       .replace(
         /\bashtakavarga\s+(?:score\s+|count\s+)?(?:sirf\s+)?\d{1,3}(?:\/48)?\s+hai,?\s+jo\s+(bahut\s+kam|kamzor|strong|weak)\s+hai/gi,
         "$1 sahyog hai",
@@ -87,6 +87,29 @@ export function removeDisplayTerms(reply) {
         before && after ? " " : "",
       )
   );
+}
+
+// Only rewrite qualitative chart-score phrases observed in conversational replies.
+// Preserve negation, qualifications and all numbers; never interpret a raw score.
+function plainQualitativeScores(reply) {
+  try {
+    JSON.parse(reply);
+    return reply;
+  } catch {
+    // Structured output and quoted code are not conversational wording.
+  }
+  return reply
+    .split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
+    .map((part, index) => index % 2 ? part : part
+      .replace(
+        /\bhouse\s+ka\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+nahi)?\s+hai\b)/gi,
+        "is ghar ka sahyog",
+      )
+      .replace(
+        /\b(?:(uski)\s+)?ashtakavarga\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+nahi)?\s+hai\b)/gi,
+        (_match, pronoun) => pronoun ? "uska sahyog" : "sahyog",
+      ))
+    .join("");
 }
 
 // Preserve the existing causal statement when removing technical terminology.
