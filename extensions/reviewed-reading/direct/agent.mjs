@@ -14,6 +14,8 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
+import { continuityFallback } from "./companion-continuity.mjs";
+import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
 import { practicalInstruction, repeatsPrediction, practicalFallback } from "./practical-followup.mjs";
 import { unsupportedPeriodClaim } from "./period-evidence.mjs";
 import { alignPeriodVerdict } from "./period-interpretation.mjs";
@@ -152,8 +154,10 @@ export async function directAnswer(
   const companionGeneration = sourceFlow ? generationSettings(env) : generation;
   // A shared everyday concern is not an astrology request in either flow.
   // Reuse the existing boundary without changing actual reading/tool prompts.
-  const ordinaryConcern = isOrdinaryConcern(value.query);
   const practicalFollowup = sourceFlow && isPracticalFollowup(value.query);
+  const ordinaryConcern = !practicalFollowup && isOrdinaryConcern(value.query);
+  const listeningTurn = sourceFlow && listeningConcern(value.query);
+  if (listeningTurn) context.prompt += listeningInstruction;
   if (practicalFollowup) context.prompt += practicalInstruction;
   if (ordinaryConcern) {
     context.prompt +=
@@ -433,11 +437,11 @@ export async function directAnswer(
       });
       continue;
     }
-    if (practicalFollowup && repeatsPrediction(reply)) {
-      validation.push("practical_prediction_rejected");
+    if (practicalFollowup && (repeatsPrediction(reply) || stalePracticalReply(value.query, reply))) {
+      validation.push(repeatsPrediction(reply) ? "practical_prediction_rejected" : "practical_stale_topic_rejected");
       if (!correctedPractical && modelCalls < maxRounds) {
         correctedPractical = true;
-        messages.push({ role: "user", content: practicalInstruction });
+        messages.push({ role: "user", content: practicalInstruction + "\nCurrent request: " + JSON.stringify(value.query) });
         continue;
       }
       reply = practicalFallback(value);
@@ -539,6 +543,10 @@ export async function directAnswer(
       reply = ordinaryReply(reply, value);
     }
     reply = selfIntroduction(value) ?? reply;
+    if (listeningTurn && unwantedListeningAdvice(reply)) {
+      validation.push("listening_advice_rejected");
+      reply = continuityFallback(value);
+    }
     if (readingTools.size > 0) {
       reply = alignPeriodVerdict(reply, chartResults);
     }
@@ -552,7 +560,10 @@ export async function directAnswer(
       remedyKnowledge?.status === "available" ||
       isStressConcern(value.query);
     let finalReply = formatted;
-    if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
+    if (listeningTurn) {
+      // The acknowledgement is complete; do not append advice or a question.
+      finalReply = formatted;
+    } else if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
       // Companionship follows ordinary replies too; it is not chart-tool evidence.
       // The existing chart requirement above remains independent and unchanged.
       if (canAskFollowup(formatted, value, !clarification)) {
