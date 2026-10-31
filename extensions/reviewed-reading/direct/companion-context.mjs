@@ -1,3 +1,5 @@
+import { unsupportedActionProgress } from "./companion-action-progress.mjs";
+
 // Companion-only topic hints. These never select chart tools or alter readings.
 const TOPICS = {
   education:
@@ -124,6 +126,7 @@ export function closingDrifts(question, focus, value, facts) {
 }
 
 export function unsupportedClosingDetail(question, value, facts) {
+  if (unsupportedActionProgress(question, value, facts)) return true;
   const evidence = [
     value.query,
     ...(value.history ?? []).filter((t) => t.role === "user").map((t) => t.text),
