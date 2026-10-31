@@ -22,6 +22,7 @@ test("companion rejects informal address without altering the reading", async ()
   const output = await contextualClosing(base, value, {generate: async () => bad});
   assert.ok(output.startsWith(base));
   assert.ok(!output.includes(bad));
+  assert.doesNotMatch(output, /aap[^?]*\bho\?/i);
   const good = "Kya shaadi ko lekar ghar par baat hui hai?";
   assert.equal(await contextualClosing(base, value, {generate: async () => good}), base + "\n\n" + good);
 });
