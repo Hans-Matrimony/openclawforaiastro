@@ -37,7 +37,7 @@ export function canAskFollowup(reply, value, completed) {
   if (
     !completed ||
     isDeathTimingQuestion(value.query) ||
-    /\b(?:no (?:follow[- ]?ups?|questions)|without (?:follow[- ]?ups?|questions)|(?:don't|do not) ask|(?:sirf|bas) (?:jawab|answer))\b|सिर्फ\s*जवाब|सवाल\s*मत/i.test(
+    /\b(?:no (?:follow[- ]?ups?|questions)|without (?:follow[- ]?ups?|questions)|(?:don't|do not) ask|(?:sirf|bas) (?:jawab|answer)|(?:follow[- ]?up(?:\s+(?:sawaal|sawal|questions?))?|sawaal|sawal|questions?)\s+(?:nahi|nahin|mat)(?:\s+(?:chahiye|puch\w*|pooch\w*))?|(?:mat|nahi|nahin)\s+(?:puch\w*|pooch\w*))\b|सिर्फ\s*जवाब|(?:सवाल|प्रश्न)\s*(?:मत|नहीं)/i.test(
       value.query,
     ) ||
     reply.includes("```") ||
