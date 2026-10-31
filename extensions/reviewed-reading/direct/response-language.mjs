@@ -14,3 +14,13 @@ export function responseLanguageInstruction(value) {
     "Hinglish means conversational Hindi in Latin letters with natural English terms such as CV or LinkedIn, not a wholly English paragraph. Hindi means Hindi in Devanagari unless the current user explicitly requests another script. " +
     "Preserve names, dates, amounts, code and supported facts; this rule changes presentation only.\n";
 }
+
+// A conservative check for the observed English-only practical answer. Avoid
+// guessing short replies, quoted/code output or explicit language requests.
+export function englishOnlyPracticalReply(value, reply) {
+  return value.language?.toLowerCase() === "hinglish" &&
+    !/\b(?:english|hindi|hinglish|translate|translation|quote|code|json)\b/i.test(value.query) &&
+    reply.trim().split(/\s+/).length >= 8 &&
+    /\b(?:your|you|the|with|and)\b/i.test(reply) &&
+    !/[\u0900-\u097f]|\b(?:aap|apne|apni|apna|mein|hai|hain|ka|ki|ke|ko|se|aur|ek|kijiye|karo|karein|kariye|likhiye|dekhiye|liye|nahi|abhi|chahiye|sakte|batao)\b/i.test(reply);
+}

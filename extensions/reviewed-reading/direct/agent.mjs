@@ -14,6 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
+import { englishOnlyPracticalReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
 import { practicalInstruction, repeatsPrediction, practicalFallback } from "./practical-followup.mjs";
@@ -437,11 +438,13 @@ export async function directAnswer(
       });
       continue;
     }
-    if (practicalFollowup && (repeatsPrediction(reply) || stalePracticalReply(value.query, reply))) {
-      validation.push(repeatsPrediction(reply) ? "practical_prediction_rejected" : "practical_stale_topic_rejected");
+    const practicalLanguageMismatch = practicalFollowup && englishOnlyPracticalReply(value, reply);
+    if (practicalFollowup && (repeatsPrediction(reply) || stalePracticalReply(value.query, reply) || practicalLanguageMismatch)) {
+      validation.push(repeatsPrediction(reply) ? "practical_prediction_rejected" : practicalLanguageMismatch ? "practical_language_rejected" : "practical_stale_topic_rejected");
       if (!correctedPractical && modelCalls < maxRounds) {
         correctedPractical = true;
-        messages.push({ role: "user", content: practicalInstruction + "\nCurrent request: " + JSON.stringify(value.query) });
+        messages.push({ role: "user", content: practicalInstruction + "\nCurrent request: " + JSON.stringify(value.query) +
+          (practicalLanguageMismatch ? "\nThe draft was entirely English. Give the relevant practical step in conversational Hindi written in Latin letters (Hinglish), keeping natural terms such as CV or LinkedIn. Do not follow an earlier English request." + rejectedDraftContext(reply) : "") });
         continue;
       }
       reply = practicalFallback(value);
