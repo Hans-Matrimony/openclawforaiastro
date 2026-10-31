@@ -3,6 +3,11 @@ export function directReleaseEnabled(env = process.env, userId) {
     env.ASTROFRIEND_DIRECT_MODE !== undefined ||
     env.ASTROFRIEND_DIRECT_ENVIRONMENT !== undefined
   ) {
+    // Production promotion is explicit; missing/unknown flags stay disabled.
+    if (env.ASTROFRIEND_DIRECT_MODE === "production") {
+      return env.ASTROFRIEND_DIRECT_ENVIRONMENT === "production" &&
+        (userId === undefined || (typeof userId === "string" && /^[A-Za-z0-9+:_-]{1,128}$/.test(userId)));
+    }
     if (
       env.ASTROFRIEND_DIRECT_MODE !== "pilot" ||
       !["staging", "production"].includes(env.ASTROFRIEND_DIRECT_ENVIRONMENT)

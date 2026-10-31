@@ -15,6 +15,14 @@ Both PWA and gateway must explicitly set:
 - `ASTROFRIEND_DIRECT_ENVIRONMENT=staging` (or production after approval)
 - `ASTROFRIEND_DIRECT_TEST_USERS`: existing canonical IDs, comma separated.
 
+For an approved production promotion, set `ASTROFRIEND_DIRECT_MODE=production`
+and `ASTROFRIEND_DIRECT_ENVIRONMENT=production` on both services. This admits all
+otherwise eligible authenticated PWA text requests, using the same Qwen model,
+source calculations, sampling and bounded provider retry as the pilot. The
+allowlist applies only in `pilot` mode. Deploy gateway support before enabling
+PWA dispatch. Returning the PWA to `pilot` restores the cohort boundary; `off`
+restores legacy dispatch. Keep the same model/provider settings on promotion.
+
 Gateway configuration also needs `ASTROFRIEND_DIRECT_MEM0_HOST`, the existing
 `MEM0_URL` and `MEM0_API_KEY`, and an approved `OPENROUTER_API_KEY`.
 Enable the selected source flow with `VEDASTRO_DIRECT_FLOW=source` and the
