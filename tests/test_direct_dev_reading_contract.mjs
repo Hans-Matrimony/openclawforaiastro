@@ -4,6 +4,8 @@ import fs from "node:fs";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
+import { responseLanguageInstruction } from "../extensions/reviewed-reading/direct/response-language.mjs";
+import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
 import {
   timingAnswerInstruction,
   nonTimingAnswerInstruction,
@@ -70,7 +72,15 @@ for (const fixture of contract.fixtures) {
             // The pilot now explains its existing timing contract before drafting.
             // All other source prompts, tools and request fields remain pinned.
             if (message.role === "system") {
+              // Normalize only the reviewed app language policy back to the
+              // pinned source text. Chart/tool instructions remain hash-checked.
+              const currentLanguage = responseLanguageInstruction({ language: "hinglish" });
+              const sourceLanguage = SOURCE_FLOW_PROMPT.match(
+                /# Language \(highest priority\)[\s\S]*?(?=\r?\n# )/,
+              )[0];
+              if (calls === 1) assert.ok(message.content.includes(currentLanguage));
               message.content = message.content
+                .replace(currentLanguage, sourceLanguage)
                 .replace(timingAnswerInstruction, "")
                 .replace(nonTimingAnswerInstruction, "");
             }

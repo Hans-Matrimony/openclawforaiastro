@@ -17,6 +17,7 @@ import { recentCompanionIntents, repeatsCompanionIntent } from "./companion-repe
 import { isCompanionParagraph } from "./friendly-closing.mjs";
 import { personaInstruction, fallbackGrammar } from "./persona.mjs";
 import { stressFollowup } from "./stress-followup.mjs";
+import { responseLanguageInstruction } from "./response-language.mjs";
 
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
@@ -224,7 +225,7 @@ export async function contextualClosing(
     const question = compactClosing(
       (
         await generate(
-          prompt + questionInstruction + concernInstruction,
+          prompt + questionInstruction + concernInstruction + "\n" + responseLanguageInstruction(value),
           JSON.stringify({
             query: redact(value.query),
             language: value.language,
