@@ -58,6 +58,11 @@ const timingDisclaimer =
 const closingPrediction =
   /\b(?:shaa?di|marriage|wedding|rishta|relationship|career|job|paisa|paise)\b[^.!?\n]{0,70}\b(?:aayega|aayegi|hoga|hogi|ho jayeg[aie]|will (?:come|happen|improve|work))\b/i;
 
+// A companion question must not replace the completed timing explanation with
+// a new causal claim about readiness, routines, or positive thinking.
+const closingTimingCause =
+  /\b(?:sha+di|marriage|wedding)\b[^.!?\n]{0,35}\b(?:time|timing|date|samay|waqt)\b[^.!?\n]{0,100}\b(?:depend\w*|nirbhar|taiyari|readiness|ready)\b|\b(?:readiness|taiyari)\b[^.!?\n]{0,80}\b(?:decides?|determines?|controls?)\b[^.!?\n]{0,40}\b(?:marriage|wedding|sha+di)\b/i;
+
 // Keep a complete final question when the writer adds an overlong preamble.
 // Do not truncate a question mid-sentence or add another paid rewrite call.
 function compactClosing(text) {
@@ -261,6 +266,7 @@ export async function contextualClosing(
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
       closingPrediction.test(question) ||
+      closingTimingCause.test(question) ||
       /\b(?:rishta|rishte|relationship|job|career)\b[^.!?\n]{0,45}\b(?:shuru|start)\s+hone\s+wal[aei]\b/i.test(
         question,
       ) ||

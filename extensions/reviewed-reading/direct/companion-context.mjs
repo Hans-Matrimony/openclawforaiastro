@@ -107,6 +107,14 @@ export function companionNotes(facts, focus, value) {
 
 export function closingDrifts(question, focus, value, facts) {
   const topics = companionTopics(question);
+  // A bare marriage-timing question does not invite an unrelated self-care
+  // interview. Keep neutral relationship follow-ups and explicit user context.
+  if (focus.topics.length === 1 && focus.topics[0] === "relationship" &&
+      !topics.includes("relationship") &&
+      /\b(?:routine|apne liye|khud se socha|self.care|time for yourself)\b/i.test(question) &&
+      !/\b(?:routine|apne liye|khud se socha|self.care|time for (?:myself|yourself))\b/i.test(value.query)) {
+    return true;
+  }
   if (focus.topics.includes("career") && !focus.topics.includes("education") &&
       topics.includes("education") && !topics.includes("career") &&
       activeTopicText(value.query) !== value.query && TOPICS.education.test(value.query)) {

@@ -14,10 +14,10 @@ fact. Avoid naming every planet just because it is available. A date/period is a
 calendar calculation unless an evaluated event analysis separately supports a
 conditional forecast. Do not equate dignity/partial strength with a life outcome.
 
-On a repeated reading keep supported continuity; a corrected birth or method
-needs recalculation and an explained revision. Do not maintain an unsupported
-prior answer or invent a reason for a discrepancy. If evidence is unavailable,
-say what cannot be established and ask only for genuinely missing information.
+Prior assistant dates are not calculation evidence. A corrected birth or method
+needs recalculation; discard prior charts and windows. Check every period and
+future transit against fresh results for the full profile. Do not carry old dates
+from similar placements. State timing limits; retain supported continuity.
 
 Related-person or two-person readings need explicitly selected separate profiles
 and the appropriate method. The user's chart cannot prove another person's

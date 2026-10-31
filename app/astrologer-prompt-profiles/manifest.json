@@ -71,11 +71,12 @@
       "legacy_sha256": "8cfee4f60952e569a1f4fc794d90623f6fa38df13f1ba566bb2933a94bc0fd08",
       "legacy_chars": 19325,
       "legacy_bytes": 19366,
-      "compact_sha256": "5b949c5da20d04ecf1af034fa727cdbe642a93567fa0ae809adfa038e155f0cd",
-      "compact_chars": 2259,
-      "compact_bytes": 2259,
+      "compact_sha256": "3d482f3bcdbd0b7cbb91a3720a36caec2d46901af79f0b4b5dda83f41eed33b9",
+      "compact_chars": 2261,
+      "compact_bytes": 2261,
       "previous_stock_sha256": [
-        "5dff81fc85ec1f010d75d43f4a6b22fc233f696209d7ee4e7411cc55960b85ab"
+        "5dff81fc85ec1f010d75d43f4a6b22fc233f696209d7ee4e7411cc55960b85ab",
+        "5b949c5da20d04ecf1af034fa727cdbe642a93567fa0ae809adfa038e155f0cd"
       ]
     },
     ".pi/prompts/astrologer.md": {

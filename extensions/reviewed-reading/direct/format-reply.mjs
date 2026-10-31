@@ -14,7 +14,7 @@ function clearMarriageTiming(reply) {
       if (!/\b20\d{2}\b/.test(paragraph) || /```|`|https?:\/\/|[{}]/.test(paragraph)) {
         return paragraph;
       }
-      return naturalMarriageSchedule(paragraph)
+      return readableMarriageDates(naturalMarriageSchedule(paragraph))
         .replace(
           /\bshaadi\s+([^.!?\n]{1,110}?\bse\b[^.!?\n]{1,60}?)\s+ke\s+beech\s+(?:hone\s+)?ki\s+sambhavna\s+hai\b/gi,
           "Shaadi ka yog $1 ke beech hai",
@@ -22,6 +22,22 @@ function clearMarriageTiming(reply) {
         .replace(/\bshaadi\s+hone\s+ki\s+sambhavna\s+hai\b/gi, "shaadi ka yog dikh raha hai");
     })
     .join("");
+}
+
+function readableMarriageDates(paragraph) {
+  if (!/\bsha+di|\bmarriage\b/i.test(paragraph) || !/\bantardasha\b/i.test(paragraph)) {
+    return paragraph;
+  }
+  return paragraph.replace(/\b(20\d{2}-\d{2}-\d{2}) se (20\d{2}-\d{2}-\d{2}) tak\b/g,
+    (original, start, end) => {
+      const dates = [start, end].map((value) => new Date(`${value}T00:00:00Z`));
+      if (start > end || dates.some((date, i) => !Number.isFinite(date.valueOf()) ||
+          date.toISOString().slice(0, 10) !== [start, end][i])) return original;
+      const format = new Intl.DateTimeFormat("en-GB", {
+        day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+      });
+      return `${format.format(dates[0])} se ${format.format(dates[1])} tak`;
+    });
 }
 
 // A fallback contains a period schedule, not a selected marriage prediction.
