@@ -212,14 +212,22 @@ void test("both deployment profiles carry the direct reading style and its excep
   for (const profile of [compact, legacy]) {
     for (const relative of ["workspace-astrologer/AGENTS.md", "workspace-astrologer-preview/AGENTS.md"]) {
       const text = profile.find((file) => file.relative === relative).text.replace(/\s+/g, " ");
-      assert.match(text, /Answer directly in the first sentence/);
+      assert.match(text, /Answer directly in the first sentence|Lead yes\/no answers with the supported verdict/);
       assert.match(text, /60-90 words, maximum 105/);
       assert.match(text, /2-3 strongest supported factors/);
-      assert.match(text, /Explicit detail, multipart requests, birth forms, safety, drafts and media markers are exceptions/);
-      assert.match(text, /At most one short supported remedy clause/);
-      assert.match(text, /equivalents in any language/);
-      assert.match(text, /Ask only a necessary clarification in readings/);
-      assert.match(text, /Style never justifies unsupported certainty/);
+      assert.match(text, /Explicit detail, multipart requests, birth forms, safety, drafts and media markers are exceptions|Detail, multipart, birth forms, safety, drafts and media are exceptions/);
+      assert.match(text, /At most one short supported remedy clause|Remedies: at most one short supported clause/);
+      assert.match(text, /equivalents in any language|recap, service menus or stock closing/);
+      assert.match(text, /Ask only a necessary clarification in readings|One short relevant follow-up is optional; respect no questions/);
+      assert.match(text, /Style never justifies unsupported certainty|Style cannot justify certainty/);
     }
   }
+});
+
+void test("packaged production contract retains topic-specific timing without forced certainty", () => {
+  const core = compact.find((f) => f.relative === "workspace-astrologer/AGENTS.md").text.replace(/\s+/g, " ");
+  assert.match(core, /topic's evaluated month-year window/);
+  assert.match(core, /Keep girlfriend\/love distinct from marriage/);
+  assert.match(core, /Never force yes\/no or a date from insufficient evidence/);
+  assert.match(core, /Preserve adverse\/mixed findings/);
 });

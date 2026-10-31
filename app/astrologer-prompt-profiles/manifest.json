@@ -5,12 +5,14 @@
       "legacy_sha256": "706b638551e5c45918e3a1345ea795bf3aa3ade0c1625ac5501b1c4eea5e840b",
       "legacy_chars": 32173,
       "legacy_bytes": 32770,
-      "compact_sha256": "271f9d323aeac6f03172e4b80c6b50aba51329abe619434752bd75e28187ac7b",
-      "compact_chars": 9987,
-      "compact_bytes": 9989,
+      "compact_sha256": "e19787b2bb4fe0a840bd319dc904677c38d1aeb24f02d304d2991d260e6fcac0",
+      "compact_chars": 9932,
+      "compact_bytes": 9934,
       "previous_stock_sha256": [
         "887313244e16c83bb5d6ae0ac69da84b8218d3495074aca54bf7b6f94b9c3a77",
-        "3e68a42cbbd099cc4639d0e5498ee7f04e0e4595156adae9c13ac44e5d80c5a6"
+        "3e68a42cbbd099cc4639d0e5498ee7f04e0e4595156adae9c13ac44e5d80c5a6",
+        "271f9d323aeac6f03172e4b80c6b50aba51329abe619434752bd75e28187ac7b",
+        "05d399df1c1fb3d8de6e121b1e17d4887da286ab885e73727bc259aab15ea859"
       ]
     },
     "workspace-astrologer/SOUL.md": {

@@ -34,7 +34,8 @@ const awkwardThinking =
   /\b(?:sabse\s+zyada\s+)?dh(?:i|ee)re\s+dh(?:i|ee)re\s+soch\b|धीरे\s*धीरे\s*सोच[^।!?\n]{0,20}[?？]/iu;
 
 function poorCompanion(text) {
-  return blanketApproval.test(text) || awkwardThinking.test(text) || malformedDisclosure.test(text);
+  return blanketApproval.test(text) || awkwardThinking.test(text) || malformedDisclosure.test(text) ||
+    /\b(?:tum|tumne|tumhe|tumhara|tumhari|tumhare|tujhe|tujhse|tera|teri|tere)\b/i.test(text);
 }
 
 // Do not teach the writer broken phrasing from earlier assistant bubbles.

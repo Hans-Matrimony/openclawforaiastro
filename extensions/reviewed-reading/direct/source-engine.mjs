@@ -85,6 +85,7 @@ export async function sourceReading(
         ? sourceStyle
         : "Use verdict_signals and the calculated chart to explain this question's positive, negative or mixed indication. For timing, consider upcoming_antardashas and next_mahadasha; do not default to the current antardasha end year or reuse another topic's date. These are period boundaries, not guaranteed event dates or automatically favorable windows. Name a month-year window only when the chart supports its relevance to this topic; explain the specific supporting reason. Do not invent missing dates or a favorable period. Follow the existing two-part reading format and display terminology rules. Reuse this tool result for the same birth inputs in this turn; call another tool only for genuinely missing evidence. Do not generate the companion follow-up here.";
       data.evidence_scope = {
+        coverage: "Selected factors are not an exhaustive assessment: do not claim an only supportive factor. Natal placement does not mean a planet enters that house once during its antardasha. Use complete plain-language sentences; preserve the supported period and mixed/negative conditions.",
         placements:
           "birth_chart contains natal placements only; current house transits require get_current_transits",
         timing:

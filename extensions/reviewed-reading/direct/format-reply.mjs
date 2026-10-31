@@ -118,6 +118,10 @@ function plainQualitativeScores(reply) {
     .split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
     .map((part, index) => index % 2 ? part : part
       .replace(
+        /\b(house\s+(?:[1-9]|1[0-2]))\s+ka\s+(kam|kamzor|weak|strong)\s+(nahi\s+)?hai\b/gi,
+        "$1 mein sahyog $2 $3hai",
+      )
+      .replace(
         /\bhouse\s+ka\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+nahi)?\s+hai\b)/gi,
         "is ghar ka sahyog",
       )
