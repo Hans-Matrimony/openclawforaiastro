@@ -19,10 +19,20 @@ export const companionTopics = (text) =>
     .filter(([, pattern]) => pattern.test(text))
     .map(([topic]) => topic);
 
+function activeTopicText(query) {
+  // A disclaimer about a course not started is context, not a request to
+  // discuss study. Retain actual work/study questions and mixed-topic clauses.
+  return query.split(/(?<=[.!?;])\s+|\n/).filter((clause) => !(
+    TOPICS.education.test(clause) && !TOPICS.career.test(clause) &&
+    !/[?？]|\b(?:which|what|kaun\w*|batao|suggest|recommend|choose)\b/i.test(clause) &&
+    /\b(?:shuru|start\w*|join\w*)\s+(?:abhi\s+)?(?:nahi|nahin)\b|\b(?:haven't|have not|not|never)\s+(?:yet\s+)?(?:started|joined|taken)\b/i.test(clause)
+  )).join(" ");
+}
+
 export function companionFocus(value) {
   const query = value.query ?? "";
   // A correction such as "job nahi, padhai" changes the active subject.
-  const current = query.replace(/^.*(?:nahi|nahin|not|instead)[,;]\s*/i, "");
+  const current = activeTopicText(query).replace(/^.*(?:nahi|nahin|not|instead)[,;]\s*/i, "");
   if (/mere ba+re|about (?:me|myself)|sabhi|sab kuch|everything|मेरे बारे/i.test(current)) {
     return { topics: [], user_topic: query };
   }
@@ -97,6 +107,11 @@ export function companionNotes(facts, focus, value) {
 
 export function closingDrifts(question, focus, value, facts) {
   const topics = companionTopics(question);
+  if (focus.topics.includes("career") && !focus.topics.includes("education") &&
+      topics.includes("education") && !topics.includes("career") &&
+      activeTopicText(value.query) !== value.query && TOPICS.education.test(value.query)) {
+    return true; // Old study memories cannot override this turn's correction.
+  }
   if (!focus.topics.length || !topics.length) {
     return false;
   }

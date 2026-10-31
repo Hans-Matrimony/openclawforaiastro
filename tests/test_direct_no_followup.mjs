@@ -7,6 +7,8 @@ for (const query of [
   "Koi prediction ya follow-up sawaal nahi.", "Sawal nahi chahiye.",
   "Sawaal mat poochna.", "Abhi mat puchna.", "Follow-up nahin.",
   "सवाल नहीं चाहिए।", "प्रश्न मत पूछो।", "No follow-up question.",
+  "No prediction or follow-up question.", "Without advice and questions.",
+  "No predictions, advice, or follow-up questions.",
 ]) {
   test(`no-question preference: ${query}`, () => {
     const value = { query, language: "hinglish" };
@@ -15,7 +17,7 @@ for (const query of [
   });
 }
 test("ordinary uncertainty and questions remain eligible", () => {
-  for (const query of ["Mujhe nahi pata interview mein kya poochhenge.", "Follow-up sawaal poochho.", "Interview ke sawal batao."]) {
+  for (const query of ["Mujhe nahi pata interview mein kya poochhenge.", "Follow-up sawaal poochho.", "Interview ke sawal batao.", "No problem. Ask a follow-up question.", "No prediction needed. A follow-up question is fine."]) {
     assert.equal(canAskFollowup("Apne experience ke examples taiyar kijiye.", { query, language: "hinglish" }, true), true);
   }
 });
