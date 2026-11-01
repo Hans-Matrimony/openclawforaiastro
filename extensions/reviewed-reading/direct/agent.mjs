@@ -156,11 +156,11 @@ export async function directAnswer(
   const companionGeneration = sourceFlow ? generationSettings(env) : generation;
   // A shared everyday concern is not an astrology request in either flow.
   // Reuse the existing boundary without changing actual reading/tool prompts.
-  const practicalFollowup = sourceFlow && isPracticalFollowup(value.query);
-  const ordinaryConcern = !practicalFollowup && isOrdinaryConcern(value.query);
   const emotionalFriendship = isEmotionalFriendship(value.query, value.history);
-  const listeningTurn = sourceFlow && (listeningConcern(value.query) ||
-    (emotionalFriendship && friendshipListeningOnly(value.query)));
+  const practicalFollowup = !emotionalFriendship && sourceFlow && isPracticalFollowup(value.query);
+  const ordinaryConcern = !emotionalFriendship && !practicalFollowup && isOrdinaryConcern(value.query);
+  const listeningTurn = sourceFlow && (emotionalFriendship
+    ? friendshipListeningOnly(value.query) : listeningConcern(value.query));
   if (listeningTurn) context.prompt += listeningInstruction;
   if (practicalFollowup) context.prompt += practicalInstruction;
   if (ordinaryConcern) {
