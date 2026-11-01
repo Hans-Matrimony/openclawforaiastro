@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { emotionalFriendshipPrompt, emotionalReplyIssue, friendshipListeningOnly, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, friendshipListeningOnly, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
 void test("emotional chat gets warmth without capturing astrology or safety requests", () => {
@@ -66,7 +66,8 @@ void test("emotional reply preserves conversation and instructs comfort before a
       const body = JSON.parse(options.body);
       assert.match(body.messages[0].content, /Before any answer or advice, acknowledge/);
       assert.match(body.messages[0].content, /no advice/);
-      assert.ok(body.messages[0].content.includes(previous));
+      assert.ok(!body.messages[0].content.includes(previous));
+      assert.ok(body.messages[0].content.includes("I told my friend I was hurt."));
       assert.ok(!body.messages.some(message => message.role === "assistant"));
       assert.ok(body.tools.every(tool => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name))));
       return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: acknowledgement } }], usage: { cost: 0 } }));
@@ -76,6 +77,20 @@ void test("emotional reply preserves conversation and instructs comfort before a
   assert.ok(result.reply.startsWith(acknowledgement));
   assert.deepEqual(result.answer_reading_tools, []);
   }
+});
+
+void test("standalone emotions omit stale assistant prose but references retain the latest assistant context", () => {
+  const history=[{role:"user",content:"My partner left me."},{role:"assistant",content:"OLD FORECAST"},
+    {role:"user",content:"I tried talking to a friend."},{role:"assistant",content:"You could write down what you wanted to say."}];
+  const standalone=emotionalConversationContext(history,"I feel sad.");
+  assert.match(standalone,/I tried talking to a friend/);
+  assert.doesNotMatch(standalone,/OLD FORECAST|You could write/);
+  for(const query of ["haan", "Your advice did not help, I am still upset.", "Aapne jo kaha kaam nahi kiya"]) {
+    const prompt=emotionalConversationContext(history,query);
+    assert.match(prompt,/You could write/);
+    assert.doesNotMatch(prompt,/OLD FORECAST/);
+  }
+  assert.doesNotThrow(()=>emotionalConversationContext([],"haan"));
 });
 
 void test("emotional disclosures and listening requests do not add a duplicate companion", async () => {

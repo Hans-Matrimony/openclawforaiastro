@@ -212,7 +212,7 @@ export async function directAnswer(
   ];
   if (emotionalFriendship) {
     const prior = messages.slice(1, -1);
-    messages[0].content += emotionalConversationContext(prior);
+    messages[0].content += emotionalConversationContext(prior, value.query);
     messages.splice(1, prior.length);
   }
   const emotionalBasePrompt = emotionalFriendship ? messages[0].content : null;

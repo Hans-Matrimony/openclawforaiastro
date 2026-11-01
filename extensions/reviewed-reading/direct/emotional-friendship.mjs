@@ -65,11 +65,15 @@ export function emotionalFriendshipPrompt(value, context) {
     (value.quota_context ? "\nTrusted app access guidance: " + value.quota_context : "");
 }
 
-export function emotionalConversationContext(history) {
+export function emotionalConversationContext(history, query) {
   // Preserve what was said without presenting poor historical assistant replies
   // as demonstrations for the next answer. JSON labels keep authorship explicit.
-  return "\n# Prior conversation data\nUse this to understand references and prior attempts, not as examples of how to respond. Previous assistant text may be wrong. Current user corrections take priority.\n" +
-    JSON.stringify(history).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+  const refersBack = /^(?:yes|yeah|haan|han|hmm|no|nahi|why|kyun)[.!?\s]*$/iu.test(query.trim()) ||
+    /\b(?:you said|your (?:advice|suggestion|reply|answer)|that (?:advice|suggestion)|aapne|aapki baat|tumne|didn't help|did not help|kaam nahi)\b|आपने|आपकी बात/iu.test(query);
+  const lastAssistant = refersBack ? history.findLastIndex(turn => turn.role === "assistant") : -1;
+  const relevant = history.filter((turn, index) => turn.role === "user" || index === lastAssistant);
+  return "\n# Prior conversation data\nUser-authored facts and attempts are retained. Assistant prose is omitted unless needed to resolve a reference in this message; do not invent omitted advice. Use this as context, not response examples. Current user corrections take priority.\n" +
+    JSON.stringify(relevant).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
 }
 
 // Narrow checks for observed defects, not a sentiment or clinical classifier.
