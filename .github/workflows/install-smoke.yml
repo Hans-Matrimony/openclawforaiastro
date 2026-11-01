@@ -30,6 +30,9 @@ jobs:
       - name: Install pnpm deps (minimal)
         run: pnpm install --ignore-scripts --frozen-lockfile
 
+      - name: Test installer version comparisons
+        run: node --test scripts/docker/install-version.test.mjs
+
       - name: Run installer docker tests
         env:
           CLAWDBOT_INSTALL_URL: https://openclaw.ai/install.sh
