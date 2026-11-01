@@ -30,6 +30,9 @@ export function friendshipGroundingIssues(reply, value) {
   if (relationshipDisclosure && !requestedDraft && /["\u201c][^"\u201d]{12,}["\u201d]/u.test(reply) && /\b(?:message|reply|keh (?:dein|sakte)|likh|bol (?:dein|sakte))\b/iu.test(reply)) {
     issues.push("The user has not asked you to compose a message to their partner. Do not script their reply or decision; acknowledge their uncertainty and offer time before responding.");
   }
+  if (/\b(?:kehne ka dimaag|bina kisi ki awaaz|dil ki baat apne aap se|dil ki aawaz sun)\b/iu.test(reply)) {
+    issues.push("Replace vague or awkward reassurance with plain acknowledgement and room to speak. Do not tell the user to talk to themselves or listen to their heart; avoid kehne ka dimaag wording.");
+  }
   const opening = reply.split(/[.!?\n]/u)[0].toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   const query = value.query.toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   if (query.split(/\s+/u).length >= 4 && opening.includes(query)) {

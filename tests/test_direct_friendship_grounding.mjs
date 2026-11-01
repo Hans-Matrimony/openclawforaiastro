@@ -47,3 +47,7 @@ test('uncertain breakup user is not given a scripted decision unless a draft is 
  assert.ok(!friendshipGroundingIssues(reply,{...q,query:q.query+' Please draft a reply.'}).some(x=>x.includes('compose')));
  assert.ok(!friendshipGroundingIssues('Kya hua? Aap batana chahenge?',q).some(x=>x.includes('compose')));
 });
+test('live vague self-talk and awkward reassurance require a fresh response',()=>{
+ for(const reply of ['Aapke paas kuch kehne ka dimaag nahi hai.','Apne dil ki baat apne aap se bol sakte hain, bina kisi ki awaaz ke.']) assert.ok(friendshipGroundingIssues(reply,value).some(x=>x.includes('awkward')));
+ assert.ok(!friendshipGroundingIssues('Abhi jawab dene ki jaldi nahi hai. Aap aaram se bata sakte hain.',value).some(x=>x.includes('awkward')));
+});

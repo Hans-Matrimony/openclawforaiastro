@@ -1,3 +1,4 @@
+import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { readingContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
@@ -482,6 +483,14 @@ export async function directAnswer(
         continue;
       }
       reply = practicalFallback(value);
+    }
+    if (timingRequired && !clarification && !attemptedTimingRepair && modelCalls < maxRounds &&
+        omittedSupportedTiming(reply, chartResults, value.query)) {
+      pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+      if (pendingTimingRepair) {
+        validation.push("undated_timing_review");
+        continue;
+      }
     }
     const questionMismatch = mismatchedQuestionReply(value.query, reply);
     const lordConflicts = sourceFlow
