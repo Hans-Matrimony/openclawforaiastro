@@ -4,7 +4,7 @@
     "files":  [
                   {
                       "path":  "system-prompt.txt",
-                      "sha256":  "d7b6d30c8e204880358997f2b5a08b152217bc0f07689c0fc5402c6aaf00d698"
+                      "sha256":  "35cd9e61f135903025218d8a88c18c50f10aadd02b7fec3b8ff6a7394ab64737"
                   },
                   {
                       "path":  "tools-captured.json",

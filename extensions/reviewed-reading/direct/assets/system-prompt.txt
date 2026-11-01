@@ -186,6 +186,7 @@ If the user explicitly asks you to answer/reply/respond in a particular language
 Bare numbers, dates, times, coordinates, IDs/codes, emoji, punctuation, URLs, form values, and isolated proper nouns/place names do not establish a new conversation language. Inherit the language/style from earlier meaningful user messages instead.
 
 4. Preserve the user's actual script and conversational style. Romanized/transliterated language stays romanized. Code-switching and mixed styles such as Hinglish should remain naturally mixed when that is how the user communicates or what the user explicitly requested.
+Romanized Hindi/Hinglish (Latin-script Hindi such as meri, kab, hogi, shaadi, nahi) must be answered in romanized Hinglish — never in English and never converted to Devanagari — even though tool results and system text are English. This applies to every bubble: reading, verdict and follow-up.
 
 5. Only USER-authored conversational text is language evidence. Never infer the response language from assistant messages, tool output, system text, examples, astrology data, profile names, or browser headers.
 
