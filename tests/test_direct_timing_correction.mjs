@@ -41,6 +41,21 @@ const message = (data) => ({
   ],
 });
 
+test("mixed placement and strength evidence remain distinct without changing dates", () => {
+  const mixed = { ...row, verdict_signals: [{ ...row.verdict_signals[0],
+    negative: ["house 7 (marriage) bindus sirf 20/48 => weak support"],
+  }] };
+  const raw = JSON.stringify(mixed);
+  const output = timingCorrection([raw], "shaadi kb hogi", "hinglish", now()).render(message(value));
+  assert.match(output, /Guru ka 7ve ghar mein hona sahyog ka sanket/);
+  assert.match(output, /7ve ghar ki majbooti ka alag sanket kamzor/);
+  assert.match(output, /November 2031 se July 2034/);
+  assert.equal(JSON.stringify(mixed), raw);
+  const english = timingCorrection([raw], "When will I marry?", "english", now()).render(message(value));
+  assert.match(english, /separate house-strength indicator/);
+  assert.match(english, /November 2031 to July 2034/);
+});
+
 void test("structured timing uses the selected period, never automatically the next one", () => {
   const correction = timingCorrection(evidence, "shaadi kb hogi", "hinglish", now());
   const reply = correction.render(message(value));

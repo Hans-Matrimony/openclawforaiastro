@@ -1,6 +1,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { formatDisplayReply } from "../extensions/reviewed-reading/direct/format-reply.mjs";
+
+test("causal jisse and equivalent connectors retain the checked condition's effect", () => {
+  const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nAapke mann mein kya hai?";
+  for (const term of ["retrograde", "combust"]) {
+    for (const connector of ["isliye", "jisse", "jis wajah se", "is wajah se"]) {
+      const output = formatDisplayReply(`Jupiter ${term} hai, ${connector} results thoda slow ho sakte hain.` + suffix);
+      assert.equal(output, "Jupiter ki sthiti ki wajah se results thoda slow ho sakte hain." + suffix);
+      assert.equal(formatDisplayReply(output), output);
+    }
+  }
+});
+
+test("condition wording keeps negation, uncertainty, dates and protected content", () => {
+  assert.equal(formatDisplayReply("Jupiter retrograde nahi hai, isliye deri zaroori nahi hai."),
+    "Jupiter ki aisi sthiti nahi hai, isliye deri zaroori nahi hai.");
+  assert.equal(formatDisplayReply("Jupiter retrograde hai, jisse deri ho sakti hai, lekin pakka nahi."),
+    "Jupiter ki sthiti ki wajah se deri ho sakti hai, lekin pakka nahi.");
+  for (const text of ['`Jupiter retrograde hai, jisse results slow ho sakte hain`',
+    '```text\nJupiter combust hai, jisse results slow ho sakte hain\n```',
+    '{"reason":"Jupiter retrograde hai, jisse results slow ho sakte hain"}',
+    'https://example.test/retrograde/combust', 'Jupiter hai, jisse results slow ho sakte hain.']) {
+    assert.equal(formatDisplayReply(text), text);
+  }
+});
 test("live qualitative score wording preserves mixed evidence, timing and companion", () => {
   const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nRishte ko lekar aaj kaisa lag raha hai?";
   const raw = "Jupiter 7ve ghar mein supportive hai, lekin Saturn bhi hai aur house ka score bahut kam hai.";

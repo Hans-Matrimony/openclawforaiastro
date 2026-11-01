@@ -87,6 +87,17 @@ export function removeReplyDashes(reply) {
 // Display-only cleanup, after generation and follow-up assembly. Keep chart
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
+  try {
+    JSON.parse(reply);
+    return reply;
+  } catch {
+    // Formatting must not alter structured output, quoted code, or URLs.
+  }
+  return reply.split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
+    .map((part, index) => index % 2 ? part : removeProseDisplayTerms(part)).join("");
+}
+
+function removeProseDisplayTerms(reply) {
   return (
     removeOrphanedHouseScore(cleanCausalWording(plainQualitativeScores(reply)))
       .replace(
@@ -147,8 +158,11 @@ function cleanCausalWording(reply) {
       index % 2
         ? part
         : part.replace(
-            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+hai\s*[,;]?\s*isliye\s+/gi,
+            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+hai\s*[,;]?\s*(?:isliye|jisse|jis\s+wajah\s+se|is\s+wajah\s+se)\s+/gi,
             "$1 ki sthiti ki wajah se ",
+          ).replace(
+            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+(nahi|nahin)\s+hai\b/gi,
+            "$1 ki aisi sthiti $2 hai",
           ),
     )
     .join("");
