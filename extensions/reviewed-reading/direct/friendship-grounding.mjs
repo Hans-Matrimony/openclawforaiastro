@@ -25,6 +25,11 @@ export function friendshipGroundingIssues(reply, value) {
       !/\b(?:accept|accepted|sweekar|faisla maan|sahi hai)\b/iu.test(disclosure)) {
     issues.push("Do not invent acceptance, closure, or agreement on the user's behalf, including suggested messages. Offer time before replying or neutral wording that asks for space.");
   }
+  const relationshipDisclosure = /\b(?:breakup|girlfriend|boyfriend|relationship|rishta|gf|bf)\b/iu.test(disclosure);
+  const requestedDraft = /\b(?:draft|compose|write (?:a |the )?(?:message|reply)|(?:message|reply|jawab) (?:likh|likhkar|bana))\b/iu.test(value.query);
+  if (relationshipDisclosure && !requestedDraft && /["\u201c][^"\u201d]{12,}["\u201d]/u.test(reply) && /\b(?:message|reply|keh (?:dein|sakte)|likh|bol (?:dein|sakte))\b/iu.test(reply)) {
+    issues.push("The user has not asked you to compose a message to their partner. Do not script their reply or decision; acknowledge their uncertainty and offer time before responding.");
+  }
   const opening = reply.split(/[.!?\n]/u)[0].toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   const query = value.query.toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   if (query.split(/\s+/u).length >= 4 && opening.includes(query)) {

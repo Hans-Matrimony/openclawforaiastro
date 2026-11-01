@@ -17,7 +17,7 @@ test('dramatic and invented blame language is rejected',()=>{
 });
 test('persona check distinguishes narration from quoted user wording',()=>{
  assert.ok(friendshipGroundingIssues('Main samajh sakta hoon.',value).length);
- assert.deepEqual(friendshipGroundingIssues('Main sun rahi hoon. Aap keh sakte hain: “Main baat kar sakta hoon.”',value),[]);
+ assert.deepEqual(friendshipGroundingIssues('Main sun rahi hoon. Aap keh sakte hain: “Main baat kar sakta hoon.”',{...value,query:'Please draft a reply to my girlfriend.'}),[]);
  assert.deepEqual(friendshipGroundingIssues('Main sun raha hoon.',{...value,user_gender:'female'}),[]);
 });
 test('new topic and content-shaped history resolve without old breakup ownership',()=>{
@@ -39,4 +39,11 @@ test('chart closing discards emotional drift without modifying reading evidence'
  const reading='Jupiter ki sthiti sahayak hai.\n\nNovember 2031 se July 2034 ek sambhavit avadhi hai.';
  const result=await contextualClosing(reading,{...value,query:'Meri shaadi kab hogi?',history:[],readingOnlyClosing:true},{generate:async()=> 'Kya aapne kisi se apni baat share ki hai?'});
  assert.equal(result,reading);
+});
+test('uncertain breakup user is not given a scripted decision unless a draft is requested',()=>{
+ const q={...value,query:'Meri girlfriend ne relationship khatam kar diya. Samajh nahi aa raha kya bolun.'};
+ const reply='Ek message likh lein: "Aapki decision ki respect karti hoon."';
+ assert.ok(friendshipGroundingIssues(reply,q).some(x=>x.includes('compose')));
+ assert.ok(!friendshipGroundingIssues(reply,{...q,query:q.query+' Please draft a reply.'}).some(x=>x.includes('compose')));
+ assert.ok(!friendshipGroundingIssues('Kya hua? Aap batana chahenge?',q).some(x=>x.includes('compose')));
 });
