@@ -191,6 +191,15 @@ void test("presence fragments cannot bypass the guard by dropping main or changi
   assert.equal(emotionalReplyIssue("Your girlfriend left. You can share what happened at your own pace.",value),null);
 });
 
+void test("hedged emptiness claims need user evidence while invitations remain valid", () => {
+  const value={query:"My girlfriend left me",language:"hinglish"};
+  const bad="Aapki girlfriend chali gayi, lagta hai aapke andar gehra sa khalipana reh gaya hai.";
+  assert.match(emotionalReplyIssue(bad,value),/attribute emptiness/);
+  assert.ok(emotionalReplyIssue(bad,{...value,history:[{role:"assistant",text:"khalipana"}]}));
+  assert.equal(emotionalReplyIssue(bad,{...value,query:"My girlfriend left me. Bahut khalipana hai."}),null);
+  assert.equal(emotionalReplyIssue("Aapki girlfriend chali gayi. Aap chahein toh bata sakte hain ki aapko kaisa lag raha hai.",value),null);
+});
+
 void test("emotional boundaries reject observed defects without suppressing requested advice", () => {
   const value = {query:"meri Gf chli gayi Mujhe Chhor Kr",language:"hinglish"};
   const issue = emotionalReplyIssue("Tumne usse pyaar kiya tha. Woh chali gayi, koi baat nahi. Phone rakh do.", value);

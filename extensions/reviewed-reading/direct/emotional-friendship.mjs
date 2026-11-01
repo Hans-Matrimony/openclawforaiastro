@@ -92,6 +92,14 @@ export function emotionalReplyIssue(reply, value) {
   // corrections together so fixing address does not hide unwanted advice.
   const issues = [];
   const userText = [value.query, ...(value.history || []).filter(turn => turn.role === "user").map(turn => turn.text)].join("\n");
+  // A softened assertion ("lagta hai") still invents an internal state.
+  // Match the observed emptiness attribution, not neutral invitations to share.
+  const emptiness = /\b(?:khalipana?|khaalipana?|emptiness|empty inside)\b|खालीपन/iu;
+  if (emptiness.test(reply) && !emptiness.test(userText) &&
+      /\b(?:aapke andar|aapko|you feel|you are|you're|you must|left you|lagta hai)\b|आपके अंदर|आपको/iu.test(reply) &&
+      !/\b(?:if you|agar aap)\b|अगर आप/iu.test(reply)) {
+    issues.push("Do not attribute emptiness to the user, even as a guess. Acknowledge the disclosed event and invite them to describe their own experience.");
+  }
   if (/\b(?:tum|tumne|tumhe|tumhara|tumhari|tumhare|tujhe|tujhse|tera|teri|tere)\b|(?:^|\s)(?:तुम|तुमने|तुम्हें|तुम्हारा|तुम्हारी|तेरा|तेरी)(?:\s|[।,.!?]|$)/iu.test(reply)) {
     issues.push("Use respectful aap forms consistently; remove informal second-person address.");
   }
