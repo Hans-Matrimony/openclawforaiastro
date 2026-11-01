@@ -14,6 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
+import { emotionalFriendshipInstruction, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -157,13 +158,16 @@ export async function directAnswer(
   // Reuse the existing boundary without changing actual reading/tool prompts.
   const practicalFollowup = sourceFlow && isPracticalFollowup(value.query);
   const ordinaryConcern = !practicalFollowup && isOrdinaryConcern(value.query);
-  const listeningTurn = sourceFlow && listeningConcern(value.query);
+  const emotionalFriendship = isEmotionalFriendship(value.query, value.history);
+  const listeningTurn = sourceFlow && (listeningConcern(value.query) ||
+    (emotionalFriendship && friendshipListeningOnly(value.query)));
   if (listeningTurn) context.prompt += listeningInstruction;
   if (practicalFollowup) context.prompt += practicalInstruction;
   if (ordinaryConcern) {
     context.prompt +=
       "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. Use respectful aap wording; do not address the user as beta, beti, tu, or with pet names. Do not add an unrequested plan, a motivational verdict, or promises of belonging or guaranteed support. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
   }
+  if (emotionalFriendship) context.prompt += emotionalFriendshipInstruction;
   const previousReading = previousSameQuestion(value);
   if (previousReading && (!sourceFlow || (!ordinaryConcern && isPersonalChartQuestion(value.query)))) {
     context.prompt +=
@@ -195,7 +199,7 @@ export async function directAnswer(
   const messages = [
     { role: "system", content: context.prompt },
     ...value.history
-      .filter((turn) => !(ordinaryConcern || practicalFollowup) || turn.role === "user")
+      .filter((turn) => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user")
       .map((turn) => ({
         role: turn.role,
         content: redactIdentity(turn.text, value.user_id),
@@ -252,7 +256,7 @@ export async function directAnswer(
         : messages,
       tools: pendingTimingRepair
         ? [pendingTimingRepair.tool]
-        : ordinaryConcern || practicalFollowup
+        : ordinaryConcern || practicalFollowup || emotionalFriendship
           ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
           : requireChart
             ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
