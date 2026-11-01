@@ -231,7 +231,8 @@ export async function contextualClosing(
     const question = compactClosing(
       (
         await generate(
-          prompt + questionInstruction + concernInstruction + "\n" + responseLanguageInstruction(value),
+          prompt + questionInstruction + concernInstruction +
+          (value.readingOnlyClosing ? " This is a chart question, not an emotional disclosure. Ask only about clarification of the current reading. Do not ask about feelings, a person in their heart, sharing feelings, or relationships outside the supplied question." : "") + "\n" + responseLanguageInstruction(value),
           JSON.stringify({
             query: redact(value.query),
             language: value.language,
@@ -247,6 +248,8 @@ export async function contextualClosing(
         )
       ).trim(),
     );
+    // An unrelated personal question must not be appended to a chart reading.
+    if (value.readingOnlyClosing && /\b(?:dil|feelings?|share|emotions?|baat kahi|baat bata|apni baat)\b/iu.test(question)) return base;
     if (
       /^none[.!]?$/i.test(question) ||
       !question ||

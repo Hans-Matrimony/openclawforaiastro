@@ -24,3 +24,19 @@ test('new topic and content-shaped history resolve without old breakup ownership
  assert.equal(currentFriendshipDisclosure({...value,query:'Mere exam ke marks kam aaye.'}),'Mere exam ke marks kam aaye.');
  assert.equal(currentFriendshipDisclosure({...value,history:[{role:'user',content:'Mera interview reject hua.'}]}),'Mera interview reject hua.');
 });
+import { asksForTiming } from '../extensions/reviewed-reading/direct/reading-intent.mjs';
+import { contextualClosing } from '../extensions/reviewed-reading/direct/contextual-closing.mjs';
+test('live breakup wording cannot invent acceptance but user-stated acceptance is allowed',()=>{
+ const reply='Aap keh sakte hain: "Ab main samajh raha hoon ki aapke liye yeh sahi hai."';
+ assert.ok(friendshipGroundingIssues(reply,{...value,query:'Meri girlfriend ne relationship khatam kar diya. Samajh nahi aa raha kya bolun.'}).some(x=>x.includes('acceptance')));
+ assert.ok(!friendshipGroundingIssues(reply,{...value,query:'Meri girlfriend ne relationship khatam kiya. I accept her decision.'}).some(x=>x.includes('acceptance')));
+});
+test('natural samay question activates timing contract without classifying ordinary conversation',()=>{
+ for(const q of ['Meri kundli ke hisaab se shaadi ka agla sambhavit samay kya hai?','Shaadi ka samay kya hai?','Agli window kya hai?']) assert.equal(asksForTiming(q),true,q);
+ for(const q of ['Mujhe thoda samay chahiye','Main apna samay doston ke saath bitata hoon']) assert.equal(asksForTiming(q),false,q);
+});
+test('chart closing discards emotional drift without modifying reading evidence',async()=>{
+ const reading='Jupiter ki sthiti sahayak hai.\n\nNovember 2031 se July 2034 ek sambhavit avadhi hai.';
+ const result=await contextualClosing(reading,{...value,query:'Meri shaadi kab hogi?',history:[],readingOnlyClosing:true},{generate:async()=> 'Kya aapne kisi se apni baat share ki hai?'});
+ assert.equal(result,reading);
+});

@@ -20,6 +20,11 @@ export function friendshipGroundingIssues(reply, value) {
   if (/\b(?:dhadkan.{0,12}ruk|heartbeat.{0,12}stop|dard sahi lag|kisi ki galati nahi|nobody is at fault)\b/iu.test(reply)) {
     issues.push("Remove exaggerated bodily metaphors and unsupported judgments about fault or pain. Use literal, grounded language.");
   }
+  if (/\b(?:breakup|girlfriend|boyfriend|relationship|rishta|gf|bf)\b/iu.test(disclosure) &&
+      /\b(?:ab main samajh raha hoon ki aapke liye yeh sahi hai|this is (?:right|best) for you|i accept your decision|maine (?:aapka|tumhara) faisla maan liya)\b/iu.test(reply) &&
+      !/\b(?:accept|accepted|sweekar|faisla maan|sahi hai)\b/iu.test(disclosure)) {
+    issues.push("Do not invent acceptance, closure, or agreement on the user's behalf, including suggested messages. Offer time before replying or neutral wording that asks for space.");
+  }
   const opening = reply.split(/[.!?\n]/u)[0].toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   const query = value.query.toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
   if (query.split(/\s+/u).length >= 4 && opening.includes(query)) {
