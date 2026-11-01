@@ -1,6 +1,37 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatDisplayReply } from "../extensions/reviewed-reading/direct/format-reply.mjs";
+import { formatDisplayReply, sanitizeBindus } from "../extensions/reviewed-reading/direct/format-reply.mjs";
+
+test("sanitized numbered house scores retain meaning without redundant weak wording", () => {
+  const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nAap kya soch rahe hain?";
+  for (const score of ["kamzor", "weak", "18/48"]) {
+    const raw = `Jupiter supportive hai, lekin house 7 ka score sirf ${score} hai, jo bahut kam hai.` + suffix;
+    const result = formatDisplayReply(sanitizeBindus(raw));
+    assert.equal(result, "Jupiter supportive hai, lekin 7ve ghar ki majbooti ka sanket bahut kamzor hai." + suffix);
+    assert.equal(formatDisplayReply(result), result);
+  }
+  for (const house of [1, 7, 10, 12]) {
+    for (const strength of ["kamzor", "bahut kam", "strong", "kamzor nahi", "weak nahin"]) {
+      assert.equal(formatDisplayReply(`house ${house} ka score ${strength} hai.`),
+        `${house}ve ghar ki majbooti ka sanket ${strength} hai.`);
+    }
+  }
+});
+
+test("numbered score cleanup preserves contrary qualifiers and protected content", () => {
+  for (const raw of [
+    "house 7 ka score kamzor nahi hai, jo bahut kam hai.",
+    "house 7 ka score kamzor hai, jo bahut kam nahi hai.",
+    "house 7 ka score strong hai, jo bahut kam hai.",
+  ]) {
+    assert.equal(formatDisplayReply(raw), raw.replace("house 7 ka score", "7ve ghar ki majbooti ka sanket"));
+  }
+  const phrase = "house 7 ka score sirf kamzor hai, jo bahut kam hai";
+  for (const raw of [JSON.stringify({ text: phrase }), `\`${phrase}\``, `\`\`\`text\n${phrase}\n\`\`\``,
+    "house 7 ka score 18 hai.", "house 13 ka score kamzor hai.", "My exam score is weak."]) {
+    assert.equal(formatDisplayReply(raw), raw);
+  }
+});
 
 test("causal jisse and equivalent connectors retain the checked condition's effect", () => {
   const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nAapke mann mein kya hai?";

@@ -128,6 +128,16 @@ function plainQualitativeScores(reply) {
   return reply
     .split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
     .map((part, index) => index % 2 ? part : part
+      // A sanitized point total may already read "kamzor". Collapse only
+      // the observed redundant weak-score clause, never a contrary qualifier.
+      .replace(
+        /\bhouse\s+([1-9]|1[0-2])\s+ka\s+score\s+(?:sirf\s+)?(?:kamzor|weak)\s+hai,?\s+jo\s+bahut\s+kam\s+hai\b/gi,
+        "$1ve ghar ki majbooti ka sanket bahut kamzor hai",
+      )
+      .replace(
+        /\bhouse\s+([1-9]|1[0-2])\s+ka\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+(?:nahi|nahin))?\s+hai\b)/gi,
+        "$1ve ghar ki majbooti ka sanket",
+      )
       .replace(
         /\b(house\s+(?:[1-9]|1[0-2]))\s+ka\s+(kam|kamzor|weak|strong)\s+(nahi\s+)?hai\b/gi,
         "$1 mein sahyog $2 $3hai",
