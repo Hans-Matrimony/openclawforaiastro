@@ -14,7 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
-import { emotionalFriendshipInstruction, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalReplyIssue, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -167,7 +167,11 @@ export async function directAnswer(
     context.prompt +=
       "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. Use respectful aap wording; do not address the user as beta, beti, tu, or with pet names. Do not add an unrequested plan, a motivational verdict, or promises of belonging or guaranteed support. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
   }
-  if (emotionalFriendship) context.prompt += emotionalFriendshipInstruction;
+  if (emotionalFriendship) {
+    context.prompt = emotionalFriendshipPrompt(
+      { ...value, query: redactIdentity(value.query, value.user_id) }, context,
+    );
+  }
   const previousReading = previousSameQuestion(value);
   if (previousReading && (!sourceFlow || (!ordinaryConcern && isPersonalChartQuestion(value.query)))) {
     context.prompt +=
@@ -207,6 +211,7 @@ export async function directAnswer(
     { role: "user", content: redactIdentity(value.query, value.user_id) },
   ];
   let nudged = false;
+  let correctedEmotionalReply = false;
   let upstreamCalls = 0;
   const fetchModel = createModelRequest({
     fetchImpl,
@@ -406,6 +411,19 @@ export async function directAnswer(
       reply.length > 32000
     ) {
       throw new Error("Incomplete direct reply");
+    }
+    const emotionalIssue = emotionalFriendship ? emotionalReplyIssue(reply, value) : null;
+    if (emotionalIssue) {
+      if (correctedEmotionalReply || modelCalls >= maxRounds) {
+        throw new Error("Emotional reply did not address the current message");
+      }
+      correctedEmotionalReply = true;
+      messages.push(choice.message, {
+        role: "system",
+        content: "Rewrite this emotional reply once. " + emotionalIssue +
+          " Follow the friendship instructions and current message, not the previous reply's wording. Return only the revised reply; no tools or commentary.",
+      });
+      continue;
     }
     // A closing friendly question must not let an ungrounded reading bypass tools.
     const clarification =

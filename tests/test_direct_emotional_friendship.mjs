@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { friendshipListeningOnly, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalReplyIssue, friendshipListeningOnly, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
 void test("emotional chat gets warmth without capturing astrology or safety requests", () => {
@@ -83,7 +83,9 @@ void test("emotional disclosures and listening requests do not add a duplicate c
     "meri Gf chli gayi Mujhe Chhor Kr",
   ]) {
     let calls = 0;
-    const reply = "You felt ignored after sharing something important. That can hurt, and you do not have to explain it all right now.";
+    const reply = query.includes("Gf")
+      ? "Your girlfriend leaving is a big change. You can talk about what happened at your own pace."
+      : "You felt ignored after sharing something important. That can hurt, and you do not have to explain it all right now.";
     const result = await directAnswer({
       user_id: "test:listening", query, language: "en", birth: {}, history: [],
     }, {
@@ -101,4 +103,69 @@ void test("emotional disclosures and listening requests do not add a duplicate c
     assert.equal(result.reply, reply);
     assert.deepEqual(result.answer_reading_tools, []);
   }
+});
+
+void test("friendship prompt preserves identity, language, memory and current preferences without chart contract", () => {
+  const prompt = emotionalFriendshipPrompt({query: "My partner left me. What should I do?", language: "hinglish", user_name: "Ravi"},
+    {memoryStatus: "available", memoryFacts: ["User already tried talking to their friend."]});
+  assert.match(prompt, /Ravi/);
+  assert.match(prompt, /hinglish/);
+  assert.match(prompt, /already tried talking/);
+  assert.match(prompt, /does not override a new explicit request for advice/);
+  assert.doesNotMatch(prompt, /Completed Reading Output Contract|40 words of explanation|VEDASTRO/);
+});
+
+void test("quality guard rejects the observed empty consolation but permits specific support in supported scripts", () => {
+  const value = {query: "meri Gf chli gayi Mujhe Chhor Kr", language: "hinglish"};
+  for (const reply of ["Main sun rahi hoon. Bas yahan hoon.", "Dil toot gaya hai aur koi nahi samajh raha.", "Aapke chart mein breakup hai."]) {
+    assert.ok(emotionalReplyIssue(reply, value));
+  }
+  for (const reply of ["Unke jaane ke baad aapko kaisa lag raha hai?", "Your girlfriend leaving can be difficult to process.", "उनके छोड़कर जाने के बाद आप कैसा महसूस कर रहे हैं?"]) {
+    assert.equal(emotionalReplyIssue(reply, value), null);
+  }
+  assert.equal(emotionalReplyIssue("Je comprends votre peine.", {...value, language: "fr"}), null);
+});
+
+void test("stale consolation gets one rewrite; repeated bad output fails within two calls", async () => {
+  const good = "Aapki girlfriend chhod kar chali gayi. Yeh ek bada badlav hai. Aap chahein toh bata sakte hain ki kya hua.";
+  for (const repairWorks of [true, false]) {
+    let calls = 0;
+    const run = directAnswer({user_id:"test:breakup", query:"meri Gf chli gayi Mujhe Chhor Kr", language:"hinglish", birth:{},
+      history:[{role:"user",text:"Abhi bas suno"},{role:"assistant",text:"Main sun rahi hoon. Bas yahan hoon."}]}, {
+      env:{OPENROUTER_API_KEY:"test-only",VEDASTRO_DIRECT_REPLY_CACHE:"0",VEDASTRO_DIRECT_FLOW:"source",VEDASTRO_DIRECT_ENVIRONMENT:"development",VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:"1"},
+      makeMemory:()=>({read:async()=>[]}), makeTools:()=>async()=>assert.fail("No tools expected"),
+      fetchImpl:async(_url,options)=>{
+        calls++;
+        const body=JSON.parse(options.body);
+        assert.doesNotMatch(body.messages[0].content,/40 words of explanation/);
+        if(calls===2) assert.match(body.messages.at(-1).content,/Rewrite this emotional reply once/);
+        return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:calls===2 && repairWorks ? good : "Main sun rahi hoon. Bas yahan hoon."}}],usage:{cost:0}}));
+      },
+    });
+    if(repairWorks){const result=await run;assert.equal(result.reply,good);assert.deepEqual(result.answer_reading_tools,[]);}
+    else await assert.rejects(run,/Emotional reply did not address/);
+    assert.equal(calls,2);
+  }
+});
+
+void test("current advice request keeps prior attempts and works when saved memory is unavailable", async () => {
+  const reply = "Being dismissed after opening up can hurt. Since talking to that friend did not help, you could write down what you wanted them to understand before deciding whether to talk again.";
+  let calls = 0;
+  const result = await directAnswer({user_id:"test:advice",query:"I still feel upset. What should I do now?",language:"en",birth:{},
+    history:[{role:"user",text:"Just listen for now. I tried talking to my friend and was dismissed."},{role:"assistant",text:"I am here."}]}, {
+    env:{OPENROUTER_API_KEY:"test-only",VEDASTRO_DIRECT_REPLY_CACHE:"0",VEDASTRO_DIRECT_FLOW:"source",VEDASTRO_DIRECT_ENVIRONMENT:"development",VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:"1"},
+    makeMemory:()=>({read:async()=>{throw new Error("Memory unavailable");}}),
+    makeTools:()=>async()=>assert.fail("No chart needed for advice"),
+    fetchImpl:async(_url,options)=>{
+      calls++;
+      const body=JSON.parse(options.body);
+      assert.match(body.messages[0].content,/"status":"unavailable"/);
+      assert.ok(body.messages.some(m=>m.role==="user" && m.content.includes("I tried talking")));
+      assert.equal(body.messages.at(-1).content,"I still feel upset. What should I do now?");
+      assert.ok(body.tools.every(t=>!CHART_TOOL_NAMES.has(bareToolName(t.function.name))));
+      return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:reply}}],usage:{cost:0}}));
+    },
+  });
+  assert.equal(calls,1);
+  assert.equal(result.reply,reply);
 });
