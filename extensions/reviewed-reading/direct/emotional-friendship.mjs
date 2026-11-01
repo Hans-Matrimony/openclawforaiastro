@@ -82,3 +82,21 @@ export function emotionalReplyIssue(reply, value) {
   }
   return null;
 }
+
+// A style rewrite may still fail. Keep that failure from breaking delivery;
+// this is supportive language, never a fabricated prediction or diagnosis.
+export function emotionalReplyFallback(value) {
+  const language = (value.language || "").toLowerCase();
+  const breakup = /\b(?:gf|bf|girlfriend|boyfriend|partner)\b/iu.test(value.query) &&
+    /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]|left\s+me|broke\s+up)\b/iu.test(value.query);
+  if (/^(?:hi|hindi)(?:-|$)/.test(language)) {
+    return (breakup ? "उनके आपको छोड़कर जाने की बात हल्की नहीं है। " : "आपने जो साझा किया है, उस पर आराम से बात कर सकते हैं। ") +
+      "आप अपनी बात अपने तरीके से कह सकते हैं; अभी सब सुलझाना ज़रूरी नहीं है।";
+  }
+  if (language === "hinglish") {
+    return (breakup ? "Unka aapko chhodkar jaana koi chhoti baat nahi hai. " : "Aapne jo share kiya hai, us par aaram se baat kar sakte hain. ") +
+      "Aap apni baat apne tareeke se keh sakte hain; abhi sab suljhana zaroori nahi hai.";
+  }
+  return (breakup ? "Your partner leaving is a lot to take in. " : "We can talk about what you shared at your pace. ") +
+    "You can put it in your own words; you do not have to sort everything out right now.";
+}

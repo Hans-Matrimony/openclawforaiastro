@@ -14,7 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
-import { emotionalFriendshipPrompt, emotionalReplyIssue, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalReplyIssue, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -415,15 +415,17 @@ export async function directAnswer(
     const emotionalIssue = emotionalFriendship ? emotionalReplyIssue(reply, value) : null;
     if (emotionalIssue) {
       if (correctedEmotionalReply || modelCalls >= maxRounds) {
-        throw new Error("Emotional reply did not address the current message");
+        reply = emotionalReplyFallback(value);
+        validation.push("emotional_quality_fallback");
+      } else {
+        correctedEmotionalReply = true;
+        messages.push(choice.message, {
+          role: "system",
+          content: "Rewrite this emotional reply once. " + emotionalIssue +
+            " Follow the friendship instructions and current message, not the previous reply's wording. Return only the revised reply; no tools or commentary.",
+        });
+        continue;
       }
-      correctedEmotionalReply = true;
-      messages.push(choice.message, {
-        role: "system",
-        content: "Rewrite this emotional reply once. " + emotionalIssue +
-          " Follow the friendship instructions and current message, not the previous reply's wording. Return only the revised reply; no tools or commentary.",
-      });
-      continue;
     }
     // A closing friendly question must not let an ungrounded reading bypass tools.
     const clarification =

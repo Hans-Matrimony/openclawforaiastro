@@ -129,7 +129,7 @@ void test("quality guard rejects the observed empty consolation but permits spec
   assert.equal(emotionalReplyIssue("Je comprends votre peine.", {...value, language: "fr"}), null);
 });
 
-void test("stale consolation gets one rewrite; repeated bad output fails within two calls", async () => {
+void test("stale consolation gets one rewrite; repeated bad wording still delivers support within two calls", async () => {
   const good = "Aapki girlfriend chhod kar chali gayi. Yeh ek bada badlav hai. Aap chahein toh bata sakte hain ki kya hua.";
   for (const repairWorks of [true, false]) {
     let calls = 0;
@@ -146,7 +146,11 @@ void test("stale consolation gets one rewrite; repeated bad output fails within 
       },
     });
     if(repairWorks){const result=await run;assert.equal(result.reply,good);assert.deepEqual(result.answer_reading_tools,[]);}
-    else await assert.rejects(run,/Emotional reply did not address/);
+    else {
+      const result=await run;
+      assert.match(result.reply,/aapko chhodkar jaana/);
+      assert.doesNotMatch(result.reply,/Main sun rahi|yahan hoon|chart|dasha/);
+    }
     assert.equal(calls,2);
   }
 });
