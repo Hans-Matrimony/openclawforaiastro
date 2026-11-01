@@ -51,3 +51,9 @@ test('live vague self-talk and awkward reassurance require a fresh response',()=
  for(const reply of ['Aapke paas kuch kehne ka dimaag nahi hai.','Apne dil ki baat apne aap se bol sakte hain, bina kisi ki awaaz ke.']) assert.ok(friendshipGroundingIssues(reply,value).some(x=>x.includes('awkward')));
  assert.ok(!friendshipGroundingIssues('Abhi jawab dene ki jaldi nahi hai. Aap aaram se bata sakte hain.',value).some(x=>x.includes('awkward')));
 });
+test('fallback acknowledges the live ended-relationship wording and uncertainty',()=>{
+ const q={...value,query:'Meri girlfriend ne relationship khatam kar diya. Samajh nahi aa raha kya bolun.'};
+ const reply=emotionalReplyFallback(q);
+ assert.match(reply,/rishta khatam/);assert.match(reply,/turant jawab/);
+ assert.doesNotMatch(reply,/ek baat likh|respect|accept/);
+});

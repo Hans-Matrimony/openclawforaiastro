@@ -31,7 +31,7 @@ export function isEmotionalFriendship(query, history = []) {
   // Require both a relationship subject and leaving/separation wording.
   if (!/\b(?:nahi|nahin|not|never|didn't|hasn't)\b|नहीं/iu.test(disclosed) &&
       /\b(?:gf|bf|girlfriend|boyfriend|partner)\b/iu.test(disclosed) &&
-      /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]\s*(?:kar|kr|ke|diya)|left\s+me|broke\s+up\s+with\s+me)\b/iu.test(disclosed)) {
+      /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]\s*(?:kar|kr|ke|diya)|left\s+me|broke\s+up|relationship\s+khatam|rishta\s+khatam|ended\s+(?:our|the)\s+relationship\s+with\s+me)\b/iu.test(disclosed)) {
     return true;
   }
   if (/\b(?:lonely|loneliness|sad|upset|worried|stressed|overwhelmed|heartbroken|breakup|crying|cry|grieving|grief|pareshan|tension|udaas|udas|akela|akeli|dukhi|rona)\b|\b(?:mann|man|mood)\s+(?:bahut\s+)?(?:kharab|udaas|udas|off)\b|उदास|अकेला|अकेली|परेशान|रोना|दिल टूट/iu.test(disclosed)) {
@@ -188,7 +188,7 @@ export function emotionalReplyIssue(reply, value) {
   }
   const language = (value.language || "").toLowerCase();
   const breakup = /\b(?:gf|bf|girlfriend|boyfriend|partner)\b/iu.test(value.query) &&
-    /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]|left\s+me|broke\s+up)\b/iu.test(value.query);
+    /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]|left\s+me|broke\s+up|relationship\s+khatam|rishta\s+khatam|ended\s+(?:our|the)\s+relationship)\b/iu.test(value.query);
   // Catch the observed invented lack of communication, using only user evidence.
   // This is deliberately narrow; it is not a general factuality classifier.
   const silence = /\b(?:without (?:saying|telling|explaining)|(?:nothing|anything) (?:was )?said|kuchh?\s+bhi\s+na\s+kah|bina\s+(?:kuchh?\s+)?(?:kahe|bataye)|kuchh?\s+nahi\s+(?:kaha|bataya))\b|बिना (?:कुछ )?(?:कहे|बताए)|कुछ नहीं (?:कहा|बताया)/iu;
@@ -235,6 +235,14 @@ export function emotionalReplyFallback(value) {
       : hinglish ? "Abhi jawab dene ki jaldi zaroori nahi hai. Aap chahein toh keh sakte hain: 'Mujhe yeh samajhne ke liye thoda waqt chahiye. Baad mein baat karte hain.' Apne liye waqt le sakte hain."
         : "You do not need to respond immediately. If it helps, you could say: ‘I need some time to take this in. Let’s talk later.’ You can take that time before deciding what to say.";
   }
+  if ((hinglish || language === "en" || language === "english") &&
+      /\b(?:girlfriend|boyfriend|partner|gf|bf)\b/iu.test(value.query) &&
+      /\b(?:relationship|rishta)\s+khatam|ended (?:our|the) relationship/iu.test(value.query) &&
+      /\bkya bol|what to say/iu.test(value.query)) {
+    return hinglish
+      ? "Unhone rishta khatam kiya, aur abhi aapko samajh nahi aa raha kya kahein. Aapko turant jawab dene ki zaroorat nahi hai. Pehle khud ko thoda waqt de sakte hain; aage kya kehna hai, us par aaram se baat kar sakte hain."
+      : "They ended the relationship, and you are unsure what to say. You do not need to reply immediately. You can take some time to process it, and we can talk through what you want to say at your pace.";
+  }
   if (advice && /\b(?:space|boundary|boundaries)\b/iu.test(value.query)) {
     return hi ? "आप अपनी बात बिना झगड़े के कह सकते हैं: ‘मुझे अभी थोड़ा समय चाहिए। तैयार होने पर बात करेंगे।’ इसे अपने शब्दों में बदल सकते हैं।"
       : hinglish ? "Aap bina jhagda kiye keh sakte hain: 'Mujhe abhi thoda waqt chahiye. Taiyaar hone par baat karte hain.' Isse apne shabdon mein badal sakte hain."
@@ -251,7 +259,7 @@ export function emotionalReplyFallback(value) {
         : "You are remembering someone you have lost. You can talk about them at your own pace; we do not need to find a solution to this moment.";
   }
   const breakup = /\b(?:gf|bf|girlfriend|boyfriend|partner)\b/iu.test(value.query) &&
-    /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]|left\s+me|broke\s+up)\b/iu.test(value.query);
+    /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]|left\s+me|broke\s+up|relationship\s+khatam|rishta\s+khatam|ended\s+(?:our|the)\s+relationship)\b/iu.test(value.query);
   if (/^(?:hi|hindi)(?:-|$)/.test(language)) {
     return (breakup ? "उनके आपको छोड़कर जाने की बात हल्की नहीं है। " : "आपने जो साझा किया है, उस पर आराम से बात कर सकते हैं। ") +
       (advice ? "आप चाहें तो अभी एक बात लिख लें जिस पर आपको मदद चाहिए; सब कुछ एक साथ सुलझाना ज़रूरी नहीं है।" : "आप अपनी बात अपने तरीके से कह सकते हैं; अभी सब सुलझाना ज़रूरी नहीं है।");

@@ -12,7 +12,7 @@ test("all 15 disclosed live cases stay on friendship, with no chart tools or sec
   for (const scenario of cases) {
     assert.equal(isEmotionalFriendship(scenario.question, history), true, scenario.id);
     let calls = 0;
-    const reply = "Aap apni baat aaram se keh sakte hain. Hum is par bina jaldi kiye baat kar sakte hain.";
+    const reply = scenario.id === "breakup-hinglish" ? "Rishta khatam hone ke baad kya kehna hai, is par aaram se baat kar sakte hain." : "Aap apni baat aaram se keh sakte hain. Hum is par bina jaldi kiye baat kar sakte hain.";
     const value = {user_id:"test:friendship-fixtures",query:scenario.question,history:[...history],language:"hinglish",birth:{},user_gender:"male",user_name:"Example User"};
     const result = await directAnswer(value, {
       env:{OPENROUTER_API_KEY:"test-only",VEDASTRO_DIRECT_REPLY_CACHE:"0",VEDASTRO_DIRECT_FLOW:"source",VEDASTRO_DIRECT_ENVIRONMENT:"development",VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:"1"},
