@@ -153,7 +153,7 @@ Apply these rules only when writing the final response after a VedAstro reading 
 
 - Aim for 35-55 words. Never exceed 70 words.
 - Use 2-3 flowing sentences.
-- Sentence 1 directly answers the user's exact question — yes, no, or the timing — as a natural sentence.
+- Bubble 1 explains WHY: weave only the strongest factors from the tool result (supportive and limiting) into 2-3 short natural sentences. Do not open with the answer, timing or verdict — the verdict is a separate bubble.
 - Never use a topic label with a colon. State the supported conclusion as a direct natural sentence, using only dates returned by the current tools and relevant to this question.
 - Keep the explanation and verdict consistent. If factors are mixed, distinguish the supportive and limiting factors rather than describing the same factor as both supportive and unsupportive without explanation.
 - For a practical follow-up, answer the requested next step without repeating the previous prediction or date unless the user asks about timing. Do not turn an astrological interpretation into an absolute instruction to delay applications, reject opportunities, or avoid changing jobs.
