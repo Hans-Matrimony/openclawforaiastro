@@ -177,6 +177,17 @@ void test("stale consolation gets one rewrite; repeated bad wording still delive
   }
 });
 
+void test("breakup replies cannot invent silence but retain user-supplied details", () => {
+  const value = {query:"meri Gf chli gayi Mujhe Chhor Kr", language:"hinglish"};
+  for (const reply of ["Woh chali gayi, aur aapke saath kuchh bhi na kah sake.", "Your partner left without saying goodbye.", "Woh bina bataye chali gayi."]) {
+    assert.match(emotionalReplyIssue(reply, value), /invents a lack of communication/);
+    assert.ok(emotionalReplyIssue(reply, {...value, history:[{role:"assistant",text:reply}]}));
+    assert.equal(emotionalReplyIssue(reply, {...value, history:[{role:"user",text:reply}]}), null);
+  }
+  assert.equal(emotionalReplyIssue("Aapki girlfriend chali gayi. Aap chahein toh iske baare mein baat kar sakte hain.", value), null);
+  assert.equal(emotionalReplyIssue("Your partner left without saying goodbye.", {...value,query:"My partner left me without saying goodbye."}), null);
+});
+
 void test("current advice request keeps prior attempts and works when saved memory is unavailable", async () => {
   const reply = "Being dismissed after opening up can hurt. Since talking to that friend did not help, you could write down what you wanted them to understand before deciding whether to talk again.";
   let calls = 0;
