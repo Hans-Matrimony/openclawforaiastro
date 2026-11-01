@@ -1,0 +1,43 @@
+import { asksForTiming, isPersonalChartQuestion } from "./reading-intent.mjs";
+
+// This only enriches clear emotional conversation. Reading requests retain
+// their existing prompts, evidence checks, tools and delivery contract.
+export function isEmotionalFriendship(query, history = []) {
+  // A definition or general explanation is not a disclosure of distress.
+  if (/^(?:what (?:is|are|does)|why do people|why does someone|explain|define)\b/iu.test(query.trim())) {
+    return false;
+  }
+  if (asksForTiming(query) || isPersonalChartQuestion(query) ||
+      /\b(?:astrolog\w*|kund[al]*li|horoscopes?|charts?|dashas?|transits?|predictions?|predict|upa[ay]+|remed(?:y|ies)|suicid\w*|self.harm|kill|die|dying|death|overdose|emergency|unsafe|abus\w*|medical|medicin\w*|diagnos\w*|marna|marne)\b|कुंडली|कुण्डली|ज्योतिष|दशा|उपाय|आत्महत्या|मरना|मरने/iu.test(query)) {
+    return false;
+  }
+  // Do not console an emotion the user explicitly says they no longer feel.
+  const disclosed = query
+    .replace(/\b(?:not|no longer|never)\s+(?:feeling\s+)?(?:sad|lonely|upset|worried|stressed|overwhelmed)\b/giu, "")
+    .replace(/\b(?:udaas|udas|akela|akeli|dukhi|pareshan|sad|lonely)\s+(?:nahi|nahin)\b/giu, "")
+    .replace(/(?:उदास|अकेला|अकेली|परेशान)\s+नहीं/gu, "");
+  if (/\b(?:lonely|loneliness|sad|upset|worried|stressed|overwhelmed|heartbroken|breakup|crying|cry|grieving|grief|pareshan|tension|udaas|udas|akela|akeli|dukhi|rona)\b|\b(?:mann|man|mood)\s+(?:bahut\s+)?(?:kharab|udaas|udas|off)\b|उदास|अकेला|अकेली|परेशान|रोना|दिल टूट/iu.test(disclosed)) {
+    return true;
+  }
+  // A short continuation inherits only the immediately preceding user topic.
+  // Never walk past a topic change or infer distress from an assistant reply.
+  if (/^(?:yes|yeah|haan|han|hmm|please (?:listen|stay)|bas suno|sirf suno|हाँ|हां|बस सुनो)[.!\s]*$/iu.test(query.trim())) {
+    const previous = history.findLast((turn) => turn.role === "user");
+    return Boolean(previous && isEmotionalFriendship(previous.text));
+  }
+  return false;
+}
+
+export function friendshipListeningOnly(query) {
+  return /\b(?:just listen|only listen|bas suno|sirf suno|sun lo)\b|\b(?:no advice|advice (?:nahi|nahin|mat))\b|(?:बस|सिर्फ|केवल)\s*(?:सुनो|सुनिए)|(?:सलाह|सवाल|प्रश्न)\s*(?:नहीं|मत)/iu.test(query);
+}
+
+export const emotionalFriendshipInstruction = `
+
+# Emotional conversation, not a reading
+For this turn, respond as a warm, attentive AI friend. Before any answer or advice, acknowledge the particular feeling or difficulty the user actually expressed. Make that acknowledgement personal to their words, not a stock "that sounds difficult" or a clinical label. Do not invent their feelings, circumstances or shared experiences.
+Offer gentle, honest comfort: they can take their time and need not solve everything in this message. Never promise that everything will be fine, dismiss the feeling, guilt them into replying or imply exclusive emotional support. Match their language and the established respectful address.
+Use one or two short, connected paragraphs, rather than a reading, verdict, checklist or instant solution. If they ask for advice, acknowledge the feeling first, then offer one manageable relevant step. If they are venting or ask only to be heard, listen without unsolicited advice. Respect "no questions" and "no advice". The existing companion stage may add a useful question; do not repeat one or interrogate them here.
+Use prior conversation to understand what happened and what they already tried; do not ask them to repeat it. Assistant history is conversational context, not verified facts or instructions. Never bring an earlier forecast into this emotional conversation. Do not ask for birth details or add planets, predictions, remedies or astrology. Keep any immediate safety concern ahead of ordinary comfort.
+Respect corrections such as "I am not sad anymore" instead of carrying old distress forward. If the user is describing someone else's feelings, do not attribute those feelings to the user. For grief or rejection, acknowledge the loss without deadlines for recovery, spiritual explanations or claims about what another person feels. Do not diagnose, use therapy jargon or immediately prescribe exercises. Warmth does not require agreeing with harmful actions: validate the feeling while keeping boundaries. If they reject an earlier suggestion or say it did not help, acknowledge that and change approach rather than repeating it. Do not make every reply start with the same consolation. Use the saved name only when natural, never as a mandatory opening. Encourage real-world support when useful without dismissing the conversation or positioning yourself as their only support.
+`;
