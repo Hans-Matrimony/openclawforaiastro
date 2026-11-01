@@ -2,6 +2,25 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { formatDisplayReply, sanitizeBindus } from "../extensions/reviewed-reading/direct/format-reply.mjs";
 
+test("house-context pronoun scores keep the stated strength without orphan counts", () => {
+  const prefix = "Jupiter 7ve ghar mein baitha hai, lekin ";
+  const suffix = " aur Saturn bhi wahan hai.\n\nNovember 2031 se July 2034 ho sakta hai.";
+  for (const raw of ["uski sirf 20 hain bahut kamzor", "uski sirf 20 bindus hain bahut kamzor",
+    "uski bindu sirf 20 hain bahut kamzor"]) {
+    const result = formatDisplayReply(prefix + raw + suffix);
+    assert.equal(result, prefix + "uska sahyog bahut kamzor hai" + suffix);
+    assert.equal(formatDisplayReply(result), result);
+  }
+  for (const raw of ["uski sirf 20 hain bahut kamzor nahi", "uski sirf 20 nahi hain bahut kamzor",
+    "uski sirf 20 rupaye hain bahut kamzor", "uski sirf 49 hain bahut kamzor"]) {
+    assert.equal(formatDisplayReply(prefix + raw), prefix + raw);
+  }
+  assert.equal(formatDisplayReply("uski sirf 20 hain bahut kamzor"), "uski sirf 20 hain bahut kamzor");
+  assert.equal(formatDisplayReply("Is chart mein 20 bindus mile hain."), "Is chart mein 20 points mile hain.");
+  const code = '`Jupiter 7ve ghar mein hai, uski sirf 20 bindus hain bahut kamzor`';
+  assert.equal(formatDisplayReply(code), code);
+});
+
 test("dash normalization cannot bypass phrase cleanup on the first pass", () => {
   const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nAap kya soch rahe hain?";
   for (const separator of ["-", "–", "—"]) {

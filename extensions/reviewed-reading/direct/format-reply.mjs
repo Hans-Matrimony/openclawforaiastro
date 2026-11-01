@@ -101,7 +101,7 @@ export function removeDisplayTerms(reply) {
 
 function removeProseDisplayTerms(reply) {
   return (
-    removeOrphanedHouseScore(cleanCausalWording(plainQualitativeScores(reply)))
+    removeOrphanedHouseScore(cleanCausalWording(plainQualitativeScores(repairPronounScore(reply))))
       .replace(
         /\bashtakavarga\s+(?:score\s+|count\s+)?(?:sirf\s+)?\d{1,3}(?:\/48)?\s+hai,?\s+jo\s+(bahut\s+kam|kamzor|strong|weak)\s+hai/gi,
         "$1 sahyog hai",
@@ -112,10 +112,23 @@ function removeProseDisplayTerms(reply) {
         /\b(house\s+\d{1,2}|\d{1,2}(?:st|nd|rd|th)\s+house)\s+ka\s+(?:sirf\s+)?\d{1,3}\s+(?:bindus?\s+)?(?:hai\s+)?(?=(?:bahut\s+)?(?:weak|strong|kamzor)\b)/gi,
         "$1 ",
       )
-      .replace(/([ \t]*)\b(?:retrograde|bindus?|combust)\b([ \t]*)/gi, (_match, before, after) =>
+      // Unsupported score wording must retain a unit rather than an orphan number.
+      .replace(/\bbindu(s?)\b/gi, (_word, plural) => plural ? "points" : "point")
+      .replace(/([ \t]*)\b(?:retrograde|combust)\b([ \t]*)/gi, (_match, before, after) =>
         before && after ? " " : "",
       )
   );
+}
+
+function repairPronounScore(reply) {
+  return reply.split(/(\r?\n[ \t]*\r?\n)/).map((paragraph) => {
+    // Only chart-house prose: do not interpret unrelated counts or amounts.
+    if (!/\b(?:house|ghar)\b/i.test(paragraph)) return paragraph;
+    return paragraph.replace(
+      /\buski\s+(?:bindus?\s+)?sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hain?\s*[,;]?\s*((?:bahut\s+)?(?:kamzor|weak|strong))\b(?!\s+(?:nahi|nahin)\b)/gi,
+      "uska sahyog $1 hai",
+    );
+  }).join("");
 }
 
 // Only rewrite qualitative chart-score phrases observed in conversational replies.

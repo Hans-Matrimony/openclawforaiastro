@@ -453,8 +453,8 @@ void test("display terms are removed from fresh and cached answers without chang
       options,
     );
     assert.deepEqual(result.reply.split("\n\n"), [
-      "Saturn hai; 31 hain aur Mercury hai.",
-      "2027 ke baad mauka hai; 1 hai.",
+      "Saturn hai; 31 points hain aur Mercury hai.",
+      "2027 ke baad mauka hai; 1 point hai.",
       closing,
     ]);
     assert.equal(result.answer_model_calls, cached ? 2 : 3);

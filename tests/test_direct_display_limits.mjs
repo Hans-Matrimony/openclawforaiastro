@@ -21,7 +21,7 @@ void test("display removes only blocked whole words across all bubbles, preservi
     "Prashna chart mein 337 bindus hai, jo strong hai. Jupiter retrograde hai.\n\n1 BINDU; 2 Bindus; RETROGRADE, combust.\n\nBindu ko lekar kya soch rahe ho?";
   assert.equal(
     formatDisplayReply(raw),
-    "Prashna chart mein 337 hai, jo strong hai. Jupiter hai.\n\n1; 2;,.\n\nko lekar kya soch rahe ho?",
+    "Prashna chart mein 337 points hai, jo strong hai. Jupiter hai.\n\n1 point; 2 points;,.\n\npoint ko lekar kya soch rahe ho?",
   );
   assert.equal(
     formatDisplayReply("binduism retrograded precombustion 2027"),
