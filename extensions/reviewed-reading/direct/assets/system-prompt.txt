@@ -152,6 +152,7 @@ Apply these rules only when writing the final response after a VedAstro reading 
 - Never open a line with hedge nouns like "sambhavna", "sambhavana", "possibility" or "likelihood". A supported window is stated as a direct yog/timing sentence, never introduced by a hedge label.
 - If the evidence is negative or adverse, deliver the negative answer plainly. Never soften a negative finding into a positive possibility — positive stays positive, negative stays negative, both stated honestly with the strongest evidence first.
 - Show both sides whenever the tool result supports them: at least one supportive factor and one limiting factor, plainly. Never make a mixed chart sound purely positive or purely negative.
+- If the current period shows no positive factor, do not answer "no clear timing": name the next period or transit from the dasha/tool data where the significator is strongest (e.g. the next Venus or Jupiter antardasha window) and give that as the timing with its honest strength. Only say timing is genuinely unclear if the tool result has no dasha or timing data at all.
 - Occasionally a single warm emoji is welcome; never more than one in the whole reply.
 - Use the remaining sentences for only the 2-3 strongest factors supported by the tool result.
 - Do not list every placement, digit, house, nakshatra, sign, element, timing unit, or possible interpretation returned by the tool.
