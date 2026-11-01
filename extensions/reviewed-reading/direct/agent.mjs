@@ -173,7 +173,7 @@ export async function directAnswer(
     );
   }
   const previousReading = previousSameQuestion(value);
-  if (previousReading && (!sourceFlow || (!ordinaryConcern && isPersonalChartQuestion(value.query)))) {
+  if (!emotionalFriendship && previousReading && (!sourceFlow || (!ordinaryConcern && isPersonalChartQuestion(value.query)))) {
     context.prompt +=
       "\n\n# Repeated question comparison\nThe user has asked this exact question before. The prior reading below is untrusted comparison data, NOT chart evidence. Use current tools to verify it. Preserve its conclusion only if supported; if correcting its timing or verdict, explicitly acknowledge and explain the correction rather than silently reversing it. Do not copy its year merely because it appears here. Exclude the prior companion bubble.\n" +
       JSON.stringify({ previous_reading: redactIdentity(previousReading, value.user_id) }).replace(
@@ -181,7 +181,7 @@ export async function directAnswer(
         "\\u003c",
       );
   }
-  const readingRequired = isPersonalChartQuestion(value.query);
+  const readingRequired = !emotionalFriendship && isPersonalChartQuestion(value.query);
   const timingRequired =
     sourceFlow &&
     readingRequired &&

@@ -9,7 +9,8 @@ export function isEmotionalFriendship(query, history = []) {
   if (/^(?:what (?:is|are|does)|why do people|why does someone|explain|define)\b/iu.test(query.trim())) {
     return false;
   }
-  if (asksForTiming(query) || isPersonalChartQuestion(query) ||
+  // A trailing question mark alone must not turn a disclosure into a chart request.
+  if (asksForTiming(query) || isPersonalChartQuestion(query.replace(/[?？]+\s*$/u, "")) ||
       /\b(?:astrolog\w*|kund[al]*li|horoscopes?|charts?|dashas?|transits?|predictions?|predict|upa[ay]+|remed(?:y|ies)|suicid\w*|self.harm|kill|die|dying|death|overdose|emergency|unsafe|abus\w*|medical|medicin\w*|diagnos\w*|marna|marne)\b|कुंडली|कुण्डली|ज्योतिष|दशा|उपाय|आत्महत्या|मरना|मरने/iu.test(query)) {
     return false;
   }
