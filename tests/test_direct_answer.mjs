@@ -349,6 +349,7 @@ void test("development gate rejects production and the disabled endpoint makes n
     { env: {} },
   );
   const response = {
+    setHeader() {},
     writeHead(status) {
       this.status = status;
     },
@@ -384,6 +385,7 @@ void test("authenticated route adapter does not append interpretation text or ch
     headers: {},
   });
   const response = {
+    setHeader() {},
     writeHead(status) {
       this.status = status;
     },

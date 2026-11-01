@@ -26,6 +26,28 @@ function exchange(body, method = "POST") {
   return { request, response };
 }
 
+test("direct HTTP boundary formats producer replies and exposes a no-cost format probe", async () => {
+  const { createDirectHandler } = await import("../extensions/reviewed-reading/direct-route.mjs");
+  let calls = 0;
+  const result = {reply: "house-7 ka score sirf kamzor hai, jo bahut kam hai.\n\nNovember 2031 se July 2034.", answer_usage: [], answer_validation: ["timing_claim_rejected"]};
+  const handler = createDirectHandler(async () => { calls++; return result; }, {env: {
+    ASTROFRIEND_DIRECT_MODE: "pilot", ASTROFRIEND_DIRECT_ENVIRONMENT: "production",
+    ASTROFRIEND_DIRECT_TEST_USERS: "synthetic-a",
+  }});
+  const invalid = exchange("{}");
+  await handler(invalid.request, invalid.response);
+  assert.equal(invalid.response.status, 400);
+  assert.equal(calls, 0);
+  assert.equal(invalid.response.headers["X-Astrofriend-Reply-Format"], "house-strength-v3");
+  const valid = exchange(JSON.stringify({user_id: "synthetic-a", query: "Hello", history: [], language: "hinglish"}));
+  await handler(valid.request, valid.response);
+  assert.equal(valid.response.status, 200);
+  assert.equal(calls, 1);
+  assert.equal(valid.response.body.reply, "7ve ghar ki majbooti ka sanket bahut kamzor hai.\n\nNovember 2031 se July 2034.");
+  assert.deepEqual(valid.response.body.answer_validation, result.answer_validation);
+  assert.equal(result.reply.startsWith("house-7"), true);
+});
+
 void test("invalid and oversized bodies never reach generation and release their request slot", async () => {
   const concurrency = { active: 0 };
   const handler = createReadingHandler(() => assert.fail("Unexpected model request"), {

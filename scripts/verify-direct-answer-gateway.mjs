@@ -146,7 +146,9 @@ try {
       signal: AbortSignal.timeout(15000),
     });
   assert.equal((await post(payload, "")).status, 401);
-  assert.equal((await post({ ...payload, user_id: "not-in-pilot" })).status, 400);
+  const invalid = await post({ ...payload, user_id: "not-in-pilot" });
+  assert.equal(invalid.status, 400);
+  assert.equal(invalid.headers.get("x-astrofriend-reply-format"), "house-strength-v3");
   const response = await post(payload);
   assert.equal(response.status, 200, "Pilot response failed: " + logs.slice(-4000));
   const result = await response.json();

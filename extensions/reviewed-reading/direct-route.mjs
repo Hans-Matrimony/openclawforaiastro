@@ -1,6 +1,7 @@
 import { createReadingHandler } from "./direct-http.mjs";
 import { directAnswer } from "./direct/agent.mjs";
 import { directReleaseEnabled } from "./direct/release.mjs";
+import { formatDisplayReply } from "./direct/format-reply.mjs";
 
 export const directEnabled = directReleaseEnabled;
 
@@ -66,7 +67,12 @@ export function createDirectHandler(
 ) {
   const handler = createReadingHandler(async (value) => {
     try {
-      return await calculate(value, { env });
+      const result = await calculate(value, { env });
+      // Enforce presentation at the HTTP boundary as well as the agent result.
+      // This covers alternate/cached producers without touching chart evidence.
+      return typeof result?.reply === "string"
+        ? { ...result, reply: formatDisplayReply(result.reply) }
+        : result;
     } catch (error) {
       // Fixed operational categories only; no user data or upstream response bodies.
       const code = /^model_http_[45][0-9]{2}$/.test(error?.code ?? "")
@@ -93,6 +99,10 @@ export function createDirectHandler(
       res.end(JSON.stringify({ error: "not_found" }));
       return;
     }
+    // A no-generation invalid-input probe can confirm the running formatter.
+    res.setHeader("X-Astrofriend-Reply-Format", formatDisplayReply(
+      "house-7 ka score sirf kamzor hai, jo bahut kam hai.",
+    ) === "7ve ghar ki majbooti ka sanket bahut kamzor hai." ? "house-strength-v3" : "legacy");
     return handler(req, res);
   };
 }
