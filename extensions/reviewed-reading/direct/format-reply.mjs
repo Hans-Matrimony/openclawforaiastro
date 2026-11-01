@@ -2,7 +2,9 @@ import { isCompanionParagraph } from "./friendly-closing.mjs";
 
 export function formatDisplayReply(reply) {
   // Display-only cleanup; preserve the full response and all bubble boundaries.
-  return removeReplyDashes(removeDisplayTerms(clearMarriageTiming(reply)));
+  // Normalize prose separators before matching phrases: otherwise "house-7"
+  // becomes eligible only after cleanup and needs an unintended second pass.
+  return removeDisplayTerms(clearMarriageTiming(removeReplyDashes(reply)));
 }
 
 // Presentation only, after reading validation. Keep the selected dates and

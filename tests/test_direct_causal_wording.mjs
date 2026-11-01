@@ -2,6 +2,27 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { formatDisplayReply, sanitizeBindus } from "../extensions/reviewed-reading/direct/format-reply.mjs";
 
+test("dash normalization cannot bypass phrase cleanup on the first pass", () => {
+  const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nAap kya soch rahe hain?";
+  for (const separator of ["-", "–", "—"]) {
+    for (const raw of [
+      `house${separator}7 ka score sirf kamzor hai, jo bahut kam hai.`,
+      `house 7 ka score sirf kamzor hai, jo bahut${separator}kam hai.`,
+    ]) {
+      const output = formatDisplayReply(raw + suffix);
+      assert.equal(output, "7ve ghar ki majbooti ka sanket bahut kamzor hai." + suffix);
+      assert.equal(formatDisplayReply(output), output);
+    }
+  }
+  for (const raw of ['{"text":"house-7 ka score kamzor hai"}',
+    '`house-7 ka score kamzor hai`', '```text\nhouse-7 ka score kamzor hai\n```',
+    'https://example.test/house-7', '2031-11-01 se 2034-07-01; value -7.5']) {
+    assert.equal(formatDisplayReply(raw), raw);
+  }
+  assert.equal(formatDisplayReply("house-7 ka score kamzor nahi hai."),
+    "7ve ghar ki majbooti ka sanket kamzor nahi hai.");
+});
+
 test("sanitized numbered house scores retain meaning without redundant weak wording", () => {
   const suffix = "\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.\n\nAap kya soch rahe hain?";
   for (const score of ["kamzor", "weak", "18/48"]) {
