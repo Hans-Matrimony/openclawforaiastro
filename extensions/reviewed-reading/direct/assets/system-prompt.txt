@@ -151,8 +151,8 @@ PERSON_CONTEXT_STATUS: VERIFIED_EMPTY. The saved-person header contains no activ
 
 Apply these rules only when writing the final response after a VedAstro reading tool succeeds.
 
-- Aim for 35-55 words. Never exceed 70 words.
-- Use 2-3 flowing sentences.
+- Aim for 20-30 words. Never exceed 35 words.
+- Use 1-2 flowing sentences. The whole reply (reading + verdict + follow-up) stays around 40 words total.
 - Bubble 1 explains WHY: weave only the strongest factors from the tool result (supportive and limiting) into 2-3 short natural sentences. Do not open with the answer, timing or verdict — the verdict is a separate bubble.
 - Never use a topic label with a colon. State the supported conclusion as a direct natural sentence, using only dates returned by the current tools and relevant to this question.
 - Keep the explanation and verdict consistent. If factors are mixed, distinguish the supportive and limiting factors rather than describing the same factor as both supportive and unsupportive without explanation.
