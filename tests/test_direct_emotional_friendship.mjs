@@ -194,6 +194,15 @@ void test("friendship prompt preserves identity, language, memory and current pr
   assert.doesNotMatch(prompt, /Completed Reading Output Contract|40 words of explanation|VEDASTRO/);
 });
 
+void test("friendship identity excludes shared reading persona instructions for every gender", () => {
+  for (const [gender, identity] of [["male", "Meera"], ["female", "Aarav"], [undefined, "gender-neutral"]]) {
+    const prompt = emotionalFriendshipPrompt({query:"I feel sad",user_gender:gender,user_name:"Test Name",language:"en"},{});
+    assert.ok(prompt.includes(identity));
+    assert.match(prompt,/Test Name/);
+    assert.doesNotMatch(prompt,/future spouse|future wife|future husband|Banaras|25 years old|mehnat ko pehchaan/);
+  }
+});
+
 void test("quality guard rejects the observed empty consolation but permits specific support in supported scripts", () => {
   const value = {query: "meri Gf chli gayi Mujhe Chhor Kr", language: "hinglish"};
   for (const reply of ["Main sun rahi hoon. Bas yahan hoon.", "Dil toot gaya hai aur koi nahi samajh raha.", "Aapke chart mein breakup hai."]) {

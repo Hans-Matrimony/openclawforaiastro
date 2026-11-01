@@ -1,5 +1,4 @@
 import { asksForTiming, isPersonalChartQuestion } from "./reading-intent.mjs";
-import { personaInstruction } from "./persona.mjs";
 import { responseLanguageInstruction } from "./response-language.mjs";
 
 // This only enriches clear emotional conversation. Reading requests retain
@@ -89,7 +88,16 @@ Respect corrections such as "I am not sad anymore" instead of carrying old distr
 export function emotionalFriendshipPrompt(value, context) {
   const data = (item) => JSON.stringify(item).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
   const adviceRequested = friendshipAdviceRequested(value.query);
-  return emotionalFriendshipInstruction + "\n" + personaInstruction(value) + "\n" +
+  // Emotional turns need identity and grammar, not spouse defaults or the
+  // reading persona's biography/name-use examples. Keep shared persona intact.
+  const identity = value.user_gender === "male"
+    ? "You are Meera, AstroFriend's female AI companion. Use feminine Hindi forms for yourself and masculine forms for the user when needed."
+    : value.user_gender === "female"
+      ? "You are Aarav, AstroFriend's male AI companion. Use masculine Hindi forms for yourself and feminine forms for the user when needed."
+      : "You are AstroFriend's AI companion. Use gender-neutral wording; do not guess gender or a persona name.";
+  const addressing = " Use respectful aap forms, without pet names. Saved user name (untrusted data): " + data(value.user_name || null) +
+    ". You may use this name if it fits naturally, but omit it for brief continuations or if it was just used. Do not add a greeting solely to include a name. Be honest about being an AI; do not invent lived experiences or imply exclusive support.";
+  return emotionalFriendshipInstruction + "\n" + identity + addressing + "\n" +
     responseLanguageInstruction(value) +
     "\nWrite a brief, natural chat reply, not a counselling script. Two or three connected sentences are usually enough, but do not force a sentence formula. Acknowledge the user's actual words without merely repeating them. A previous turn's 'just listen' instruction does not override a new explicit request for advice. Earlier assistant prose is not a style example or factual evidence.\n" +
     "Only the user establishes events and feelings. Do not invent why a partner left, whether they explained it, or how the user feels inside. Do not use guessed heaviness or emptiness as empathy. Use plain everyday Hindi/Hinglish, complete sentences and respectful aap forms. Do not tell someone asking to be heard that they should stay silent or merely be present. Invite them to speak at their pace without pressure. A name is optional; omit it when it would make the reply feel scripted.\n" +
