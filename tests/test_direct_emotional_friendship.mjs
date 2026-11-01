@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, friendshipListeningOnly, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
 void test("emotional chat gets warmth without capturing astrology or safety requests", () => {
@@ -147,6 +147,7 @@ void test("quality guard rejects the observed empty consolation but permits spec
 
 void test("stale consolation gets one rewrite; repeated bad wording still delivers support within two calls", async () => {
   const good = "Aapki girlfriend chhod kar chali gayi. Yeh ek bada badlav hai. Aap chahein toh bata sakte hain ki kya hua.";
+  for (const bad of ["Main sun rahi hoon. Bas yahan hoon.", "Tumne usse pyaar kiya tha, aur ab woh chali gayi. Koi baat nahi. Apne phone ko doosre kamre mein rakh do."]) {
   for (const repairWorks of [true, false]) {
     let calls = 0;
     const run = directAnswer({user_id:"test:breakup", query:"meri Gf chli gayi Mujhe Chhor Kr", language:"hinglish", birth:{},
@@ -163,7 +164,7 @@ void test("stale consolation gets one rewrite; repeated bad wording still delive
           assert.equal(body.messages.at(-1).content,"meri Gf chli gayi Mujhe Chhor Kr");
           assert.ok(!body.messages.some(m=>m.role==="assistant"));
         }
-        return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:calls===2 && repairWorks ? good : "Main sun rahi hoon. Bas yahan hoon."}}],usage:{cost:0}}));
+        return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:calls===2 && repairWorks ? good : bad}}],usage:{cost:0}}));
       },
     });
     if(repairWorks){const result=await run;assert.equal(result.reply,good);assert.deepEqual(result.answer_reading_tools,[]);assert.deepEqual(result.answer_validation,["emotional_quality_rewrite"]);}
@@ -175,6 +176,24 @@ void test("stale consolation gets one rewrite; repeated bad wording still delive
     }
     assert.equal(calls,2);
   }
+  }
+});
+
+void test("emotional boundaries reject observed defects without suppressing requested advice", () => {
+  const value = {query:"meri Gf chli gayi Mujhe Chhor Kr",language:"hinglish"};
+  const issue = emotionalReplyIssue("Tumne usse pyaar kiya tha. Woh chali gayi, koi baat nahi. Phone rakh do.", value);
+  assert.match(issue,/respectful aap/);
+  assert.match(issue,/feeling was not supplied/);
+  assert.match(issue,/No advice was requested/);
+  assert.match(issue,/without dismissal/);
+  assert.ok(emotionalReplyIssue("तुम्हारी girlfriend चली गई।", value));
+  const advice = "Your partner left. You could write down what you want to say.";
+  assert.ok(emotionalReplyIssue(advice,value));
+  assert.equal(emotionalReplyIssue(advice,{...value,query:"My partner left me. What should I do?"}),null);
+  assert.ok(emotionalReplyIssue(advice,{...value,query:"My partner left me. No advice, just listen."}));
+  assert.equal(emotionalReplyIssue("You loved your partner, and your partner left.",{...value,query:"I loved my partner and they left me."}),null);
+  for (const query of ["What should I do?", "Ab kya karun?", "Kaise sambhalun?", "मैं क्या करूँ?"]) assert.equal(friendshipAdviceRequested(query),true);
+  for (const query of ["meri Gf chli gayi Mujhe Chhor Kr", "No advice, just listen", "advice nahi, bas suno"]) assert.equal(friendshipAdviceRequested(query),false);
 });
 
 void test("breakup replies cannot invent silence but retain user-supplied details", () => {
