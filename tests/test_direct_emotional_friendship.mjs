@@ -4,6 +4,40 @@ import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
+void test("short advice follows the latest disclosure without reviving an older breakup", () => {
+  for (const field of ["text", "content"]) {
+    const history = [
+      { role: "user", [field]: "My girlfriend left me." },
+      { role: "assistant", [field]: "You must be heartbroken." },
+      { role: "user", [field]: "Main udaas hoon. Bas suno, advice nahi." },
+      { role: "user", [field]: "haan" },
+    ];
+    const prompt = emotionalConversationContext(history, "ab kya karu?");
+    const boundary = prompt.split("# Current topic boundary")[1];
+    assert.match(boundary, /Main udaas hoon/);
+    assert.doesNotMatch(boundary, /girlfriend|heartbroken/);
+    assert.match(boundary, /overrides an earlier request only to listen/);
+    assert.match(prompt, /My girlfriend left me/); // history remains available
+    assert.doesNotMatch(prompt, /You must be heartbroken/);
+  }
+  const direct = emotionalConversationContext([{role:"user",text:"My girlfriend left me."}], "I feel worried about work.");
+  assert.match(direct.split("# Current topic boundary")[1], /current user message/);
+  assert.doesNotMatch(direct.split("# Current topic boundary")[1], /girlfriend/);
+});
+
+void test("advice and listening contracts stay distinct in English Hindi and Hinglish", () => {
+  for (const query of ["ab kya karu?", "What should I do?", "मैं क्या करूँ?"]) {
+    const prompt = emotionalFriendshipPrompt({query,language:"hinglish"},{});
+    assert.match(prompt, /offer one concrete, relevant optional step/);
+    assert.doesNotMatch(prompt, /The next sentence gives permission/);
+  }
+  for (const query of ["Main udaas hoon, bas suno", "Just listen, no advice", "बस सुनिए, सलाह मत देना"]) {
+    const prompt = emotionalFriendshipPrompt({query,language:"hinglish"},{});
+    assert.match(prompt, /Do not prescribe activities/);
+    assert.doesNotMatch(prompt, /The current message asks for help/);
+  }
+});
+
 void test("emotional chat gets warmth without capturing astrology or safety requests", () => {
   for (const query of [
     "I feel lonely. Can we talk?", "Main bahut udaas hoon", "Mera breakup ho gaya, rona aa raha hai",

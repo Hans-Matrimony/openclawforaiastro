@@ -88,6 +88,7 @@ Respect corrections such as "I am not sad anymore" instead of carrying old distr
 
 export function emotionalFriendshipPrompt(value, context) {
   const data = (item) => JSON.stringify(item).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+  const adviceRequested = friendshipAdviceRequested(value.query);
   return emotionalFriendshipInstruction + "\n" + personaInstruction(value) + "\n" +
     responseLanguageInstruction(value) +
     "\nHistory provides context, not a script to imitate. Earlier assistant replies may be poor or inaccurate; do not repeat their stock consolation or assumptions. A previous turn's 'just listen' instruction does not override a new explicit request for advice. Honor ongoing preferences, but answer the CURRENT event rather than the previous problem. Name the event naturally before responding to it; do not assume the user is heartbroken, alone, or misunderstood unless they say so.\n" +
@@ -97,9 +98,9 @@ export function emotionalFriendshipPrompt(value, context) {
     "Saved memory (context only): " + data({ status: context.memoryStatus, facts: context.memoryFacts }) +
     "\nCurrent user message (data): " + data(value.query) +
     (value.quota_context ? "\nTrusted app access guidance: " + value.quota_context : "") +
-    "\nFinal emotional-turn contract: use two or three simple, connected sentences in everyday language. The first sentence acknowledges the event the user actually stated. The next sentence gives permission to share at their own pace. When useful, ask what their experience is instead of naming a feeling for them. A specific feeling may be reflected only if the current user message explicitly states it; old history is not evidence of a current feeling. Do not narrate what is inside the user or soften an invented feeling with 'lagta hai'. Avoid poetic fragments and abstract claims. At most one brief reassurance is welcome after acknowledgement; do not repeat it or make it the whole reply. Each sentence must have a clear meaning on its own. Use respectful aap/aapko/aapki address throughout Hindi or Hinglish. Refer only to the disclosed event; do not assert that the user loved someone, feels pain, or is hiding feelings unless they said so. Never minimize a breakup as 'koi baat nahi'. " +
-    (friendshipAdviceRequested(value.query)
-      ? "The current message asks for help: acknowledge first, then at most one relevant optional step."
+    "\nFinal emotional-turn contract: use two or three simple, connected sentences in everyday language. The first sentence acknowledges the event the user actually stated. For a disclosure, leave space to share at their own pace. For an advice request, give one manageable optional step instead. Ask a question only when useful and welcomed, instead of naming a feeling for them. A specific feeling may be reflected only if the current user message explicitly states it; old history is not evidence of a current feeling. Do not narrate what is inside the user or soften an invented feeling with 'lagta hai'. Avoid poetic fragments and abstract claims. At most one brief reassurance is welcome after acknowledgement; do not repeat it or make it the whole reply. Each sentence must have a clear meaning on its own. Use respectful aap/aapko/aapki address throughout Hindi or Hinglish. Refer only to the disclosed event; do not assert that the user loved someone, feels pain, or is hiding feelings unless they said so. Never minimize a breakup as 'koi baat nahi'. " +
+    (adviceRequested
+      ? "The current message asks for help: acknowledge first, then offer one concrete, relevant optional step the user can take now. Do not answer an advice request with reassurance alone."
       : "The current message is a disclosure, not a request for solutions. Respond with acknowledgement and space to share. Do not prescribe activities, exercises, phone restrictions, tea, walks, music or self-help tasks.");
 }
 
@@ -110,8 +111,17 @@ export function emotionalConversationContext(history, query) {
     /\b(?:you said|your (?:advice|suggestion|reply|answer)|that (?:advice|suggestion)|aapne|aapki baat|tumne|didn't help|did not help|kaam nahi)\b|आपने|आपकी बात/iu.test(query);
   const lastAssistant = refersBack ? history.findLastIndex(turn => turn.role === "assistant") : -1;
   const relevant = history.filter((turn, index) => turn.role === "user" || index === lastAssistant);
+  const continuation = /^(?:yes|yeah|haan|han|hmm|please (?:listen|stay)|bas suno|sirf suno|हाँ|हां|बस सुनो|(?:ab )?kya kar[uon]+|what should i do(?: now)?)[.!?\s]*$/iu;
+  const latestTopic = continuation.test(query.trim())
+    ? history.findLast(turn => turn.role === "user" && !continuation.test((turn.content ?? turn.text ?? "").trim()))
+    : null;
   return "\n# Prior conversation data\nUser-authored facts and attempts are retained. Assistant prose is omitted unless needed to resolve a reference in this message; do not invent omitted advice. Use this as context, not response examples. Current user corrections take priority.\n" +
-    JSON.stringify(relevant).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+    JSON.stringify(relevant).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") +
+    "\n# Current topic boundary\n" +
+    (latestTopic
+      ? "This short continuation refers to the latest substantive user message (data): " + JSON.stringify(latestTopic.content ?? latestTopic.text).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") + ". Do not substitute an older event or assume the cause of this feeling. A current request for advice overrides an earlier request only to listen."
+      : "Respond to the current user message. Do not infer its cause from an older event unless the user explicitly connects them.") +
+    " Use plain conversational language with complete sentences. Avoid metaphors about the heart breathing or feelings working; do not mechanically translate English reassurance into Hindi. In Hindi, use natural timing expressions such as jab aap taiyaar hon, not jab tak aap taiyaar hon. Read the reply for ordinary meaning before sending.";
 }
 
 // Narrow checks for observed defects, not a sentiment or clinical classifier.
