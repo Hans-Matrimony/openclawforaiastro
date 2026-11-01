@@ -86,6 +86,7 @@ void test("all three outlooks preserve their meaning and no support forces no da
   );
   assert.doesNotMatch(none, /20\d{2}|Mars|Jupiter/);
   assert.match(none, /deri/);
+  assert.match(none, /iska matlab yeh nahi/);
 });
 
 void test("malformed submissions, fabricated dates and unsupported period selections fail closed", () => {

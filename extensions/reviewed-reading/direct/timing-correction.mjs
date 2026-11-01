@@ -171,8 +171,8 @@ export function timingCorrection(results, query, language, asOf) {
           first +
           "\n\n" +
           (english
-            ? `The timing for ${subject[1]} is not clear from this reading.`
-            : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ki timing is reading mein abhi saaf nahi hai.`)
+            ? `This reading does not establish a supported period for ${subject[1]}; that does not mean it cannot happen.`
+            : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ke liye is reading se koi supported samay tay nahi hota; iska matlab yeh nahi ki yeh hoga hi nahi.`)
         );
       }
       if (!/^p\d+$/.test(data.period_id)) {

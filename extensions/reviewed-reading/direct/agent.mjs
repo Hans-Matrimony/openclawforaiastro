@@ -605,8 +605,11 @@ export async function directAnswer(
       // Companionship follows ordinary replies too; it is not chart-tool evidence.
       // The existing chart requirement above remains independent and unchanged.
       if (canAskFollowup(formatted, value, !clarification)) {
-        finalReply = await contextualClosing(formatted, value, {
-          facts: context.memoryFacts,
+        // A new chart request is not permission to revisit a prior breakup or
+        // career conversation. Keep reading evidence and calculations intact.
+        const closingValue = readingRequired ? { ...value, history: [] } : value;
+        finalReply = await contextualClosing(formatted, closingValue, {
+          facts: readingRequired ? [] : context.memoryFacts,
           redact: (text) => redactIdentity(text, value.user_id),
           generate: async (instruction, data) => {
             if (upstreamCalls >= maxCalls) {
