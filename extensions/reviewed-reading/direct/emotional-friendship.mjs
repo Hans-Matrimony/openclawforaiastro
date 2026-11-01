@@ -47,6 +47,27 @@ export function friendshipAdviceRequested(query) {
   return /\b(?:what (?:should|can) i do|how (?:can|do|should) i|give me advice|any advice|help me (?:cope|deal)|kya kar[uon]+|kaise|salah|advice|practical step)\b|क्या करूँ|क्या करूं|कैसे|सलाह/iu.test(query);
 }
 
+// Check assertions clause by clause: a question or conditional invitation is
+// different from telling the user what is happening inside them.
+export function unsupportedFeelingClaim(reply, value) {
+  const feelings = [
+    /\b(?:khalipana?|khaalipana?|emptiness|empty inside)\b|खालीपन/iu,
+    /\b(?:bhaari|bhari|bojh|heavy|heaviness|burdened)\b|भारी|बोझ/iu,
+    /\b(?:heartbroken|broken inside|dil toot\w*)\b|दिल टूट/iu,
+    /\b(?:lonely|alone|akela|akeli)\b|अकेला|अकेली/iu,
+  ];
+  // Older feelings do not establish how someone feels now, especially after
+  // a correction. Only reflect these inner states when the current user says it.
+  for (const clause of reply.match(/[^.!?।\n]+[.!?।]?/gu) || []) {
+    if (/\?$/.test(clause.trim()) || /\b(?:if you|agar aap)\b|अगर आप/iu.test(clause)) continue;
+    if (!/\b(?:aapke andar|aapko|aapka dil|you feel|you are|you're|you must|left you|lagta hai)\b|आपके अंदर|आपको|आपका दिल/iu.test(clause)) continue;
+    for (const feeling of feelings) {
+      if (feeling.test(clause) && (!feeling.test(value.query) || /\b(?:not|no longer|nahi|nahin)\b|नहीं/iu.test(value.query))) return true;
+    }
+  }
+  return false;
+}
+
 export const emotionalFriendshipInstruction = `
 
 # Emotional conversation, not a reading
@@ -69,7 +90,7 @@ export function emotionalFriendshipPrompt(value, context) {
     "Saved memory (context only): " + data({ status: context.memoryStatus, facts: context.memoryFacts }) +
     "\nCurrent user message (data): " + data(value.query) +
     (value.quota_context ? "\nTrusted app access guidance: " + value.quota_context : "") +
-    "\nFinal emotional-turn contract: use two or three simple, connected sentences in everyday language. Avoid poetic fragments, abstract claims about feelings, and repeated statements of your presence. Each sentence must have a clear meaning on its own. Give a specific acknowledgement of what the user disclosed and room to continue, rather than narrating what they must feel. Use respectful aap/aapko/aapki address throughout Hindi or Hinglish. Refer only to the disclosed event; do not assert that the user loved someone, feels pain, or is hiding feelings unless they said so. Never minimize a breakup as 'koi baat nahi'. " +
+    "\nFinal emotional-turn contract: use two or three simple, connected sentences in everyday language. The first sentence acknowledges the event the user actually stated. The next sentence gives permission to share at their own pace. When useful, ask what their experience is instead of naming a feeling for them. A specific feeling may be reflected only if the current user message explicitly states it; old history is not evidence of a current feeling. Do not narrate what is inside the user or soften an invented feeling with 'lagta hai'. Avoid poetic fragments, abstract claims, and announcements of your presence. Each sentence must have a clear meaning on its own. Use respectful aap/aapko/aapki address throughout Hindi or Hinglish. Refer only to the disclosed event; do not assert that the user loved someone, feels pain, or is hiding feelings unless they said so. Never minimize a breakup as 'koi baat nahi'. " +
     (friendshipAdviceRequested(value.query)
       ? "The current message asks for help: acknowledge first, then at most one relevant optional step."
       : "The current message is a disclosure, not a request for solutions. Respond with acknowledgement and space to share. Do not prescribe activities, exercises, phone restrictions, tea, walks, music or self-help tasks.");
@@ -92,13 +113,8 @@ export function emotionalReplyIssue(reply, value) {
   // corrections together so fixing address does not hide unwanted advice.
   const issues = [];
   const userText = [value.query, ...(value.history || []).filter(turn => turn.role === "user").map(turn => turn.text)].join("\n");
-  // A softened assertion ("lagta hai") still invents an internal state.
-  // Match the observed emptiness attribution, not neutral invitations to share.
-  const emptiness = /\b(?:khalipana?|khaalipana?|emptiness|empty inside)\b|खालीपन/iu;
-  if (emptiness.test(reply) && !emptiness.test(userText) &&
-      /\b(?:aapke andar|aapko|you feel|you are|you're|you must|left you|lagta hai)\b|आपके अंदर|आपको/iu.test(reply) &&
-      !/\b(?:if you|agar aap)\b|अगर आप/iu.test(reply)) {
-    issues.push("Do not attribute emptiness to the user, even as a guess. Acknowledge the disclosed event and invite them to describe their own experience.");
+  if (unsupportedFeelingClaim(reply, value)) {
+    issues.push("Do not attribute emptiness, heaviness, loneliness or heartbreak to the user, even as a guess. Acknowledge the disclosed event and invite them to describe their own experience.");
   }
   if (/\b(?:tum|tumne|tumhe|tumhara|tumhari|tumhare|tujhe|tujhse|tera|teri|tere)\b|(?:^|\s)(?:तुम|तुमने|तुम्हें|तुम्हारा|तुम्हारी|तेरा|तेरी)(?:\s|[।,.!?]|$)/iu.test(reply)) {
     issues.push("Use respectful aap forms consistently; remove informal second-person address.");
@@ -119,7 +135,7 @@ export function emotionalReplyIssue(reply, value) {
   }
   // Presence fragments may omit 'main' or be separated by punctuation. The
   // previous check only matched complete sentences beginning with that word.
-  if (/\b(?:sun\s+rah[ai]\s+h(?:oo|u)n|y(?:a)?ha{1,2}n\s+h(?:oo|u)n)\b|(?:सुन रही|सुन रहा|यहाँ|यहां)\s+हूँ/iu.test(reply)) {
+  if (/\b(?:sun\s+rah[ai]\s+h(?:oo|u)n|y(?:a)?h(?:a{1,2}n|in)\s+h(?:oo|u)n|(?:i am|i'm)\s+(?:right\s+)?here(?:\s+for you)?)\b|(?:सुन रही|सुन रहा|यहाँ|यहां|यहीं)\s+हूँ/iu.test(reply)) {
     issues.push("Replace the stock presence announcement with a specific acknowledgement of the current event.");
   }
   const language = (value.language || "").toLowerCase();

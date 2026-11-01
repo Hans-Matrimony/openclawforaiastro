@@ -200,6 +200,19 @@ void test("hedged emptiness claims need user evidence while invitations remain v
   assert.equal(emotionalReplyIssue("Aapki girlfriend chali gayi. Aap chahein toh bata sakte hain ki aapko kaisa lag raha hai.",value),null);
 });
 
+void test("emotional assertions need current evidence, with clause-local questions and conditionals", () => {
+  const value={query:"My girlfriend left me",language:"hinglish"};
+  for(const text of ["Aapki girlfriend chali gayi, lagta hai aapke andar kuch bhaari hai.", "Your girlfriend left. You must feel lonely.", "Aapki girlfriend chali gayi. Aapka dil toot gaya hai.", "Your girlfriend left. If you want, share more. You feel heavy inside."]) {
+    assert.ok(emotionalReplyIssue(text,value));
+    assert.ok(emotionalReplyIssue(text,{...value,history:[{role:"user",text:"I felt lonely and heavy yesterday."}]}));
+  }
+  assert.ok(emotionalReplyIssue("Your girlfriend left. You feel lonely.",{...value,query:"My girlfriend left, but I am not lonely."}));
+  assert.equal(emotionalReplyIssue("Your girlfriend left. You feel lonely.",{...value,query:"My girlfriend left. I feel lonely."}),null);
+  assert.equal(emotionalReplyIssue("Your girlfriend left. Are you feeling lonely?",value),null);
+  assert.equal(emotionalReplyIssue("Your girlfriend left. If you feel lonely, you can talk about it.",value),null);
+  for(const ending of ["Main yahin hoon.", "Main yahaan hoon.", "I'm here for you.", "मैं यहीं हूँ।"]) assert.match(emotionalReplyIssue("Your girlfriend left. "+ending,value),/presence announcement/);
+});
+
 void test("emotional boundaries reject observed defects without suppressing requested advice", () => {
   const value = {query:"meri Gf chli gayi Mujhe Chhor Kr",language:"hinglish"};
   const issue = emotionalReplyIssue("Tumne usse pyaar kiya tha. Woh chali gayi, koi baat nahi. Phone rakh do.", value);
