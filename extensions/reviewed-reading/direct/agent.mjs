@@ -14,7 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
-import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -420,6 +420,7 @@ export async function directAnswer(
     }
     const emotionalIssue = emotionalFriendship ? emotionalReplyIssue(reply, value) : null;
     if (emotionalIssue) {
+      console.info(JSON.stringify({event:"emotional_reply_validation",stage:correctedEmotionalReply ? "rewrite" : "initial",categories:emotionalIssueCategories(emotionalIssue)}));
       if (correctedEmotionalReply || modelCalls >= maxRounds) {
         reply = emotionalReplyFallback(value);
         validation.push("emotional_quality_fallback");

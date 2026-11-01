@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
 void test("emotional chat gets warmth without capturing astrology or safety requests", () => {
@@ -184,11 +184,22 @@ void test("presence fragments cannot bypass the guard by dropping main or changi
   for (const ending of ["Bas yahan hoon, sun rahi hoon.", "Sun raha hun.", "Yahaan hoon.", "यहाँ हूँ। सुन रही हूँ।"]) {
     assert.match(emotionalReplyIssue("Your girlfriend left. "+ending,value),/presence announcement/);
   }
-  const combined=emotionalReplyIssue("Tumhari girlfriend chali gayi. Yahan hoon. Your chart says so.",value);
+  const combined=emotionalReplyIssue("Tumhari girlfriend chali gayi. Yahan hoon. Sun rahi hoon. Your chart says so.",value);
   assert.match(combined,/respectful aap/);
   assert.match(combined,/introduces astrology/);
   assert.match(combined,/presence announcement/);
   assert.equal(emotionalReplyIssue("Your girlfriend left. You can share what happened at your own pace.",value),null);
+});
+
+void test("one reassurance after specific support is accepted and diagnostics contain only fixed categories", () => {
+  const value={query:"My girlfriend left me",language:"en"};
+  for(const reassurance of ["I'm here for you.", "Main yahin hoon.", "Sun rahi hoon."]) {
+    assert.equal(emotionalReplyIssue("Your girlfriend left you. You can share what happened at your own pace. "+reassurance,value),null);
+    assert.ok(emotionalReplyIssue(reassurance,value));
+  }
+  const issue=emotionalReplyIssue("Tumhari girlfriend chali gayi. Main yahan hoon. Sun rahi hoon.",value);
+  assert.deepEqual(emotionalIssueCategories(issue),["informal_address","repeated_presence"]);
+  assert.deepEqual(emotionalIssueCategories("private user text or unknown failure"),[]);
 });
 
 void test("hedged emptiness claims need user evidence while invitations remain valid", () => {
