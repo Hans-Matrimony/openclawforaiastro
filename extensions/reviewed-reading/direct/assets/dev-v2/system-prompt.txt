@@ -153,8 +153,8 @@ Apply these rules only when writing the final response after a VedAstro reading 
 
 Write the response in exactly TWO parts, separated by one completely EMPTY line (two newlines, no trailing spaces, never a markdown line break):
 
-PART 1 — THE READING (one flowing paragraph, 60-90 words, never over 105):
-- 2-4 flowing sentences: open with the strongest astrological condition or factor, not with a verdict label.
+PART 1 — THE READING (one flowing paragraph, 35-55 words, never over 70):
+- 2-3 flowing sentences: open with the strongest astrological condition or factor, not with a verdict label.
 - Use only the 2-3 strongest factors supported by the tool result — challenges and supports, plainly.
 - Do not list every placement, digit, house, nakshatra, sign, element, timing unit, or possible interpretation returned by the tool.
 - Do not speculate about specific cities, occupations, dates, or remedies unless directly supported and materially answering the question.
