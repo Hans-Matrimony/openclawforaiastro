@@ -10,7 +10,7 @@ import { SOURCE_PROMPT, SOURCE_FLOW_PROMPT } from "../extensions/reviewed-readin
 void test("runtime compaction keeps reading and memory contracts but removes repeated examples", () => {
   for (const prompt of [SOURCE_PROMPT, SOURCE_FLOW_PROMPT]) {
     assert.doesNotMatch(prompt, /2027 ke baad|November 2031|July 2034|Marriage likely after 30/);
-    assert.match(prompt, /A negative current period does not imply/);
+    assert.match(prompt, /dasha data shows upcoming periods/);
     assert.match(prompt, /For a practical follow-up/);
   }
   const compact = compactPrompt(SOURCE_PROMPT);
@@ -30,7 +30,7 @@ void test("runtime compaction keeps reading and memory contracts but removes rep
   assert.ok(!compact.includes("# Examples of correct behavior"));
   assert.ok(!compact.includes("2027 ke baad"));
   assert.ok(!compact.includes("Marriage likely after 30"));
-  assert.match(compact, /negative current period does not imply/);
+  assert.match(compact, /dasha data shows upcoming periods/);
 });
 
 void test("memory cleanup removes duplicates without losing corrections or separate people", () => {
