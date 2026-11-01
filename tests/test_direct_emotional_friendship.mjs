@@ -147,7 +147,7 @@ void test("quality guard rejects the observed empty consolation but permits spec
 
 void test("stale consolation gets one rewrite; repeated bad wording still delivers support within two calls", async () => {
   const good = "Aapki girlfriend chhod kar chali gayi. Yeh ek bada badlav hai. Aap chahein toh bata sakte hain ki kya hua.";
-  for (const bad of ["Main sun rahi hoon. Bas yahan hoon.", "Tumne usse pyaar kiya tha, aur ab woh chali gayi. Koi baat nahi. Apne phone ko doosre kamre mein rakh do."]) {
+  for (const bad of ["Main sun rahi hoon. Bas yahan hoon.", "Tumne usse pyaar kiya tha, aur ab woh chali gayi. Koi baat nahi. Apne phone ko doosre kamre mein rakh do.", "Pilot Test, aapki gf ne aapko chhor diya yeh sunkar dil dukhta hai. Aapne jo feel kiya, uski koi aadat nahi, koi samajh nahi, bas yeh hua: woh chali gayi. Aapke paas abhi kuch bhi solve karne ka pressure nahi hai. Bas yahan hoon, sun rahi hoon."]) {
   for (const repairWorks of [true, false]) {
     let calls = 0;
     const run = directAnswer({user_id:"test:breakup", query:"meri Gf chli gayi Mujhe Chhor Kr", language:"hinglish", birth:{},
@@ -177,6 +177,18 @@ void test("stale consolation gets one rewrite; repeated bad wording still delive
     assert.equal(calls,2);
   }
   }
+});
+
+void test("presence fragments cannot bypass the guard by dropping main or changing punctuation", () => {
+  const value={query:"My girlfriend left me",language:"en"};
+  for (const ending of ["Bas yahan hoon, sun rahi hoon.", "Sun raha hun.", "Yahaan hoon.", "यहाँ हूँ। सुन रही हूँ।"]) {
+    assert.match(emotionalReplyIssue("Your girlfriend left. "+ending,value),/presence announcement/);
+  }
+  const combined=emotionalReplyIssue("Tumhari girlfriend chali gayi. Yahan hoon. Your chart says so.",value);
+  assert.match(combined,/respectful aap/);
+  assert.match(combined,/introduces astrology/);
+  assert.match(combined,/presence announcement/);
+  assert.equal(emotionalReplyIssue("Your girlfriend left. You can share what happened at your own pace.",value),null);
 });
 
 void test("emotional boundaries reject observed defects without suppressing requested advice", () => {

@@ -69,7 +69,7 @@ export function emotionalFriendshipPrompt(value, context) {
     "Saved memory (context only): " + data({ status: context.memoryStatus, facts: context.memoryFacts }) +
     "\nCurrent user message (data): " + data(value.query) +
     (value.quota_context ? "\nTrusted app access guidance: " + value.quota_context : "") +
-    "\nFinal emotional-turn contract: respectful aap/aapko/aapki address throughout Hindi or Hinglish. Refer only to the disclosed event; do not assert that the user loved someone, feels pain, or is hiding feelings unless they said so. Never minimize a breakup as 'koi baat nahi'. " +
+    "\nFinal emotional-turn contract: use two or three simple, connected sentences in everyday language. Avoid poetic fragments, abstract claims about feelings, and repeated statements of your presence. Each sentence must have a clear meaning on its own. Give a specific acknowledgement of what the user disclosed and room to continue, rather than narrating what they must feel. Use respectful aap/aapko/aapki address throughout Hindi or Hinglish. Refer only to the disclosed event; do not assert that the user loved someone, feels pain, or is hiding feelings unless they said so. Never minimize a breakup as 'koi baat nahi'. " +
     (friendshipAdviceRequested(value.query)
       ? "The current message asks for help: acknowledge first, then at most one relevant optional step."
       : "The current message is a disclosure, not a request for solutions. Respond with acknowledgement and space to share. Do not prescribe activities, exercises, phone restrictions, tea, walks, music or self-help tasks.");
@@ -106,12 +106,13 @@ export function emotionalReplyIssue(reply, value) {
   if (/\bkoi baat nahi\b/iu.test(reply)) {
     issues.push("Do not minimize the disclosure as koi baat nahi; acknowledge it without dismissal.");
   }
-  if (issues.length) return issues.join(" ");
   if (/\b(?:kundli|horoscope|dasha|planet|chart|house score)\b|कुंडली|दशा|ग्रह/iu.test(reply)) {
-    return "The emotional reply introduces astrology. Address only the current lived event.";
+    issues.push("The emotional reply introduces astrology. Address only the current lived event.");
   }
-  if (/\bmain (?:sun rah[ai] hoon|ya?han hoon)\b/iu.test(reply)) {
-    return "Replace the stock presence announcement with a specific acknowledgement of the current event.";
+  // Presence fragments may omit 'main' or be separated by punctuation. The
+  // previous check only matched complete sentences beginning with that word.
+  if (/\b(?:sun\s+rah[ai]\s+h(?:oo|u)n|y(?:a)?ha{1,2}n\s+h(?:oo|u)n)\b|(?:सुन रही|सुन रहा|यहाँ|यहां)\s+हूँ/iu.test(reply)) {
+    issues.push("Replace the stock presence announcement with a specific acknowledgement of the current event.");
   }
   const language = (value.language || "").toLowerCase();
   const breakup = /\b(?:gf|bf|girlfriend|boyfriend|partner)\b/iu.test(value.query) &&
@@ -121,13 +122,13 @@ export function emotionalReplyIssue(reply, value) {
   const silence = /\b(?:without (?:saying|telling|explaining)|(?:nothing|anything) (?:was )?said|kuchh?\s+bhi\s+na\s+kah|bina\s+(?:kuchh?\s+)?(?:kahe|bataye)|kuchh?\s+nahi\s+(?:kaha|bataya))\b|बिना (?:कुछ )?(?:कहे|बताए)|कुछ नहीं (?:कहा|बताया)/iu;
   const userEvidence = [value.query, ...(value.history || []).filter(turn => turn.role === "user").map(turn => turn.text)].join("\n");
   if (breakup && silence.test(reply) && !silence.test(userEvidence)) {
-    return "The reply invents a lack of communication. The user only disclosed separation; omit unprovided details about what was said or explained.";
+    issues.push("The reply invents a lack of communication. The user only disclosed separation; omit unprovided details about what was said or explained.");
   }
   if (breakup && /^(?:en|english|hi|hindi|hinglish)(?:-|$)/.test(language) &&
       !/\b(?:gf|bf|girlfriend|boyfriend|partner|breakup|break.up|left|leaving|relationship|separation|chhod|chhor|chhoda|chhodi|chhodna|jaane|jaana|jana|chali|chale|chli|rishta|rishte|alag|bichhad)\b|छोड़|चली|रिश्त|अलग|बिछड़/iu.test(reply)) {
-    return "The reply ignores the disclosed breakup. Acknowledge the partner leaving, without inventing feelings or motives.";
+    issues.push("The reply ignores the disclosed breakup. Acknowledge the partner leaving, without inventing feelings or motives.");
   }
-  return null;
+  return issues.length ? issues.join(" ") : null;
 }
 
 // A style rewrite may still fail. Keep that failure from breaking delivery;
