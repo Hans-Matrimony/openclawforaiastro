@@ -25,6 +25,18 @@ void test("short advice follows the latest disclosure without reviving an older 
   assert.doesNotMatch(direct.split("# Current topic boundary")[1], /girlfriend/);
 });
 
+void test("observed Hindi hedges and malformed wording trigger the bounded repair", () => {
+  const value = {query:"आज मन उदास है। बस मेरी बात सुनिए।",language:"hindi"};
+  assert.match(emotionalReplyIssue("मुझे लगा कि शायद अभी कुछ बहुत भारी है।",value), /attribute emptiness/);
+  assert.equal(emotionalReplyIssue("मुझे लगा कि शायद अभी कुछ बहुत भारी है।",{...value,query:"मन भारी है"}),null);
+  for (const reply of ["आपको कुछ सालने की जरूरत नहीं।", "Kuch karein jo thoda sa theekha lage.", "Aapke dil ka har ek saans kaam kar raha hai."]) {
+    const issue = emotionalReplyIssue(reply,value);
+    assert.match(issue,/malformed everyday language/);
+    assert.ok(emotionalIssueCategories(issue).includes("malformed_language"));
+  }
+  assert.equal(emotionalReplyIssue("आप उदास हैं। आप अपनी बात आराम से कह सकते हैं; मैं सुन रही हूँ।",value),null);
+});
+
 void test("advice and listening contracts stay distinct in English Hindi and Hinglish", () => {
   for (const query of ["ab kya karu?", "What should I do?", "मैं क्या करूँ?"]) {
     const prompt = emotionalFriendshipPrompt({query,language:"hinglish"},{});

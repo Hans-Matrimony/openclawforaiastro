@@ -67,7 +67,7 @@ export function unsupportedFeelingClaim(reply, value) {
   // a correction. Only reflect these inner states when the current user says it.
   for (const clause of reply.match(/[^.!?।\n]+[.!?।]?/gu) || []) {
     if (/\?$/.test(clause.trim()) || /\b(?:if you|agar aap)\b|अगर आप/iu.test(clause)) continue;
-    if (!/\b(?:aapke andar|aapko|aapka dil|you feel|you are|you're|you must|left you|lagta hai)\b|आपके अंदर|आपको|आपका दिल/iu.test(clause)) continue;
+    if (!/\b(?:aapke andar|aapko|aapka dil|you feel|you are|you're|you must|left you|lagta hai)\b|आपके अंदर|आपको|आपका दिल|मुझे लगा|मुझे लगता|शायद/iu.test(clause)) continue;
     for (const feeling of feelings) {
       if (feeling.test(clause) && (!feeling.test(value.query) || /\b(?:not|no longer|nahi|nahin)\b|नहीं/iu.test(value.query))) return true;
     }
@@ -129,6 +129,11 @@ export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
   const issues = [];
+  // Reject the specific malformed phrases observed in live Hindi/Hinglish
+  // replies. Do not attempt a broad dictionary-based grammar classifier.
+  if (/कुछ सालने की जरूरत|\b(?:thoda sa theekha lage|dil ka har ek saans)\b/iu.test(reply)) {
+    issues.push("The reply contains malformed everyday language. Use short literal sentences with ordinary words; remove invented words and bodily metaphors.");
+  }
   if (/\b(?:no questions|don't ask|do not ask|sawa?l mat|questions? mat)\b|(?:सवाल|प्रश्न)\s*(?:नहीं|मत)/iu.test(value.query) && /[?？]/u.test(reply)) {
     issues.push("The user requested no questions. Acknowledge their message without asking a question.");
   }
@@ -177,6 +182,7 @@ export function emotionalReplyIssue(reply, value) {
 // Fixed diagnostic labels only: never emit the reply, query, identity or facts.
 export function emotionalIssueCategories(issue) {
   return [
+    ["malformed_language", "malformed everyday language"],
     ["unsupported_feeling", "attribute emptiness"],
     ["unwanted_question", "requested no questions"],
     ["informal_address", "respectful aap"],
@@ -194,16 +200,17 @@ export function emotionalIssueCategories(issue) {
 // this is supportive language, never a fabricated prediction or diagnosis.
 export function emotionalReplyFallback(value) {
   const language = (value.language || "").toLowerCase();
+  const advice = friendshipAdviceRequested(value.query);
   const breakup = /\b(?:gf|bf|girlfriend|boyfriend|partner)\b/iu.test(value.query) &&
     /\b(?:ch[ao]?l[ie]\s+ga[yi]+|chh?o+[dr]|left\s+me|broke\s+up)\b/iu.test(value.query);
   if (/^(?:hi|hindi)(?:-|$)/.test(language)) {
     return (breakup ? "उनके आपको छोड़कर जाने की बात हल्की नहीं है। " : "आपने जो साझा किया है, उस पर आराम से बात कर सकते हैं। ") +
-      "आप अपनी बात अपने तरीके से कह सकते हैं; अभी सब सुलझाना ज़रूरी नहीं है।";
+      (advice ? "आप चाहें तो अभी एक बात लिख लें जिस पर आपको मदद चाहिए; सब कुछ एक साथ सुलझाना ज़रूरी नहीं है।" : "आप अपनी बात अपने तरीके से कह सकते हैं; अभी सब सुलझाना ज़रूरी नहीं है।");
   }
   if (language === "hinglish") {
     return (breakup ? "Unka aapko chhodkar jaana koi chhoti baat nahi hai. " : "Aapne jo share kiya hai, us par aaram se baat kar sakte hain. ") +
-      "Aap apni baat apne tareeke se keh sakte hain; abhi sab suljhana zaroori nahi hai.";
+      (advice ? "Aap chahein toh abhi ek baat likh lein jis par aapko madad chahiye; sab kuch ek saath suljhana zaroori nahi hai." : "Aap apni baat apne tareeke se keh sakte hain; abhi sab suljhana zaroori nahi hai.");
   }
   return (breakup ? "Your partner leaving is a lot to take in. " : "We can talk about what you shared at your pace. ") +
-    "You can put it in your own words; you do not have to sort everything out right now.";
+    (advice ? "If you would like, write down one thing you want help with right now; you do not have to solve everything at once." : "You can put it in your own words; you do not have to sort everything out right now.");
 }
