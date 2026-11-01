@@ -9,6 +9,7 @@ void test("emotional chat gets warmth without capturing astrology or safety requ
     "I feel lonely. Can we talk?", "Main bahut udaas hoon", "Mera breakup ho gaya, rona aa raha hai",
     "Main stressed hoon, kya karu?", "आज मन उदास है", "I feel upset, please just listen, no advice",
     "I am grieving and need someone to listen", "I am not sad, but I feel lonely",
+    "meri Gf chli gayi Mujhe Chhor Kr", "Meri girlfriend chali gayi", "My partner left me",
   ]) assert.equal(isEmotionalFriendship(query), true, query);
   for (const query of [
     "Meri shaadi kab hogi?", "I am worried, when will I get a job?",
@@ -21,6 +22,8 @@ void test("emotional chat gets warmth without capturing astrology or safety requ
     "मन उदास है, मेरी कुण्डली देखो", "Mujhe tension hai, meri kundali dekho",
     "I am not sad anymore", "I am no longer feeling lonely", "Main udaas nahi hoon",
     "मैं उदास नहीं हूँ", "I passed my exam!", "My friend needs a horoscope, I feel upset",
+    "My girlfriend has not left me", "Meri gf chali gayi, kundli dekho",
+    "Meri gf chali gayi, kab wapas aayegi?",
   ]) assert.equal(isEmotionalFriendship(query), false, query);
 });
 
@@ -72,11 +75,12 @@ void test("emotional reply preserves conversation and instructs comfort before a
   }
 });
 
-void test("explicit listening and no-question requests do not add a companion call", async () => {
+void test("emotional disclosures and listening requests do not add a duplicate companion", async () => {
   for (const query of [
     "I feel upset, just listen, no advice and no questions",
     "Main udaas hoon, sawal mat puchna",
     "आज मन उदास है, बस सुनो, सलाह मत देना",
+    "meri Gf chli gayi Mujhe Chhor Kr",
   ]) {
     let calls = 0;
     const reply = "You felt ignored after sharing something important. That can hurt, and you do not have to explain it all right now.";

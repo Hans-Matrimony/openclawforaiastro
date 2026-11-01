@@ -567,8 +567,9 @@ export async function directAnswer(
       remedyKnowledge?.status === "available" ||
       isStressConcern(value.query);
     let finalReply = formatted;
-    if (listeningTurn) {
-      // The acknowledgement is complete; do not append advice or a question.
+    if (listeningTurn || emotionalFriendship) {
+      // This writer owns the complete emotional reply, including any welcomed
+      // practical suggestion. A second companion would repeat the comfort.
       finalReply = formatted;
     } else if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
       // Companionship follows ordinary replies too; it is not chart-tool evidence.

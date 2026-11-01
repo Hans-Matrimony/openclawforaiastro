@@ -66,13 +66,14 @@ void test("source ordinary concern cannot invent a period or re-ask the stated p
       );
     },
   });
-  assert.equal(calls, 2);
-  assert.equal(result.answer_model_calls, 2);
+  assert.equal(calls, 1);
+  assert.equal(result.answer_model_calls, 1);
   assert.deepEqual(result.answer_reading_tools, []);
   assert.doesNotMatch(result.reply, /2027|Jupiter|Saturn|dasha|kis baat/);
   assert.match(result.reply, /Night shift ke saath padhai/);
   assert.doesNotMatch(result.reply, /\b(?:beta|beti|tu|tumhe)\b/);
-  assert.match(result.reply, /Fees.*payment/);
+  // The emotional reply no longer appends an unsolicited fees question.
+  assert.doesNotMatch(result.reply, /Fees.*payment/);
 });
 
 void test("ordinary fallback acknowledges only the current study and shift concern", () => {
