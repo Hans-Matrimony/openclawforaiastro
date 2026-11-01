@@ -39,6 +39,20 @@ void test("short continuations use only the last user topic, never assistant ass
   assert.equal(isEmotionalFriendship("yes"), false);
   assert.equal(isEmotionalFriendship("Meri shaadi kab hogi?", [emotion]), false);
   assert.equal(isEmotionalFriendship("I am fine now", [emotion]), false);
+  for (const query of ["haan", "ab kya karu?", "What should I do now?"]) {
+    assert.equal(isEmotionalFriendship(query,[emotion,{role:"user",text:"haan"},{role:"user",text:"yes"}]),true);
+    assert.equal(isEmotionalFriendship(query,[emotion,astrology,{role:"user",text:"haan"}]),false);
+    assert.equal(isEmotionalFriendship(query,[{role:"user",text:"haan"}]),false);
+  }
+});
+
+void test("no-question preference blocks questions without blocking requested advice", () => {
+  for(const query of ["I feel upset. No questions please.", "Main udaas hoon, sawal mat puchna", "आज मन उदास है, सवाल मत पूछना"]) {
+    const value={query,language:"hinglish"};
+    assert.match(emotionalReplyIssue("Aap apni baat keh sakte hain. Kya hua?",value),/requested no questions/);
+    assert.equal(emotionalReplyIssue("Aap apni baat apne tareeke se keh sakte hain; koi jaldi nahi hai.",value),null);
+  }
+  assert.equal(emotionalReplyIssue("You feel upset. What would you like to talk about?",{query:"I feel upset. Can we talk?",language:"en"}),null);
 });
 
 void test("friendship listening preferences include Hindi and do not suppress advice requests", () => {

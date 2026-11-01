@@ -31,9 +31,16 @@ export function isEmotionalFriendship(query, history = []) {
   }
   // A short continuation inherits only the immediately preceding user topic.
   // Never walk past a topic change or infer distress from an assistant reply.
-  if (/^(?:yes|yeah|haan|han|hmm|please (?:listen|stay)|bas suno|sirf suno|हाँ|हां|बस सुनो)[.!\s]*$/iu.test(query.trim())) {
-    const previous = history.findLast((turn) => turn.role === "user");
-    return Boolean(previous && isEmotionalFriendship(previous.text));
+  const continuation = /^(?:yes|yeah|haan|han|hmm|please (?:listen|stay)|bas suno|sirf suno|हाँ|हां|बस सुनो|(?:ab )?kya kar[uon]+|what should i do(?: now)?)[.!?\s]*$/iu;
+  if (continuation.test(query.trim())) {
+    // Skip acknowledgements only, never a substantive topic change. Avoid
+    // recursive history walking and do not use assistant claims as evidence.
+    for (let index = history.length - 1; index >= 0; index--) {
+      const previous = history[index];
+      if (previous.role !== "user" || continuation.test(previous.text.trim())) continue;
+      return isEmotionalFriendship(previous.text);
+    }
+    return false;
   }
   return false;
 }
@@ -112,6 +119,9 @@ export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
   const issues = [];
+  if (/\b(?:no questions|don't ask|do not ask|sawa?l mat|questions? mat)\b|(?:सवाल|प्रश्न)\s*(?:नहीं|मत)/iu.test(value.query) && /[?？]/u.test(reply)) {
+    issues.push("The user requested no questions. Acknowledge their message without asking a question.");
+  }
   const userText = [value.query, ...(value.history || []).filter(turn => turn.role === "user").map(turn => turn.text)].join("\n");
   if (unsupportedFeelingClaim(reply, value)) {
     issues.push("Do not attribute emptiness, heaviness, loneliness or heartbreak to the user, even as a guess. Acknowledge the disclosed event and invite them to describe their own experience.");
@@ -158,6 +168,7 @@ export function emotionalReplyIssue(reply, value) {
 export function emotionalIssueCategories(issue) {
   return [
     ["unsupported_feeling", "attribute emptiness"],
+    ["unwanted_question", "requested no questions"],
     ["informal_address", "respectful aap"],
     ["unsupported_relationship", "loved the partner"],
     ["unsolicited_advice", "No advice was requested"],
