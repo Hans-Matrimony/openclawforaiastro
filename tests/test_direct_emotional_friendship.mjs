@@ -66,7 +66,8 @@ void test("emotional reply preserves conversation and instructs comfort before a
       const body = JSON.parse(options.body);
       assert.match(body.messages[0].content, /Before any answer or advice, acknowledge/);
       assert.match(body.messages[0].content, /no advice/);
-      assert.ok(body.messages.some(message => message.role === "assistant" && message.content === previous));
+      assert.ok(body.messages[0].content.includes(previous));
+      assert.ok(!body.messages.some(message => message.role === "assistant"));
       assert.ok(body.tools.every(tool => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name))));
       return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: acknowledgement } }], usage: { cost: 0 } }));
     },
@@ -141,15 +142,21 @@ void test("stale consolation gets one rewrite; repeated bad wording still delive
         calls++;
         const body=JSON.parse(options.body);
         assert.doesNotMatch(body.messages[0].content,/40 words of explanation/);
-        if(calls===2) assert.match(body.messages.at(-1).content,/Rewrite this emotional reply once/);
+        assert.deepEqual(body.messages.map(m=>m.role), ["system", "user"]);
+        if(calls===2) {
+          assert.match(body.messages[0].content,/Rewrite this emotional reply once/);
+          assert.equal(body.messages.at(-1).content,"meri Gf chli gayi Mujhe Chhor Kr");
+          assert.ok(!body.messages.some(m=>m.role==="assistant"));
+        }
         return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:calls===2 && repairWorks ? good : "Main sun rahi hoon. Bas yahan hoon."}}],usage:{cost:0}}));
       },
     });
-    if(repairWorks){const result=await run;assert.equal(result.reply,good);assert.deepEqual(result.answer_reading_tools,[]);}
+    if(repairWorks){const result=await run;assert.equal(result.reply,good);assert.deepEqual(result.answer_reading_tools,[]);assert.deepEqual(result.answer_validation,["emotional_quality_rewrite"]);}
     else {
       const result=await run;
       assert.match(result.reply,/aapko chhodkar jaana/);
       assert.doesNotMatch(result.reply,/Main sun rahi|yahan hoon|chart|dasha/);
+      assert.deepEqual(result.answer_validation,["emotional_quality_rewrite","emotional_quality_fallback"]);
     }
     assert.equal(calls,2);
   }
@@ -167,7 +174,7 @@ void test("current advice request keeps prior attempts and works when saved memo
       calls++;
       const body=JSON.parse(options.body);
       assert.match(body.messages[0].content,/"status":"unavailable"/);
-      assert.ok(body.messages.some(m=>m.role==="user" && m.content.includes("I tried talking")));
+      assert.ok(body.messages[0].content.includes("I tried talking"));
       assert.equal(body.messages.at(-1).content,"I still feel upset. What should I do now?");
       assert.ok(body.tools.every(t=>!CHART_TOOL_NAMES.has(bareToolName(t.function.name))));
       return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:reply}}],usage:{cost:0}}));

@@ -14,7 +14,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
-import { emotionalFriendshipPrompt, emotionalReplyIssue, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -210,6 +210,12 @@ export async function directAnswer(
       })),
     { role: "user", content: redactIdentity(value.query, value.user_id) },
   ];
+  if (emotionalFriendship) {
+    const prior = messages.slice(1, -1);
+    messages[0].content += emotionalConversationContext(prior);
+    messages.splice(1, prior.length);
+  }
+  const emotionalBasePrompt = emotionalFriendship ? messages[0].content : null;
   let nudged = false;
   let correctedEmotionalReply = false;
   let upstreamCalls = 0;
@@ -419,11 +425,14 @@ export async function directAnswer(
         validation.push("emotional_quality_fallback");
       } else {
         correctedEmotionalReply = true;
-        messages.push(choice.message, {
+        validation.push("emotional_quality_rewrite");
+        // A clean rewrite must not imitate the rejected draft. Retain the
+        // original context and current request, without another model example.
+        messages.splice(0, messages.length, {
           role: "system",
-          content: "Rewrite this emotional reply once. " + emotionalIssue +
-            " Follow the friendship instructions and current message, not the previous reply's wording. Return only the revised reply; no tools or commentary.",
-        });
+          content: emotionalBasePrompt + "\nRewrite this emotional reply once. " + emotionalIssue +
+            " Write a fresh response to the current event in the requested language. Return only the reply; no tools or commentary.",
+        }, { role: "user", content: redactIdentity(value.query, value.user_id) });
         continue;
       }
     }

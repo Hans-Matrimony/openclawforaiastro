@@ -46,7 +46,7 @@ void test("source ordinary concern cannot invent a period or re-ask the stated p
         assert.match(request.messages[0].content, /without unsolicited advice/);
         assert.ok(request.tools.every((tool) => !tool.function.name.startsWith("mcp__VedAstro__")));
       } else {
-        assert.match(request.messages.at(-1).content, /Rewrite this emotional reply once/);
+        assert.match(request.messages[0].content, /Rewrite this emotional reply once/);
       }
       return new Response(
         JSON.stringify({
