@@ -57,3 +57,13 @@ test('fallback acknowledges the live ended-relationship wording and uncertainty'
  assert.match(reply,/rishta khatam/);assert.match(reply,/turant jawab/);
  assert.doesNotMatch(reply,/ek baat likh|respect|accept/);
 });
+import { emotionalFriendshipPrompt, emotionalIssueCategories } from '../extensions/reviewed-reading/direct/emotional-friendship.mjs';
+test('uncertainty is not a draft request and explicit drafts remain available',()=>{
+ const context={memoryStatus:'available',memoryFacts:[]};
+ const q={...value,query:'Meri girlfriend ne relationship khatam kar diya. Samajh nahi aa raha kya bolun.'};
+ const prompt=emotionalFriendshipPrompt(q,context);
+ assert.match(prompt,/The user is unsure what to say/);
+ assert.doesNotMatch(prompt,/Style references only|offer one usable sentence|pehle ek baat likh/);
+ assert.doesNotMatch(emotionalFriendshipPrompt({...q,query:q.query+' Please draft a message.'},context),/The user is unsure what to say/);
+ assert.ok(emotionalIssueCategories('The user has not asked you to compose a message.').includes('unsolicited_draft'));
+});

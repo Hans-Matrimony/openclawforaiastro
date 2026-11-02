@@ -26,7 +26,7 @@ export function friendshipGroundingIssues(reply, value) {
     issues.push("Do not invent acceptance, closure, or agreement on the user's behalf, including suggested messages. Offer time before replying or neutral wording that asks for space.");
   }
   const relationshipDisclosure = /\b(?:breakup|girlfriend|boyfriend|relationship|rishta|gf|bf)\b/iu.test(disclosure);
-  const requestedDraft = /\b(?:draft|compose|write (?:a |the )?(?:message|reply)|(?:message|reply|jawab) (?:likh|likhkar|bana))\b/iu.test(value.query);
+  const requestedDraft = requestsMessageDraft(value.query);
   if (relationshipDisclosure && !requestedDraft && /["\u201c][^"\u201d]{12,}["\u201d]/u.test(reply) && /\b(?:message|reply|keh (?:dein|sakte)|likh|bol (?:dein|sakte))\b/iu.test(reply)) {
     issues.push("The user has not asked you to compose a message to their partner. Do not script their reply or decision; acknowledge their uncertainty and offer time before responding.");
   }
@@ -48,4 +48,8 @@ export function friendshipGroundingIssues(reply, value) {
     issues.push("Use respectful aap forms consistently instead of informal instructions.");
   }
   return issues;
+}
+
+export function requestsMessageDraft(query) {
+  return /\b(?:draft|compose|write (?:a |the )?(?:message|reply)|(?:message|reply|jawab) (?:likh|likhkar|bana))\b/iu.test(query);
 }
