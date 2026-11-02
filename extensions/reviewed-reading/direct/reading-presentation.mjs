@@ -2,12 +2,20 @@
 // owned by the existing reading contract.
 export const readingPresentationInstruction = "\nReading wording: preserve the supplied chart facts, supported dates and uncertainty. State cautions neutrally. Do not turn a difficult placement into a claim of no happiness, emotional burden, suffering or a guaranteed heavy life process. Explain the actual supported limitation without those invented consequences. Describe career outcomes as possibilities, not certainties. Keep natal placements separate from the mahadasha and antardasha: name period lords only as returned by the tools, with clear labels rather than a string of planet names. Use natural, complete Hindi/Hinglish sentences. Do not add false reassurance or change the supported timing window.";
 
+// A clean correction deliberately excludes old assistant predictions. It must
+// still retain the existing app delivery contract that those messages carried.
+export const readingRewriteInstruction = "\nKeep the app's reading delivery contract during this wording edit: exactly two short paragraphs, a concise explanation (aim at 40 words) and one direct qualified verdict (aim at 15 words, allowing the full checked month-year boundaries). Mention only the one or two relevant supported reasons, retaining mixed or adverse evidence. Do not display internal numeric chart scores, Ashtakavarga points, bindus, retrograde or combust; express the already-supported strength or limitation in plain language. Never turn a score into a new consequence. Distinguish natal placements from period lords and future periods from the current period; a future antardasha is upcoming, not currently active. Do not replace the answer with a schedule or a question, invent a ranking, or call a selected factor the only support. Retain the selected window and natural uncertainty without also denying that any possible window is given. Do not invent or narrow event dates. No recap or extra closing.";
+
 export function unsupportedReadingConsequence(reply) {
   return /\b(?:emotional (?:burden|weight)|heavy[ ,]+slow process|no happiness|koi khushi|khushiyon se bhara samay nahi)\b/iu.test(reply);
 }
 
 export function readingPresentationIssue(reply) {
   const issues = [];
+  const structured = ['{', '[', '```'].some((prefix) => reply.trimStart().startsWith(prefix));
+  if (!structured && /\bashtakavarga\b[^.!?\n]{0,60}\b\d{1,3}\b/iu.test(reply)) {
+    issues.push('Keep internal Ashtakavarga numbers out of this conversational reading. Express only the supported strength or limitation in plain language, retaining house numbers, dates, mixed evidence and uncertainty.');
+  }
   const datedWindow = (reply.match(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/giu) || []).length >= 2;
   if (datedWindow && reply.split(/[,;.!?\n]+/u).some((clause) =>
     /\b(?:clear\s+timing|timing\s+clear)\s+(?:nahi|nahin)\b|\bno\s+clear\s+(?:timing|window)\b/iu.test(clause) &&

@@ -33,6 +33,10 @@ test('an existing possible window is distinguished from an unknown exact date wi
   assert.match(readingPresentationIssue(window+' Yeh ek hi sahyog hai.'),/only supporting factor/);
   assert.equal(readingPresentationIssue(window+' Yeh ek sahyog hai, lekin rukawatein bhi hain.'),null);
   assert.equal(readingPresentationIssue(window+' Yeh ek hi sahyog nahi hai.'),null);
+  assert.match(readingPresentationIssue('House 7 ka Ashtakavarga point sirf 20 hai.'),/internal Ashtakavarga numbers/);
+  assert.equal(readingPresentationIssue('House 7 ka support kam hai. November 2031 se July 2034 tak sambhavna hai.'),null);
+  assert.equal(readingPresentationIssue('{"ashtakavarga":{"house_7":20}}'),null);
+  assert.equal(readingPresentationIssue('```json\n{"ashtakavarga":{"house_7":20}}\n```'),null);
 });
 
 test('a malformed house-period sentence gets one wording repair retaining the actual window', async () => {
@@ -45,13 +49,30 @@ test('a malformed house-period sentence gets one wording repair retaining the ac
     makeTools:()=>async()=>{calculations++;return JSON.stringify({engine:'local-sweph-v2',birth_chart:{planets:['Jupiter: Taurus | house 7','Saturn: Taurus | house 7']},dasha:{upcoming_antardashas:[{lord:'Jupiter',from:'2031-11-15',to:'2034-07-16'}]},verdict_signals:[{area:'marriage',positive:['benefic Jupiter house 7 mein'],negative:['Saturn house 7 par delay']}]});},
     fetchImpl:async(_url,options)=>{
       calls++;const body=JSON.parse(options.body);
-      if(calls===3){assert.equal(body.tool_choice,'none');assert.match(body.messages.at(-1).content,/house contains a planet, not an antardasha/);assert.match(body.messages.at(-1).content,/unknown exact event date/);assert.match(body.messages.at(-1).content,/only supporting factor/);}
+      if(calls===3){assert.equal(body.tool_choice,'none');assert.match(body.messages.at(-1).content,/house contains a planet, not an antardasha/);assert.match(body.messages.at(-1).content,/unknown exact event date/);assert.match(body.messages.at(-1).content,/only supporting factor/);assert.match(body.messages[0].content,/40 words/);assert.match(body.messages[0].content,/internal numeric chart scores/);assert.match(body.messages[0].content,/upcoming, not currently active/);}
       const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2?bad:good};
       return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
     }
   });
   assert.equal(calls,3);assert.equal(calculations,1);assert.equal(result.reply.split(/\n\s*\n/).slice(0,2).join('\n\n'),good);
   assert.ok(result.answer_validation.includes('reading_wording_rejected'));
+});
+
+test('a wording rewrite cannot publish newly introduced internal chart scores', async () => {
+  let calls=0,calculations=0;
+  const result=await directAnswer({user_id:'synthetic-rewrite-score-leak',query:'meri shaadi kb hogi',language:'hinglish',history:[],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
+    env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    now:()=>new Date('2026-11-02T00:00:00Z'),makeMemory:()=>({read:async()=>[]}),
+    makeTools:()=>async()=>{calculations++;return JSON.stringify({engine:'local-sweph-v2',birth_chart:{planets:['Jupiter: Taurus | house 7','Saturn: Taurus | house 7']},dasha:{upcoming_antardashas:[{lord:'Jupiter',from:'2031-11-15',to:'2034-07-16'}]},verdict_signals:[{area:'marriage',positive:['benefic Jupiter house 7 mein'],negative:['Saturn house 7 par delay']}]});},
+    fetchImpl:async()=>{
+      calls++;const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2?'Jupiter 7ve ghar mein hai, lekin Saturn emotional burden deta hai.\n\nNovember 2031 se July 2034 mein shaadi sambhav hai.':'House 7 ka Ashtakavarga point sirf 20 hai.\n\nJupiter antardasha November 2031 se July 2034 mein shaadi sambhav hai.'};
+      return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+    }
+  });
+  assert.equal(calls,3);assert.equal(calculations,1);
+  assert.ok(result.answer_validation.includes('reading_wording_fallback'));
+  assert.doesNotMatch(result.reply,/Ashtakavarga|\b20\b|emotional burden/i);
+  assert.match(result.reply,/2031/);assert.match(result.reply,/2034/);
 });
 
 test('a bounded rewrite that changes three planet names to two still uses the evidence fallback', async () => {

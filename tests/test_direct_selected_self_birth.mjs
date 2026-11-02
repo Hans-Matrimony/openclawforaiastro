@@ -19,6 +19,8 @@ test('only complete selected profiles and clear self questions bind calculation 
   for(const p of [undefined,{}, {...birth,date:'unknown'}, {...birth,time:''}, {...birth,location_name:'  '}]) {
     assert.equal(selectedSelfBirth('meri shaadi kab hogi',p),null);
   }
+  assert.equal(selectedSelfBirth('Correct my birth chart and tell my marriage timing',birth),null);
+  assert.equal(selectedSelfBirth('Switch my kundli to the other saved person',birth),null);
 });
 
 test('stale memory arguments cannot replace selected self birth in natal or transit tools',async()=>{
