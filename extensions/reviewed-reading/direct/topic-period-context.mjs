@@ -112,3 +112,11 @@ export function unsupportedTopicOpportunity(reply, results, query) {
     );
   });
 }
+
+// Review an undated answer when the returned schedule contains a supportive
+// candidate. This requests evidence review; it does not select a date or verdict.
+export function omittedSupportedTiming(reply, results, query) {
+  if (/\b20\d{2}\b/u.test(reply)) return false;
+  const evidence = topicPeriodEvidence(results, query);
+  return Boolean(evidence && evidence.periods.some(p => p.supportive_factors.length > 0));
+}

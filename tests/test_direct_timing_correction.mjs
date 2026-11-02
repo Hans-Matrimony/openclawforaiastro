@@ -86,6 +86,7 @@ void test("all three outlooks preserve their meaning and no support forces no da
   );
   assert.doesNotMatch(none, /20\d{2}|Mars|Jupiter/);
   assert.match(none, /deri/);
+  assert.match(none, /iska matlab yeh nahi/);
 });
 
 void test("malformed submissions, fabricated dates and unsupported period selections fail closed", () => {
@@ -375,3 +376,30 @@ for (const invalid of ["unsupported_date", "wrong_house_lord"]) {
     assert.ok(result.answer_validation.includes("topic_timing_repair_unavailable"));
   });
 }
+import { omittedSupportedTiming } from '../extensions/reviewed-reading/direct/topic-period-context.mjs';
+test('undated negative answer receives review only with supportive schedule evidence',()=>{
+ const chart={...row,birth_chart:{planets:['Jupiter: | house 7'],houses:[]}};
+ assert.equal(omittedSupportedTiming('Shaadi ka koi clear timing nahi dikh raha.',[JSON.stringify(chart)],'Meri shaadi kab hogi?'),true);
+ assert.equal(omittedSupportedTiming('November 2031 se July 2034 sambhavit hai.',[JSON.stringify(chart)],'Meri shaadi kab hogi?'),false);
+ assert.equal(omittedSupportedTiming('No clear timing.',[JSON.stringify({...chart,verdict_signals:[{...row.verdict_signals[0],positive:[]}]})],'Meri shaadi kab hogi?'),false);
+ assert.equal(omittedSupportedTiming('No clear timing.',['malformed'],'Meri shaadi kab hogi?'),false);
+});
+test('agent reviews an undated negative verdict once without repeating chart tools',async()=>{
+ let calls=0,tools=0;
+ const chart={...row,birth_chart:{planets:['Jupiter: | house 7'],houses:[]}};
+ const result=await directAnswer({user_id:'synthetic-omission',query:'Meri shaadi ka agla sambhavit samay kya hai?',language:'hinglish',history:[],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
+  now,env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+  makeMemory:()=>({read:async()=>[],write:()=>assert.fail('No memory writes')}),
+  makeTools:()=>async()=>{tools++;return JSON.stringify(chart);},
+  fetchImpl:async(_url,options)=>{
+   calls++;let reply;
+   if(calls===1)reply={tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]};
+   else if(calls===2)reply={content:'Shaadi ka koi clear timing abhi nahi dikh raha.'};
+   else {assert.equal(calls,3);assert.match(options.body,/submit_timing_reading/);reply=message(value);}
+   return new Response(JSON.stringify({choices:[{finish_reason:reply.tool_calls?'tool_calls':'stop',message:reply}]}));
+  }
+ });
+ assert.equal(tools,1);assert.equal(calls,3);
+ assert.match(JSON.stringify(result),/undated_timing_review/);
+ assert.match(JSON.stringify(result),/November 2031/);
+});

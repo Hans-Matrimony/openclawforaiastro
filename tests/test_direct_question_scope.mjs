@@ -133,8 +133,8 @@ void test("a wrong marriage verdict gets one bounded repair using the same calcu
   const { result, calls, tools, requests } = await fixture([oldMarriage, datingReply]);
   assert.equal(tools, 1);
   assert.equal(calls, 4);
-  assert.ok(result.reply.startsWith(datingReply + "\n\n"));
-  assert.equal(result.reply.split("\n\n").length, 3);
+  assert.equal(result.reply, datingReply); // Reject the unrelated personal closing.
+  assert.equal(result.reply.split("\n\n").length, 2);
   assert.match(requests[0].messages[0].content, /GF means girlfriend/);
   assert.equal(requests[2].messages.filter((m) => m.role === "tool").length, 1);
   assert.equal(
@@ -154,7 +154,7 @@ void test("persistent topic mismatch never leaks the old prediction or turns int
   const { result, calls, tools } = await fixture([oldMarriage]);
   assert.equal(calls, 4);
   assert.equal(tools, 1);
-  assert.equal(result.reply.split("\n\n").length, 3);
+  assert.equal(result.reply.split("\n\n").length, 2);
   assert.doesNotMatch(result.reply, /2027/);
   assert.match(result.reply, /Naye rishte ki timing/);
 });
