@@ -25,9 +25,19 @@ test('house placement and period wording stay distinct without rejecting a suppo
   for (const text of ['Jupiter 7ve ghar mein hai. Jupiter ki antardasha November 2031 se July 2034 tak hai.', '7ve ghar mein Jupiter baitha hai; uski antardasha November 2031 se July 2034 tak hai.']) assert.equal(readingPresentationIssue(text), null);
 });
 
+test('an existing possible window is distinguished from an unknown exact date without forcing missing dates', () => {
+  const window='Jupiter ki antardasha November 2031 se July 2034 tak hai.';
+  assert.match(readingPresentationIssue(window+' Shaadi ka timing clear nahi, bas ek sambhavna hai.'),/unknown exact event date/);
+  assert.equal(readingPresentationIssue(window+' Shaadi ki exact date clear nahi; is period mein sambhavna hai.'),null);
+  assert.equal(readingPresentationIssue('Is reading se shaadi ka timing clear nahi.'),null);
+  assert.match(readingPresentationIssue(window+' Yeh ek hi sahyog hai.'),/only supporting factor/);
+  assert.equal(readingPresentationIssue(window+' Yeh ek sahyog hai, lekin rukawatein bhi hain.'),null);
+  assert.equal(readingPresentationIssue(window+' Yeh ek hi sahyog nahi hai.'),null);
+});
+
 test('a malformed house-period sentence gets one wording repair retaining the actual window', async () => {
   let calls=0,calculations=0;
-  const bad='7ve ghar par Jupiter ka antardasha November 2031 se July 2034 tak hai woh yahan baitha hai, lekin Saturn bhi wahi hai.\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.';
+  const bad='7ve ghar par Jupiter ka antardasha November 2031 se July 2034 tak hai woh yahan baitha hai, yeh ek hi sahyog hai, lekin Saturn bhi wahi hai, isliye shaadi ka timing clear nahi.\n\nNovember 2031 se July 2034 ke beech shaadi ho sakti hai.';
   const good='Jupiter saatve ghar mein sahyog deta hai, lekin Saturn ki wajah se rukawatein bhi sambhav hain.\n\nJupiter antardasha mein November 2031 se July 2034 ke beech shaadi ki sambhavna hai.';
   const result=await directAnswer({user_id:'synthetic-period-grammar',query:'meri shaadi kb hogi',language:'hinglish',history:[],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
     env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
@@ -35,7 +45,7 @@ test('a malformed house-period sentence gets one wording repair retaining the ac
     makeTools:()=>async()=>{calculations++;return JSON.stringify({engine:'local-sweph-v2',birth_chart:{planets:['Jupiter: Taurus | house 7','Saturn: Taurus | house 7']},dasha:{upcoming_antardashas:[{lord:'Jupiter',from:'2031-11-15',to:'2034-07-16'}]},verdict_signals:[{area:'marriage',positive:['benefic Jupiter house 7 mein'],negative:['Saturn house 7 par delay']}]});},
     fetchImpl:async(_url,options)=>{
       calls++;const body=JSON.parse(options.body);
-      if(calls===3){assert.equal(body.tool_choice,'none');assert.match(body.messages.at(-1).content,/house contains a planet, not an antardasha/);}
+      if(calls===3){assert.equal(body.tool_choice,'none');assert.match(body.messages.at(-1).content,/house contains a planet, not an antardasha/);assert.match(body.messages.at(-1).content,/unknown exact event date/);assert.match(body.messages.at(-1).content,/only supporting factor/);}
       const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2?bad:good};
       return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
     }

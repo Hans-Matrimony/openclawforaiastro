@@ -8,6 +8,17 @@ export function unsupportedReadingConsequence(reply) {
 
 export function readingPresentationIssue(reply) {
   const issues = [];
+  const datedWindow = (reply.match(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/giu) || []).length >= 2;
+  if (datedWindow && reply.split(/[,;.!?\n]+/u).some((clause) =>
+    /\b(?:clear\s+timing|timing\s+clear)\s+(?:nahi|nahin)\b|\bno\s+clear\s+(?:timing|window)\b/iu.test(clause) &&
+    !/\b(?:exact|fixed|certain|pakki|tareekh|tarikh|date)\b/iu.test(clause))) {
+    issues.push('The draft already gives a possible period. Distinguish that qualified window from an unknown exact event date instead of also saying no clear timing. Preserve the same checked boundaries and obstacles; do not strengthen the likelihood or promise an event.');
+  }
+  if (reply.split(/[.!?\n]+/u).some((sentence) => {
+    const match = /\b(?:ek\s+hi|sirf\s+ek|ekmatra)\s+(?:sahyog|sahayog|sahara)\b/iu.exec(sentence);
+    return match && !/\b(?:nahi|nahin|not)\s*$/iu.test(sentence.slice(0, match.index)) &&
+      !/^\s*(?:(?:hai|is)\s+)?(?:nahi|nahin|not)\b/iu.test(sentence.slice(match.index + match[0].length));
+  })) issues.push('Remove the exhaustive claim that this is the only supporting factor. These results list selected factors, not every possible factor. Keep the stated support, opposing evidence and period without inventing another reason.');
   if (unsupportedReadingConsequence(reply)) issues.push('Remove invented claims of suffering or unhappiness; describe the actual supported chart limitation neutrally.');
   if (/\bkaam\s+kaam\b/iu.test(reply)) issues.push('Remove the accidental adjacent repetition of kaam and write a complete, natural career sentence. Preserve the supported meaning.');
   if (/\b(?:ka|ke)\s+possibility\b/iu.test(reply)) issues.push('Use grammatical Hindi/Hinglish for a possibility, with a clear subject and complete sentence. Keep any supported career options explicit rather than a vague reference to aapki tarah ke kaam.');
