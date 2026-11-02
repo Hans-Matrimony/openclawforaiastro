@@ -396,7 +396,7 @@ test('agent reviews an undated negative verdict once without repeating chart too
    calls++;let reply;
    if(calls===1)reply={tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]};
    else if(calls===2)reply={content:'Shaadi ka koi clear timing abhi nahi dikh raha.'};
-   else {assert.equal(calls,3);assert.match(options.body,/submit_timing_reading/);reply=message(value);}
+   else {assert.equal(calls,3);assert.equal(JSON.parse(options.body).tool_choice,'none');reply={content:'Jupiter 7ve ghar mein sahyog deta hai, lekin Mars ki drishti rukawat hai.\n\nJupiter antardasha November 2031 se July 2034 ke beech shaadi sambhavit hai, lekin rukawatein bhi hain.'};}
    return new Response(JSON.stringify({choices:[{finish_reason:reply.tool_calls?'tool_calls':'stop',message:reply}]}));
   }
  });

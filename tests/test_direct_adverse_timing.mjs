@@ -30,7 +30,7 @@ test('a negative timing answer includes checked boundaries without another chart
       let message;
       if(calls===1)message={tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]};
       else if(calls===2)message={content:undated};
-      else {assert.equal(calls,3);assert.equal(body.tool_choice.function.name,'submit_timing_reading');message={tool_calls:[{id:'review',type:'function',function:{name:'submit_timing_reading',arguments:JSON.stringify({period_id:'p0',outlook:'unfavorable',factor_ids:['f1']})}}]};}
+      else {assert.equal(calls,3);assert.equal(body.tool_choice,'none');assert.equal(body.messages.length,2);assert.ok(body.messages[1].content.includes(JSON.stringify(undated)));message={content:'Saturn ki drishti se shaadi mein rukawat ke sanket hain.\n\nSaturn antardasha September 2027 se May 2030 mein shaadi ki sambhavna kam hai.'};}
       return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
     },
   });
@@ -39,7 +39,24 @@ test('a negative timing answer includes checked boundaries without another chart
   assert.match(result.reply,/sambhavna kam hai/);
   assert.doesNotMatch(result.reply,/pakki|zaroor|hogi hi/);
   assert.ok(result.answer_validation.includes('undated_timing_review'));
-  assert.ok(result.answer_validation.includes('topic_timing_repaired'));
   assert.equal(JSON.stringify(row),raw);
+});
+
+test('persistent omission uses one prose rewrite before the bounded structured fallback',async()=>{
+  let calls=0,calculations=0;
+  const result=await directAnswer({user_id:'synthetic-persistent-timing',query:'Meri shaadi kb hogi',language:'hinglish',history:[],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
+    env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    now:()=>new Date('2026-11-02T00:00:00Z'),makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return raw;},
+    fetchImpl:async(_url,options)=>{
+      calls++;const body=JSON.parse(options.body);let message;
+      if(calls===1)message={tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]};
+      else if(calls<=3){if(calls===3)assert.equal(body.tool_choice,'none');message={content:undated};}
+      else {assert.equal(calls,4);assert.equal(body.tool_choice.function.name,'submit_timing_reading');message={tool_calls:[{id:'review',type:'function',function:{name:'submit_timing_reading',arguments:JSON.stringify({period_id:'p0',outlook:'unfavorable',factor_ids:['f1']})}}]};}
+      return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+    },
+  });
+  assert.equal(calls,4);assert.equal(calculations,1);
+  assert.match(result.reply,/September 2027 se May 2030/);assert.match(result.reply,/sambhavna kam hai/);
+  assert.ok(result.answer_validation.includes('topic_timing_repaired'));
 });
 
