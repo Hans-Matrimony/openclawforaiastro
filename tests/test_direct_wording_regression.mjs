@@ -7,10 +7,10 @@ import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 
 test("selected signals cannot establish an exhaustive supportive-factor claim", () => {
   const results = [JSON.stringify({engine: "local-sweph-v2"})];
-  for (const text of ["Jupiter is the only supportive factor.", "Yehi ekmatra supportive factor hai."]) {
+  for (const text of ["Jupiter is the only supportive factor.", "Yehi ekmatra supportive factor hai.", "Jupiter ek hi supportive factor hai.", "Jupiter is the only one supportive factor, but this is not a guarantee."]) {
     assert.equal(chartClaimConflicts(text, results)[0]?.type, "unsupported_exclusive_factor");
   }
-  for (const text of ["Jupiter is a supportive factor.", "Jupiter is not the only supportive factor.", "Ye ekmatra supportive factor nahi hai.", "November 2031 se July 2034 mein shaadi sambhavit hai."]) {
+  for (const text of ["Jupiter is a supportive factor.", "Jupiter is not the only supportive factor.", "Ye ekmatra supportive factor nahi hai.", "Jupiter ek hi supportive factor nahi hai.", "November 2031 se July 2034 mein shaadi sambhavit hai."]) {
     assert.deepEqual(chartClaimConflicts(text, results), []);
   }
 });

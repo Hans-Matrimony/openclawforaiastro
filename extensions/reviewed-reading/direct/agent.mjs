@@ -1,5 +1,5 @@
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
-import { readingPresentationInstruction, unsupportedReadingConsequence } from "./reading-presentation.mjs";
+import { readingPresentationInstruction, readingPresentationIssue } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { readingContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
@@ -588,11 +588,12 @@ export async function directAnswer(
     if (questionMismatch) {
       reply = unresolvedQuestionReply(value);
     }
-    if (readingTools.size > 0 && unsupportedReadingConsequence(reply)) {
+    const wordingIssue = readingTools.size > 0 ? readingPresentationIssue(reply) : null;
+    if (wordingIssue) {
       validation.push("reading_wording_rejected");
       if (!correctedReadingPresentation && modelCalls < maxRounds && upstreamCalls < maxCalls) {
         correctedReadingPresentation = true;
-        messages.push({role:"user",content:"Rewrite the current reading's wording once using the existing tool evidence. Do not call tools again. Remove claims of emotional burden, unhappiness or a guaranteed heavy life process: those inner states are not established by a placement. Preserve all supported dates, facts, mixed factors and uncertainty. " + readingPresentationInstruction});
+        messages.push({role:"user",content:"Rewrite the current reading's wording once using the existing tool evidence. Do not call tools again. " + wordingIssue + " Preserve all supported dates, facts, mixed factors and uncertainty. " + readingPresentationInstruction});
         continue;
       }
       validation.push("reading_wording_fallback");

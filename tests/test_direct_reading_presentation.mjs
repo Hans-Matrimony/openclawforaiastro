@@ -1,12 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { directAnswer } from '../extensions/reviewed-reading/direct/agent.mjs';
-import { unsupportedReadingConsequence } from '../extensions/reviewed-reading/direct/reading-presentation.mjs';
+import { unsupportedReadingConsequence, readingPresentationIssue } from '../extensions/reviewed-reading/direct/reading-presentation.mjs';
 
 test('reading wording check targets observed unsupported consequences, retaining ordinary cautions', () => {
   assert.equal(unsupportedReadingConsequence('Saturn gives emotional burden.'),true);
   assert.equal(unsupportedReadingConsequence('Koi khushi ka support nahi hai.'),true);
   assert.equal(unsupportedReadingConsequence('Saturn may indicate delay; no event is guaranteed.'),false);
+});
+
+test('career wording review catches certainty and mixed period labels without rejecting qualified cautions', () => {
+  assert.match(readingPresentationIssue('Saturn aur Venus Moon dasha mein external push kam hai.'), /Separate the natal planet/);
+  assert.match(readingPresentationIssue('Isliye results slow aayenge.'), /Qualify the outcome/);
+  for (const reply of ['Progress slow ho sakti hai.', 'Venus mahadasha aur Moon antardasha chal rahi hai.', 'Saturn ki sthiti aur Venus-Moon dasha ke sanket alag hain.']) assert.equal(readingPresentationIssue(reply),null,reply);
 });
 
 for (const persistent of [false,true]) test(`wording correction is bounded and preserves the supported period; persistent=${persistent}`, async () => {
