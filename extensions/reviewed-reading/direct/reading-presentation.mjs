@@ -15,6 +15,9 @@ export function readingPresentationIssue(reply) {
     issues.push('Qualify the outcome as a possibility rather than asserting that progress or results will be slow. Preserve the caution and its evidence.');
   }
   const planet = '(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)';
+  if (new RegExp('\\b(?:\\d+(?:ve|ven|th)?|saatve|seventh)\\s+(?:ghar|house)\\s+(?:par|mein|me)\\s+' + planet + '\\s+(?:(?:ka|ki)\\s+)?(?:mahadasha|antardasha)\\b', 'iu').test(reply)) {
+    issues.push('A natal house contains a planet, not an antardasha. State the checked natal placement in its own complete clause, then separately label the period and preserve its exact supported month-year boundaries and qualified verdict.');
+  }
   if (new RegExp('\\b' + planet + '\\s+' + planet + '\\s+(?:(?:ki|ka)\\s+)?(?:dasha|mahadasha|antardasha)\\b', 'iu').test(reply)) {
     issues.push('Separate the natal planet from the actual mahadasha and antardasha lords. Label each period lord and its level as returned by the tools instead of using adjacent unlabelled planet names. Use the existing tool evidence; do not infer a new period.');
   }
