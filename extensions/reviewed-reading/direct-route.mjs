@@ -5,6 +5,26 @@ import { formatDisplayReply } from "./direct/format-reply.mjs";
 
 export const directEnabled = directReleaseEnabled;
 
+// Fixed internal categories only. Never log arbitrary exception text, tool
+// arguments, provider bodies, request contents or personal identifiers.
+export function directFailureCategory(error) {
+  if (/^model_http_[45][0-9]{2}$/.test(error?.code ?? "")) return error.code;
+  if (["AbortError", "TimeoutError"].includes(error?.name)) return "generation_timeout";
+  const category = ({
+    "Direct context too large": "context_too_large",
+    "Direct response too large": "model_response_too_large",
+    "Missing direct reply": "model_reply_missing",
+    "Incomplete direct reply": "model_reply_incomplete",
+    "Direct call budget exhausted": "model_call_limit",
+    "Direct tool loop did not converge": "tool_loop_limit",
+    "Too many tool calls": "tool_call_limit",
+    "Tool arguments must be an object": "invalid_tool_arguments",
+    "Personal reading requires a successful chart tool": "chart_evidence_missing",
+    "Timing reading requires the period schedule": "period_evidence_missing",
+  })[error?.message];
+  return typeof category === "string" ? category : "generation_failed";
+}
+
 export function validateDirectInput(value) {
   if (
     !value ||
@@ -75,8 +95,7 @@ export function createDirectHandler(
         : result;
     } catch (error) {
       // Fixed operational categories only; no user data or upstream response bodies.
-      const code = /^model_http_[45][0-9]{2}$/.test(error?.code ?? "")
-        ? error.code : "generation_failed";
+      const code = directFailureCategory(error);
       console.warn("[direct-answer] " + code);
       throw error;
     }
