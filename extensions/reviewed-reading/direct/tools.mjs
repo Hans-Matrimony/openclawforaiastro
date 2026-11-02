@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SOURCE_TOOLS } from "./source-contract.mjs";
 import { sourceReading } from "./source-engine.mjs";
+import { selectedSelfBirth, selectedSelfArguments } from "./selected-self-birth.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "assets");
 const PREFIX = "mcp__VedAstro__";
@@ -55,6 +56,7 @@ export function localChart(dob, tob, place, query, { env = process.env, signal }
 export function createTools({
   memory,
   birth,
+  query,
   env = process.env,
   signal,
   fetchImpl = fetch,
@@ -64,6 +66,7 @@ export function createTools({
 }) {
   // Request-scoped state replaces the source app's shared single-user store.
   const store = { birth: birth ? { ...birth } : null, selectedPerson: null };
+  const selfBirth = selectedSelfBirth(query, birth);
   let initialized = false;
   async function rpc(payload) {
     const response = await fetchImpl("https://mcp-subagent.vedastro.org/api/mcp/public", {
@@ -123,6 +126,9 @@ export function createTools({
     if (!CHART_TOOLS.has(name)) {
       throw new Error("Unknown tool");
     }
+    // The app's selected self profile outranks stale model-supplied memory
+    // arguments. Keep the boundary outside the unchanged calculation engine.
+    args = selectedSelfArguments(name, args, selfBirth);
     // Dev v2 uses its local Swiss Ephemeris tools by default, without an MCP round trip.
     if (env.VEDASTRO_DIRECT_USE_LOCAL_ENGINE !== "0") {
       const result = await reading(name, args, store.birth, {

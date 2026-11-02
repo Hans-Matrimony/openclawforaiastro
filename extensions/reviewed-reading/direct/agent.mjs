@@ -116,7 +116,7 @@ export async function directAnswer(
     now(),
     { separateCompanion: env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1", sourceFlow },
   );
-  const execute = makeTools({ memory, birth: value.birth, env, fetchImpl, signal, now });
+  const execute = makeTools({ memory, birth: value.birth, query: value.query, env, fetchImpl, signal, now });
   const scopeInstruction = questionScopeInstruction(value.query);
   if (scopeInstruction && !sourceFlow) {
     context.prompt += "\n\n# Current relationship question\n" + scopeInstruction;
