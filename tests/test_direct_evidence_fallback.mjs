@@ -19,7 +19,7 @@ void test("observed source factors become complete sentences without scores or r
     ],
   };
   const answer = evidenceFallback([JSON.stringify(row)], "hinglish", "Paise kab behtar honge?");
-  assert.match(answer, /2ve ghar se achha sahyog milta hai/);
+  assert.match(answer, /2ve ghar ki majbooti ka alag sanket achha hai/);
   assert.match(answer, /Ketu ka 2ve ghar mein hona rukawat ka sanket hai/);
   assert.doesNotMatch(answer, /strong support|malefic|bindus|29|2027|event ki date/);
   assert.equal(answer.split("\n\n").length, 2);
@@ -31,7 +31,7 @@ void test("observed source factors become complete sentences without scores or r
   };
   const marriage = evidenceFallback([JSON.stringify(row)], "hinglish", "Shaadi kab hogi?");
   assert.match(marriage, /Guru ka 7ve ghar/);
-  assert.match(marriage, /7ve ghar se kam sahyog/);
+  assert.match(marriage, /7ve ghar ki majbooti ka alag sanket kamzor/);
   assert.doesNotMatch(marriage, /specific mahina|saal nahi mila/);
   assert.match(marriage, /is calculation me period data nahi aaya/);
   assert.match(marriage, /Shaadi ka samay:/);

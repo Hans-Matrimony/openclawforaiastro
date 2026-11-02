@@ -41,12 +41,12 @@ void test("source ordinary concern cannot invent a period or re-ask the stated p
       const request = JSON.parse(options.body);
       calls++;
       if (calls === 1) {
-        assert.match(request.messages[0].content, /everyday concern/);
-        assert.match(request.messages[0].content, /respectful aap wording/);
-        assert.match(request.messages[0].content, /Do not add an unrequested plan/);
+        assert.match(request.messages[0].content, /Emotional conversation/);
+        assert.match(request.messages[0].content, /respectful aap\/aapke/);
+        assert.match(request.messages[0].content, /without unsolicited advice/);
         assert.ok(request.tools.every((tool) => !tool.function.name.startsWith("mcp__VedAstro__")));
       } else {
-        assert.equal(JSON.parse(request.messages[1].content).known_concern.kind, "fees");
+        assert.match(request.messages[0].content, /Rewrite this emotional reply once/);
       }
       return new Response(
         JSON.stringify({
@@ -57,7 +57,7 @@ void test("source ordinary concern cannot invent a period or re-ask the stated p
                 content:
                   calls === 1
                     ? "Neend ka issue Saturn aur Moon ka effect hai. 2027 ke baad Jupiter ki dasha shuru hogi.\n\n2027 ke baad tension kam hogi."
-                    : "Abhi sabse zyada tension kis baat ki ho rahi hai?",
+                    : "Night shift ke saath padhai aur fees ki chinta sambhalna mushkil lag raha hai. Aapne neend poori na hone ki bhi baat ki thi.",
               },
             },
           ],
@@ -72,7 +72,8 @@ void test("source ordinary concern cannot invent a period or re-ask the stated p
   assert.doesNotMatch(result.reply, /2027|Jupiter|Saturn|dasha|kis baat/);
   assert.match(result.reply, /Night shift ke saath padhai/);
   assert.doesNotMatch(result.reply, /\b(?:beta|beti|tu|tumhe)\b/);
-  assert.match(result.reply, /Fees.*payment/);
+  // The emotional reply no longer appends an unsolicited fees question.
+  assert.doesNotMatch(result.reply, /Fees.*payment/);
 });
 
 void test("ordinary fallback acknowledges only the current study and shift concern", () => {
