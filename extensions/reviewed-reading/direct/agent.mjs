@@ -595,7 +595,7 @@ export async function directAnswer(
       validation.push("reading_wording_rejected");
       if (!correctedReadingPresentation && modelCalls < maxRounds && upstreamCalls < maxCalls) {
         correctedReadingPresentation = true;
-        messages.push({role:"user",content:"Rewrite the current reading's wording once using the existing tool evidence. Do not call tools again. " + wordingIssue + " Preserve all supported dates, facts, mixed factors and uncertainty. " + readingPresentationInstruction});
+        messages.push({role:"user",content:"Rewrite the current reading's wording once using the existing tool evidence. Do not call tools again. " + wordingIssue + " Preserve all supported dates, facts, mixed factors and uncertainty. " + readingPresentationInstruction + rejectedDraftContext(redactIdentity(reply, value.user_id))});
         continue;
       }
       validation.push("reading_wording_fallback");

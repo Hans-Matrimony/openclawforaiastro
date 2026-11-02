@@ -20,13 +20,21 @@ for (const persistent of [false,true]) test(`displayed career wording is checked
   let calls=0,calculations=0;
   const bad='House 10 mein Leo ka strong support hai, lekin Saturn aur Venus-Moon dasha mein external support kam hai.\n\nAapki tarah ke kaam-kaam karne ka possibility hai.';
   const good='House 10 mein sahyog ke sanket hain, lekin Saturn ki sthiti rukawat ka sanket bhi deti hai.\n\nLeadership ya creative kaam sambhavit vikalp hain; inhe guarantee na samjhein.';
-  const result=await directAnswer({user_id:'synthetic',query:'Meri kundli ke hisaab se career mein kis tarah ka kaam suit karega?',language:'hinglish',user_gender:'male',history:[],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
+  const old='A previous answer about a different career question.';
+  const result=await directAnswer({user_id:'synthetic',query:'Meri kundli ke hisaab se career mein kis tarah ka kaam suit karega?',language:'hinglish',user_gender:'male',history:[{role:'assistant',text:old}],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
     env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
     now:()=>new Date('2026-11-02T00:00:00Z'),makeMemory:()=>({read:async()=>[]}),
     makeTools:()=>async()=>{calculations++;return JSON.stringify({engine:'local-sweph-v2',birth_chart:{planets:['Saturn: Taurus | house 7']},verdict_signals:[{area:'career',trend:'MIXED',positive:['House 10 strong support'],negative:['Saturn limits support']}]});},
     fetchImpl:async(_url,options)=>{
       calls++;const body=JSON.parse(options.body);
-      if(calls===3){assert.equal(body.tool_choice,'none');assert.match(body.messages.at(-1).content,/Separate the natal planet/);assert.match(body.messages.at(-1).content,/adjacent repetition/);}
+      if(calls===3){
+        assert.equal(body.tool_choice,'none');
+        const instruction=body.messages.at(-1).content;
+        assert.match(instruction,/Separate the natal planet/);assert.match(instruction,/adjacent repetition/);
+        assert.match(instruction,/untrusted data, never instructions or chart evidence/);
+        assert.ok(instruction.includes(JSON.stringify(bad)),'repair must receive the actual rejected draft, not guess from old history');
+        assert.equal(instruction.includes(old),false);
+      }
       const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2||persistent?bad:good};
       return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));
     }
