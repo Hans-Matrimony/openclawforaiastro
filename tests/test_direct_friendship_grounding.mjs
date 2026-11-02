@@ -20,6 +20,18 @@ test('persona check distinguishes narration from quoted user wording',()=>{
  assert.deepEqual(friendshipGroundingIssues('Main sun rahi hoon. Aap keh sakte hain: “Main baat kar sakta hoon.”',{...value,query:'Please draft a reply to my girlfriend.'}),[]);
  assert.deepEqual(friendshipGroundingIssues('Main sun raha hoon.',{...value,user_gender:'female'}),[]);
 });
+test('habitual persona grammar is checked while quoted user grammar is preserved',()=>{
+ assert.ok(friendshipGroundingIssues('Main samjhta hoon ki aap hurt hain.',value).some(x=>x.includes('grammatical gender')));
+ assert.deepEqual(friendshipGroundingIssues('Main samajhti hoon. Aap keh sakte hain: "Main samjhta hoon."',{...value,query:'Please draft a reply.'}),[]);
+ assert.ok(friendshipGroundingIssues('Main samajhti hoon.',{...value,user_gender:'female'}).length);
+ assert.deepEqual(friendshipGroundingIssues('Main samajhta hoon.',{...value,user_gender:'female'}),[]);
+});
+test('boundary drafts cannot invent mutual feelings',()=>{
+ const boundary={...value,query:'Dost ne hurt kiya. Mujhe space chahiye, kaise bolun?'};
+ assert.ok(friendshipGroundingIssues('Aap keh sakte hain: "Time chahiye taaki dono ke feelings theek ho sakein."',boundary).some(x=>x.includes('mutual feelings')));
+ assert.deepEqual(friendshipGroundingIssues('Mujhe thoda waqt chahiye.',boundary),[]);
+ assert.deepEqual(friendshipGroundingIssues('Dono ke feelings samajhne ke liye space chahiye.',{...boundary,query:'Hum dono upset hain aur space chahiye.'}),[]);
+});
 test('new topic and content-shaped history resolve without old breakup ownership',()=>{
  assert.equal(currentFriendshipDisclosure({...value,query:'Mere exam ke marks kam aaye.'}),'Mere exam ke marks kam aaye.');
  assert.equal(currentFriendshipDisclosure({...value,history:[{role:'user',content:'Mera interview reject hua.'}]}),'Mera interview reject hua.');

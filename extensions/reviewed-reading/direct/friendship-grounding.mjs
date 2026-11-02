@@ -40,9 +40,14 @@ export function friendshipGroundingIssues(reply, value) {
   }
   // Quoted wording is for the user to say, not the companion's self-reference.
   const narration = reply.replace(/[“"][^”"]*[”"]/gu, "");
-  if ((value.user_gender === "male" && /\bmain.{0,25}(?:sakta|raha) (?:hoon|hun)\b/iu.test(narration)) ||
-      (value.user_gender === "female" && /\bmain.{0,25}(?:sakti|rahi) (?:hoon|hun)\b/iu.test(narration))) {
+  if ((value.user_gender === "male" && /\bmain.{0,25}(?:sakta|raha|samajhta|samjhta) (?:hoon|hun)\b/iu.test(narration)) ||
+      (value.user_gender === "female" && /\bmain.{0,25}(?:sakti|rahi|samajhti|samjhti) (?:hoon|hun)\b/iu.test(narration))) {
     issues.push("Keep the companion persona's grammatical gender consistent; quoted words for the user are separate.");
+  }
+  if (/\b(?:space|boundar\w*)\b/iu.test(value.query) &&
+      /\b(?:dono(?:n)? (?:ke|ki) feelings|both (?:of you|our|your) feelings)\b/iu.test(reply) &&
+      !/\b(?:dono(?:n)?|both)\b/iu.test(value.query)) {
+    issues.push("Do not invent mutual feelings, even inside a suggested message. A request for space establishes only the user's need; phrase the boundary in terms of that need.");
   }
   if (/\b(?:likh lo|kar lo|batao|socho)\b/iu.test(narration)) {
     issues.push("Use respectful aap forms consistently instead of informal instructions.");

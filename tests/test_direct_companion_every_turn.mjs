@@ -88,12 +88,16 @@ void test("all reported turns and subsequent explanations retain one question as
     assert.equal(calls, chartRequired ? 3 : 2);
     assert.equal(calculations, chartRequired ? 1 : 0);
     const parts = result.reply.split("\n\n");
-    assert.equal(parts.length, 3, query);
+    // An explicit NONE from the chart clarification stage must not be replaced
+    // with an unrelated personal interview. Social replies retain their closing.
+    assert.equal(parts.length, chartRequired ? 2 : 3, query);
     assert.equal(parts.slice(0, 2).join("\n\n"), main, query);
-    assert.match(parts[2], /\?$/);
-    assert.ok(!closings.includes(parts[2]), query);
+    if (!chartRequired) {
+      assert.match(parts[2], /\?$/);
+      assert.ok(!closings.includes(parts[2]), query);
+    }
     assert.ok(!result.reply.includes(support));
-    closings.push(parts[2]);
+    if (parts[2]) closings.push(parts[2]);
     history.push({ role: "user", text: query }, { role: "assistant", text: result.reply });
   }
 });

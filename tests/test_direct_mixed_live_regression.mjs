@@ -17,8 +17,16 @@ test('boundary fallback acknowledges explicitly disclosed upset', () => {
 
 test('completed reading rejects a personal interview without changing evidence', async () => {
   const reading = 'Jupiter is in house 7.\n\nThe supported window is November 2031 to July 2034.';
-  for (const closing of ['Kya aapne kisi se baat karni shuru ki hai, ya waiting mode mein hain?', 'Kya aapne iski positive energy kisi decision mein feel kiya hai?']) {
+  for (const closing of ['Kya aapne kisi se baat karni shuru ki hai, ya waiting mode mein hain?', 'Kya aapne iski positive energy kisi decision mein feel kiya hai?', 'Kya aapne is time ke liye koi step socha hai?', 'NONE']) {
     const reply = await contextualClosing(reading, {query:'Explain the basis.', readingOnlyClosing:true}, {generate:async () => closing});
     assert.equal(reply, reading);
   }
+});
+test('reading clarification prompt does not mix personal interview instructions', async () => {
+  const reading='Jupiter is in house 7.\n\nThe supported window is November 2031 to July 2034.';
+  await contextualClosing(reading,{query:'Explain the basis.',readingOnlyClosing:true},{generate:async prompt=>{
+    assert.match(prompt,/current chart explanation/);
+    assert.doesNotMatch(prompt,/warm, attentive friend|continue the personal conversation/);
+    return 'NONE';
+  }});
 });
