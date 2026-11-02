@@ -2,7 +2,7 @@ import { directReleaseEnabled } from "./release.mjs";
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 
 export function generationSettings(env = process.env) {
-  const pilotQwen = env.ASTROFRIEND_DIRECT_MODE === "pilot" && directReleaseEnabled(env) &&
+  const pilotQwen = ["pilot", "production"].includes(env.ASTROFRIEND_DIRECT_MODE) && directReleaseEnabled(env) &&
     (env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model) === SOURCE_CONFIG.model;
   const pilotProviders = {
     order: ["parasail/fp8", "deepinfra/fp8"],

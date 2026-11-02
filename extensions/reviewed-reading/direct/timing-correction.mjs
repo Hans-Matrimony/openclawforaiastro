@@ -86,6 +86,7 @@ export function timingCorrection(results, query, language, asOf) {
       "Submit the corrected reading with submit_timing_reading. This replaces the free-text correction, not the chart calculation. " +
       "Choose a period ONLY if its lord has a checked, topic-specific chart reason; do not select the first period merely because it is next. " +
       "Current verdict signals are not future-period scores. Preserve adverse factors. An outlook is an interpretation, not a calculated event prediction. " +
+      "Review relevant unfavorable periods too, retaining their exact boundaries and unfavorable outlook; do not select none solely because the checked relationship is adverse. " +
       "Do not reuse an earlier assistant date or rationale. A period lord is not automatically the house lord. " +
       "If the evidence cannot support a period interpretation, select none and undetermined. " +
       "Select one to three factor_ids from the list; at least one must mention the selected period lord and its relevant chart relationship. " +
@@ -171,8 +172,8 @@ export function timingCorrection(results, query, language, asOf) {
           first +
           "\n\n" +
           (english
-            ? `The timing for ${subject[1]} is not clear from this reading.`
-            : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ki timing is reading mein abhi saaf nahi hai.`)
+            ? `This reading does not establish a supported period for ${subject[1]}; that does not mean it cannot happen.`
+            : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ke liye is reading se koi supported samay tay nahi hota; iska matlab yeh nahi ki yeh hoga hi nahi.`)
         );
       }
       if (!/^p\d+$/.test(data.period_id)) {

@@ -9,9 +9,17 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query) {
-  return /\b(?:kab|kb|when|timing)\b|\bhow\s+(?:soon|long)\b|\b(?:which|what)\s+(?:year|month|date)\b|\b(?:kis|kaunse|kaun\s+se)\s+(?:saal|mahine|month|year)\b|\bkitn[aei]\s+(?:time|samay|waqt|din|mahine|saal|der)\b|\b20\d{2}\s+tak\b|\bby\s+20\d{2}\b|कब|किस\s+(?:साल|महीने)|कितन[ाीे]\s+(?:समय|दिन|महीने|साल|देर)/iu.test(
+  return /\b(?:agla|agle|agli|sambhavit|next)\s+(?:(?:supported|sambhavit|favourable|favorable)\s+)?(?:(?:dasha|antardasha)\s+)?(?:samay|waqt|period|window)\b|\b(?:samay|waqt)\s+(?:kya|kab)\b|\b(?:kab|kb|when|timing)\b|\bhow\s+(?:soon|long)\b|\b(?:which|what)\s+(?:year|month|date)\b|\b(?:kis|kaunse|kaun\s+se)\s+(?:saal|mahine|month|year)\b|\bkitn[aei]\s+(?:time|samay|waqt|din|mahine|saal|der)\b|\b20\d{2}\s+tak\b|\bby\s+20\d{2}\b|कब|किस\s+(?:साल|महीने)|कितन[ाीे]\s+(?:समय|दिन|महीने|साल|देर)/iu.test(
     query,
   );
+}
+
+// Practical actions are not a request for a new prediction. Explicit timing or
+// chart requests retain their existing route, including mixed-intent questions.
+export function isPracticalFollowup(query) {
+  return !asksForTiming(query) &&
+    !/\b(?:kundli|horoscope|predict|prediction|dasha|transit|chart)\b/i.test(query) &&
+    /\b(?:practical\s+(?:kadam|steps?|advice)|action\s+plan|next\s+steps?|kya\s+(?:karu|karun|karna chahiye)|what should i do)\b/i.test(query);
 }
 
 export function isOrdinaryConcern(query) {
@@ -27,6 +35,7 @@ export function requiresChartReading(query, profile) {
 
 export function isPersonalChartQuestion(query) {
   const text = query.toLowerCase().trim();
+  if (isPracticalFollowup(query)) return false;
   // Keep general explanations, ordinary chat and another person's profile on auto routing.
   if (
     /^(?:what (?:is|are|does)|how does|explain|define|tell me what)\b/.test(text) &&

@@ -112,3 +112,12 @@ export function unsupportedTopicOpportunity(reply, results, query) {
     );
   });
 }
+
+// Review an undated answer when a returned period has checked topic evidence,
+// including adverse evidence. Negative timing still has a scope; reviewing it
+// must not turn a difficult period into a promise of improvement.
+export function omittedSupportedTiming(reply, results, query) {
+  if (/\b20\d{2}\b/u.test(reply)) return false;
+  const evidence = topicPeriodEvidence(results, query);
+  return Boolean(evidence && evidence.periods.some(p => p.supportive_factors.length > 0 || p.adverse_factors.length > 0));
+}

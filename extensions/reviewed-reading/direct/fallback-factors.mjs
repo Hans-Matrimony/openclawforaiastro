@@ -21,10 +21,10 @@ export function fallbackFactor(text, english) {
       const house = /house (\d{1,2})/i.exec(text)?.[1];
       const planet = /\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)\b/.exec(text)?.[1];
       if (house && /strong support/.test(text)) {
-        return `House ${house} contributes support to this reading`;
+        return `The separate house-strength indicator for house ${house} is supportive`;
       }
       if (house && /weak support/.test(text)) {
-        return `House ${house} contributes limited support to this reading`;
+        return `The separate house-strength indicator for house ${house} shows limited support`;
       }
       if (house && planet && /^(?:benefic|malefic) /.test(text)) {
         return `${planet} in house ${house} is counted as ${text.startsWith("benefic") ? "a supporting" : "a challenging"} factor`;
@@ -37,7 +37,7 @@ export function fallbackFactor(text, english) {
     text,
   );
   if (match) {
-    return `${match[1]}ve ghar se ${match[2] === "strong" ? "achha" : "kam"} sahyog milta hai`;
+    return `${match[1]}ve ghar ki majbooti ka alag sanket ${match[2] === "strong" ? "achha" : "kamzor"} hai`;
   }
   match = /^(benefic|malefic) (\w+) house (\d{1,2}) mein/.exec(text);
   if (match && planets[match[2]]) {

@@ -2,7 +2,9 @@ import { isCompanionParagraph } from "./friendly-closing.mjs";
 
 export function formatDisplayReply(reply) {
   // Display-only cleanup; preserve the full response and all bubble boundaries.
-  return removeReplyDashes(removeDisplayTerms(clearMarriageTiming(reply)));
+  // Normalize prose separators before matching phrases: otherwise "house-7"
+  // becomes eligible only after cleanup and needs an unintended second pass.
+  return removeDisplayTerms(clearMarriageTiming(removeReplyDashes(reply)));
 }
 
 // Presentation only, after reading validation. Keep the selected dates and
@@ -14,7 +16,7 @@ function clearMarriageTiming(reply) {
       if (!/\b20\d{2}\b/.test(paragraph) || /```|`|https?:\/\/|[{}]/.test(paragraph)) {
         return paragraph;
       }
-      return naturalMarriageSchedule(paragraph)
+      return readableMarriageDates(naturalMarriageSchedule(paragraph))
         .replace(
           /\bshaadi\s+([^.!?\n]{1,110}?\bse\b[^.!?\n]{1,60}?)\s+ke\s+beech\s+(?:hone\s+)?ki\s+sambhavna\s+hai\b/gi,
           "Shaadi ka yog $1 ke beech hai",
@@ -22,6 +24,22 @@ function clearMarriageTiming(reply) {
         .replace(/\bshaadi\s+hone\s+ki\s+sambhavna\s+hai\b/gi, "shaadi ka yog dikh raha hai");
     })
     .join("");
+}
+
+function readableMarriageDates(paragraph) {
+  if (!/\bsha+di|\bmarriage\b/i.test(paragraph) || !/\bantardasha\b/i.test(paragraph)) {
+    return paragraph;
+  }
+  return paragraph.replace(/\b(20\d{2}-\d{2}-\d{2}) se (20\d{2}-\d{2}-\d{2}) tak\b/g,
+    (original, start, end) => {
+      const dates = [start, end].map((value) => new Date(`${value}T00:00:00Z`));
+      if (start > end || dates.some((date, i) => !Number.isFinite(date.valueOf()) ||
+          date.toISOString().slice(0, 10) !== [start, end][i])) return original;
+      const format = new Intl.DateTimeFormat("en-GB", {
+        day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+      });
+      return `${format.format(dates[0])} se ${format.format(dates[1])} tak`;
+    });
 }
 
 // A fallback contains a period schedule, not a selected marriage prediction.
@@ -71,8 +89,19 @@ export function removeReplyDashes(reply) {
 // Display-only cleanup, after generation and follow-up assembly. Keep chart
 // evidence, prompts, numbers, dates, and paragraph boundaries unchanged.
 export function removeDisplayTerms(reply) {
+  try {
+    JSON.parse(reply);
+    return reply;
+  } catch {
+    // Formatting must not alter structured output, quoted code, or URLs.
+  }
+  return reply.split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
+    .map((part, index) => index % 2 ? part : removeProseDisplayTerms(part)).join("");
+}
+
+function removeProseDisplayTerms(reply) {
   return (
-    removeOrphanedHouseScore(cleanCausalWording(reply))
+    removeOrphanedHouseScore(cleanCausalWording(plainQualitativeScores(repairPronounScore(reply))))
       .replace(
         /\bashtakavarga\s+(?:score\s+|count\s+)?(?:sirf\s+)?\d{1,3}(?:\/48)?\s+hai,?\s+jo\s+(bahut\s+kam|kamzor|strong|weak)\s+hai/gi,
         "$1 sahyog hai",
@@ -83,10 +112,60 @@ export function removeDisplayTerms(reply) {
         /\b(house\s+\d{1,2}|\d{1,2}(?:st|nd|rd|th)\s+house)\s+ka\s+(?:sirf\s+)?\d{1,3}\s+(?:bindus?\s+)?(?:hai\s+)?(?=(?:bahut\s+)?(?:weak|strong|kamzor)\b)/gi,
         "$1 ",
       )
-      .replace(/([ \t]*)\b(?:retrograde|bindus?|combust)\b([ \t]*)/gi, (_match, before, after) =>
+      // Unsupported score wording must retain a unit rather than an orphan number.
+      .replace(/\bbindu(s?)\b/gi, (_word, plural) => plural ? "points" : "point")
+      .replace(/([ \t]*)\b(?:retrograde|combust)\b([ \t]*)/gi, (_match, before, after) =>
         before && after ? " " : "",
       )
   );
+}
+
+function repairPronounScore(reply) {
+  return reply.split(/(\r?\n[ \t]*\r?\n)/).map((paragraph) => {
+    // Only chart-house prose: do not interpret unrelated counts or amounts.
+    if (!/\b(?:house|ghar)\b/i.test(paragraph)) return paragraph;
+    return paragraph.replace(
+      /\buski\s+(?:bindus?\s+)?sirf\s+(?:[0-9]|[1-3][0-9]|4[0-8])\s+(?:bindus?\s+)?hain?\s*[,;]?\s*((?:bahut\s+)?(?:kamzor|weak|strong))\b(?!\s+(?:nahi|nahin)\b)/gi,
+      "uska sahyog $1 hai",
+    );
+  }).join("");
+}
+
+// Only rewrite qualitative chart-score phrases observed in conversational replies.
+// Preserve negation, qualifications and all numbers; never interpret a raw score.
+function plainQualitativeScores(reply) {
+  try {
+    JSON.parse(reply);
+    return reply;
+  } catch {
+    // Structured output and quoted code are not conversational wording.
+  }
+  return reply
+    .split(/(```[\s\S]*?```|`[^`\n]*`|https?:\/\/[^\s<>]+)/gu)
+    .map((part, index) => index % 2 ? part : part
+      // A sanitized point total may already read "kamzor". Collapse only
+      // the observed redundant weak-score clause, never a contrary qualifier.
+      .replace(
+        /\bhouse\s+([1-9]|1[0-2])\s+ka\s+score\s+(?:sirf\s+)?(?:kamzor|weak)\s+hai,?\s+jo\s+bahut\s+kam\s+hai\b/gi,
+        "$1ve ghar ki majbooti ka sanket bahut kamzor hai",
+      )
+      .replace(
+        /\bhouse\s+([1-9]|1[0-2])\s+ka\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+(?:nahi|nahin))?\s+hai\b)/gi,
+        "$1ve ghar ki majbooti ka sanket",
+      )
+      .replace(
+        /\b(house\s+(?:[1-9]|1[0-2]))\s+ka\s+(kam|kamzor|weak|strong)\s+(nahi\s+)?hai\b/gi,
+        "$1 mein sahyog $2 $3hai",
+      )
+      .replace(
+        /\bhouse\s+ka\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+nahi)?\s+hai\b)/gi,
+        "is ghar ka sahyog",
+      )
+      .replace(
+        /\b(?:(uski)\s+)?ashtakavarga\s+score(?=\s+(?:(?:bahut|kaafi|thoda)\s+)?(?:kam|kamzor|weak|strong|achha|accha)(?:\s+nahi)?\s+hai\b)/gi,
+        (_match, pronoun) => pronoun ? "uska sahyog" : "sahyog",
+      ))
+    .join("");
 }
 
 // Preserve the existing causal statement when removing technical terminology.
@@ -104,8 +183,11 @@ function cleanCausalWording(reply) {
       index % 2
         ? part
         : part.replace(
-            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+hai\s*[,;]?\s*isliye\s+/gi,
+            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+hai\s*[,;]?\s*(?:isliye|jisse|jis\s+wajah\s+se|is\s+wajah\s+se)\s+/gi,
             "$1 ki sthiti ki wajah se ",
+          ).replace(
+            /\b(Jupiter|Saturn|Mars|Mercury|Venus|Moon|Sun|Guru|Shani|Mangal|Budh|Shukra|Chandra|Surya)\s+(?:retrograde|combust)\s+(nahi|nahin)\s+hai\b/gi,
+            "$1 ki aisi sthiti $2 hai",
           ),
     )
     .join("");

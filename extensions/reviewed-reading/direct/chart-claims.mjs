@@ -17,6 +17,17 @@ export function chartClaimConflicts(reply, results) {
     return [];
   }
   const conflicts = [];
+  // These tools list selected signals, not an exhaustive ranking of every factor.
+  for (const sentence of reply.split(/[.!?\n]+/)) {
+    const exclusive = /\b(?:only(?:\s+one)?|sole|ekmatra|ek\s+hi|sirf\s+ek)\s+(?:positive|supportive|favourable|favorable)\s+(?:factor|signal|indicator)\b/i.exec(sentence);
+    const negated = exclusive && (
+      /\b(?:not|isn't|is not|cannot be|can't be|nahi|nahin)\s+(?:the\s+)?$/i.test(sentence.slice(0, exclusive.index)) ||
+      /^\s*(?:(?:hai|is)\s+)?(?:nahi|nahin|not)\b/i.test(sentence.slice(exclusive.index + exclusive[0].length))
+    );
+    if (exclusive && !negated) {
+      conflicts.push({ type: "unsupported_exclusive_factor", reason: "Selected chart signals do not establish that this is the only supportive factor. Preserve the supported period, describe a relevant factor without an exhaustive claim." });
+    }
+  }
   const linkedLord = new RegExp(
     "\\b(" +
       planets +

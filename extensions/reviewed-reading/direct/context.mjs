@@ -1,5 +1,6 @@
 import { compactPrompt, uniqueMemory } from "./compact-prompt.mjs";
 import { personaInstruction } from "./persona.mjs";
+import { responseLanguageInstruction } from "./response-language.mjs";
 import { SOURCE_PROMPT, SOURCE_FLOW_PROMPT } from "./source-contract.mjs";
 
 export function savedBirthContext(birth) {
@@ -73,6 +74,12 @@ export async function readingContext(
         "Use these supplied fields for self readings; do not call read_memory merely to retrieve these same confirmed fields again. Current explicit corrections and a clearly different subject must be resolved before choosing birth data. Missing fields stay unknown. " +
         `Response language for this turn: ${data(value.language)}. Follow this app preference unless the current user message explicitly requests another language. Hinglish means conversational Hindi in Latin letters, not an English reply.`,
     );
+  // Replace the imported history-first rule rather than leaving two competing
+  // highest-priority language policies in the same prompt.
+  prompt = prompt.replace(
+    /# Language \(highest priority\)[\s\S]*?(?=\r?\n# )/,
+    () => responseLanguageInstruction(value),
+  );
   const date = asOf.toLocaleDateString("en-CA", {
     timeZone: "Asia/Kolkata",
     year: "numeric",

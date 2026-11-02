@@ -121,7 +121,7 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
             ? [
                 newRelationship
                   ? "Naye rishte ko lekar aapke mann mein kya chal raha hai?"
-                  : "Shaadi ya rishte ko lekar aap khud kya chahte ho?",
+                  : "Shaadi ya rishte ko lekar aapke mann mein kya hai?",
                 "Rishte ki baat aaram se kar sakte ho, jaldi nahi hai.",
               ]
             : career
