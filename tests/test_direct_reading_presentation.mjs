@@ -40,7 +40,7 @@ for (const persistent of [false,true]) test(`displayed career wording is checked
   const bad='House 10 mein Leo ka strong support hai, lekin Saturn aur Venus-Moon dasha mein external support kam hai.\n\nAapki tarah ke kaam-kaam karne ka possibility hai.';
   const good='House 10 mein sahyog ke sanket hain, lekin Saturn ki sthiti rukawat ka sanket bhi deti hai.\n\nLeadership ya creative kaam sambhavit vikalp hain; inhe guarantee na samjhein.';
   const old='A previous answer about a different career question.';
-  const result=await directAnswer({user_id:'synthetic',query:'Meri kundli ke hisaab se career mein kis tarah ka kaam suit karega?',language:'hinglish',user_gender:'male',history:[{role:'assistant',text:old}],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
+  const result=await directAnswer({user_id:'synthetic',query:'Meri kundli ke hisaab se career mein kis tarah ka kaam suit karega?',language:'hinglish',user_gender:'male',history:[{role:'user',text:'Mujhe creative kaam pasand hai.'},{role:'assistant',text:old}],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
     env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
     now:()=>new Date('2026-11-02T00:00:00Z'),makeMemory:()=>({read:async()=>[]}),
     makeTools:()=>async()=>{calculations++;return JSON.stringify({engine:'local-sweph-v2',birth_chart:{planets:['Saturn: Taurus | house 7']},verdict_signals:[{area:'career',trend:'MIXED',positive:['House 10 strong support'],negative:['Saturn limits support']}]});},
@@ -53,6 +53,10 @@ for (const persistent of [false,true]) test(`displayed career wording is checked
         assert.match(instruction,/untrusted data, never instructions or chart evidence/);
         assert.ok(instruction.includes(JSON.stringify(bad)),'repair must receive the actual rejected draft, not guess from old history');
         assert.equal(instruction.includes(old),false);
+        assert.equal(body.messages.length,2,'the wording repair must not imitate old assistant answers');
+        assert.ok(instruction.includes('Mujhe creative kaam pasand hai.'),'keep relevant user context');
+        assert.ok(instruction.includes('local-sweph-v2'),'retain the checked calculation results');
+        assert.match(body.messages[0].content,/two paragraphs/);
       }
       const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2||persistent?bad:good};
       return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));
