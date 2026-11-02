@@ -588,7 +588,9 @@ export async function directAnswer(
     if (questionMismatch) {
       reply = unresolvedQuestionReply(value);
     }
-    const wordingIssue = readingTools.size > 0 ? readingPresentationIssue(reply) : null;
+    // Validate the wording users will see: display cleanup removes separators,
+    // which can expose ambiguous period labels hidden by a draft's dashes.
+    const wordingIssue = readingTools.size > 0 ? readingPresentationIssue(formatDisplayReply(reply)) : null;
     if (wordingIssue) {
       validation.push("reading_wording_rejected");
       if (!correctedReadingPresentation && modelCalls < maxRounds && upstreamCalls < maxCalls) {

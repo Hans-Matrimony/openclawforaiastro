@@ -9,6 +9,7 @@ export function unsupportedReadingConsequence(reply) {
 export function readingPresentationIssue(reply) {
   const issues = [];
   if (unsupportedReadingConsequence(reply)) issues.push('Remove invented claims of suffering or unhappiness; describe the actual supported chart limitation neutrally.');
+  if (/\bkaam\s+kaam\b/iu.test(reply)) issues.push('Remove the accidental adjacent repetition of kaam and write a complete, natural career sentence. Preserve the supported meaning.');
   if (/\b(?:results?|progress)\s+(?:slow|delayed)\s+(?:aayenge|aayega|rahega|rahegi|hoga|hogi)\b|\b(?:results?|progress)\s+will\s+(?:be|remain)\s+(?:slow|delayed)\b/iu.test(reply)) {
     issues.push('Qualify the outcome as a possibility rather than asserting that progress or results will be slow. Preserve the caution and its evidence.');
   }
