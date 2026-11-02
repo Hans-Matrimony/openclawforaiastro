@@ -1,5 +1,5 @@
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
-import { readingPresentationInstruction } from "./reading-presentation.mjs";
+import { readingPresentationInstruction, unsupportedReadingConsequence } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { readingContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
@@ -240,6 +240,7 @@ export async function directAnswer(
   let pendingTimingRepair = null;
   let attemptedTimingRepair = false;
   let correctedHouseLord = false;
+  let correctedReadingPresentation = false;
   const validation = [];
   const chartResults = [];
   const answerUsage = [];
@@ -276,6 +277,7 @@ export async function directAnswer(
             : TOOLS,
       tool_choice: pendingTimingRepair
         ? { type: "function", function: { name: pendingTimingRepair.name } }
+        : correctedReadingPresentation ? "none"
         : requireTiming
           ? { type: "function", function: { name: "mcp__VedAstro__get_horoscope_predictions" } }
           : requireChart
@@ -585,6 +587,16 @@ export async function directAnswer(
     }
     if (questionMismatch) {
       reply = unresolvedQuestionReply(value);
+    }
+    if (readingTools.size > 0 && unsupportedReadingConsequence(reply)) {
+      validation.push("reading_wording_rejected");
+      if (!correctedReadingPresentation && modelCalls < maxRounds && upstreamCalls < maxCalls) {
+        correctedReadingPresentation = true;
+        messages.push({role:"user",content:"Rewrite the current reading's wording once using the existing tool evidence. Do not call tools again. Remove claims of emotional burden, unhappiness or a guaranteed heavy life process: those inner states are not established by a placement. Preserve all supported dates, facts, mixed factors and uncertainty. " + readingPresentationInstruction});
+        continue;
+      }
+      validation.push("reading_wording_fallback");
+      reply = evidenceFallback(chartResults, value.language, value.query, now());
     }
     if (ordinaryConcern) {
       reply = ordinaryReply(reply, value);
