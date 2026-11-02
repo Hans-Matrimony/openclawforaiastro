@@ -377,11 +377,12 @@ for (const invalid of ["unsupported_date", "wrong_house_lord"]) {
   });
 }
 import { omittedSupportedTiming } from '../extensions/reviewed-reading/direct/topic-period-context.mjs';
-test('undated negative answer receives review only with supportive schedule evidence',()=>{
+test('undated negative answer receives review with supportive or adverse schedule evidence',()=>{
  const chart={...row,birth_chart:{planets:['Jupiter: | house 7'],houses:[]}};
  assert.equal(omittedSupportedTiming('Shaadi ka koi clear timing nahi dikh raha.',[JSON.stringify(chart)],'Meri shaadi kab hogi?'),true);
  assert.equal(omittedSupportedTiming('November 2031 se July 2034 sambhavit hai.',[JSON.stringify(chart)],'Meri shaadi kab hogi?'),false);
- assert.equal(omittedSupportedTiming('No clear timing.',[JSON.stringify({...chart,verdict_signals:[{...row.verdict_signals[0],positive:[]}]})],'Meri shaadi kab hogi?'),false);
+ assert.equal(omittedSupportedTiming('No clear timing.',[JSON.stringify({...chart,verdict_signals:[{...row.verdict_signals[0],positive:[]}]})],'Meri shaadi kab hogi?'),true);
+ assert.equal(omittedSupportedTiming('No clear timing.',[JSON.stringify({...chart,verdict_signals:[{...row.verdict_signals[0],positive:[],negative:[]}]})],'Meri shaadi kab hogi?'),false);
  assert.equal(omittedSupportedTiming('No clear timing.',['malformed'],'Meri shaadi kab hogi?'),false);
 });
 test('agent reviews an undated negative verdict once without repeating chart tools',async()=>{

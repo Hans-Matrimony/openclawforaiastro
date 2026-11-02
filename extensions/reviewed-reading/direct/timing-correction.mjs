@@ -86,6 +86,7 @@ export function timingCorrection(results, query, language, asOf) {
       "Submit the corrected reading with submit_timing_reading. This replaces the free-text correction, not the chart calculation. " +
       "Choose a period ONLY if its lord has a checked, topic-specific chart reason; do not select the first period merely because it is next. " +
       "Current verdict signals are not future-period scores. Preserve adverse factors. An outlook is an interpretation, not a calculated event prediction. " +
+      "Review relevant unfavorable periods too, retaining their exact boundaries and unfavorable outlook; do not select none solely because the checked relationship is adverse. " +
       "Do not reuse an earlier assistant date or rationale. A period lord is not automatically the house lord. " +
       "If the evidence cannot support a period interpretation, select none and undetermined. " +
       "Select one to three factor_ids from the list; at least one must mention the selected period lord and its relevant chart relationship. " +
