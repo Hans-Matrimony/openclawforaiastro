@@ -59,6 +59,104 @@ import {
 import { createTools, TOOLS } from "./tools.mjs";
 import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-context.mjs";
 
+const READING_BUBBLE_WORD_CAP = 35;
+const VERDICT_BUBBLE_WORD_CAP = 8;
+const YEAR_IN_TEXT_RE = /\b(?:19|20)\d{2}\b/;
+
+function bubbleWordCount(text) {
+  return String(text).trim().split(/\s+/).filter(Boolean).length;
+}
+
+// Deterministic reading-bubble cap: year-bearing sentences survive trimming
+// first, so the timing always survives the length budget.
+function clampReadingBubble(text, maxWords) {
+  if (bubbleWordCount(text) <= maxWords) return text;
+  const sents = String(text)
+    .split(/(?<=[.!?।])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const items = sents.map((s, i) => ({ s, i, w: bubbleWordCount(s), year: YEAR_IN_TEXT_RE.test(s) }));
+  const kept = new Set();
+  let count = 0;
+  for (const item of items.filter((x) => x.year)) {
+    if (count + item.w <= maxWords) {
+      kept.add(item.i);
+      count += item.w;
+    } else if (kept.size === 0) {
+      return item.s.split(/\s+/).slice(0, maxWords).join(" ") + "…";
+    }
+  }
+  for (const item of items) {
+    if (kept.has(item.i)) continue;
+    if (count + item.w <= maxWords) {
+      kept.add(item.i);
+      count += item.w;
+    }
+  }
+  if (kept.size === 0) return items[0].s.split(/\s+/).slice(0, maxWords).join(" ") + "…";
+  return items.filter((x) => kept.has(x.i)).map((x) => x.s).join(" ");
+}
+
+const VERDICT_SHORTEN_PROMPT =
+  "Shorten this astrology verdict to at most 8 words. Keep the language and script, keep the event timing window (years) when present, keep both sides if present. Do not add anything. Output only the shortened verdict.";
+
+async function shortenVerdictBubble(verdict, { fetchModel, signal, env }) {
+  const response = await fetchModel("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    redirect: "error",
+    signal,
+    headers: {
+      Authorization: "Bearer " + env.OPENROUTER_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
+      messages: [
+        { role: "system", content: VERDICT_SHORTEN_PROMPT },
+        { role: "user", content: verdict },
+      ],
+      max_tokens: 60,
+      temperature: 0.2,
+      stream: false,
+    }),
+  });
+  if (!response.ok) throw new Error("Verdict shorten unavailable");
+  const result = JSON.parse(await response.text());
+  if (result.choices?.[0]?.finish_reason !== "stop") throw new Error("Incomplete verdict shorten");
+  const out = String(result.choices?.[0]?.message?.content ?? "").trim();
+  const words = bubbleWordCount(out);
+  if (!out || words > VERDICT_BUBBLE_WORD_CAP || words < 2) throw new Error("Shorten out of budget");
+  if (YEAR_IN_TEXT_RE.test(verdict) && !YEAR_IN_TEXT_RE.test(out)) throw new Error("Shorten lost the year");
+  return out;
+}
+
+// Presentation-only bubble discipline for reading replies: the reading bubble
+// is clamped deterministically, and an over-long verdict bubble is shortened
+// once (env-gated, fail-safe to the original on any error).
+async function polishReplyBubbles(text, { reading, fetchModel, signal, env }) {
+  if (!reading) return text;
+  const bubbles = String(text)
+    .split(/\n{2,}/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  if (bubbles.length === 0) return text;
+  const out = [...bubbles];
+  out[0] = clampReadingBubble(out[0], READING_BUBBLE_WORD_CAP);
+  if (
+    out[1] &&
+    bubbleWordCount(out[1]) > VERDICT_BUBBLE_WORD_CAP &&
+    env.OPENROUTER_API_KEY &&
+    env.VERDICT_AUTO_SHORTEN === "1"
+  ) {
+    try {
+      out[1] = await shortenVerdictBubble(out[1], { fetchModel, signal, env });
+    } catch {
+      // keep the original verdict when the shorten call is unavailable
+    }
+  }
+  return out.join("\n\n");
+}
+
 export function redactIdentity(text, userId) {
   let result = text;
   const digits = userId.replace(/\D/g, "");
@@ -720,9 +818,14 @@ export async function directAnswer(
     if (cacheEnabled && !cacheHit && !questionMismatch && validation.length === 0) {
       replyCache.put(value.user_id, body, completion);
     }
+    const displayText = formatDisplayReply(finalReply);
+    const polishedReply =
+      readingTools.size > 0 && !listeningTurn && !emotionalFriendship
+        ? await polishReplyBubbles(displayText, { fetchModel, signal, env })
+        : displayText;
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: limitResponseLength(formatDisplayReply(finalReply)),
+      reply: limitResponseLength(polishedReply),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],
