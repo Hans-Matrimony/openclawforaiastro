@@ -11,9 +11,28 @@ test('reading wording check targets observed unsupported consequences, retaining
 
 test('career wording review catches certainty and mixed period labels without rejecting qualified cautions', () => {
   assert.match(readingPresentationIssue('Saturn aur Venus Moon dasha mein external push kam hai.'), /Separate the natal planet/);
+  assert.match(readingPresentationIssue('Venus Moon dasha chal rahi hai.'), /Label each period lord/);
   assert.match(readingPresentationIssue('Isliye results slow aayenge.'), /Qualify the outcome/);
   assert.match(readingPresentationIssue('Aise kaam kaam karne ka possibility hai.'), /adjacent repetition/);
+  assert.match(readingPresentationIssue('Career mein aapki tarah ke kaam karne ka possibility hai.'), /grammatical Hindi/);
   for (const reply of ['Progress slow ho sakti hai.', 'Venus mahadasha aur Moon antardasha chal rahi hai.', 'Saturn ki sthiti aur Venus-Moon dasha ke sanket alag hain.']) assert.equal(readingPresentationIssue(reply),null,reply);
+});
+
+test('a bounded rewrite that changes three planet names to two still uses the evidence fallback', async () => {
+  let calls=0,calculations=0;
+  const result=await directAnswer({user_id:'synthetic',query:'Career ke liye kaunsa kaam suit karega?',language:'hinglish',history:[],birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'}},{
+    env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify({engine:'local-sweph-v2',verdict_signals:[{area:'career',trend:'MIXED',positive:[],negative:[]}]});},
+    fetchImpl:async(_url,options)=>{
+      calls++;if(calls===3)assert.equal(JSON.parse(options.body).tool_choice,'none');
+      const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2?'Saturn aur Venus-Moon dasha mein support kam hai.':'Venus Moon dasha chal rahi hai. Career mein kaam karne ka possibility hai.'};
+      return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));
+    }
+  });
+  assert.equal(calls,3);assert.equal(calculations,1);
+  assert.equal(readingPresentationIssue(result.reply),null);
+  assert.ok(result.answer_validation.includes('reading_wording_fallback'));
+  assert.doesNotMatch(result.reply,/Venus Moon|ka possibility/);
 });
 
 for (const persistent of [false,true]) test(`displayed career wording is checked after dash cleanup; persistent=${persistent}`, async () => {
