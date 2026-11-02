@@ -249,7 +249,7 @@ export async function contextualClosing(
       ).trim(),
     );
     // An unrelated personal question must not be appended to a chart reading.
-    if (value.readingOnlyClosing && /\b(?:dil|feelings?|share|emotions?|baat kahi|baat bata|apni baat|specific person|intezaar)\b/iu.test(question)) return base;
+    if (value.readingOnlyClosing && /\b(?:dil|feelings?|share|emotions?|baat kahi|baat bata|apni baat|specific person|intezaar|waiting mode|positive energy|feel kiya|kisi se baat karni|field try kiya)\b/iu.test(question)) return base;
     if (
       /^none[.!]?$/i.test(question) ||
       !question ||

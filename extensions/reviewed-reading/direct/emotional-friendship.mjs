@@ -235,10 +235,16 @@ export function emotionalReplyFallback(value) {
   const hi = /^(?:hi|hindi)(?:-|$)/.test(language);
   const hinglish = language === "hinglish";
   const disclosure = currentFriendshipDisclosure(value);
+  if (advice && /\b(?:my friend|meri dost|mera dost)\b/iu.test(value.query) &&
+      /\b(?:listen|sun[un]*|support|help)\b/iu.test(value.query)) {
+    return hi ? "आप अपने दोस्त की बात ध्यान से सुनना चाहते हैं। उन्हें अपनी बात पूरी करने दें और तुरंत समाधान देने से बचें। पूछ सकते हैं कि उन्हें सिर्फ सुनने वाला चाहिए या सलाह भी; उनकी पसंद के अनुसार साथ दें।"
+      : hinglish ? "Aap apni dost ki baat dhyan se sunna chahte hain. Unhe apni baat poori karne dein, bina turant solution diye. Pooch sakte hain ki unhe sirf sunne wala chahiye ya salah bhi; unki pasand ke hisaab se saath dein."
+        : "You want to support your friend by listening. Let them finish without rushing to solve things. You can ask whether they want someone to listen or would also like advice, and follow their preference.";
+  }
   if (advice && friendshipContinuation.test(value.query.trim()) &&
       /\b(?:girlfriend|boyfriend|partner|gf|bf)\b.{0,60}(?:khatam|left|chali|chli|broke)/iu.test(disclosure)) {
     return hi ? "अभी जवाब देने की जल्दी ज़रूरी नहीं है। चाहें तो इतना कह सकते हैं: ‘मुझे यह समझने के लिए थोड़ा समय चाहिए। बाद में बात करेंगे।’ अपने लिए जितना समय चाहिए, लीजिए।"
-      : hinglish ? "Abhi jawab dene ki jaldi zaroori nahi hai. Aap chahein toh keh sakte hain: 'Mujhe yeh samajhne ke liye thoda waqt chahiye. Baad mein baat karte hain.' Apne liye waqt le sakte hain."
+      : hinglish ? "Rishta khatam hone ke baad abhi jawab dene ki jaldi zaroori nahi hai. Aap chahein toh keh sakte hain: 'Mujhe yeh samajhne ke liye thoda waqt chahiye. Baad mein baat karte hain.' Apne liye waqt le sakte hain."
         : "You do not need to respond immediately. If it helps, you could say: ‘I need some time to take this in. Let’s talk later.’ You can take that time before deciding what to say.";
   }
   if ((hinglish || language === "en" || language === "english") &&
@@ -251,7 +257,7 @@ export function emotionalReplyFallback(value) {
   }
   if (advice && /\b(?:space|boundary|boundaries)\b/iu.test(value.query)) {
     return hi ? "आप अपनी बात बिना झगड़े के कह सकते हैं: ‘मुझे अभी थोड़ा समय चाहिए। तैयार होने पर बात करेंगे।’ इसे अपने शब्दों में बदल सकते हैं।"
-      : hinglish ? "Aap bina jhagda kiye keh sakte hain: 'Mujhe abhi thoda waqt chahiye. Taiyaar hone par baat karte hain.' Isse apne shabdon mein badal sakte hain."
+      : hinglish ? (/\bupset\b/iu.test(value.query) ? "Aap upset hain aur space chahte hain. " : "") + "Aap bina jhagda kiye keh sakte hain: 'Mujhe abhi thoda waqt chahiye. Taiyaar hone par baat karte hain.' Isse apne shabdon mein badal sakte hain."
         : "You can ask for space without starting an argument: ‘I need a little time right now. Let’s talk when I’m ready.’ You can adapt that to your own words.";
   }
   if (advice && rejectsPreviousAdvice(value.query)) {
