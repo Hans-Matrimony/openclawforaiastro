@@ -2,6 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emotionalReplyFallback } from '../extensions/reviewed-reading/direct/emotional-friendship.mjs';
 import { contextualClosing } from '../extensions/reviewed-reading/direct/contextual-closing.mjs';
+import { asksForTiming } from '../extensions/reviewed-reading/direct/reading-intent.mjs';
+
+test('next supported dasha period requests are timing requests, definitions are not', () => {
+  for (const question of ['Meri shaadi ke liye agla supported dasha period kaunsa hai?', 'What is the next favourable dasha period for my marriage?', 'Mera agla antardasha period?', 'Meri shaadi ka agla sambhavit samay?']) assert.equal(asksForTiming(question),true,question);
+  for (const question of ['What is a dasha period?', 'Meri dasha ka matlab samjhaiye.', 'Meri dost upset hai, kaise sunun?']) assert.equal(asksForTiming(question),false,question);
+});
 
 test('supporting a friend keeps the friend as the listener recipient', () => {
   const reply = emotionalReplyFallback({ query: 'Meri dost breakup ke baad udaas hai. Main theek hoon. Uski baat kaise sunun?', language: 'hinglish' });
