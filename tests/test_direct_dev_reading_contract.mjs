@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
+import { readingPresentationInstruction } from "../extensions/reviewed-reading/direct/reading-presentation.mjs";
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
 import { responseLanguageInstruction } from "../extensions/reviewed-reading/direct/response-language.mjs";
 import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
@@ -72,6 +73,11 @@ for (const fixture of contract.fixtures) {
             // The pilot now explains its existing timing contract before drafting.
             // All other source prompts, tools and request fields remain pinned.
             if (message.role === "system") {
+              // The reviewed prose-only instruction must be present. After
+              // removing it, the complete pre-existing calculation request
+              // must still match every pinned hash below.
+              if (calls === 1) assert.ok(message.content.includes(readingPresentationInstruction));
+              message.content = message.content.replace(readingPresentationInstruction, "");
               // Normalize only the reviewed app language policy back to the
               // pinned source text. Chart/tool instructions remain hash-checked.
               const currentLanguage = responseLanguageInstruction({ language: "hinglish" });

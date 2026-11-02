@@ -155,6 +155,8 @@ export async function contextualClosing(
     ) && !/[?？]|\b(?:kab|kyu|kyun|why|how|bata[a-z]*|tell|explain)\b/i.test(value.query);
   const requireQuestion = (boundaries.length >= 1 || focus.topics.length > 0) && !sharingFeelings;
   const fallback = () => {
+    // Failed optional clarification must not reopen the personal interview.
+    if (value.readingOnlyClosing) return base;
     if (
       /\b(?:just (?:listen|vent)|bas (?:suno|sun lo|mann halka)|sirf suno)\b/i.test(value.query)
     ) {
@@ -250,7 +252,7 @@ export async function contextualClosing(
       ).trim(),
     );
     // An unrelated personal question must not be appended to a chart reading.
-    if (value.readingOnlyClosing && (/^none[.!]?$/iu.test(question) || /\b(?:dil|feelings?|share|emotions?|baat kahi|baat bata|apni baat|specific person|intezaar|waiting mode|positive energy|feel kiya|kisi se baat karni|field try kiya|step socha|plan banaya|next steps?)\b/iu.test(question))) return base;
+    if (value.readingOnlyClosing && (/^none[.!]?$/iu.test(question) || /\b(?:dil|feelings?|share|emotions?|baat kahi|baat bata|apni baat|specific person|intezaar|waiting mode|positive energy|feel kiya|kisi se baat karni|field try kiya|step socha|plan banaya|next steps?|aapke mann|aapke man)\b/iu.test(question))) return base;
     if (
       /^none[.!]?$/i.test(question) ||
       !question ||

@@ -1,4 +1,5 @@
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
+import { readingPresentationInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { readingContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
@@ -202,7 +203,7 @@ export async function directAnswer(
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
   const messages = [
-    { role: "system", content: context.prompt },
+    { role: "system", content: context.prompt + (sourceFlow && !emotionalFriendship && !ordinaryConcern && !practicalFollowup ? readingPresentationInstruction : "") },
     ...value.history
       .filter((turn) => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user")
       .map((turn) => ({

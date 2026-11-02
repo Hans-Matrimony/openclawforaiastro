@@ -30,3 +30,9 @@ test('reading clarification prompt does not mix personal interview instructions'
     return 'NONE';
   }});
 });
+test('failed optional chart clarification cannot fall back to a personal interview', async () => {
+  const reading='Jupiter is in house 7.\n\nNovember 2031 to July 2034 is possible.';
+  for (const generate of [async()=>{throw new Error('unavailable');},async()=> 'Shaadi ya rishte ko lekar aapke mann mein kya hai?']) {
+    assert.equal(await contextualClosing(reading,{query:'Explain the basis.',readingOnlyClosing:true},{generate}),reading);
+  }
+});
