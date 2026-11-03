@@ -2,6 +2,8 @@
 // Calculations AND verdict signals (Ashtakavarga bindus, dignity, sade-sati, antardasha, area rules) — zero network.
 // Same tool names as VedAstro MCP so the system prompt needs no changes.
 import sweph from "sweph";
+import { gunaMilan } from "./guna-milan.mjs";
+import { matchingBirth } from "./matching-birth.mjs";
 
 const C = sweph.constants;
 sweph.set_sid_mode(C.SE_SIDM_LAHIRI, 0, 0);
@@ -334,8 +336,8 @@ function fmtChart(r, label) {
   };
 }
 
-function runChart(dateStr, timeStr, locationName) {
-  const { utc, loc } = parseBirth(dateStr, timeStr, locationName);
+function runChart(dateStr, timeStr, locationName, checkedBirth) {
+  const { utc, loc } = checkedBirth || parseBirth(dateStr, timeStr, locationName);
   const jd = julianDay(utc);
   const chart = chartAt(jd, loc.latitude, loc.longitude);
   const moon = chart.planets.find(p => p.name === "Moon");
@@ -457,8 +459,20 @@ export function get_horary_prediction({ horary_number, question_text, birth_date
 }
 
 export function get_match_report({ male_birth_date, male_birth_time, male_location_name, female_birth_date, female_birth_time, female_location_name }) {
-  const m = runChart(male_birth_date, male_birth_time, male_location_name);
-  const f = runChart(female_birth_date, female_birth_time, female_location_name);
+  // Validate both independently before calculating either. Never fall back to
+  // the account owner's birth details for a missing partner.
+  const maleBirth = matchingBirth(male_birth_date, male_birth_time, male_location_name, geocode);
+  const femaleBirth = matchingBirth(female_birth_date, female_birth_time, female_location_name, geocode);
+  const m = runChart(male_birth_date, male_birth_time, male_location_name, maleBirth);
+  const f = runChart(female_birth_date, female_birth_time, female_location_name, femaleBirth);
+  const rawMoon = birth => {
+    const result = sweph.calc_ut(julianDay(birth.utc), C.SE_MOON, FLAGS);
+    if (result.error || !Number.isFinite(result.data?.[0])) throw new Error("Moon calculation unavailable for matching");
+    return norm360(result.data[0]);
+  };
+  // Use unrounded positions, not the four-decimal chart display values, at
+  // sign/nakshatra and 15-degree Vashya boundaries.
+  const guna = gunaMilan(rawMoon(maleBirth), rawMoon(femaleBirth));
   const mMoon = m.chart.planets.find(p => p.name === "Moon");
   const fMoon = f.chart.planets.find(p => p.name === "Moon");
   const mIdx = NAKSHATRAS.indexOf(mMoon.nakshatra.name), fIdx = NAKSHATRAS.indexOf(fMoon.nakshatra.name);
@@ -467,6 +481,7 @@ export function get_match_report({ male_birth_date, male_birth_time, male_locati
   return { content: [{ type: "text", text: JSON.stringify({
     engine: "local-sweph-v2", source: "LOCAL (Swiss Ephemeris, Lahiri, Ashtakavarga)",
     male_chart: fmtChart(m, "male"), female_chart: fmtChart(f, "female"),
+    guna_milan: guna,
     compatibility: {
       male_moon: { sign: mMoon.sign, nakshatra: mMoon.nakshatra.name, lord: mMoon.nakshatra.lord },
       female_moon: { sign: fMoon.sign, nakshatra: fMoon.nakshatra.name, lord: fMoon.nakshatra.lord },
@@ -475,6 +490,6 @@ export function get_match_report({ male_birth_date, male_birth_time, male_locati
       male_dasha: m.dasha.current_mahadasha, female_dasha: f.dasha.current_mahadasha,
       note: "7th house bindus kam (<25) = rishte mein real friction. Dono charts ke verdict_signals bhi dekho.",
     },
-    instruction: "Bindus + moon matching se seedha compatibility verdict do — kamzor signal hai to NEGATIVE bolo, softening nahi.",
+    instruction: "For Guna Milan, state the exact guna_milan.display_score out of 36 and use its eight factor scores. Preserve fractional points. Never derive this total from a percentage, bindus, a single chart or model judgment. The selected base ruleset is explicit; do not invent dosha cancellations or add Manglik points. Keep the existing separate chart observations distinct from this total. A score is a traditional assessment, not a guarantee or a probability of relationship success. Varna is a chart category, never an inference about a person's actual caste or worth.",
   }) }] };
 }
