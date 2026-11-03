@@ -9,6 +9,14 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query) {
+  // A personal event-window request is timing even without kab/when. Keep
+  // definitions and ordinary requests for time outside this additional rule.
+  if (/\b(?:time|timing)[ -]+window\b/iu.test(query) &&
+      !/\b(?:define|definition|mean|meaning|matlab)\b/iu.test(query) &&
+      /\b(?:sha+di|marriage|marry|wedding|career|job|naukri|promotion)\b/iu.test(query) &&
+      /\?|\b(?:batao|bataiye|tell|show|give|which|what|expected|sambhavit)\b/iu.test(query)) {
+    return true;
+  }
   return /\b(?:agla|agle|agli|sambhavit|next)\s+(?:(?:supported|sambhavit|favourable|favorable)\s+)?(?:(?:dasha|antardasha)\s+)?(?:samay|waqt|period|window)\b|\b(?:samay|waqt)\s+(?:kya|kab)\b|\b(?:kab|kb|when|timing)\b|\bhow\s+(?:soon|long)\b|\b(?:which|what)\s+(?:year|month|date)\b|\b(?:kis|kaunse|kaun\s+se)\s+(?:saal|mahine|month|year)\b|\bkitn[aei]\s+(?:time|samay|waqt|din|mahine|saal|der)\b|\b20\d{2}\s+tak\b|\bby\s+20\d{2}\b|कब|किस\s+(?:साल|महीने)|कितन[ाीे]\s+(?:समय|दिन|महीने|साल|देर)/iu.test(
     query,
   );

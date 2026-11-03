@@ -32,6 +32,10 @@ void test("timing intent stays consistent across topics and shorthand without ad
     "Will I marry by 2028?",
     "Shaadi 2028 tak hogi?",
     "मेरी शादी कब होगी?",
+    "Meri shaadi ka sambhavit time window batao.",
+    "Meri shaadi ka time-window bataiye",
+    "What is the possible time window for my marriage?",
+    "Career ka expected timing window?",
   ]) {
     assert.equal(asksForTiming(query), true, query);
   }
@@ -40,6 +44,10 @@ void test("timing intent stays consistent across topics and shorthand without ad
     "My birth year is 2001",
     "Explain the seventh house",
     "What is a dasha?",
+    "What is a time window?",
+    "What does a time window for marriage mean?",
+    "Mujhe breakup samajhne ke liye time chahiye",
+    "Give me a time window to talk",
   ]) {
     assert.equal(asksForTiming(query), false, query);
   }
@@ -47,7 +55,7 @@ void test("timing intent stays consistent across topics and shorthand without ad
     ...row,
     verdict_signals: [{ area: "marriage", trend: "MIXED", positive: [], negative: [] }],
   });
-  for (const query of ["shaadi kab hogi", "shaadi kb hogi", "shaadi kis saal hogi"]) {
+  for (const query of ["shaadi kab hogi", "shaadi kb hogi", "shaadi kis saal hogi", "Meri shaadi ka sambhavit time window batao."]) {
     const answer = evidenceFallback(
       [evidence],
       "hinglish",

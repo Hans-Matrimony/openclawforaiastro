@@ -1,8 +1,39 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
+
+void test("loneliness listening rejects the observed malformed phrase without rejecting ordinary support", async () => {
+  const value = { user_id: "synthetic-listening", query: "Aaj bahut akela lag raha hai. Bas meri baat suno, abhi advice nahi chahiye.", language: "hinglish", user_gender: "male", history: [], birth: {} };
+  const bad = "Main yahan hoon. Aaj jo bhi feel ho raha hai, usse saath dena chahti hoon.";
+  assert.match(emotionalReplyIssue(bad, value), /malformed everyday language/);
+  assert.equal(emotionalReplyIssue("Aapko akela lag raha hai. Aapki baat sun rahi hoon.", value), null);
+  assert.equal(emotionalReplyIssue("Main aapka saath dena chahti hoon. Aapko akela lag raha hai.", value), null);
+  let calls = 0;
+  const result = await directAnswer(value, {
+    env: { OPENROUTER_API_KEY: "fixture", VEDASTRO_DIRECT_FLOW: "source", VEDASTRO_DIRECT_ENVIRONMENT: "development", VEDASTRO_DIRECT_REPLY_CACHE: "0", VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
+    makeMemory: () => ({ read: async () => [] }), makeTools: () => async () => assert.fail("No chart tools for listening"),
+    fetchImpl: async () => { calls++; return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: bad } }], usage: { cost: 0 } })); },
+  });
+  assert.equal(calls, 2, "Use the existing single rewrite; no extra retries");
+  assert.match(result.reply, /akelaapan/);
+  assert.doesNotMatch(result.reply, /usse saath|kundli|dasha|\?/);
+  assert.deepEqual(result.answer_reading_tools, []);
+  assert.deepEqual(result.answer_validation, ["emotional_quality_rewrite", "emotional_quality_fallback"]);
+  assert.equal(emotionalReplyFallback({ ...value, query: "Meri dost akeli lag rahi hai." }).includes("Aaj aapko akelaapan"), false);
+});
+
+void test("no-advice preferences do not negate feelings, while actual denials still do", () => {
+  for (const [query, reply] of [
+    ["I feel lonely. No advice, please.", "You feel lonely. You can talk at your pace."],
+    ["Aaj akela lag raha hai, advice nahi chahiye.", "Aapko akela lag raha hai. Aap aaram se apni baat keh sakte hain."],
+    ["मैं अकेला महसूस कर रहा हूँ, सलाह नहीं चाहिए।", "आपको अकेला लग रहा है। आप अपनी बात आराम से कह सकते हैं।"],
+  ]) assert.equal(emotionalReplyIssue(reply, { query, language: "hinglish" }), null, query);
+  for (const query of ["I am not lonely", "I don't feel lonely", "Main akela nahi hoon", "मैं अकेला नहीं हूँ"])
+    assert.ok(emotionalReplyIssue("You feel lonely.", { query, language: "en" }), query);
+  assert.equal(emotionalReplyIssue("You feel heavy inside.", {query:"I am not lonely, but I feel heavy inside.",language:"en"}), null);
+});
 
 void test("short advice follows the latest disclosure without reviving an older breakup", () => {
   for (const field of ["text", "content"]) {
