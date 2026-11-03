@@ -35,6 +35,14 @@ void test("no-advice preferences do not negate feelings, while actual denials st
   assert.equal(emotionalReplyIssue("You feel heavy inside.", {query:"I am not lonely, but I feel heavy inside.",language:"en"}), null);
 });
 
+void test("clickable listening continuations retain only the latest user topic", () => {
+  for (const query of ["Kya main bata sakta hoon ki kya hua?", "Can I tell you what happened?", "क्या मैं बता सकता हूँ कि क्या हुआ?", "Can you listen without giving advice?"]) {
+    assert.equal(isEmotionalFriendship(query, [{ role: "user", text: "Aaj akela lag raha hai, advice nahi chahiye." }]), true);
+    assert.equal(isEmotionalFriendship(query, [{ role: "user", text: "I feel lonely." }, { role: "user", text: "Meri shaadi kab hogi?" }]), false);
+    assert.equal(isEmotionalFriendship(query, [{ role: "assistant", text: "You are lonely." }]), false);
+  }
+});
+
 void test("short advice follows the latest disclosure without reviving an older breakup", () => {
   for (const field of ["text", "content"]) {
     const history = [

@@ -1,5 +1,5 @@
 // Friendship-only intent signals. Shared astrology intent remains unchanged.
-export const friendshipContinuation = /^(?:yes|yeah|haan|han|hmm|please (?:listen|stay)|bas suno|sirf suno|हाँ|हां|बस सुनो|(?:ab )?kya kar[uon]+|what should i do(?: now)?)[.!?\s]*$/iu;
+export const friendshipContinuation = /^(?:yes|yeah|haan|han|hmm|please (?:listen|stay)|bas suno|sirf suno|हाँ|हां|बस सुनो|(?:ab )?kya kar[uon]+|what should i do(?: now)?|can i tell you what happened|can we talk through this at my pace|can you listen without giving advice|can i explain a little more about my experience|kya main bata sakta hoon ki kya hua|kya hum meri baat aaram se kar sakte hain|kya aap bina salah diye meri baat sun sakte hain|kya main apni baat thoda aur samjha sakta hoon|क्या मैं बता सकता हूँ कि क्या हुआ|क्या हम इस बारे में आराम से बात कर सकते हैं|क्या आप बिना सलाह दिए मेरी बात सुन सकते हैं|क्या मैं अपनी बात थोड़ा और समझा सकता हूँ)[.!?।\s]*$/iu;
 
 export function rejectsPreviousAdvice(query) {
   return /\b(?:did(?:n't| not) help|not helpful|same advice|advice (?:dobara|again)|wahi advice|help nahi hui|kaam nahi (?:kiya|aaya))\b|वही सलाह|मदद नहीं हुई/iu.test(query);
