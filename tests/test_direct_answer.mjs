@@ -58,13 +58,13 @@ const makeMemory = (id) => ({
   write: async () => ({ saved: true }),
 });
 
-void test("vendored assets match recorded provenance and calculation code retains the upstream hash", () => {
+void test("asset provenance records the matching adaptation and preserves the natal calculation core", () => {
   const assets = new URL("../extensions/reviewed-reading/direct/assets/dev-v2/", import.meta.url);
   const provenance = JSON.parse(
     fs.readFileSync(new URL("provenance.json", assets), "utf8").replace(/^\uFEFF/, ""),
   );
   assert.equal(provenance.source_revision, "c7d63bb92bfb35bf11a8a4748b40a9afd22cc742");
-  assert.equal(provenance.files.length, 7);
+  assert.equal(provenance.files.length, 9);
   assert.equal(
     provenance.files.find((file) => file.path === "engine.mjs").source_revision,
     "fb060c30c10568ab9d954b9e990ba4696528e1a9",
@@ -78,6 +78,18 @@ void test("vendored assets match recorded provenance and calculation code retain
     );
   }
   const engine = provenance.files.find((file) => file.path === "engine.mjs");
+  const preservedNatalCore = fs.readFileSync(new URL("engine.mjs", assets), "utf8")
+    .replace(/\r\n?/g, "\n")
+    .split("export function get_match_report")[0]
+    .replace('import { gunaMilan } from "./guna-milan.mjs";\n', "")
+    .replace('import { matchingBirth } from "./matching-birth.mjs";\n', "")
+    .replace("function runChart(dateStr, timeStr, locationName, checkedBirth) {", "function runChart(dateStr, timeStr, locationName) {")
+    .replace("const { utc, loc } = checkedBirth || parseBirth(dateStr, timeStr, locationName);", "const { utc, loc } = parseBirth(dateStr, timeStr, locationName);");
+  assert.equal(createHash("sha256").update(preservedNatalCore).digest("hex"),
+    "490b63e0c602f0d94dd85ba48e0deede8c94578965267d579b44b96da560617b");
+  assert.equal(engine.natal_core_lf_sha256,
+    "490b63e0c602f0d94dd85ba48e0deede8c94578965267d579b44b96da560617b");
+  assert.equal(engine.matching_ruleset, "astrofriend-north-base-v1");
   const calculationSource = fs
     .readFileSync(new URL("engine.mjs", assets), "utf8")
     .split(/\r?\n/)
