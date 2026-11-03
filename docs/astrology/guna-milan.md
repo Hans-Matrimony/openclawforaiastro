@@ -56,6 +56,15 @@ path resolves the existing supported cities using historical IANA timezones;
 DST gaps and overlaps require clarification. General chart geocoding is
 unchanged. Matching supports dates from 1900 through today, not future births.
 
+The app tool boundary also checks where those inputs came from: the selected
+account profile can supply that person's inputs when the role is known, and
+the other person's full form must appear in user-provided conversation data.
+Assistant predictions and copied self profiles cannot establish partner data.
+A newer complete partner form supersedes older forms. Ambiguous inputs require
+confirmation; this guard does not change the calculation tables. Displayed
+points out of 36 must match the current matching tool result, never a house
+strength or a score recalled from an old assistant reply.
+
 This is a **base score**: Nadi/Bhakoot cancellation rules, Mangal dosha, Navamsa,
 and relationship predictions are separate assessments, not bonus points.
 `exceptions_applied` is false; zero-score flags are not a claim that all possible

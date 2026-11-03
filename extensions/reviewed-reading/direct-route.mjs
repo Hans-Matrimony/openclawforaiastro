@@ -40,6 +40,8 @@ export function validateDirectInput(value) {
           "user_gender",
           "user_name",
           "quota_context",
+          "reply_to",
+          "profile_update_status",
         ].includes(k),
     ) ||
     typeof value.user_id !== "string" ||
@@ -64,6 +66,10 @@ export function validateDirectInput(value) {
         !/^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u.test(value.user_name))) ||
     (value.quota_context !== undefined &&
       (typeof value.quota_context !== "string" || value.quota_context.length > 2048)) ||
+    (value.profile_update_status !== undefined && !['saved', 'needs_confirmation', 'invalid', 'unavailable'].includes(value.profile_update_status)) ||
+    (value.reply_to !== undefined && (!value.reply_to || typeof value.reply_to !== 'object' || Array.isArray(value.reply_to) ||
+      Object.keys(value.reply_to).some(k => !['role', 'text'].includes(k)) ||
+      !['user', 'assistant'].includes(value.reply_to.role) || typeof value.reply_to.text !== 'string' || value.reply_to.text.length > 1200)) ||
     typeof value.language !== "string" ||
     value.language.length > 32
   ) {

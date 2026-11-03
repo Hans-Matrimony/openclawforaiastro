@@ -35,7 +35,7 @@ test('stale memory arguments cannot replace selected self birth in natal or tran
   assert.deepEqual(stale,{birth_date:'1985-02-02',birth_time:'12:00',location_name:'Mumbai'});
 });
 
-test('explicit corrections, other people, missing profiles and match/horary inputs keep existing behavior',async()=>{
+test('explicit corrections, other people, missing profiles and horary inputs keep existing behavior',async()=>{
   for(const [query,profile] of [['Meri shaadi: DOB 2002-02-02',birth],['Meri behen ki shaadi kab hogi',birth],['Meri shaadi kab hogi',null],['How about that?',birth]]) {
     const execute=createTools({birth:profile,query,memory,env:{},reading:async(_name,args)=>{
       assert.deepEqual(args,stale);return {content:[{type:'text',text:'unchanged'}]};
@@ -45,7 +45,8 @@ test('explicit corrections, other people, missing profiles and match/horary inpu
   const execute=createTools({birth,query:'Meri shaadi kab hogi',memory,env:{},reading:async(_name,args)=>{
     assert.deepEqual(args,stale);return {content:[{type:'text',text:'unchanged'}]};
   }});
-  for(const name of ['get_horary_prediction','get_match_report']) assert.equal(await execute(name,stale),'unchanged');
+  assert.equal(await execute('get_horary_prediction',stale),'unchanged');
+  await assert.rejects(execute('get_match_report',stale),{code:'matching_birth_required'});
 });
 
 test('actual calculation matches selected profile despite stale birth arguments',async()=>{

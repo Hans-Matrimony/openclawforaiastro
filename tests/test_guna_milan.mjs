@@ -151,7 +151,9 @@ test("real matching tool and app adapter deliver the calculated score without a 
   assert.equal(report.male_chart.utc_time, "2001-01-02T23:30:00.000Z");
   assert.equal(report.female_chart.utc_time, "2000-01-01T06:30:00.000Z");
   assert.ok(report.compatibility.male_7th_house);
-  const execute = createTools({ memory: {}, env: {}, fetchImpl: () => { throw new Error("No network"); } });
+  const supplied = ['male', 'female'].map(person => ({role:'user', text:
+    `${birth[`${person}_birth_date`]}\n${birth[`${person}_birth_time`]}\n${birth[`${person}_location_name`]}`}));
+  const execute = createTools({ memory: {}, history: supplied, env: {}, fetchImpl: () => { throw new Error("No network"); } });
   const actual = JSON.parse(await execute("mcp__VedAstro__get_match_report", birth));
   assert.deepEqual(actual.guna_milan, report.guna_milan);
   assert.match(report.instruction, /exact guna_milan.display_score/);
@@ -177,7 +179,8 @@ test("full agent tool cycle displays calculated points; it does not invent a par
   let calls = 0;
   const result = await directAnswer({
     user_id: "synthetic-matching", query: "Hum dono ka Guna Milan kitna hai?", language: "hinglish",
-    history: [], birth: { date: "2001-01-03", time: "05:00", location_name: "Delhi" },
+    user_gender: 'male', history: [{role:'user', text:`${input.female_birth_date}\n${input.female_birth_time}\n${input.female_location_name}`}],
+    birth: { date: "2001-01-03", time: "05:00", location_name: input.male_location_name },
   }, {
     env: { OPENROUTER_API_KEY: "synthetic", VEDASTRO_DIRECT_ENVIRONMENT: "development", VEDASTRO_DIRECT_FLOW: "source", VEDASTRO_DIRECT_REPLY_CACHE: "0", VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "0" },
     makeMemory: () => ({ read: async () => [], write: async () => ({ saved: true }) }),

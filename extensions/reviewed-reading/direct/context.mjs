@@ -92,6 +92,12 @@ export async function readingContext(
   if (value.quota_context) {
     prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
   }
+  if (value.profile_update_status) {
+    prompt += '\nTrusted app profile update status: ' + value.profile_update_status + '. ' +
+      (value.profile_update_status === 'saved'
+        ? 'The app has saved the supplied self profile. Use it for future self readings; old birth memories and earlier calculated predictions do not override it.'
+        : 'The app profile has NOT been updated. Do not claim it was saved or updated. Request confirmation or correction of the self birth details; a memory write alone does not update the app profile.');
+  }
   if (sourceFlow) {
     prompt +=
       "\n\n# App integration boundary\n" +

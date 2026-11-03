@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { SOURCE_TOOLS } from "./source-contract.mjs";
 import { sourceReading } from "./source-engine.mjs";
 import { selectedSelfBirth, selectedSelfArguments } from "./selected-self-birth.mjs";
+import { matchingEvidence, sameBirth, suppliedBirth } from "./birth-evidence.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "assets");
 const PREFIX = "mcp__VedAstro__";
@@ -57,6 +58,10 @@ export function createTools({
   memory,
   birth,
   query,
+  history = [],
+  gender = 'unknown',
+  profileUpdateStatus,
+  selectedSelfQuery,
   env = process.env,
   signal,
   fetchImpl = fetch,
@@ -66,7 +71,8 @@ export function createTools({
 }) {
   // Request-scoped state replaces the source app's shared single-user store.
   const store = { birth: birth ? { ...birth } : null, selectedPerson: null };
-  const selfBirth = selectedSelfBirth(query, birth);
+  const selfBirth = ['saved', 'needs_confirmation', 'unavailable'].includes(profileUpdateStatus)
+    ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth);
   let initialized = false;
   async function rpc(payload) {
     const response = await fetchImpl("https://mcp-subagent.vedastro.org/api/mcp/public", {
@@ -106,12 +112,36 @@ export function createTools({
       return [...selected, ...facts].join("\n") || "(empty)";
     }
     if (name === "update_memory") {
-      return memory.write(args.memory_text ?? args.text);
+      const content = args.memory_text ?? args.text;
+      const birthLine = line => /\[birth\]|\b(?:born|birth|dob|tob|janam|janm|dateOfBirth|timeOfBirth|birthPlace)\b/i.test(line);
+      if (typeof content === 'string' && content.split(/\r?\n/).some(birthLine)) {
+        // The imported tool describes replacement, but this app's Mem0 endpoint
+        // appends. Never append a conflicting birth record and call it a profile
+        // update. Confirmed self changes are owned by the app metadata store.
+        const otherFacts = content.split(/\r?\n/).filter(line => !birthLine(line)).join('\n').trim();
+        if (otherFacts) await memory.write(otherFacts);
+        return {saved: false, other_memory_saved: !!otherFacts, profile_saved: profileUpdateStatus === 'saved',
+          reason: 'Birth changes use the app confirmed-profile flow. No birth memory was appended. Other non-birth memory lines, if present, were saved separately. Do not claim a birth memory or app profile update unless profile_saved is true.'};
+      }
+      return memory.write(content);
     }
     if (name === "save_birth_details") {
-      store.birth = { ...store.birth, ...args };
+      const candidate = { ...store.birth, ...args };
+      if (profileUpdateStatus === 'saved' && sameBirth(candidate, birth)) {
+        return {saved: true, profile_saved: true, birth: store.birth};
+      }
+      if (profileUpdateStatus || !/\b(?:save|add|remember|store|yaad|rakh)\b/i.test(query ?? '')) {
+        return {saved: false, profile_saved: false, reason: 'The app profile has not been saved. Resolve the pending confirmation or validation first; do not append a competing birth memory.'};
+      }
+      if (!sameBirth(candidate, birth) && ![...history.filter(t => t.role === 'user').map(t => t.text), query]
+        .some(text => suppliedBirth(candidate, text))) {
+        const error = new Error('Birth details need user confirmation');
+        error.code = 'birth_details_required';
+        throw error;
+      }
       await memory.write("[birth] " + JSON.stringify(args));
-      return { saved: true, birth: store.birth };
+      store.birth = candidate;
+      return { memory_saved: true, profile_saved: profileUpdateStatus === 'saved' && sameBirth(candidate, birth), birth: store.birth };
     }
     if (name === "manage_chat_person_context") {
       store.selectedPerson = args;
@@ -129,6 +159,11 @@ export function createTools({
     // The app's selected self profile outranks stale model-supplied memory
     // arguments. Keep the boundary outside the unchanged calculation engine.
     args = selectedSelfArguments(name, args, selfBirth);
+    if (name === 'get_match_report' && !matchingEvidence(args, {birth, gender, query, history})) {
+      const error = new Error('Both people need their own confirmed date, exact time and birthplace');
+      error.code = 'matching_birth_required';
+      throw error;
+    }
     // Dev v2 uses its local Swiss Ephemeris tools by default, without an MCP round trip.
     if (env.VEDASTRO_DIRECT_USE_LOCAL_ENGINE !== "0") {
       const result = await reading(name, args, store.birth, {

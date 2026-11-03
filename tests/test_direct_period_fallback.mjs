@@ -67,7 +67,7 @@ void test("fallback rejects malformed factors and avoids conclusions across diff
   const results = ["one", "two"].map((subject) =>
     JSON.stringify({ ...row([period]), birth_chart: { subject }, verdict_signals }),
   );
-  assert.match(evidenceFallback(results, "english", "Marriage", now), /could not be reconciled/);
+  assert.match(evidenceFallback(results, "english", "Marriage", now), /couldn't verify/);
 });
 
 void test("earliest valid future period is sorted; current period must contain the current India date", () => {

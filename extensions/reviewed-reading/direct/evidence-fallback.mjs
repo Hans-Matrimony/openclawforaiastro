@@ -2,6 +2,10 @@ import { fallbackFactor } from "./fallback-factors.mjs";
 import { periodFallback } from "./period-fallback.mjs";
 import { asksForTiming } from "./reading-intent.mjs";
 
+const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
+const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
+export const isUnverifiedReadingReply = reply => reply === UNVERIFIED_EN || reply === UNVERIFIED_HI;
+
 // A failed bounded correction must not become a transport failure or publish
 // the rejected prediction. This fallback uses only returned period facts.
 export function evidenceFallback(results, language, query = "", asOf = new Date()) {
@@ -80,7 +84,5 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
   if (checkedSchedule && (!query || asksForTiming(query))) {
     return checkedSchedule;
   }
-  return english
-    ? "The reading could not be reconciled with the returned chart evidence."
-    : "Reading ke daave aur chart ke results aapas mein match nahi hue.";
+  return english ? UNVERIFIED_EN : UNVERIFIED_HI;
 }
