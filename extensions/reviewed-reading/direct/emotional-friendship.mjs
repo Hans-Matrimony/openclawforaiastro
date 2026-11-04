@@ -165,6 +165,9 @@ export function emotionalTurnInstruction(value) {
       : 'Avoid gendered self-reference because the companion identity is unspecified.';
   return '\n# Current friendship reply requirements\n' + identity +
     ' Self-reference is optional: a direct acknowledgement is enough. Use respectful aap forms for the user. Write two or three complete everyday sentences. Acknowledge only the latest user disclosure; do not copy old assistant wording. One acknowledgement and one invitation or optional step are enough; omit repeated announcements that you are here or listening.\n' +
+    (currentLoneliness(currentFriendshipDisclosure(value))
+      ? 'The user explicitly disclosed loneliness in this turn or its active continuation. Briefly reflect that stated loneliness in your own words (akelaapan in Hinglish), without guessing a cause. Do not replace that acknowledgement with an announcement that you are here or listening.\n'
+      : '') +
     (friendshipAdviceRequested(value.query)
       ? 'This turn asks for advice, even if an earlier turn asked only for listening. After acknowledgement, offer one manageable optional step. If suggesting contact, refer to someone the user trusts, without assuming a partner or gender.\n'
       : 'This turn asks for support or listening. Leave room for the user to speak at their pace; do not add coping activities. If the user asked for no questions, use an invitation without a question.\n') +

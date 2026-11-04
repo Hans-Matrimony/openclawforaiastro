@@ -63,3 +63,11 @@ test('current language and no-name preferences remain explicit without adding a 
     assert.doesNotMatch(prompt,/Aaj aapko akelaapan/);
   }
 });
+
+test('the loneliness anchor follows only an active disclosure, never an old topic or negation',()=>{
+  assert.match(emotionalTurnInstruction({query:listening,language:'hinglish',history:[]}),/explicitly disclosed loneliness/);
+  assert.match(emotionalTurnInstruction({query:'ab kya karu?',language:'hinglish',history:[{role:'user',text:'Aaj mujhe akela lag raha hai.'}]}),/explicitly disclosed loneliness/);
+  for(const query of ['I am not feeling lonely anymore.','I am sad about losing my job.']){
+    assert.doesNotMatch(emotionalTurnInstruction({query,language:'english',history:[{role:'user',text:'I feel lonely.'}]}),/explicitly disclosed loneliness/);
+  }
+});
