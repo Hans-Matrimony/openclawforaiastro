@@ -207,6 +207,10 @@ export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
   const issues = friendshipGroundingIssues(reply, value);
+  if (friendshipAdviceRequested(value.query) && currentLoneliness(currentFriendshipDisclosure(value)) &&
+      /\bgarmi\s+de\s+sakt[ai]\b/iu.test(reply)) {
+    issues.push('The reply contains malformed everyday language. For emotional support, refer naturally to someone the user trusts, without translating warmth as someone giving physical heat.');
+  }
   if (friendshipAdviceRequested(value.query) &&
       currentLoneliness(currentFriendshipDisclosure(value)) &&
       !/\b(?:lonel\w*|alone|isolated|disconnected|akela\w*|akeli|akele\w*|tanha\w*)\b|अकेल|तन्हा|ഒറ്റപ്പെട|ഏകാന്തത/iu.test(reply)) {

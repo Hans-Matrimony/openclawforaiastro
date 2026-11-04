@@ -111,3 +111,13 @@ test('a persistent role reversal cannot escape the existing two-call friendship 
   assert.equal(calls,2);assert.deepEqual(result.answer_validation,['emotional_quality_rewrite','emotional_quality_fallback']);
   assert.equal(emotionalReplyIssue(result.reply,value),null);assert.doesNotMatch(result.reply,/saath leke baithi/);
 });
+
+test('captured warmth translation and informal likh do are rejected without changing respectful or quoted forms',()=>{
+  const value={query:advice,language:'hinglish',user_gender:'male',history:[]};
+  assert.match(emotionalReplyIssue('Aapko akela lag raha hai. Kisi insaan ko message karein jo aapko garmi de sakta ho.',value),/malformed everyday language/);
+  assert.match(emotionalReplyIssue('Aapko akela lag raha hai. Bas ek message likh do.',value),/respectful aap/);
+  for(const reply of ['Aapko akela lag raha hai. Aap kisi bharosemand dost ko message likh sakte hain.',
+    'Aapko akela lag raha hai. Message likh dein, agar aap chahein.',
+    'Aapko akela lag raha hai. Dost ne kaha tha: "Ek message likh do."',
+    'Aapko akela lag raha hai. Aap apni chai ki garmi par dhyan de sakte hain.'])assert.equal(emotionalReplyIssue(reply,value),null,reply);
+});
