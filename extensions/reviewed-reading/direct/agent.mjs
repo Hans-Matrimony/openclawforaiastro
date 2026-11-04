@@ -60,6 +60,7 @@ import { createTools, TOOLS } from "./tools.mjs";
 import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-context.mjs";
 import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion } from './followup-scope.mjs';
 import { invalidGunaScore } from './birth-evidence.mjs';
+import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentation.mjs';
 
 const READING_BUBBLE_WORD_CAP = 35;
 const VERDICT_BUBBLE_WORD_CAP = 8;
@@ -555,16 +556,16 @@ export async function directAnswer(
     }
     const checkMatchingScore = !generalMatchingQuestion(value.query) &&
       (asksGunaScore(value.query) || readingTools.has('get_match_report') || /\b(?:guna?|gun|ashtakoota)\b/i.test(reply + ' ' + (value.reply_to?.text ?? '')));
-    if (checkMatchingScore && invalidGunaScore(reply, chartResults)) {
+    if (checkMatchingScore && (invalidGunaScore(reply, chartResults) || invalidGunaPresentation(reply, chartResults, value.query))) {
       validation.push('guna_score_rejected');
       if (!correctedGunaScore && modelCalls < maxRounds) {
         correctedGunaScore = true;
-        messages.push({role: 'user', content: 'The draft gives an unsupported score out of 36. Use get_match_report with both people\'s established birth details. Quote only its exact guna_milan.score_points out of 36, preserving fractions. House strength is not a Guna score. If details or a verified score are unavailable, ask only for missing details and do not publish a number.'});
+        messages.push({role: 'user', content: 'The draft gives an unsupported total, factor score or factor description. Use the existing get_match_report result, or call it with both people\'s established birth details if absent. Quote only its exact guna_milan.score_points out of 36 and each requested factor numerator and maximum, preserving fractions. A full-scoring factor cannot be described as weak, nor a zero-scoring factor as strong. When asked for eight factors, include all eight checked scores. Do not invent qualitative ratings. House strength is not a Guna score. This is a traditional assessment, not a guarantee of relationship success. If details or a verified score are unavailable, ask only for missing details and do not publish a number.'});
         continue;
       }
-      reply = value.language === 'english'
+      reply = verifiedGunaFallback(chartResults, value.language) ?? (value.language === 'english'
         ? 'Please confirm both people\'s birth dates, exact birth times and birthplaces so I can verify the Guna Milan score?'
-        : 'Kya aap dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain, taaki Guna Milan score verify ho sake?';
+        : 'Kya aap dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain, taaki Guna Milan score verify ho sake?');
     }
     if (emotionalIssue) {
       console.info(JSON.stringify({event:"emotional_reply_validation",stage:correctedEmotionalReply ? "rewrite" : "initial",categories:emotionalIssueCategories(emotionalIssue)}));
