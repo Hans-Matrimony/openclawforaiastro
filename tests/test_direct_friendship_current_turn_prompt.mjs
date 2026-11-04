@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
-import {emotionalTurnInstruction, emotionalReplyIssue} from '../extensions/reviewed-reading/direct/emotional-friendship.mjs';
+import {emotionalTurnInstruction, emotionalRepairPrompt, emotionalFriendshipPrompt, emotionalReplyIssue} from '../extensions/reviewed-reading/direct/emotional-friendship.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
 const listening='Aaj mujhe akela lag raha hai. Bas meri baat suniye, advice nahi chahiye aur sawal mat poochiye.';
@@ -70,4 +70,16 @@ test('the loneliness anchor follows only an active disclosure, never an old topi
   for(const query of ['I am not feeling lonely anymore.','I am sad about losing my job.']){
     assert.doesNotMatch(emotionalTurnInstruction({query,language:'english',history:[{role:'user',text:'I feel lonely.'}]}),/explicitly disclosed loneliness/);
   }
+});
+
+test('the compact repair retains current disclosure, attempts and referenced advice without repeating the initial prompt',()=>{
+  const value={query:'Wahi advice kaam nahi aayi, ab kya karu?',language:'hinglish',user_gender:'male',
+    history:[{role:'user',text:'Aaj mujhe akela lag raha hai.'},{role:'user',text:'Maine dost se baat karne ki koshish ki.'},
+      {role:'assistant',text:'You could write down what you wanted to say.'}]};
+  const prompt=emotionalRepairPrompt(value,'Use respectful aap forms consistently.');
+  assert.match(prompt,/Maine dost se baat karne ki koshish ki/);assert.match(prompt,/You could write down/);
+  assert.match(prompt,/Do not repeat a rejected suggestion/);assert.match(prompt,/feminine/);
+  assert.match(prompt,/respectful aap/);assert.match(prompt,/no advice, no questions and no name/);
+  assert.ok(prompt.length<emotionalFriendshipPrompt(value,{}).length);
+  assert.doesNotMatch(prompt,/# Emotional conversation, not a reading/);
 });

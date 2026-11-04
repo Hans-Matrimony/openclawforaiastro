@@ -17,7 +17,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
-import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalRepairPrompt, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -336,7 +336,6 @@ export async function directAnswer(
       messages[0].content + emotionalTurnInstruction(value);
     messages.splice(1, prior.length);
   }
-  const emotionalBasePrompt = emotionalFriendship ? messages[0].content : null;
   let nudged = false;
   let correctedEmotionalReply = false;
   let upstreamCalls = 0;
@@ -588,8 +587,10 @@ export async function directAnswer(
         // original context and current request, without another model example.
         messages.splice(0, messages.length, {
           role: "system",
-          content: emotionalBasePrompt + "\nRewrite this emotional reply once. " + emotionalIssue +
-            " Write a fresh response to the current event in the requested language. Return only the reply; no tools or commentary." + emotionalTurnInstruction(value),
+          content: emotionalRepairPrompt({ ...value,
+            query: redactIdentity(value.query, value.user_id),
+            history: value.history.map(turn => ({ ...turn, text: redactIdentity(turn.text, value.user_id) })),
+          }, emotionalIssue),
         }, { role: "user", content: redactIdentity(value.query, value.user_id) });
         continue;
       }

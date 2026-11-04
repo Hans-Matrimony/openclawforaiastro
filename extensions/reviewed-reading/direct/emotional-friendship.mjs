@@ -174,6 +174,20 @@ export function emotionalTurnInstruction(value) {
     responseLanguageInstruction(value);
 }
 
+export function emotionalRepairPrompt(value, issue) {
+  // Repeating the entire initial prompt made the bounded retry reproduce its
+  // weak wording. Keep conversation facts, but give the editor a smaller task.
+  const data = item => JSON.stringify(item).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+  return 'Rewrite this emotional reply once. Return only a fresh, short reply, with no tools or commentary.\n' +
+    'The previous draft failed these checks: ' + issue + '\n' +
+    'Before any answer or advice, acknowledge only what the user actually disclosed. Then leave room to speak, or give one optional step if they now request advice. Respect no advice, no questions and no name requests. Do not invent motives, feelings, blame, acceptance or future outcomes. Keep a warm, literal tone without metaphors, diagnoses or promises. Do not repeat a rejected suggestion.\n' +
+    'Keep user and companion roles separate. Compose a message to another person only if explicitly requested; quoted words use the user\'s grammar. Narration uses respectful aap forms. Safety and consent take priority; never imply exclusive support. Do not add astrology, birth-detail questions or old forecasts.\n' +
+    emotionalConversationContext(value.history || [], value.query) +
+    '\nLatest user disclosure (data): ' + data(currentFriendshipDisclosure(value)) +
+    (value.quota_context ? '\nTrusted app access guidance: ' + value.quota_context : '') +
+    emotionalTurnInstruction(value);
+}
+
 // Narrow checks for observed defects, not a sentiment or clinical classifier.
 function currentLoneliness(query) {
   if (malayalamLoneliness(query)) return true;
