@@ -91,6 +91,7 @@ test('the live aap-hoon role reversal is rejected while normal narration and quo
   const bad='Main yahan hoon, aap akelaapan ko saath leke baithi hoon. Jab aap taiyaar hon, baat kariye.';
   assert.ok(friendshipGroundingIssues(bad,value).some(issue=>issue.includes('subject aap')));
   for(const reply of ['Aap akelaapan mehsoos kar rahe hain. Main sun rahi hoon.',
+    'Aaj aap akela lag rahe hain samajh sakti hoon.',
     'Aap jo kehna chahein keh sakte hain; main yahan hoon.',
     'Aap jab taiyaar hon, main sun rahi hoon.',
     'Aapki baat sun rahi hoon.', 'Aapko samajh sakti hoon.',
