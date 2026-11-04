@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {emotionalTurnInstruction, emotionalRepairPrompt, emotionalFriendshipPrompt, emotionalReplyIssue} from '../extensions/reviewed-reading/direct/emotional-friendship.mjs';
+import {friendshipGroundingIssues} from '../extensions/reviewed-reading/direct/friendship-grounding.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
 const listening='Aaj mujhe akela lag raha hai. Bas meri baat suniye, advice nahi chahiye aur sawal mat poochiye.';
@@ -76,10 +77,36 @@ test('the compact repair retains current disclosure, attempts and referenced adv
   const value={query:'Wahi advice kaam nahi aayi, ab kya karu?',language:'hinglish',user_gender:'male',
     history:[{role:'user',text:'Aaj mujhe akela lag raha hai.'},{role:'user',text:'Maine dost se baat karne ki koshish ki.'},
       {role:'assistant',text:'You could write down what you wanted to say.'}]};
-  const prompt=emotionalRepairPrompt(value,'Use respectful aap forms consistently.');
+  const prompt=emotionalRepairPrompt(value,'Use respectful aap forms consistently.',{memoryStatus:'available',memoryFacts:['The user already tried messaging a trusted friend.']});
   assert.match(prompt,/Maine dost se baat karne ki koshish ki/);assert.match(prompt,/You could write down/);
   assert.match(prompt,/Do not repeat a rejected suggestion/);assert.match(prompt,/feminine/);
   assert.match(prompt,/respectful aap/);assert.match(prompt,/no advice, no questions and no name/);
+  assert.match(prompt,/already tried messaging a trusted friend/);assert.match(prompt,/current user corrections take priority/);
   assert.ok(prompt.length<emotionalFriendshipPrompt(value,{}).length);
   assert.doesNotMatch(prompt,/# Emotional conversation, not a reading/);
+});
+
+test('the live aap-hoon role reversal is rejected while normal narration and quoted wording stay valid',()=>{
+  const value={query:listening,language:'hinglish',user_gender:'male',history:[]};
+  const bad='Main yahan hoon, aap akelaapan ko saath leke baithi hoon. Jab aap taiyaar hon, baat kariye.';
+  assert.ok(friendshipGroundingIssues(bad,value).some(issue=>issue.includes('subject aap')));
+  for(const reply of ['Aap akelaapan mehsoos kar rahe hain. Main sun rahi hoon.',
+    'Aap jo kehna chahein keh sakte hain; main yahan hoon.',
+    'Aap jab taiyaar hon, main sun rahi hoon.',
+    'Aapki baat sun rahi hoon.', 'Aapko samajh sakti hoon.',
+    'Unhone kaha: "aap akelaapan ko saath leke baithi hoon".']) {
+    assert.equal(friendshipGroundingIssues(reply,value).length,0,reply);
+  }
+});
+
+test('a persistent role reversal cannot escape the existing two-call friendship boundary',async()=>{
+  let calls=0;
+  const value={user_id:'synthetic-role-repair',query:listening,language:'hinglish',user_gender:'male',history:[]};
+  const result=await directAnswer(value,{env,makeMemory:()=>({read:async()=>['The user has a trusted friend.']}),
+    makeTools:()=>()=>assert.fail('No tool calls or memory writes'),fetchImpl:async(_url,options)=>{
+      calls++;if(calls===2){const prompt=JSON.parse(options.body).messages[0].content;assert.match(prompt,/subject aap/);assert.match(prompt,/The user has a trusted friend/);}
+      return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:'Main yahan hoon, aap akelaapan ko saath leke baithi hoon. Jab aap taiyaar hon, baat kariye.'}}]}));
+    }});
+  assert.equal(calls,2);assert.deepEqual(result.answer_validation,['emotional_quality_rewrite','emotional_quality_fallback']);
+  assert.equal(emotionalReplyIssue(result.reply,value),null);assert.doesNotMatch(result.reply,/saath leke baithi/);
 });

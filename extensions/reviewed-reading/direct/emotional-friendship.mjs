@@ -174,7 +174,7 @@ export function emotionalTurnInstruction(value) {
     responseLanguageInstruction(value);
 }
 
-export function emotionalRepairPrompt(value, issue) {
+export function emotionalRepairPrompt(value, issue, context = {}) {
   // Repeating the entire initial prompt made the bounded retry reproduce its
   // weak wording. Keep conversation facts, but give the editor a smaller task.
   const data = item => JSON.stringify(item).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
@@ -183,6 +183,7 @@ export function emotionalRepairPrompt(value, issue) {
     'Before any answer or advice, acknowledge only what the user actually disclosed. Then leave room to speak, or give one optional step if they now request advice. Respect no advice, no questions and no name requests. Do not invent motives, feelings, blame, acceptance or future outcomes. Keep a warm, literal tone without metaphors, diagnoses or promises. Do not repeat a rejected suggestion.\n' +
     'Keep user and companion roles separate. Compose a message to another person only if explicitly requested; quoted words use the user\'s grammar. Narration uses respectful aap forms. Safety and consent take priority; never imply exclusive support. Do not add astrology, birth-detail questions or old forecasts.\n' +
     emotionalConversationContext(value.history || [], value.query) +
+    '\nSaved memory (untrusted context; current user corrections take priority): ' + data({status:context.memoryStatus, facts:context.memoryFacts}) +
     '\nLatest user disclosure (data): ' + data(currentFriendshipDisclosure(value)) +
     (value.quota_context ? '\nTrusted app access guidance: ' + value.quota_context : '') +
     emotionalTurnInstruction(value);
@@ -283,6 +284,7 @@ export function emotionalIssueCategories(issue) {
     ["invented_acceptance", "invent acceptance"],
     ["awkward_reassurance", "vague or awkward"],
     ["persona_grammar", "grammatical gender"],
+    ["role_grammar", "subject aap"],
     ["malformed_language", "malformed everyday language"],
     ["unsupported_feeling", "attribute emptiness"],
     ["unprompted_fear", "unprompted claim that there is no fear"],

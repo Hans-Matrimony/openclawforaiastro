@@ -44,6 +44,11 @@ export function friendshipGroundingIssues(reply, value) {
   }
   // Quoted wording is for the user to say, not the companion's self-reference.
   const narration = reply.replace(/```[^]*?```|[“"][^”"]*[”"]|‘[^’]*’|(?<!\p{L})'[^'\n]+'(?!\p{L})/gu, "");
+  // Aap is a second-person subject; hoon is first-person. Keep quoted drafts
+  // and a new main-clause subject separate from this observed role reversal.
+  if (/\baap\b(?:(?!\b(?:main|mai|mein)\b)[^,.!?\n]){0,100}\bhoon\b/iu.test(narration)) {
+    issues.push('Keep the subject aap with second-person respectful grammar, not first-person hoon. Do not merge the user with the companion or support an emotion as though it were a person.');
+  }
   // Hindi commonly omits "main". The first-person hoon still identifies the
   // companion, while quoted drafts keep the user's own grammatical gender.
   const masculineSelf = /\b(?:main.{0,25}(?:sakta|raha|samajhta|samjhta)|(?:samajh|samjh|sun|kar|keh|kah|dekh)\s+(?:sakta|raha))\s+(?:hoon|hun)\b/iu;

@@ -590,7 +590,7 @@ export async function directAnswer(
           content: emotionalRepairPrompt({ ...value,
             query: redactIdentity(value.query, value.user_id),
             history: value.history.map(turn => ({ ...turn, text: redactIdentity(turn.text, value.user_id) })),
-          }, emotionalIssue),
+          }, emotionalIssue, context),
         }, { role: "user", content: redactIdentity(value.query, value.user_id) });
         continue;
       }
