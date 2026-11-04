@@ -8,6 +8,16 @@ import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 const birth={date:'2000-01-01',time:'05:00',location_name:'Delhi'};
 const stale={birth_date:'1985-02-02',birth_time:'12:00',location_name:'Mumbai'};
 const memory={read:async()=>['User was born February 2, 1985 at noon in Mumbai.'],write:async()=>assert.fail('No memory mutation expected')};
+const houseClarification='Meri kundli badal gayi kya? Pehle ki reading alag lag rahi hai. Mere 7ve ghar ki natal sthiti, uski strength aur Jupiter antardasha ko fresh calculation se alag-alag verify karke samjhao.';
+
+test('a house-strength pronoun keeps the explicit self subject, without binding another person or a correction',()=>{
+  for(const q of [houseClarification,'Meri kundli ke house 7 aur uski strength samjhao','My chart: 7th house, uski strength verify karo'])
+    assert.deepEqual(selectedSelfBirth(q,birth),birth,q);
+  for(const q of ['Meri kundli aur uski shaadi kab hogi?','Meri GF ka 7ve ghar aur uski strength batao',
+    'Meri behen ka house 7 aur uski strength batao','Meri kundli: 7ve ghar uski strength, DOB 2002-02-02',
+    'Change my chart: house 7 and uski strength','Meri kundli. Uski strength aur shaadi batao'])
+    assert.equal(selectedSelfBirth(q,birth),null,q);
+});
 
 test('only complete selected profiles and clear self questions bind calculation inputs',()=>{
   for(const q of ['meri shaadi kb hogi','Meri shadi kab hogi?','My career reading','When will I get married?','मेरी शादी कब होगी?']) {
@@ -50,11 +60,13 @@ test('explicit corrections, other people, missing profiles and horary inputs kee
 });
 
 test('actual calculation matches selected profile despite stale birth arguments',async()=>{
-  const execute=createTools({birth,query:'meri shaadi kb hogi',memory,env:{}});
-  const actual=JSON.parse(await execute('get_horoscope_predictions',stale));
   const expected=JSON.parse((await sourceReading('get_horoscope_predictions',{},birth)).content[0].text);
-  assert.deepEqual(actual,expected);
-  assert.equal(actual.birth_chart.utc_time,'1999-12-31T23:30:00.000Z');
+  for(const query of ['meri shaadi kb hogi',houseClarification]){
+    const execute=createTools({birth,query,memory,env:{}});
+    const actual=JSON.parse(await execute('get_horoscope_predictions',stale));
+    assert.deepEqual(actual,expected);
+    assert.equal(actual.birth_chart.utc_time,'1999-12-31T23:30:00.000Z');
+  }
 });
 
 test('agent passes active question to input binding while preserving memory and call budget',async()=>{
@@ -73,4 +85,28 @@ test('agent passes active question to input binding while preserving memory and 
     },
   });
   assert.equal(charts,1);assert.equal(calls,2);assert.match(result.reply,/Mixed indication/);
+});
+
+test('house clarification binds the real calculator and rejects a stale score within existing rounds',async()=>{
+  const expected=JSON.parse((await sourceReading('get_horoscope_predictions',{},birth)).content[0].text);
+  const wrong=expected.birth_chart.ashtakavarga_house_bindus.house_7.bindus+1;
+  let calls=0,charts=0;
+  const result=await directAnswer({user_id:'synthetic-house-clarification',query:houseClarification,birth,history:[],language:'hinglish'}, {
+    env:{OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    makeMemory:()=>memory,
+    makeTools:options=>createTools({...options,reading:async(name,args,selected,flags)=>{
+      charts++;assert.equal(args.birth_date,birth.date);assert.equal(args.birth_time,birth.time);assert.equal(args.location_name,birth.location_name);
+      return sourceReading(name,args,selected,flags);
+    }}),
+    fetchImpl:async()=>{
+      calls++;
+      const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:JSON.stringify(stale)}}]}:
+        {content:`7ve ghar mein ${wrong} points hain.\n\nKundli ki sthiti yahi hai.`};
+      return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+    },
+  });
+  assert.equal(charts,1);assert.equal(calls,3);
+  assert.ok(result.answer_validation.includes('chart_fallback'));
+  assert.doesNotMatch(result.reply,new RegExp(`\\b${wrong} points\\b`));
+  assert.match(result.reply,/strength sanket/);
 });
