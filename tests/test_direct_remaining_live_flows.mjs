@@ -26,6 +26,9 @@ test('a new vyakti cannot silently reuse an older matching partner',()=>{
   const context={birth,gender:'male',history:[{role:'user',text:'My partner\n2000-02-02\n12:00\nMumbai'}]};
   assert.equal(matchingEvidence(args,{...context,query:'Mera Guna Milan batao'}),true);
   for(const query of ['Mere aur ek naye vyakti ka Guna Milan bataiye.','My different person matching score?', 'Mere aur dusre vyakti ka milan?'])assert.equal(matchingEvidence(args,{...context,query}),false,query);
+  const current='Mere aur ek naye vyakti ka Guna Milan bataiye.\nDOB: 2000-02-02\nTime: 12:00\nPlace: Mumbai';
+  assert.equal(matchingEvidence(args,{...context,query:current}),true,'complete current details establish the new person');
+  assert.equal(matchingEvidence({...args,female_birth_date:'2000-03-03'},{...context,query:current}),false,'old or invented details still cannot replace the current form');
 });
 
 for(const self of [true,false])for(const language of ['hinglish','hindi','english'])test(`missing matching details asks only for relevant subjects; self=${self}; language=${language}`,async()=>{

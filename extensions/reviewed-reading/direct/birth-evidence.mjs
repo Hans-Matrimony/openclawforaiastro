@@ -109,8 +109,11 @@ export function confirmedMatchingArguments(args, context) {
 
 export function matchingEvidence(args, {birth, gender, query = '', history = []}) {
   const texts = [...history.filter(t => t.role === 'user').map(t => t.text), query];
-  if (/\b(?:new|another|different|dusri|dusra|dusre|naye|naya|nayi|alag)\s+(?:partner|person|vyakti|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query)) return false;
-  const recent = matchingForms({birth, gender, query, history});
+  const newPerson = /\b(?:new|another|different|dusri|dusra|dusre|naye|naya|nayi|alag)\s+(?:partner|person|vyakti|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query);
+  // A new person must be established by this message, never an older partner
+  // form. Complete current inputs are still valid; a subject change is not an
+  // unconditional ban on calculating the newly supplied comparison.
+  const recent = matchingForms({birth, gender, query, history:newPerson ? [] : history});
   return ['male', 'female'].every(person => {
     const candidate = {date: args[`${person}_birth_date`], time: args[`${person}_birth_time`], location_name: args[`${person}_location_name`]};
     return (gender === person && sameBirth(candidate, birth)) || recent.some(text => suppliedBirth(candidate, text));
