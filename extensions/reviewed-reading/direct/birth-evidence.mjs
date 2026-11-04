@@ -51,6 +51,31 @@ function matchingForms({birth, gender, query = '', history = []}) {
 // different city. The unchanged evidence check still verifies both people.
 export function confirmedMatchingArguments(args, context) {
   const normalized = {...args};
+  const {birth, gender, query = ''} = context;
+  // An explicit saved-profile comparison has two authoritative inputs already:
+  // this account's canonical profile and one complete, gender-labelled partner
+  // form. Bind those inputs rather than accepting model transcription errors.
+  if (['male', 'female'].includes(gender) && birthKey(birth) &&
+      /\b(?:my|meri|mera|mere)\s+(?:saved\s+)?profile\b/i.test(query) &&
+      /\b(?:partner|girlfriend|boyfriend|wife|husband|gf|bf)\b/i.test(query)) {
+    const dates = [...query.matchAll(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})\b/g)];
+    const clocks = [...query.matchAll(/\b\d{1,2}:\d{2}(?:\s*(?:am|pm))?\b/gi)];
+    const fields = query.split(/[\n;]/);
+    const places = fields.map(line => /^(?:place of birth|birth\s*place|location|pob|place|city)\s*[:=]\s*(.+)$/i.exec(line.trim())).filter(Boolean);
+    const genders = fields.map(line => /^gender\s*[:=]\s*(male|female)[.!]?$/i.exec(line.trim())).filter(Boolean);
+    const other = gender === 'male' ? 'female' : 'male';
+    if (dates.length === 1 && clocks.length === 1 && places.length === 1 && genders.length === 1 && genders[0][1].toLowerCase() === other) {
+      const partner = {date: dates[0][0], time: clocks[0][0], location_name: places[0][1]};
+      if (suppliedBirth(partner, query)) {
+        for (const [person, input] of [[gender, birth], [other, partner]]) {
+          normalized[`${person}_birth_date`] = input.date;
+          normalized[`${person}_birth_time`] = input.time;
+          normalized[`${person}_location_name`] = input.location_name ?? input.place;
+        }
+        return normalized;
+      }
+    }
+  }
   const recent = matchingForms(context);
   for (const person of ['male', 'female']) {
     const candidate = {date: args[`${person}_birth_date`], time: args[`${person}_birth_time`], location_name: args[`${person}_location_name`]};

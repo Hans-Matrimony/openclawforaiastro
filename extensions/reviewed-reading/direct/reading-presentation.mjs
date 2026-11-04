@@ -30,8 +30,11 @@ export function readingPresentationIssue(reply) {
   if (unsupportedReadingConsequence(reply)) issues.push('Remove invented claims of suffering or unhappiness; describe the actual supported chart limitation neutrally.');
   if (/\bkaam\s+kaam\b/iu.test(reply)) issues.push('Remove the accidental adjacent repetition of kaam and write a complete, natural career sentence. Preserve the supported meaning.');
   if (/\b(?:ka|ke)\s+possibility\b/iu.test(reply)) issues.push('Use grammatical Hindi/Hinglish for a possibility, with a clear subject and complete sentence. Keep any supported career options explicit rather than a vague reference to aapki tarah ke kaam.');
-  if (/\b(?:results?|progress)\s+(?:slow|delayed)\s+(?:aayenge|aayega|rahega|rahegi|hoga|hogi)\b|\b(?:results?|progress)\s+will\s+(?:be|remain)\s+(?:slow|delayed)\b/iu.test(reply)) {
+  if (/\b(?:results?|progress|process)\s+(?:slow|delayed)\s+(?:aayenge|aayega|rahega|rahegi|hoga|hogi)\b|\b(?:results?|progress|process)\s+will\s+(?:be|remain)\s+(?:slow|delayed)\b/iu.test(reply)) {
     issues.push('Qualify the outcome as a possibility rather than asserting that progress or results will be slow. Preserve the caution and its evidence.');
+  }
+  if (/\blekin\s*,\s*aur\b|\bpoints?\s+kam\s*\(/iu.test(reply)) {
+    issues.push('Use complete natural sentences rather than a dangling contrast or internal point shorthand. Describe the checked support and caution in plain language, without adding a new outcome or changing the dated window.');
   }
   const planet = '(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)';
   const period = '\\b' + planet + '\\s+(?:(?:ka|ki)\\s+)?(?:mahadasha|antardasha)';

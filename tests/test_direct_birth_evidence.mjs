@@ -32,6 +32,24 @@ test('matching restores omitted place qualifiers from the confirmed profile and 
   assert.equal(await execute('get_match_report',args),'verified matching');assert.equal(calls,1);
 });
 
+test('explicit saved-profile matching binds both confirmed people despite model transcription errors',()=>{
+  const value={birth:{...birth,location_name:'Delhi, Delhi, India'},gender:'male',history:[],
+    query:'Meri saved profile aur meri girlfriend ka Guna Milan samjhao. Girlfriend details: DOB: 01-07-2003; Time: 05:38 AM; Place: Mumbai, Maharashtra, India; Gender: female.'};
+  const wrong={...args,male_birth_date:'1999-01-01',male_birth_time:'12:00',female_birth_date:'2000-01-01',female_birth_time:'05:00'};
+  const normalized=confirmedMatchingArguments(wrong,value);
+  assert.equal(normalized.male_birth_date,birth.date);assert.equal(normalized.male_birth_time,birth.time);
+  assert.equal(normalized.female_birth_date,'01-07-2003');assert.equal(normalized.female_birth_time,'05:38 AM');
+  assert.equal(normalized.female_location_name,'Mumbai, Maharashtra, India');assert.equal(matchingEvidence(normalized,value),true);
+  for(const query of [value.query.replace('Meri saved profile','Mere friend ki profile'),
+    value.query.replace('Gender: female.',''), 'Example: '+value.query,value.query+'; DOB: 02-07-2003']) {
+    const ctx={...value,query};assert.equal(matchingEvidence(confirmedMatchingArguments(wrong,ctx),ctx),false,query);
+  }
+  const female={...value,birth:{...birth,location_name:'Mumbai, Maharashtra, India'},gender:'female',query:value.query.replace('girlfriend','boyfriend').replace('Gender: female.','Gender: male.')};
+  const reversed=confirmedMatchingArguments(wrong,female);
+  assert.equal(reversed.female_birth_date,birth.date);assert.equal(reversed.male_birth_date,'01-07-2003');
+  assert.equal(matchingEvidence(reversed,female),true);
+});
+
 test('place restoration does not weaken date, time, identity, country or latest-form provenance',()=>{
   const value={...context,birth:{...birth,location_name:'Delhi, Delhi, India'},history:[],
     query:'Partner details:\nDOB: 01-07-2003\nTime: 05:38 AM\nPlace: Mumbai, Maharashtra, India'};
@@ -55,7 +73,7 @@ test('place restoration does not weaken date, time, identity, country or latest-
 test('a complete matching request reaches the verified score after city-only model arguments',async()=>{
   let calls=0,calculations=0;
   const value={user_id:'synthetic-qualified-matching',birth:{...birth,location_name:'Delhi, Delhi, India'},user_gender:'male',history:[],language:'english',
-    query:'My Guna Milan score: Partner DOB: 01-07-2003; Time: 05:38 AM; Place: Mumbai, Maharashtra, India; Gender: female.'};
+    query:'My saved profile and my partner Guna Milan score: Partner DOB: 01-07-2003; Time: 05:38 AM; Place: Mumbai, Maharashtra, India; Gender: female.'};
   const result=await directAnswer(value,{
     env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
     makeMemory:()=>memory,
@@ -63,7 +81,7 @@ test('a complete matching request reaches the verified score after city-only mod
       calculations++;assert.equal(input.male_location_name,value.birth.location_name);assert.equal(input.female_location_name,'Mumbai, Maharashtra, India');
       return {content:[{type:'text',text:JSON.stringify({guna_milan:{status:'ok',score_points:24.5,score_max:36}})}]};
     }}),
-    fetchImpl:async()=>{calls++;const message=calls===1?{tool_calls:[{id:'matching',type:'function',function:{name:'mcp__VedAstro__get_match_report',arguments:JSON.stringify(args)}}]}:{content:'The verified Guna Milan score is 24.5/36. This traditional assessment does not guarantee relationship success.'};
+    fetchImpl:async()=>{calls++;const message=calls===1?{tool_calls:[{id:'matching',type:'function',function:{name:'mcp__VedAstro__get_match_report',arguments:JSON.stringify({...args,male_birth_date:'1990-01-01',female_birth_time:'12:00'})}}]}:{content:'The verified Guna Milan score is 24.5/36. This traditional assessment does not guarantee relationship success.'};
       return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));},
   });
   assert.equal(calls,2);assert.equal(calculations,1);assert.match(result.reply,/24\.5\/36/);

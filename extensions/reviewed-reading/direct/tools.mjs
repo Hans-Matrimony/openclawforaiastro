@@ -161,6 +161,7 @@ export function createTools({
     args = selectedSelfArguments(name, args, selfBirth);
     if (name === 'get_match_report') args = confirmedMatchingArguments(args, {birth, gender, query, history});
     if (name === 'get_match_report' && !matchingEvidence(args, {birth, gender, query, history})) {
+      console.info(JSON.stringify({event:'matching_birth_validation',status:'unconfirmed_inputs'}));
       const error = new Error('Both people need their own confirmed date, exact time and birthplace');
       error.code = 'matching_birth_required';
       throw error;

@@ -2,9 +2,13 @@
 // This does not infer event windows or judge chart interpretations.
 export function unsupportedPeriodClaim(reply, toolResults) {
   const periods = [];
+  const mahadashas = [];
   for (const raw of toolResults) {
     try {
       const data = JSON.parse(raw);
+      for (const period of [data.dasha?.current_mahadasha, data.dasha?.next_mahadasha]) {
+        if (period?.lord && period.from && period.to) mahadashas.push(period);
+      }
       if (data.dasha?.current_antardasha) {
         periods.push(data.dasha.current_antardasha);
       }
@@ -20,6 +24,17 @@ export function unsupportedPeriodClaim(reply, toolResults) {
   }
   if (!periods.length) {
     return false;
+  }
+  const planet = '(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)';
+  const afterMajor = [
+    new RegExp('\\b' + planet + '\\s+(?:ki\\s+)?mahadasha\\s+ke\\s+baad\\s+' + planet + '\\s+(?:ki\\s+)?antardasha\\b', 'gi'),
+    new RegExp('\\bafter\\s+' + planet + '\\s+mahadasha[, ]+\\s*' + planet + '\\s+antardasha\\b', 'gi'),
+  ];
+  for (const pattern of afterMajor) for (const match of reply.matchAll(pattern)) {
+    const major = mahadashas.filter(p => String(p.lord).toLowerCase() === match[1].toLowerCase());
+    const minor = periods.filter(p => String(p.lord).toLowerCase() === match[2].toLowerCase());
+    // A subperiod inside this mahadasha cannot be described as following it.
+    if (major.length && minor.length && minor.every(p => major.some(m => p.from < m.to && p.from >= m.from))) return true;
   }
   const claim =
     /\b(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)\s+(?:ki\s+)?antardasha\s+(?:shuru|starts?|begins?)\b/gi;

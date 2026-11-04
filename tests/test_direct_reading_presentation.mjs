@@ -13,6 +13,8 @@ test('career wording review catches certainty and mixed period labels without re
   assert.match(readingPresentationIssue('Saturn aur Venus Moon dasha mein external push kam hai.'), /Separate the natal planet/);
   assert.match(readingPresentationIssue('Venus Moon dasha chal rahi hai.'), /Label each period lord/);
   assert.match(readingPresentationIssue('Isliye results slow aayenge.'), /Qualify the outcome/);
+  assert.match(readingPresentationIssue('Yeh process slow rahega.'), /Qualify the outcome/);
+  assert.match(readingPresentationIssue('Benefic hai lekin, aur point kam (kamzor) hai.'),/dangling contrast/);
   assert.match(readingPresentationIssue('Aise kaam kaam karne ka possibility hai.'), /adjacent repetition/);
   assert.match(readingPresentationIssue('Career mein aapki tarah ke kaam karne ka possibility hai.'), /grammatical Hindi/);
   for (const reply of ['Progress slow ho sakti hai.', 'Venus mahadasha aur Moon antardasha chal rahi hai.', 'Saturn ki sthiti aur Venus-Moon dasha ke sanket alag hain.']) assert.equal(readingPresentationIssue(reply),null,reply);

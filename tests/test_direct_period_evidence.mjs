@@ -3,6 +3,32 @@ import test from "node:test";
 import { unsupportedClosingDetail } from "../extensions/reviewed-reading/direct/companion-context.mjs";
 import { unsupportedPeriodClaim } from "../extensions/reviewed-reading/direct/period-evidence.mjs";
 import { isOrdinaryConcern } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
+import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
+
+void test('a checked antardasha within the active mahadasha cannot be placed after it',()=>{
+  const evidence=[JSON.stringify({dasha:{current_mahadasha:{lord:'Venus',from:'2021-09-15',to:'2041-09-15'},upcoming_antardashas:[{lord:'Jupiter',from:'2031-11-15',to:'2034-07-16'}]}})];
+  for(const text of ['Venus mahadasha ke baad Jupiter antardasha November 2031 se July 2034 tak chalega.',
+    'After Venus mahadasha, Jupiter antardasha runs from November 2031 to July 2034.'])
+    assert.equal(unsupportedPeriodClaim(text,evidence),true,text);
+  assert.equal(unsupportedPeriodClaim('Venus mahadasha mein Jupiter antardasha November 2031 se July 2034 tak hai.',evidence),false);
+  assert.equal(unsupportedPeriodClaim('After Moon mahadasha, Jupiter antardasha starts.',evidence),false,'do not infer an absent major-period boundary');
+});
+
+void test('a repeated cross-level timing error falls back without changing the checked window or recalculating',async()=>{
+  const evidence={engine:'local-sweph-v2',birth_chart:{planets:['Jupiter: Taurus | house 7','Saturn: Taurus | house 7']},
+    dasha:{current_mahadasha:{lord:'Venus',from:'2021-09-15',to:'2041-09-15'},upcoming_antardashas:[{lord:'Jupiter',from:'2031-11-15',to:'2034-07-16'}]},
+    verdict_signals:[{area:'marriage',positive:['benefic Jupiter house 7 mein'],negative:['Saturn house 7 par delay']}]};
+  let calls=0,calculations=0;
+  const result=await directAnswer({user_id:'synthetic-period-level',query:'Meri shaadi kab hogi?',language:'hinglish',birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'},history:[]},{
+    env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    now:()=>new Date('2026-11-04T00:00:00Z'),makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(evidence);},
+    fetchImpl:async()=>{calls++;const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:
+      {content:'Venus mahadasha ke baad Jupiter antardasha November 2031 se July 2034 tak chalega.\n\nShaadi ki sambhavna November 2031 se July 2034 ke beech hai.'};
+      return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));},
+  });
+  assert.ok(calls<=7);assert.equal(calculations,1);assert.doesNotMatch(result.reply,/mahadasha ke baad Jupiter/);
+  assert.match(result.reply,/2031/);assert.match(result.reply,/2034/);assert.ok(result.answer_validation.includes('timing_claim_rejected'));
+});
 
 void test("upcoming source antardashas are accepted without confusing next mahadasha", () => {
   const evidence = [
