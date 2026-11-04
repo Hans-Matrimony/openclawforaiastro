@@ -26,6 +26,16 @@ function careerCautionConflicts(reply, rows, query) {
   const conflicts = [];
   const prose = reply.replace(/```[^]*?```|[“"][^”"]*[”"]/gu, '');
   for (const clause of prose.split(/[.!?\n;]+/u)) {
+    const internalTrait = new RegExp(`\\b(?:${planets})\\b[^,;.!?]{0,60}\\b(?:adds?|brings?|means?|creates?|indicates?|gives?)\\s+(?:an?\\s+)?internal caution\\b`, 'iu').exec(clause);
+    if (internalTrait && !/\binternal caution\b/iu.test(checked) &&
+        !/\b(?:not|no|never|earlier|previously|said|claimed)\b/iu.test(clause.slice(0, clause.toLowerCase().indexOf('internal caution')))) {
+      conflicts.push({type:'unsupported_career_consequence',reason:'The returned career factors do not establish internal caution or a personality trait. Keep the actual supported limitation; do not replace it with an invented psychological meaning.'});
+    }
+    for (const planet of unique([...clause.matchAll(new RegExp(`\\b(${planets})\\b`, 'giu'))].map(match => match[1]))) {
+      const delayFactor = negative.some(factor => new RegExp(`\\b${planet}\\b`, 'iu').test(factor) && /\b(?:delay\w*|atkaav|rukawat\w*)\b/iu.test(factor));
+      if (delayFactor && /\bnot delays?\b/iu.test(clause) && !/\b(?:earlier|previously|said|claimed)\b/iu.test(clause))
+        conflicts.push({type:'denied_career_caution',planet,reason:'The returned career factor includes a possible delay or obstacle. Preserve that qualified limitation instead of denying it or substituting an unsupported internal trait; it is not a guaranteed outcome.'});
+    }
     if (/\b(?:not|never|nahi|nahin|earlier|previously|said|claimed)\b/iu.test(clause)) continue;
     for (const match of clause.matchAll(claim)) {
       for (const planet of unique([...match[1].matchAll(new RegExp(`\\b(${planets})\\b`, 'giu'))].map(item => item[1]))) {

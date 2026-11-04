@@ -310,7 +310,7 @@ export async function directAnswer(
       JSON.stringify(redactIdentity(value.query, value.user_id)) +
       ". Earlier questions are not the current request. Preserve user circumstances as context, not earlier forecasts or unrelated topics.\n";
     if (/\b(?:career|job|work|naukri|promotion)\b/iu.test(value.query)) {
-      context.prompt += "\nFor career cautions, attribute a negative effect to a planet only when the returned career negative factors establish it, or explicitly refer to the checked current period lords. A planet merely appearing in the natal chart or earlier assistant prose is not evidence that it weakens career support. Describe possible limitations without promising success or asserting an inevitable delay.\n";
+      context.prompt += "\nFor career cautions, attribute a negative effect to a planet only when the returned career negative factors establish it, or explicitly refer to the checked current period lords. A planet merely appearing in the natal chart or earlier assistant prose is not evidence that it weakens career support. Translate the actual limitation neutrally; do not replace a possible delay with an internal personality trait or deny the returned caution. Offer career options as possibilities, never a best-field ranking that these results do not calculate. Describe possible limitations without promising success or asserting an inevitable delay.\n";
     }
   }
   if (timingRequired) {

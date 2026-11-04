@@ -43,9 +43,13 @@ export function friendshipGroundingIssues(reply, value) {
     issues.push("Do not echo the user's message as your own first-person experience. Acknowledge it in your own words.");
   }
   // Quoted wording is for the user to say, not the companion's self-reference.
-  const narration = reply.replace(/[“"][^”"]*[”"]/gu, "");
-  if ((value.user_gender === "male" && /\bmain.{0,25}(?:sakta|raha|samajhta|samjhta) (?:hoon|hun)\b/iu.test(narration)) ||
-      (value.user_gender === "female" && /\bmain.{0,25}(?:sakti|rahi|samajhti|samjhti) (?:hoon|hun)\b/iu.test(narration))) {
+  const narration = reply.replace(/```[^]*?```|[“"][^”"]*[”"]|‘[^’]*’|(?<!\p{L})'[^'\n]+'(?!\p{L})/gu, "");
+  // Hindi commonly omits "main". The first-person hoon still identifies the
+  // companion, while quoted drafts keep the user's own grammatical gender.
+  const masculineSelf = /\b(?:main.{0,25}(?:sakta|raha|samajhta|samjhta)|(?:samajh|samjh|sun|kar|keh|kah|dekh)\s+(?:sakta|raha))\s+(?:hoon|hun)\b/iu;
+  const feminineSelf = /\b(?:main.{0,25}(?:sakti|rahi|samajhti|samjhti)|(?:samajh|samjh|sun|kar|keh|kah|dekh)\s+(?:sakti|rahi))\s+(?:hoon|hun)\b/iu;
+  if ((value.user_gender === "male" && masculineSelf.test(narration)) ||
+      (value.user_gender === "female" && feminineSelf.test(narration))) {
     issues.push("Keep the companion persona's grammatical gender consistent; quoted words for the user are separate.");
   }
   if (/\b(?:space|boundar\w*)\b/iu.test(value.query) &&
@@ -53,7 +57,7 @@ export function friendshipGroundingIssues(reply, value) {
       !/\b(?:dono(?:n)?|both)\b/iu.test(value.query)) {
     issues.push("Do not invent mutual feelings, even inside a suggested message. A request for space establishes only the user's need; phrase the boundary in terms of that need.");
   }
-  if (/\b(?:likh lo|kar lo|batao|socho|rakh do|pi lo|pee lo|feel karo|sun lo|dekh lo)\b/iu.test(narration)) {
+  if (/\b(?:likh lo|kar lo|batao|socho|rakh do|pi lo|pee lo|karo|bana lo|sun lo|dekh lo)\b/iu.test(narration)) {
     issues.push("Use respectful aap forms consistently instead of informal instructions.");
   }
   return issues;

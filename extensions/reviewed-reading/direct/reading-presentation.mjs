@@ -28,6 +28,14 @@ export function readingPresentationIssue(reply) {
       !/^\s*(?:(?:hai|is)\s+)?(?:nahi|nahin|not)\b/iu.test(sentence.slice(match.index + match[0].length));
   })) issues.push('Remove the exhaustive claim that this is the only supporting factor. These results list selected factors, not every possible factor. Keep the stated support, opposing evidence and period without inventing another reason.');
   if (unsupportedReadingConsequence(reply)) issues.push('Remove invented claims of suffering or unhappiness; describe the actual supported chart limitation neutrally.');
+  const rankingProse = reply.replace(/```[^]*?```|[“"][^”"]*[”"]|‘[^’]*’/gu, '');
+  const inventedRanking = rankingProse.split(/(?<=[.!?])\s+|\n+/u).some(sentence => {
+    if (sentence.trimEnd().endsWith('?')) return false;
+    const ranking = /\b(?:suits?|fits?)\s+you\s+(?:the\s+)?best\b|\b(?:best|ideal|perfect)\s+(?:career|job|profession|field)\s+for\s+you\b/iu.exec(sentence);
+    return ranking && !/\b(?:not|no|cannot|can't|without|you said|you prefer|your preference)\b/iu.test(sentence.slice(0, ranking.index)) &&
+      !/^\s+(?:(?:is|are|remains?)\s+)?(?:not|unknown|uncertain|unverified|cannot|can't)\b/iu.test(sentence.slice(ranking.index + ranking[0].length));
+  });
+  if (inventedRanking && /\b(?:career|job|field|role|profession|work)\b/iu.test(reply)) issues.push('Do not invent a ranking of career fields. Offer supported possibilities to explore, not a best or ideal field established by this chart. Keep the supported factors and uncertainty.');
   if (/\bkaam\s+kaam\b/iu.test(reply)) issues.push('Remove the accidental adjacent repetition of kaam and write a complete, natural career sentence. Preserve the supported meaning.');
   if (/\b(?:ka|ke)\s+possibility\b/iu.test(reply)) issues.push('Use grammatical Hindi/Hinglish for a possibility, with a clear subject and complete sentence. Keep any supported career options explicit rather than a vague reference to aapki tarah ke kaam.');
   const unqualifiedDelay = reply.split(/[.!?\n]+/u).some(sentence =>
