@@ -30,7 +30,10 @@ export function readingPresentationIssue(reply) {
   if (unsupportedReadingConsequence(reply)) issues.push('Remove invented claims of suffering or unhappiness; describe the actual supported chart limitation neutrally.');
   if (/\bkaam\s+kaam\b/iu.test(reply)) issues.push('Remove the accidental adjacent repetition of kaam and write a complete, natural career sentence. Preserve the supported meaning.');
   if (/\b(?:ka|ke)\s+possibility\b/iu.test(reply)) issues.push('Use grammatical Hindi/Hinglish for a possibility, with a clear subject and complete sentence. Keep any supported career options explicit rather than a vague reference to aapki tarah ke kaam.');
-  if (/\b(?:results?|progress|process)\s+(?:slow|delayed)\s+(?:aayenge|aayega|rahega|rahegi|hoga|hogi)\b|\b(?:results?|progress|process)\s+will\s+(?:be|remain)\s+(?:slow|delayed)\b/iu.test(reply)) {
+  const unqualifiedDelay = reply.split(/[.!?\n]+/u).some(sentence =>
+    /\b(?:creating delays|success demands patience through delays)\b/iu.test(sentence) &&
+    !/\b(?:may|might|could|can|possible|possibly|potentially|not guaranteed)\b/iu.test(sentence));
+  if (unqualifiedDelay || /\b(?:results?|progress|process)\s+(?:slow|delayed)\s+(?:aayenge|aayega|rahega|rahegi|hoga|hogi)\b|\b(?:results?|progress|process)\s+will\s+(?:be|remain)\s+(?:slow|delayed)\b/iu.test(reply)) {
     issues.push('Qualify the outcome as a possibility rather than asserting that progress or results will be slow. Preserve the caution and its evidence.');
   }
   if (/\blekin\s*,\s*aur\b|\bpoints?\s+kam\s*\(/iu.test(reply)) {

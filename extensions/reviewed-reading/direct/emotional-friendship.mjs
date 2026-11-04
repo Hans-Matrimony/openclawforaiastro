@@ -132,7 +132,7 @@ export function emotionalFriendshipPrompt(value, context) {
     (uncertainReply
       ? "\nThe user is unsure what to say after the disclosed event. Name that event briefly in your own words, acknowledge this uncertainty, and leave room to talk. Do not supply a quoted reply, a writing exercise, or a decision about their relationship. Use short, literal sentences without metaphors."
       : adviceRequested
-      ? "\nThe current message asks for help: acknowledge first, then offer one concrete, relevant optional step. Do not replace useful advice with reassurance alone or a list of unrelated activities."
+      ? "\nThe current message asks for help: acknowledge first, then offer one concrete, relevant optional step. If contact is useful, refer naturally to someone the user trusts; do not invent a romantic contact or describe a person as a man or woman. Do not replace useful advice with reassurance alone or a list of unrelated activities."
       : "\nThe user wants acknowledgement and space to share. Do not prescribe activities or ask questions when they asked only to be heard. Do not discourage them from speaking.");
 }
 
@@ -173,7 +173,7 @@ export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
   const issues = friendshipGroundingIssues(reply, value);
-  if (friendshipAdviceRequested(value.query) && isFriendshipContinuation(value.query) &&
+  if (friendshipAdviceRequested(value.query) &&
       currentLoneliness(currentFriendshipDisclosure(value)) &&
       !/\b(?:lonel\w*|alone|isolated|disconnected|akela\w*|akeli|akele\w*|tanha\w*)\b|अकेल|तन्हा|ഒറ്റപ്പെട|ഏകാന്തത/iu.test(reply)) {
     issues.push('The reply ignores the disclosed loneliness. Acknowledge that current topic before offering one relevant optional step; do not substitute a menu of unrelated activities.');
@@ -261,6 +261,7 @@ export function emotionalIssueCategories(issue) {
     ["astrology_leak", "introduces astrology"],
     ["repeated_presence", "presence announcements"],
     ["unsupported_circumstance", "invents a lack"],
+    ["unsupported_contact", "trusted person"],
     ["missing_acknowledgement", "ignores the disclosed"],
   ].filter(([, marker]) => issue.includes(marker)).map(([category]) => category);
 }
@@ -281,7 +282,7 @@ export function emotionalReplyFallback(value) {
       : hinglish ? "Aaj aapko akelaapan mehsoos ho raha hai. Aap jo kehna chahein, aaram se keh sakte hain; abhi koi solution dhoondhna zaroori nahi hai."
         : "You are feeling lonely today. You can tell me what is on your mind at your own pace; we do not need to jump to solutions.";
   }
-  if (advice && isFriendshipContinuation(value.query) && currentLoneliness(disclosure)) {
+  if (advice && currentLoneliness(disclosure)) {
     return hi
       ? 'आपने अकेलापन महसूस होने की बात कही थी। चाहें तो आज किसी भरोसेमंद व्यक्ति को एक छोटा संदेश भेजकर पूछ सकते हैं कि क्या उनके पास थोड़ी देर बात करने का समय है।'
       : hinglish

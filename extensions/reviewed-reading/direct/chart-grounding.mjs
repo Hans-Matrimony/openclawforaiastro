@@ -12,10 +12,38 @@ function chartFrom(rows) {
 export const isChartClarification = query => /\b(?:verify|clarif\w*|strength|basis|natal|badal|changed?|different|alag)\b/iu.test(query) &&
   /\b(?:chart|kundli|ghar|house)\b/iu.test(query);
 
+function careerCautionConflicts(reply, rows, query) {
+  if (!/\b(?:career|job|work|naukri|promotion)\b/iu.test(query)) return [];
+  const signals = rows.flatMap(row => Array.isArray(row.verdict_signals) ? row.verdict_signals : [])
+    .filter(signal => signal?.area === 'career' && Array.isArray(signal.negative));
+  if (!signals.length) return [];
+  const negative = signals.flatMap(signal => signal.negative).filter(factor => typeof factor === 'string');
+  const checked = negative.join('\n');
+  const currentLords = rows.flatMap(row => [row.dasha?.current_mahadasha?.lord, row.dasha?.current_antardasha?.lord]).filter(Boolean);
+  const indirectPeriodCaution = /\bcurrent dasha lords\b.*\b(?:linked nahi|not (?:directly )?linked)\b/iu.test(checked);
+  const subjects = `(${planets})(?:\\s+(?:and|aur)\\s+(?:${planets}))*`;
+  const claim = new RegExp(`\\b(${subjects})\\s+(?:(?:is|are|be|may|can|could|might)\\s+)*(?:weakens?|reduces?|blocks?|weakening|reducing|blocking|causes?|causing)\\s+(?:the\\s+)?(?:support|career|progress|delays?|obstacles?)\\b`, 'giu');
+  const conflicts = [];
+  const prose = reply.replace(/```[^]*?```|[“"][^”"]*[”"]/gu, '');
+  for (const clause of prose.split(/[.!?\n;]+/u)) {
+    if (/\b(?:not|never|nahi|nahin|earlier|previously|said|claimed)\b/iu.test(clause)) continue;
+    for (const match of clause.matchAll(claim)) {
+      for (const planet of unique([...match[1].matchAll(new RegExp(`\\b(${planets})\\b`, 'giu'))].map(item => item[1]))) {
+        const supported = new RegExp(`\\b${planet}\\b`, 'iu').test(checked) ||
+          (indirectPeriodCaution && currentLords.some(lord => String(lord).toLowerCase() === planet.toLowerCase()));
+        if (!supported) conflicts.push({type:'unsupported_career_caution',planet,
+          reason:'A natal placement alone does not establish this career caution. Attribute a weakening effect only to the returned career negative factors or their explicitly linked current period lords; omit the unsupported extra cause and retain the checked support and uncertainty.'});
+      }
+    }
+  }
+  return conflicts;
+}
+
 // Check returned facts only. This does not calculate aspects or house scores.
 export function chartGroundingConflicts(reply, results, value = {}) {
   const rows=rowsFrom(results), chart=chartFrom(rows), conflicts=[];
   if (!chart) return conflicts;
+  conflicts.push(...careerCautionConflicts(reply, rows, value.query ?? ''));
   for (const clause of reply.split(/[.!?\n;]+/)) {
     const mentioned=unique(houses(clause));
     if (mentioned.length!==1) continue;

@@ -13,6 +13,10 @@ export function currentFriendshipDisclosure(value) {
 export function friendshipGroundingIssues(reply, value) {
   const issues = [];
   const disclosure = currentFriendshipDisclosure(value);
+  if (/\bek aadmi ya aurat\b/iu.test(reply) ||
+      (/\bjo aapke dil mein hai\b/iu.test(reply) && !/\bjo aapke dil mein hai\b/iu.test(disclosure))) {
+    issues.push('Use natural neutral wording for a trusted person, not a gender checklist or an assumed romantic contact. Loneliness does not establish a partner, crush or someone in the user\'s heart. Offer one optional relevant step without inventing who they should contact.');
+  }
   if (/\b(?:my|meri) (?:girlfriend|gf|partner)\b.{0,55}(?:left|chali|chli|ended|khatam)/iu.test(disclosure) &&
       /\b(?:you (?:ended|left|broke)|aapne.{0,25}(?:rishta|relationship).{0,15}khatam)/iu.test(reply)) {
     issues.push("Preserve who ended the relationship: the user said their partner ended it, not the user. Do not reverse that fact.");
