@@ -102,8 +102,11 @@ test('explicit saved self details bind the career question without overriding co
 });
 
 test('an explicit current major period cannot borrow a different lord from history',()=>{
-  const evidence=JSON.stringify({dasha:{current_mahadasha:{lord:'Venus',from:'2021-09-15',to:'2041-09-15'}}});
+  const evidence=JSON.stringify({dasha:{current_mahadasha:{lord:'Venus',from:'2021-09-15',to:'2041-09-15'},current_antardasha:{lord:'Moon',from:'2026-01-14',to:'2027-09-15'}}});
   assert.equal(unsupportedPeriodClaim('Your current Rahu mahadasha requires patience.',[evidence]),true);
+  assert.equal(unsupportedPeriodClaim('Your current Venus mahadasha and Jupiter antardasha require patience.',[evidence]),true);
+  assert.equal(unsupportedPeriodClaim('Your current Jupiter antardasha requires patience.',[evidence]),true);
+  assert.equal(unsupportedPeriodClaim('Your current Venus mahadasha and Moon antardasha have mixed indications.',[evidence]),false);
   for(const text of ['Your current Venus mahadasha has mixed indications.','Rahu mahadasha is a traditional period name.',
     'Earlier I said current Rahu mahadasha.','You are not in your current Rahu mahadasha.',
     'The old quoted text says "current Rahu mahadasha".'])assert.equal(unsupportedPeriodClaim(text,[evidence]),false);
