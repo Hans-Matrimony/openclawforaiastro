@@ -932,10 +932,12 @@ export async function directAnswer(
     }
     if (sourceFlow && readingTools.size > 0 && !timingRequired && !asksForTiming(value.query) &&
         /\b(?:career|job|naukri)\b/iu.test(value.query) &&
-        validation.includes('chart_claim_conflict') && validation.includes('reading_wording_rejected')) {
-      // Repeatedly rejected career prose can trade one invented explanation
-      // for another. Close this failed repair with the existing facts renderer;
-      // ordinary answers, single successful repairs and event timing stay intact.
+        validation.includes('reading_wording_rejected') &&
+        (validation.includes('chart_claim_conflict') || value.language === 'english')) {
+      // An English career wording edit can trade one invented explanation for
+      // another even without a detected placement conflict. Close the failed repair
+      // with the existing facts renderer. Valid first-pass career answers,
+      // other topics and event timing stay intact.
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now()));
       validation.push('career_checked_fallback');
     }
