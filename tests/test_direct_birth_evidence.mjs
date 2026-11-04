@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {birthKey, sameBirth, suppliedBirth, matchingEvidence, invalidGunaScore} from '../extensions/reviewed-reading/direct/birth-evidence.mjs';
+import {birthKey, sameBirth, suppliedBirth, matchingEvidence, confirmedMatchingArguments, invalidGunaScore} from '../extensions/reviewed-reading/direct/birth-evidence.mjs';
 import {activeReadingQuestion, asksGunaScore} from '../extensions/reviewed-reading/direct/followup-scope.mjs';
 import {createTools} from '../extensions/reviewed-reading/direct/tools.mjs';
 import {validateDirectInput} from '../extensions/reviewed-reading/direct-route.mjs';
@@ -12,6 +12,63 @@ const args = {male_birth_date:'1/1/2000', male_birth_time:'05:00', male_location
   female_birth_date:'1/7/2003', female_birth_time:'05:38', female_location_name:'Mumbai'};
 const context = {birth, gender:'male', query:'Guna Milan kitne hain?', history:[{role:'user',text:partner}]};
 const memory = {read:async()=>[],write:async()=>({saved:true})};
+
+test('matching restores omitted place qualifiers from the confirmed profile and current partner form', async()=>{
+  const value={birth:{...birth,location_name:'Delhi, Delhi, India'},gender:'male',history:[],
+    query:'Guna Milan. Girlfriend details: DOB: 01-07-2003; Time: 05:38 AM; Place: Mumbai, Maharashtra, India; Gender: female.'};
+  const normalized=confirmedMatchingArguments(args,value);
+  assert.equal(normalized.male_location_name,value.birth.location_name);
+  assert.equal(normalized.female_location_name,'Mumbai, Maharashtra, India');
+  assert.equal(matchingEvidence(args,value),false,'reproduce the former rejection of shortened tool arguments');
+  assert.equal(matchingEvidence(normalized,value),true);
+  assert.equal(args.female_location_name,'Mumbai','do not mutate the model arguments');
+  assert.deepEqual(confirmedMatchingArguments({...args,male_location_name:'Delhi, India',female_location_name:'Mumbai, Maharashtra'},value),normalized);
+  assert.deepEqual(confirmedMatchingArguments(normalized,value),normalized,'full confirmed arguments stay unchanged');
+  let calls=0;
+  const execute=createTools({...value,memory,reading:async(name,input)=>{
+    calls++;assert.equal(name,'get_match_report');assert.deepEqual(input,normalized);
+    return {content:[{type:'text',text:'verified matching'}]};
+  }});
+  assert.equal(await execute('get_match_report',args),'verified matching');assert.equal(calls,1);
+});
+
+test('place restoration does not weaken date, time, identity, country or latest-form provenance',()=>{
+  const value={...context,birth:{...birth,location_name:'Delhi, Delhi, India'},history:[],
+    query:'Partner details:\nDOB: 01-07-2003\nTime: 05:38 AM\nPlace: Mumbai, Maharashtra, India'};
+  const mutations=[{female_location_name:'Mumbai, Canada'},{female_birth_date:'02/07/2003'},
+    {female_birth_time:'17:38'},{male_birth_date:'01/01/1990'},
+    {female_birth_date:args.male_birth_date,female_birth_time:args.male_birth_time,female_location_name:'Delhi'}];
+  for(const patch of mutations)assert.equal(matchingEvidence(confirmedMatchingArguments({...args,...patch},value),value),false,JSON.stringify(patch));
+  for(const query of ['Example: '+value.query,value.query+'\n02-07-2003',
+    value.query.replace('Mumbai, Maharashtra, India','Mumbai, Canada'), 'New partner Guna Milan']) {
+    const ctx={...value,query};
+    const normalized=confirmedMatchingArguments(args,ctx);
+    if(query.includes('Canada'))assert.equal(normalized.female_location_name,'Mumbai, Canada','keep the explicit full place for downstream country validation');
+    else assert.equal(matchingEvidence(normalized,ctx),false,query);
+  }
+  const latest={...value,query:value.query.replace('01-07-2003','02-07-2003'),history:[{role:'user',text:value.query}]};
+  assert.equal(matchingEvidence(confirmedMatchingArguments(args,latest),latest),false);
+  const assistantOnly={...value,query:'Guna Milan?',history:[{role:'assistant',text:value.query}]};
+  assert.equal(matchingEvidence(confirmedMatchingArguments(args,assistantOnly),assistantOnly),false);
+});
+
+test('a complete matching request reaches the verified score after city-only model arguments',async()=>{
+  let calls=0,calculations=0;
+  const value={user_id:'synthetic-qualified-matching',birth:{...birth,location_name:'Delhi, Delhi, India'},user_gender:'male',history:[],language:'english',
+    query:'My Guna Milan score: Partner DOB: 01-07-2003; Time: 05:38 AM; Place: Mumbai, Maharashtra, India; Gender: female.'};
+  const result=await directAnswer(value,{
+    env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    makeMemory:()=>memory,
+    makeTools:options=>createTools({...options,reading:async(name,input)=>{
+      calculations++;assert.equal(input.male_location_name,value.birth.location_name);assert.equal(input.female_location_name,'Mumbai, Maharashtra, India');
+      return {content:[{type:'text',text:JSON.stringify({guna_milan:{status:'ok',score_points:24.5,score_max:36}})}]};
+    }}),
+    fetchImpl:async()=>{calls++;const message=calls===1?{tool_calls:[{id:'matching',type:'function',function:{name:'mcp__VedAstro__get_match_report',arguments:JSON.stringify(args)}}]}:{content:'The verified Guna Milan score is 24.5/36. This traditional assessment does not guarantee relationship success.'};
+      return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));},
+  });
+  assert.equal(calls,2);assert.equal(calculations,1);assert.match(result.reply,/24\.5\/36/);
+  assert.deepEqual(result.answer_reading_tools,['get_match_report']);assert.ok(!result.answer_validation.includes('guna_score_rejected'));
+});
 
 test('birth normalization respects calendar, clock, AM/PM and full place qualifiers',()=>{
   assert.ok(sameBirth(birth, {...birth,date:'01/01/2000',time:'5:00 AM'}));

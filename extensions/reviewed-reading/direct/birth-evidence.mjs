@@ -39,13 +39,53 @@ export function suppliedBirth(birth, text) {
   return places.includes(key.place);
 }
 
-export function matchingEvidence(args, {birth, gender, query = '', history = []}) {
+function matchingForms({birth, gender, query = '', history = []}) {
   const texts = [...history.filter(t => t.role === 'user').map(t => t.text), query];
-  if (/\b(?:new|another|different|dusri|dusra|alag)\s+(?:partner|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query)) return false;
   // A newer complete form supersedes older partner inputs. Do not select an
   // earlier person's valid dates just because they are still in chat history.
   const forms = texts.filter(text => /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})\b/.test(text) && /\b\d{1,2}:\d{2}\b/.test(text));
-  const recent = forms.slice(-(['male', 'female'].includes(gender) && birthKey(birth) ? 1 : 2));
+  return forms.slice(-(['male', 'female'].includes(gender) && birthKey(birth) ? 1 : 2));
+}
+
+// Restore qualifiers the model omitted, never discard qualifiers or infer a
+// different city. The unchanged evidence check still verifies both people.
+export function confirmedMatchingArguments(args, context) {
+  const normalized = {...args};
+  const recent = matchingForms(context);
+  for (const person of ['male', 'female']) {
+    const candidate = {date: args[`${person}_birth_date`], time: args[`${person}_birth_time`], location_name: args[`${person}_location_name`]};
+    const key = birthKey(candidate);
+    if (!key) continue;
+    const locations = [];
+    if (context.gender === person && birthKey(context.birth)) {
+      locations.push(context.birth.location_name ?? context.birth.place);
+    }
+    for (const text of recent) {
+      for (const line of text.split(/[\n;]/)) {
+        const place = line.trim().replace(/^(?:place of birth|birth\s*place|location|pob|place|city)\s*[:=]\s*/i, '');
+        if (suppliedBirth({...candidate, location_name: place}, text)) locations.push(place);
+      }
+    }
+    const proofs = locations.filter(place => {
+      const proof = {...candidate, location_name: place};
+      const full = birthKey(proof);
+      const suppliedParts = full?.place.split(',');
+      const candidateParts = key.place.split(',');
+      return suppliedParts?.[0] === candidateParts[0] &&
+        candidateParts.slice(1).every(part => suppliedParts.slice(1).includes(part)) &&
+        ((context.gender === person && sameBirth(proof, context.birth)) ||
+          recent.some(text => suppliedBirth(proof, text)));
+    });
+    const unique = new Map(proofs.map(place => [birthKey({...candidate, location_name: place}).place, place]));
+    if (unique.size === 1) normalized[`${person}_location_name`] = [...unique.values()][0];
+  }
+  return normalized;
+}
+
+export function matchingEvidence(args, {birth, gender, query = '', history = []}) {
+  const texts = [...history.filter(t => t.role === 'user').map(t => t.text), query];
+  if (/\b(?:new|another|different|dusri|dusra|alag)\s+(?:partner|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query)) return false;
+  const recent = matchingForms({birth, gender, query, history});
   return ['male', 'female'].every(person => {
     const candidate = {date: args[`${person}_birth_date`], time: args[`${person}_birth_time`], location_name: args[`${person}_location_name`]};
     return (gender === person && sameBirth(candidate, birth)) || recent.some(text => suppliedBirth(candidate, text));

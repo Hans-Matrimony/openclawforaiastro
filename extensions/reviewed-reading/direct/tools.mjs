@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { SOURCE_TOOLS } from "./source-contract.mjs";
 import { sourceReading } from "./source-engine.mjs";
 import { selectedSelfBirth, selectedSelfArguments } from "./selected-self-birth.mjs";
-import { matchingEvidence, sameBirth, suppliedBirth } from "./birth-evidence.mjs";
+import { confirmedMatchingArguments, matchingEvidence, sameBirth, suppliedBirth } from "./birth-evidence.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "assets");
 const PREFIX = "mcp__VedAstro__";
@@ -159,6 +159,7 @@ export function createTools({
     // The app's selected self profile outranks stale model-supplied memory
     // arguments. Keep the boundary outside the unchanged calculation engine.
     args = selectedSelfArguments(name, args, selfBirth);
+    if (name === 'get_match_report') args = confirmedMatchingArguments(args, {birth, gender, query, history});
     if (name === 'get_match_report' && !matchingEvidence(args, {birth, gender, query, history})) {
       const error = new Error('Both people need their own confirmed date, exact time and birthplace');
       error.code = 'matching_birth_required';

@@ -4,6 +4,40 @@ import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
 import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, friendshipAdviceRequested, isEmotionalFriendship } from "../extensions/reviewed-reading/direct/emotional-friendship.mjs";
 import { CHART_TOOL_NAMES, bareToolName } from "../extensions/reviewed-reading/direct/reading-intent.mjs";
 
+void test('listening reassurance neither invents fear nor accepts the observed grammar defect',()=>{
+  const value={query:'Kya main bata sakta hoon ki kya hua?',language:'hinglish'};
+  assert.match(emotionalReplyIssue('Aap apni baat kahiye. Main poori dhang se sun lungi.',value),/malformed everyday language/);
+  assert.match(emotionalReplyIssue('Koi darr nahi, aap aaram se kahiye.',value),/did not disclose fear/);
+  assert.equal(emotionalReplyIssue('Aap aaram se kahiye, main dhyan se sunungi.',value),null);
+  assert.doesNotMatch(emotionalReplyIssue('Koi darr nahi, aap aaram se kahiye.',{...value,query:'Mujhe darr lag raha hai, baat suno.'})??'',/did not disclose fear/);
+});
+
+void test('explicit loneliness needs acknowledgement, not only a presence announcement', async () => {
+  const bad='Main yahan hoon. Bataiye, jab aap taiyaar hon main sun lungi.';
+  const queries=['Aaj bahut akela mehsoos ho raha hai. Advice nahi chahiye, bas suno.',
+    'I feel really lonely today. No advice, please.', 'आज अकेला महसूस हो रहा है। बस सुनो, सलाह नहीं चाहिए।'];
+  for(const query of queries) {
+    const value={query,language:'hinglish'};
+    assert.match(emotionalReplyIssue(bad,value),/ignores the disclosed loneliness/);
+    const fallback=emotionalReplyFallback(value);
+    assert.equal(emotionalReplyIssue(fallback,value),null);
+    assert.doesNotMatch(fallback,/[?？]/);
+    assert.deepEqual(emotionalIssueCategories(emotionalReplyIssue(bad,value)),['missing_acknowledgement']);
+  }
+  for(const query of ['I am not lonely.', 'Main akela nahi hoon.', 'Main akela lag nahi raha.',
+    'My friend feels lonely.', 'What does lonely mean?', 'Can I tell you what happened?'])
+    assert.doesNotMatch(emotionalReplyIssue(bad,{query,language:'en'})??'',/ignores the disclosed loneliness/,query);
+  let calls=0;
+  const value={user_id:'synthetic-loneliness',query:queries[0],language:'hinglish',history:[],birth:{}};
+  const result=await directAnswer(value,{
+    env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>assert.fail('No chart for listening'),
+    fetchImpl:async()=>{calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:bad}}],usage:{cost:0}}));},
+  });
+  assert.equal(calls,2);assert.match(result.reply,/akelaapan/);
+  assert.deepEqual(result.answer_validation,['emotional_quality_rewrite','emotional_quality_fallback']);
+});
+
 void test("loneliness listening rejects the observed malformed phrase without rejecting ordinary support", async () => {
   const value = { user_id: "synthetic-listening", query: "Aaj bahut akela lag raha hai. Bas meri baat suno, abhi advice nahi chahiye.", language: "hinglish", user_gender: "male", history: [], birth: {} };
   const bad = "Main yahan hoon. Aaj jo bhi feel ho raha hai, usse saath dena chahti hoon.";

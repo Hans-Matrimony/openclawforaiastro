@@ -34,6 +34,13 @@ export function readingPresentationIssue(reply) {
     issues.push('Qualify the outcome as a possibility rather than asserting that progress or results will be slow. Preserve the caution and its evidence.');
   }
   const planet = '(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)';
+  const period = '\\b' + planet + '\\s+(?:(?:ka|ki)\\s+)?(?:mahadasha|antardasha)';
+  const house = '(?:house\\s+\\d+|\\d+(?:ve|ven|th)?\\s+(?:ghar|house))';
+  const periodAsPlacement = period + '\\s+(?:mein|me)\\s+(?:' + house + '\\s+(?:mein|me)\\s+)?(?:baith\\w*|placed|situated)\\b|' +
+    period + '\\s+' + house + '\\s+(?:mein|me)\\s+(?:hai|hain)\\b';
+  if (new RegExp(periodAsPlacement, 'iu').test(reply)) {
+    issues.push('A natal house contains a planet, not an antardasha. State the checked natal placement in its own complete clause, then separately label the period and preserve its exact supported month-year boundaries and qualified verdict.');
+  }
   if (new RegExp('\\b(?:\\d+(?:ve|ven|th)?|saatve|seventh)\\s+(?:ghar|house)\\s+(?:par|mein|me)\\s+' + planet + '\\s+(?:(?:ka|ki)\\s+)?(?:mahadasha|antardasha)\\b', 'iu').test(reply)) {
     issues.push('A natal house contains a planet, not an antardasha. State the checked natal placement in its own complete clause, then separately label the period and preserve its exact supported month-year boundaries and qualified verdict.');
   }

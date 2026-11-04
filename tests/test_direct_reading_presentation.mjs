@@ -19,10 +19,12 @@ test('career wording review catches certainty and mixed period labels without re
 });
 
 test('house placement and period wording stay distinct without rejecting a supported window', () => {
-  for (const text of ['7ve ghar par Jupiter ka antardasha November 2031 se July 2034 tak hai.', '7ve ghar mein Jupiter ki antardasha hai.']) {
+  for (const text of ['7ve ghar par Jupiter ka antardasha November 2031 se July 2034 tak hai.', '7ve ghar mein Jupiter ki antardasha hai.',
+    'Jupiter antardasha mein house 7 mein baithkar ek sahyog hai.', 'Jupiter ki antardasha 7ve ghar mein hai.', 'Venus mahadasha mein house 10 mein placed hai.']) {
     assert.match(readingPresentationIssue(text), /house contains a planet, not an antardasha/);
   }
-  for (const text of ['Jupiter 7ve ghar mein hai. Jupiter ki antardasha November 2031 se July 2034 tak hai.', '7ve ghar mein Jupiter baitha hai; uski antardasha November 2031 se July 2034 tak hai.']) assert.equal(readingPresentationIssue(text), null);
+  for (const text of ['Jupiter 7ve ghar mein hai. Jupiter ki antardasha November 2031 se July 2034 tak hai.', '7ve ghar mein Jupiter baitha hai; uski antardasha November 2031 se July 2034 tak hai.',
+    'Jupiter antardasha mein shaadi ki sambhavna hai, Jupiter house 7 mein hai.', 'Venus mahadasha mein career ko sahyog ho sakta hai.']) assert.equal(readingPresentationIssue(text), null);
 });
 
 test('an existing possible window is distinguished from an unknown exact date without forcing missing dates', () => {

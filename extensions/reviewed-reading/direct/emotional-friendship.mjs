@@ -156,6 +156,18 @@ export function emotionalConversationContext(history, query) {
 }
 
 // Narrow checks for observed defects, not a sentiment or clinical classifier.
+function currentLoneliness(query) {
+  // Only acknowledge the user's explicit, current self-disclosure. A friend's
+  // feelings, a definition and a denial must not turn into a claim about them.
+  if (/\b(?:friend|dost|partner|girlfriend|boyfriend|gf|bf)\b|दोस्त|सहेली/iu.test(query)) return false;
+  const disclosed = query
+    .replace(/\b(?:not|never|no longer|don't|dont|do not)\s+(?:at all\s+)?(?:feel(?:ing)?\s+)?(?:lonely|alone)\b/giu, '')
+    .replace(/\b(?:akela|akeli)\s+(?:(?:mehsoos|feel)\s+)?(?:nahi|nahin|nhi)\b/giu, '')
+    .replace(/\b(?:akela|akeli)\s+lag\s+(?:nahi|nahin|nhi)\b/giu, '')
+    .replace(/अकेल[ाी]\s+(?:महसूस\s+)?नहीं/gu, '');
+  return /\bI\s+(?:am|feel|am feeling)\s+(?:(?:very|really|so)\s+)?lonely\b|\b(?:akela|akeli)\s+(?:(?:lag|feel)\b|mehsoos\s+ho)|अकेल[ाी]\s+(?:लग|महसूस\s+हो)/iu.test(disclosed);
+}
+
 export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
@@ -165,7 +177,7 @@ export function emotionalReplyIssue(reply, value) {
   }
   // Reject the specific malformed phrases observed in live Hindi/Hinglish
   // replies. Do not attempt a broad dictionary-based grammar classifier.
-  if (/कुछ सालने की जरूरत|आपको जो भी बात है|\b(?:thoda sa theekha lage|dil ka har ek saans|(?:usse|use|ise|isko)\s+saath\s+dena)\b/iu.test(reply)) {
+  if (/कुछ सालने की जरूरत|आपको जो भी बात है|\b(?:thoda sa theekha lage|dil ka har ek saans|poori\s+dhang|(?:usse|use|ise|isko)\s+saath\s+dena)\b/iu.test(reply)) {
     issues.push("The reply contains malformed everyday language. Use short literal sentences with ordinary words; remove invented words and bodily metaphors.");
   }
   if (/\b(?:no questions|don't ask|do not ask|sawa?l mat|questions? mat)\b|(?:सवाल|प्रश्न)\s*(?:नहीं|मत)/iu.test(value.query) && /[?？]/u.test(reply)) {
@@ -174,6 +186,10 @@ export function emotionalReplyIssue(reply, value) {
   const userText = [value.query, ...(value.history || []).filter(turn => turn.role === "user").map(turn => turn.text)].join("\n");
   if (unsupportedFeelingClaim(reply, value)) {
     issues.push("Do not attribute emptiness, heaviness, loneliness or heartbreak to the user, even as a guess. Acknowledge the disclosed event and invite them to describe their own experience.");
+  }
+  if (/\bkoi\s+(?:dar|darr)\s+nahi\b/iu.test(reply) &&
+      !/\b(?:dar|darr|afraid|scared|fear|frightened)\b|डर|भय/iu.test(value.query)) {
+    issues.push('Do not add an unprompted claim that there is no fear. The user did not disclose fear; respond to the concern they actually shared.');
   }
   if (/\b(?:tum|tumne|tumhe|tumhara|tumhari|tumhare|tujhe|tujhse|tera|teri|tere)\b|(?:^|\s)(?:तुम|तुमने|तुम्हें|तुम्हारा|तुम्हारी|तेरा|तेरी)(?:\s|[।,.!?]|$)/iu.test(reply)) {
     issues.push("Use respectful aap forms consistently; remove informal second-person address.");
@@ -193,6 +209,10 @@ export function emotionalReplyIssue(reply, value) {
     issues.push("The emotional reply introduces astrology. Address only the current lived event.");
   }
   const presence = reply.match(/\b(?:sun\s+rah[ai]\s+h(?:oo|u)n|y(?:a)?h(?:a{1,2}n|in)\s+h(?:oo|u)n|(?:i am|i'm)\s+(?:right\s+)?here(?:\s+for you)?)\b|(?:सुन रही|सुन रहा|यहाँ|यहां|यहीं)\s+हूँ/giu) || [];
+  if (!friendshipAdviceRequested(value.query) && currentLoneliness(value.query) &&
+      !/\b(?:lonel\w*|alone|isolated|disconnected|akela\w*|akeli|akele\w*|tanha\w*)\b|अकेल|तन्हा/iu.test(reply)) {
+    issues.push('The reply ignores the disclosed loneliness. Briefly acknowledge that stated feeling before leaving room to speak; do not merely announce presence, add advice or invent a cause.');
+  }
   if (presence.length > 1 || (presence.length === 1 && reply.trim().split(/\s+/u).length < 10)) {
     issues.push("Replace repetitive or empty presence announcements with acknowledgement; at most one reassurance may follow a grounded response.");
   }
@@ -223,6 +243,7 @@ export function emotionalIssueCategories(issue) {
     ["persona_grammar", "grammatical gender"],
     ["malformed_language", "malformed everyday language"],
     ["unsupported_feeling", "attribute emptiness"],
+    ["unprompted_fear", "unprompted claim that there is no fear"],
     ["unwanted_question", "requested no questions"],
     ["informal_address", "respectful aap"],
     ["unsupported_relationship", "loved the partner"],
@@ -243,9 +264,7 @@ export function emotionalReplyFallback(value) {
   const hi = /^(?:hi|hindi)(?:-|$)/.test(language);
   const hinglish = language === "hinglish";
   const disclosure = currentFriendshipDisclosure(value);
-  if (!advice && !/\b(?:friend|dost|partner|girlfriend|boyfriend|gf|bf)\b|दोस्त|सहेली/iu.test(value.query) &&
-      /\b(?:akela|akeli)\s+(?:lag|feel)|\bI\s+(?:am|feel)\s+(?:very\s+)?lonely\b|अकेल[ाी]\s+(?:लग|महसूस)/iu.test(value.query) &&
-      !/\b(?:not|nahi|nahin)\b|नहीं/iu.test(value.query.replace(/\b(?:advice|salah|questions?)\s+(?:nahi|nahin)\b|(?:सलाह|सवाल)\s+नहीं/giu, ""))) {
+  if (!advice && currentLoneliness(value.query)) {
     return hi ? "आज आपको अकेलापन महसूस हो रहा है। आप जो कहना चाहें, आराम से कह सकते हैं; अभी कोई समाधान ढूँढना ज़रूरी नहीं है।"
       : hinglish ? "Aaj aapko akelaapan mehsoos ho raha hai. Aap jo kehna chahein, aaram se keh sakte hain; abhi koi solution dhoondhna zaroori nahi hai."
         : "You are feeling lonely today. You can tell me what is on your mind at your own pace; we do not need to jump to solutions.";
