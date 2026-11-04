@@ -87,3 +87,23 @@ for(const persistent of [false,true])test(`career correction preserves valid fie
   assert.doesNotMatch(result.reply,/internal caution|not delay|suit you best/);
   if(!persistent)assert.ok(result.reply.startsWith(goodCareer));
 });
+
+test('a career draft rejected for both facts and wording closes with checked factors, without another model call',async()=>{
+  let calls=0,calculations=0;
+  const drafts=[
+    'Saturn in the 7th adds internal caution, not delay.\n\nCareer options may include analysis.',
+    'Saturn means career progress will be delayed.\n\nCareer options may include analysis.',
+    'The 10th house is strong. Saturn affects relationships, not your inner drive.\n\nManagement roles suit you.',
+  ];
+  const result=await directAnswer({user_id:'synthetic-closed-career-repair',query,language:'english',history:[],birth:{date:'2000-01-01',time:'12:00',location_name:'Delhi'}},{
+    env,makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(chart);},
+    fetchImpl:async()=>{
+      calls++;
+      const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:drafts[calls-2]};
+      return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));
+    },
+  });
+  assert.equal(calls,4);assert.equal(calculations,1);
+  assert.ok(result.answer_validation.includes('career_checked_fallback'));
+  assert.match(result.reply,/mixed/);assert.doesNotMatch(result.reply,/relationships|inner drive|Management/);
+});

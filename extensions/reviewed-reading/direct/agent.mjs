@@ -930,6 +930,15 @@ export async function directAnswer(
         publishableReply = formatDisplayReply(checkedFacts);
       }
     }
+    if (sourceFlow && readingTools.size > 0 && !timingRequired && !asksForTiming(value.query) &&
+        /\b(?:career|job|naukri)\b/iu.test(value.query) &&
+        validation.includes('chart_claim_conflict') && validation.includes('reading_wording_rejected')) {
+      // Repeatedly rejected career prose can trade one invented explanation
+      // for another. Close this failed repair with the existing facts renderer;
+      // ordinary answers, single successful repairs and event timing stay intact.
+      publishableReply = formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now()));
+      validation.push('career_checked_fallback');
+    }
     if (explicitEnglishReplyMismatch(value, publishableReply)) {
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, 'english', value.query, now()));
       validation.push('english_language_fallback');
