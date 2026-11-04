@@ -62,6 +62,7 @@ import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-
 import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion } from './followup-scope.mjs';
 import { invalidGunaScore } from './birth-evidence.mjs';
 import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentation.mjs';
+import { quotedMatchingLimitations } from './matching-clarification.mjs';
 
 const READING_BUBBLE_WORD_CAP = 35;
 const VERDICT_BUBBLE_WORD_CAP = 8;
@@ -211,6 +212,7 @@ export async function directAnswer(
   const maxCalls = sourceFlow ? 8 : 5;
   const signal = AbortSignal.timeout(120000);
   const originalQuery = value.query;
+  const matchingLimitations = quotedMatchingLimitations(value);
   const activeQuestion = activeReadingQuestion(value);
   if (activeQuestion !== value.query) value = {...value, query: activeQuestion};
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
@@ -296,7 +298,7 @@ export async function directAnswer(
         "\\u003c",
       );
   }
-  const readingRequired = !emotionalFriendship && (isPersonalChartQuestion(activeQuestion) || asksGunaScore(value.query));
+  const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(activeQuestion) || asksGunaScore(value.query));
   const timingRequired =
     sourceFlow &&
     readingRequired &&
@@ -386,14 +388,14 @@ export async function directAnswer(
         : messages,
       tools: pendingTimingRepair
         ? [pendingTimingRepair.tool]
-        : ordinaryConcern || practicalFollowup || emotionalFriendship
+        : matchingLimitations || ordinaryConcern || practicalFollowup || emotionalFriendship
           ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
           : requireChart
             ? TOOLS.filter((tool) => CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
             : TOOLS,
       tool_choice: pendingTimingRepair
         ? { type: "function", function: { name: pendingTimingRepair.name } }
-        : correctedReadingPresentation || correctedUndatedTiming ? "none"
+        : matchingLimitations || correctedReadingPresentation || correctedUndatedTiming ? "none"
         : requireTiming
           ? { type: "function", function: { name: "mcp__VedAstro__get_horoscope_predictions" } }
           : requireChart
@@ -555,7 +557,8 @@ export async function directAnswer(
         ? `Please confirm ${partnerOnly ? 'your partner\'s birth date, exact birth time and birthplace' : 'both people\'s birth dates, exact birth times and birthplaces'} for the matching calculation?`
         : `Kya aap ${partnerOnly ? 'partner ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
     }
-    const checkMatchingScore = !generalMatchingQuestion(value.query) &&
+    if (matchingLimitations) reply = matchingLimitations;
+    const checkMatchingScore = !matchingLimitations && !generalMatchingQuestion(value.query) &&
       (asksGunaScore(value.query) || readingTools.has('get_match_report') || /\b(?:guna?|gun|ashtakoota)\b/i.test(reply + ' ' + (value.reply_to?.text ?? '')));
     if (checkMatchingScore && (invalidGunaScore(reply, chartResults) || invalidGunaPresentation(reply, chartResults, value.query))) {
       validation.push('guna_score_rejected');
@@ -594,7 +597,7 @@ export async function directAnswer(
         reply.trim(),
       ) &&
       !/[.!।]\s|\n\s*\n/.test(reply.trim());
-    if (asksGunaScore(value.query) && !readingTools.has('get_match_report') && !clarification) {
+    if (!matchingLimitations && asksGunaScore(value.query) && !readingTools.has('get_match_report') && !clarification) {
       if (!correctedGunaScore && modelCalls < maxRounds) {
         correctedGunaScore = true;
         messages.push({role:'user', content:'This asks for Guna Milan. A horoscope or house-strength result is not a matching score. Call get_match_report using both people\'s established birth details; if any are missing, ask only for those instead of estimating points.'});
@@ -801,7 +804,7 @@ export async function directAnswer(
       remedyKnowledge?.status === "available" ||
       isStressConcern(value.query);
     let finalReply = formatted;
-    if (listeningTurn || emotionalFriendship || unverifiedReading) {
+    if (matchingLimitations || listeningTurn || emotionalFriendship || unverifiedReading) {
       // This writer owns the complete emotional reply, including any welcomed
       // practical suggestion. A second companion would repeat the comfort.
       finalReply = formatted;

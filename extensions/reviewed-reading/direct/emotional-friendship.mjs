@@ -1,11 +1,12 @@
 import { asksForTiming, isPersonalChartQuestion } from "./reading-intent.mjs";
 import { responseLanguageInstruction } from "./response-language.mjs";
-import { friendshipContinuation, friendshipDisclosure, friendshipNoName, rejectsPreviousAdvice } from "./friendship-intent.mjs";
+import { isFriendshipContinuation, malayalamLoneliness, friendshipDisclosure, friendshipNoName, rejectsPreviousAdvice } from "./friendship-intent.mjs";
 import { friendshipGroundingIssues, currentFriendshipDisclosure, requestsMessageDraft } from "./friendship-grounding.mjs";
 
 // This only enriches clear emotional conversation. Reading requests retain
 // their existing prompts, evidence checks, tools and delivery contract.
 export function isEmotionalFriendship(query, history = []) {
+  if (/ജാതകം|ജ്യോതിഷം|ദശാഫലം|ആത്മഹത്യ|മരിക്കണം|ജീവൻ ഒടുക്ക/u.test(query)) return false;
   // A definition or general explanation is not a disclosure of distress.
   if (/^(?:what (?:is|are|does)|why do people|why does someone|explain|define)\b/iu.test(query.trim())) {
     return false;
@@ -19,7 +20,7 @@ export function isEmotionalFriendship(query, history = []) {
   }
   // Clear lived events are not chart requests merely because they mention a
   // relationship, job or exam. Explicit reading/safety requests above still win.
-  const disclosure = friendshipDisclosure(query);
+  const disclosure = friendshipDisclosure(query) || malayalamLoneliness(query);
   if (!disclosure && isPersonalChartQuestion(query.replace(/[?？]+\s*$/u, ""))) return false;
   if (disclosure) return true;
   // Do not console an emotion the user explicitly says they no longer feel.
@@ -39,14 +40,13 @@ export function isEmotionalFriendship(query, history = []) {
   }
   // A short continuation inherits only the immediately preceding user topic.
   // Never walk past a topic change or infer distress from an assistant reply.
-  const continuation = friendshipContinuation;
-  if (continuation.test(query.trim()) || rejectsPreviousAdvice(query)) {
+  if (isFriendshipContinuation(query) || rejectsPreviousAdvice(query)) {
     // Skip acknowledgements only, never a substantive topic change. Avoid
     // recursive history walking and do not use assistant claims as evidence.
     for (let index = history.length - 1; index >= 0; index--) {
       const previous = history[index];
       const text = previous.text ?? previous.content ?? "";
-      if (previous.role !== "user" || continuation.test(text.trim()) || rejectsPreviousAdvice(text)) continue;
+      if (previous.role !== "user" || isFriendshipContinuation(text) || rejectsPreviousAdvice(text)) continue;
       return isEmotionalFriendship(text);
     }
     return false;
@@ -55,6 +55,7 @@ export function isEmotionalFriendship(query, history = []) {
 }
 
 export function friendshipListeningOnly(query) {
+  if (malayalamLoneliness(query) && /ഉപദേശം വേണ്ട|ചോദ്യങ്ങൾ ചോദിക്കേണ്ട/u.test(query)) return true;
   if (rejectsPreviousAdvice(query) && !/\b(?:just listen|only listen|bas suno|sirf suno|no advice at all)\b|बस सुन|सिर्फ सुन/iu.test(query)) return false;
   return /\b(?:just listen|only listen|bas suno|sirf suno|sun lo)\b|\b(?:no advice|advice (?:nahi|nahin|mat))\b|(?:बस|सिर्फ|केवल)\s*(?:सुनो|सुनिए)|(?:सलाह|सवाल|प्रश्न)\s*(?:नहीं|मत)/iu.test(query);
 }
@@ -142,9 +143,8 @@ export function emotionalConversationContext(history, query) {
     /\b(?:you said|your (?:advice|suggestion|reply|answer)|that (?:advice|suggestion)|aapne|aapki baat|tumne|didn't help|did not help|kaam nahi)\b|आपने|आपकी बात/iu.test(query);
   const lastAssistant = refersBack ? history.findLastIndex(turn => turn.role === "assistant") : -1;
   const relevant = history.filter((turn, index) => turn.role === "user" || index === lastAssistant);
-  const continuation = friendshipContinuation;
-  const latestTopic = continuation.test(query.trim()) || rejectsPreviousAdvice(query)
-    ? history.findLast(turn => turn.role === "user" && !continuation.test((turn.content ?? turn.text ?? "").trim()))
+  const latestTopic = isFriendshipContinuation(query) || rejectsPreviousAdvice(query)
+    ? history.findLast(turn => turn.role === "user" && !isFriendshipContinuation(turn.content ?? turn.text ?? ""))
     : null;
   return "\n# Prior conversation data\nUser-authored facts and attempts are retained. Assistant prose is omitted unless needed to resolve a reference in this message; do not invent omitted advice. Use this as context, not response examples. Current user corrections take priority.\n" +
     JSON.stringify(relevant).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") +
@@ -157,6 +157,7 @@ export function emotionalConversationContext(history, query) {
 
 // Narrow checks for observed defects, not a sentiment or clinical classifier.
 function currentLoneliness(query) {
+  if (malayalamLoneliness(query)) return true;
   // Only acknowledge the user's explicit, current self-disclosure. A friend's
   // feelings, a definition and a denial must not turn into a claim about them.
   if (/\b(?:friend|dost|partner|girlfriend|boyfriend|gf|bf)\b|दोस्त|सहेली/iu.test(query)) return false;
@@ -165,7 +166,7 @@ function currentLoneliness(query) {
     .replace(/\b(?:akela|akeli)\s+(?:(?:mehsoos|feel)\s+)?(?:nahi|nahin|nhi)\b/giu, '')
     .replace(/\b(?:akela|akeli)\s+lag\s+(?:nahi|nahin|nhi)\b/giu, '')
     .replace(/अकेल[ाी]\s+(?:महसूस\s+)?नहीं/gu, '');
-  return /\bI\s+(?:am|feel|am feeling)\s+(?:(?:very|really|so)\s+)?lonely\b|\b(?:akela|akeli)\s+(?:(?:lag|feel)\b|mehsoos\s+ho)|अकेल[ाी]\s+(?:लग|महसूस\s+हो)/iu.test(disclosed);
+  return /\bI\s+(?:am|feel|am feeling)\s+(?:(?:very|really|so)\s+)?lonely\b|\b(?:akela|akeli)\s+(?:(?:lag|feel)\b|mehsoos\s+ho)|अकेलापन|अकेल[ाी]\s+(?:लग|महसूस\s+हो)/iu.test(disclosed);
 }
 
 export function emotionalReplyIssue(reply, value) {
@@ -177,10 +178,10 @@ export function emotionalReplyIssue(reply, value) {
   }
   // Reject the specific malformed phrases observed in live Hindi/Hinglish
   // replies. Do not attempt a broad dictionary-based grammar classifier.
-  if (/कुछ सालने की जरूरत|आपको जो भी बात है|\b(?:thoda sa theekha lage|dil ka har ek saans|poori\s+dhang|(?:usse|use|ise|isko)\s+saath\s+dena)\b/iu.test(reply)) {
+  if (/कुछ सालने की जरूरत|आपको जो भी बात है|बस ऐसे ही रहिए|जब तक आप तैयार न हो जा|\b(?:thoda sa theekha lage|dil ka har ek saans|poori\s+dhang|(?:usse|use|ise|isko)\s+saath\s+dena)\b/iu.test(reply)) {
     issues.push("The reply contains malformed everyday language. Use short literal sentences with ordinary words; remove invented words and bodily metaphors.");
   }
-  if (/\b(?:no questions|don't ask|do not ask|sawa?l mat|questions? mat)\b|(?:सवाल|प्रश्न)\s*(?:नहीं|मत)/iu.test(value.query) && /[?？]/u.test(reply)) {
+  if (/\b(?:no questions|don't ask|do not ask|sawa?l mat|questions? mat)\b|(?:सवाल|प्रश्न)\s*(?:नहीं|मत)|ചോദ്യങ്ങൾ ചോദിക്കേണ്ട/iu.test(value.query) && /[?？]/u.test(reply)) {
     issues.push("The user requested no questions. Acknowledge their message without asking a question.");
   }
   const userText = [value.query, ...(value.history || []).filter(turn => turn.role === "user").map(turn => turn.text)].join("\n");
@@ -193,6 +194,9 @@ export function emotionalReplyIssue(reply, value) {
   }
   if (/\b(?:tum|tumne|tumhe|tumhara|tumhari|tumhare|tujhe|tujhse|tera|teri|tere)\b|(?:^|\s)(?:तुम|तुमने|तुम्हें|तुम्हारा|तुम्हारी|तेरा|तेरी)(?:\s|[।,.!?]|$)/iu.test(reply)) {
     issues.push("Use respectful aap forms consistently; remove informal second-person address.");
+  }
+  if (value.language === 'malayalam' && /(?:^|\s)(?:നീ|നിനക്ക്|നിന്റെ)(?:\s|[,.!?]|$)/u.test(reply)) {
+    issues.push('Use respectful addressing consistently in Malayalam, without informal second-person address.');
   }
   if (/\b(?:you loved|aapne\s+.{0,30}pyaar kiya|tumne\s+.{0,30}pyaar kiya)\b/iu.test(reply) &&
       !/\b(?:i (?:love|loved)|pyaar|pyar|love)\b|प्यार/iu.test(userText)) {
@@ -208,9 +212,9 @@ export function emotionalReplyIssue(reply, value) {
   if (/\b(?:kundli|horoscope|dasha|planet|chart|house score)\b|कुंडली|दशा|ग्रह/iu.test(reply)) {
     issues.push("The emotional reply introduces astrology. Address only the current lived event.");
   }
-  const presence = reply.match(/\b(?:sun\s+rah[ai]\s+h(?:oo|u)n|y(?:a)?h(?:a{1,2}n|in)\s+h(?:oo|u)n|(?:i am|i'm)\s+(?:right\s+)?here(?:\s+for you)?)\b|(?:सुन रही|सुन रहा|यहाँ|यहां|यहीं)\s+हूँ/giu) || [];
+  const presence = reply.match(/\b(?:sun\s+rah[ai]\s+h(?:oo|u)n|y(?:a)?h(?:a{1,2}n|in)\s+h(?:oo|u)n|(?:i am|i'm)\s+(?:right\s+)?here(?:\s+for you)?)\b|(?:सुन रही|सुन रहा|यहाँ|यहां|यहीं)\s+हूँ|ഞാൻ (?:ഇവിടെയുണ്ട്|കേട്ടുകൊണ്ടിരിക്കുകയാണ്|കേൾക്കുന്നുണ്ട്)/giu) || [];
   if (!friendshipAdviceRequested(value.query) && currentLoneliness(value.query) &&
-      !/\b(?:lonel\w*|alone|isolated|disconnected|akela\w*|akeli|akele\w*|tanha\w*)\b|अकेल|तन्हा/iu.test(reply)) {
+      !/\b(?:lonel\w*|alone|isolated|disconnected|akela\w*|akeli|akele\w*|tanha\w*)\b|अकेल|तन्हा|ഒറ്റപ്പെട|ഒറ്റപ്പെട്ട|ഏകാന്തത/iu.test(reply)) {
     issues.push('The reply ignores the disclosed loneliness. Briefly acknowledge that stated feeling before leaving room to speak; do not merely announce presence, add advice or invent a cause.');
   }
   if (presence.length > 1 || (presence.length === 1 && reply.trim().split(/\s+/u).length < 10)) {
@@ -264,10 +268,20 @@ export function emotionalReplyFallback(value) {
   const hi = /^(?:hi|hindi)(?:-|$)/.test(language);
   const hinglish = language === "hinglish";
   const disclosure = currentFriendshipDisclosure(value);
+  if (language === 'malayalam' && !advice && malayalamLoneliness(value.query)) {
+    return 'ഇന്ന് ഒറ്റപ്പെട്ടതായി തോന്നുന്നുവെന്ന് മനസ്സിലാകുന്നു. പറയാൻ തോന്നുന്നത് സ്വന്തം വേഗത്തിൽ പറയാം; ഇപ്പോൾ പരിഹാരം കണ്ടെത്തേണ്ട ആവശ്യമില്ല.';
+  }
   if (!advice && currentLoneliness(value.query)) {
     return hi ? "आज आपको अकेलापन महसूस हो रहा है। आप जो कहना चाहें, आराम से कह सकते हैं; अभी कोई समाधान ढूँढना ज़रूरी नहीं है।"
       : hinglish ? "Aaj aapko akelaapan mehsoos ho raha hai. Aap jo kehna chahein, aaram se keh sakte hain; abhi koi solution dhoondhna zaroori nahi hai."
         : "You are feeling lonely today. You can tell me what is on your mind at your own pace; we do not need to jump to solutions.";
+  }
+  if (advice && isFriendshipContinuation(value.query) && currentLoneliness(disclosure)) {
+    return hi
+      ? 'आपने अकेलापन महसूस होने की बात कही थी। चाहें तो आज किसी भरोसेमंद व्यक्ति को एक छोटा संदेश भेजकर पूछ सकते हैं कि क्या उनके पास थोड़ी देर बात करने का समय है।'
+      : hinglish
+        ? 'Aapne akelaapan mehsoos hone ki baat kahi thi. Aap chahein toh aaj kisi bharosemand insaan ko ek chhota message bhejkar pooch sakte hain ki unke paas thodi der baat karne ka waqt hai.'
+        : 'You mentioned feeling lonely. One optional step today is to message someone you trust and ask whether they have a little time to talk.';
   }
   if (advice && /\b(?:my friend|meri dost|mera dost)\b/iu.test(value.query) &&
       /\b(?:listen|sun[un]*|support|help)\b/iu.test(value.query)) {
@@ -275,7 +289,7 @@ export function emotionalReplyFallback(value) {
       : hinglish ? "Aap apni dost ki baat dhyan se sunna chahte hain. Unhe apni baat poori karne dein, bina turant solution diye. Pooch sakte hain ki unhe sirf sunne wala chahiye ya salah bhi; unki pasand ke hisaab se saath dein."
         : "You want to support your friend by listening. Let them finish without rushing to solve things. You can ask whether they want someone to listen or would also like advice, and follow their preference.";
   }
-  if (advice && friendshipContinuation.test(value.query.trim()) &&
+  if (advice && isFriendshipContinuation(value.query) &&
       /\b(?:girlfriend|boyfriend|partner|gf|bf)\b.{0,60}(?:khatam|left|chali|chli|broke)/iu.test(disclosure)) {
     return hi ? "अभी जवाब देने की जल्दी ज़रूरी नहीं है। चाहें तो इतना कह सकते हैं: ‘मुझे यह समझने के लिए थोड़ा समय चाहिए। बाद में बात करेंगे।’ अपने लिए जितना समय चाहिए, लीजिए।"
       : hinglish ? "Rishta khatam hone ke baad abhi jawab dene ki jaldi zaroori nahi hai. Aap chahein toh keh sakte hain: 'Mujhe yeh samajhne ke liye thoda waqt chahiye. Baad mein baat karte hain.' Apne liye waqt le sakte hain."

@@ -1,10 +1,10 @@
-import { friendshipContinuation, rejectsPreviousAdvice } from "./friendship-intent.mjs";
+import { isFriendshipContinuation, rejectsPreviousAdvice } from "./friendship-intent.mjs";
 
 export function currentFriendshipDisclosure(value) {
-  if (!friendshipContinuation.test(value.query.trim()) && !rejectsPreviousAdvice(value.query)) return value.query;
+  if (!isFriendshipContinuation(value.query) && !rejectsPreviousAdvice(value.query)) return value.query;
   const turn = [...(value.history || [])].reverse().find(turn => {
     const text = turn.text ?? turn.content ?? "";
-    return turn.role === "user" && !friendshipContinuation.test(text.trim()) && !rejectsPreviousAdvice(text);
+    return turn.role === "user" && !isFriendshipContinuation(text) && !rejectsPreviousAdvice(text);
   });
   return turn?.text ?? turn?.content ?? value.query;
 }

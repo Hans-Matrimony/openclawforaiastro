@@ -5,6 +5,20 @@ export function rejectsPreviousAdvice(query) {
   return /\b(?:did(?:n't| not) help|not helpful|same advice|advice (?:dobara|again)|wahi advice|help nahi hui|kaam nahi (?:kiya|aaya))\b|वही सलाह|मदद नहीं हुई/iu.test(query);
 }
 
+export function isFriendshipContinuation(query) {
+  if (friendshipContinuation.test(query.trim())) return true;
+  // A generic request for one step can continue listening, including after a
+  // language switch. Explicit new goals must not inherit an older emotion.
+  return query.trim().split(/\s+/u).length <= 30 &&
+    /^(?:(?:ab|now|please)\s+)?(?:(?:give|tell)\s+me\s+)?(?:(?:ek|one|a)\s+)?(?:(?:chh?ota|small|manageable)\s+)?practical\s+step\b/iu.test(query.trim()) &&
+    !/\b(?:career|job|naukri|interview|resume|cv|money|salary|exam|study|partner|friend|dost|kundli|chart|dasha|timing|medical|health|refund|payment|billing|subscription|finance|loan|invest)\b/iu.test(query);
+}
+
+export function malayalamLoneliness(query) {
+  return /എനിക്ക്[^.!?\n]{0,80}(?:ഒറ്റപ്പെടലാണ്|ഒറ്റപ്പെട്ടതായി)/u.test(query) &&
+    !/(?:ഒറ്റപ്പെടലാണ്|ഒറ്റപ്പെട്ടതായി)[^.!?\n]{0,20}(?:ഇല്ല|അല്ല|തോന്നുന്നില്ല)/u.test(query);
+}
+
 export function friendshipDisclosure(query) {
   const personal = /\b(?:i|my|me|main|maine|mera|meri|mere|mujhe|apne|bura lag|sharam aa)\b|मैं|मेरी|मेरे|मुझे/iu.test(query);
   if (!personal) return false;
