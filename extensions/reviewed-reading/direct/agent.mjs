@@ -17,7 +17,7 @@ import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
-import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
+import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
@@ -332,7 +332,8 @@ export async function directAnswer(
   ];
   if (emotionalFriendship) {
     const prior = messages.slice(1, -1);
-    messages[0].content += emotionalConversationContext(prior, value.query);
+    messages[0].content = emotionalConversationContext(prior, value.query) +
+      messages[0].content + emotionalTurnInstruction(value);
     messages.splice(1, prior.length);
   }
   const emotionalBasePrompt = emotionalFriendship ? messages[0].content : null;
@@ -588,7 +589,7 @@ export async function directAnswer(
         messages.splice(0, messages.length, {
           role: "system",
           content: emotionalBasePrompt + "\nRewrite this emotional reply once. " + emotionalIssue +
-            " Write a fresh response to the current event in the requested language. Return only the reply; no tools or commentary.",
+            " Write a fresh response to the current event in the requested language. Return only the reply; no tools or commentary." + emotionalTurnInstruction(value),
         }, { role: "user", content: redactIdentity(value.query, value.user_id) });
         continue;
       }

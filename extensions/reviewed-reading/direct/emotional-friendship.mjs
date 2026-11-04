@@ -155,6 +155,22 @@ export function emotionalConversationContext(history, query) {
     " Use plain conversational language with complete sentences. Avoid metaphors about the heart breathing or feelings working; do not mechanically translate English reassurance into Hindi. In Hindi, use natural timing expressions such as jab aap taiyaar hon, not jab tak aap taiyaar hon. Read the reply for ordinary meaning before sending.";
 }
 
+// End with the current turn's requirements after untrusted conversation data.
+// Positive phrasing helps the existing one-rewrite budget avoid the same errors.
+export function emotionalTurnInstruction(value) {
+  const identity = value.user_gender === 'male'
+    ? 'You are Meera. Any Hindi self-reference must be feminine (sakti/rahi hoon).'
+    : value.user_gender === 'female'
+      ? 'You are Aarav. Any Hindi self-reference must be masculine (sakta/raha hoon).'
+      : 'Avoid gendered self-reference because the companion identity is unspecified.';
+  return '\n# Current friendship reply requirements\n' + identity +
+    ' Self-reference is optional: a direct acknowledgement is enough. Use respectful aap forms for the user. Write two or three complete everyday sentences. Acknowledge only the latest user disclosure; do not copy old assistant wording. One acknowledgement and one invitation or optional step are enough; omit repeated announcements that you are here or listening.\n' +
+    (friendshipAdviceRequested(value.query)
+      ? 'This turn asks for advice, even if an earlier turn asked only for listening. After acknowledgement, offer one manageable optional step. If suggesting contact, refer to someone the user trusts, without assuming a partner or gender.\n'
+      : 'This turn asks for support or listening. Leave room for the user to speak at their pace; do not add coping activities. If the user asked for no questions, use an invitation without a question.\n') +
+    responseLanguageInstruction(value);
+}
+
 // Narrow checks for observed defects, not a sentiment or clinical classifier.
 function currentLoneliness(query) {
   if (malayalamLoneliness(query)) return true;
