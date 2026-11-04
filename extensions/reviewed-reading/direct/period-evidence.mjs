@@ -3,9 +3,11 @@
 export function unsupportedPeriodClaim(reply, toolResults) {
   const periods = [];
   const mahadashas = [];
+  const currentMajor = [];
   for (const raw of toolResults) {
     try {
       const data = JSON.parse(raw);
+      if (data.dasha?.current_mahadasha?.lord) currentMajor.push(String(data.dasha.current_mahadasha.lord).toLowerCase());
       for (const period of [data.dasha?.current_mahadasha, data.dasha?.next_mahadasha]) {
         if (period?.lord && period.from && period.to) mahadashas.push(period);
       }
@@ -20,6 +22,16 @@ export function unsupportedPeriodClaim(reply, toolResults) {
       }
     } catch {
       /* Non-JSON tools cannot establish a period schedule. */
+    }
+  }
+  // A period mentioned as currently active must agree with the returned
+  // current period, not an older conversation or another person's chart.
+  if (new Set(currentMajor).size === 1) {
+    const prose = reply.replace(/[“"][^”"]*[”"]/gu, '');
+    for (const clause of prose.split(/[.!?\n]+/u)) {
+      if (/\b(?:earlier|previously|said|not|nahi|nahin)\b/i.test(clause)) continue;
+      for (const claim of clause.matchAll(/\bcurrent\s+(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)\s+mahadasha\b/gi))
+        if (claim[1].toLowerCase() !== currentMajor[0]) return true;
     }
   }
   if (!periods.length) {

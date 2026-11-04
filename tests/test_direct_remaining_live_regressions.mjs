@@ -6,6 +6,8 @@ import {isEmotionalFriendship,emotionalReplyIssue,emotionalReplyFallback} from '
 import {currentFriendshipDisclosure} from '../extensions/reviewed-reading/direct/friendship-grounding.mjs';
 import {explicitEnglishReplyMismatch} from '../extensions/reviewed-reading/direct/response-language.mjs';
 import {readingPresentationInstruction} from '../extensions/reviewed-reading/direct/reading-presentation.mjs';
+import {selectedSelfBirth} from '../extensions/reviewed-reading/direct/selected-self-birth.mjs';
+import {unsupportedPeriodClaim} from '../extensions/reviewed-reading/direct/period-evidence.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1'};
 const hindi='आज मुझे बहुत अकेलापन लग रहा है। अभी सलाह नहीं चाहिए, बस मेरी बात सुनो। हिंदी में जवाब दो और कोई सवाल मत पूछो।';
@@ -86,6 +88,26 @@ test('English request detection ignores traditional names, quotes, negation and 
   for(const patch of [{language:'hinglish'},{query:'English grammar kaise improve karun?'},{query:'Do not answer in English.'}])
     assert.equal(explicitEnglishReplyMismatch({...value,...patch},'House 10 mein strong points hai.'),false);
   assert.doesNotMatch(readingPresentationInstruction,/complete Hindi\/Hinglish sentences/);
+});
+
+test('explicit saved self details bind the career question without overriding corrections or other people',()=>{
+  const birth={date:'2000-01-01',time:'12:00',location_name:'Delhi'};
+  const query='Using my saved birth details, what career directions suit me? Please answer in English without adding a date prediction.';
+  assert.deepEqual(selectedSelfBirth(query,birth),birth);
+  for(const prefix of ['my existing','my stored'])assert.deepEqual(selectedSelfBirth(query.replace('my saved',prefix),birth),birth);
+  for(const text of ['Using my saved birth details, compare with my partner.',
+    'Change my saved birth details.', 'Using my saved birth details but DOB 2002-01-01, what career suits me?',
+    'Using my friend saved birth details, what career suits her?'])assert.equal(selectedSelfBirth(text,birth),null);
+  assert.equal(selectedSelfBirth(query,{}),null);
+});
+
+test('an explicit current major period cannot borrow a different lord from history',()=>{
+  const evidence=JSON.stringify({dasha:{current_mahadasha:{lord:'Venus',from:'2021-09-15',to:'2041-09-15'}}});
+  assert.equal(unsupportedPeriodClaim('Your current Rahu mahadasha requires patience.',[evidence]),true);
+  for(const text of ['Your current Venus mahadasha has mixed indications.','Rahu mahadasha is a traditional period name.',
+    'Earlier I said current Rahu mahadasha.','You are not in your current Rahu mahadasha.',
+    'The old quoted text says "current Rahu mahadasha".'])assert.equal(unsupportedPeriodClaim(text,[evidence]),false);
+  assert.equal(unsupportedPeriodClaim('Your current Rahu mahadasha has mixed indications.',[]),false);
 });
 
 for(const persistent of [false,true])test(`English reading correction is bounded without replaying chart tools: ${persistent}`,async()=>{
