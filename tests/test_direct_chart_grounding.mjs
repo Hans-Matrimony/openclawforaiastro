@@ -72,3 +72,21 @@ for(const timing of [false,true])test(`persistent rejected drafts deliver ground
   assert.doesNotMatch(answer.reply,/23 points|Rahu.*drishti|overestimated|emotional burden|2027|2028/);
   assert.equal(chartGroundingConflicts(answer.reply,results,{query:question}).length,0);
 });
+
+test('explicit natal verification renders source occupants even when a draft denies one through an anaphor',async()=>{
+  let calls=0;
+  const answer=await directAnswer({user_id:'synthetic-natal-verification',query,birth:{date:'2000-01-01',time:'05:00',location_name:'Delhi'},history:[],language:'hinglish'},{
+    env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+    now,makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>results[0],
+    fetchImpl:async()=>{
+      calls++;
+      const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:
+        {content:'7ve ghar mein Jupiter hai, lekin Saturn yahan nahi baitha.\n\nKundli nahi badli, bas pehle ki reading mein Saturn ka role galat tha.'};
+      return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+    },
+  });
+  assert.ok(calls<=3);
+  assert.match(answer.reply,/Jupiter aur Saturn/);
+  assert.match(answer.reply,/Venus mahadasha.*Jupiter antardasha November 2031 se July 2034/);
+  assert.doesNotMatch(answer.reply,/nahi baitha|role galat|pehle ki reading/);
+});

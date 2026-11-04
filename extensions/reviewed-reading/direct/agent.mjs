@@ -1,7 +1,7 @@
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
-import { chartGroundingConflicts } from './chart-grounding.mjs';
+import { chartGroundingConflicts, chartClarificationFallback } from './chart-grounding.mjs';
 import { readingContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
@@ -892,6 +892,18 @@ export async function directAnswer(
          unsupportedPeriodClaim(publishableReply, chartResults))) {
       validation.push('chart_claim_conflict','chart_fallback');
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now()));
+    }
+    // Explicit natal verification asks for calculated facts, not a new theory
+    // about why an earlier assistant answer differed. Use the checked renderer
+    // when its single chart and requested house are unambiguous. Event timing,
+    // matching and ordinary interpretations retain their existing behavior.
+    if (sourceFlow && readingTools.size > 0 && !emotionalFriendship && !timingRequired && !checkMatchingScore &&
+        /\b(?:verify|clarif\w*|natal|badal|changed?)\b/iu.test(value.query)) {
+      const checkedFacts = chartClarificationFallback(chartResults, value.language, value.query);
+      if (checkedFacts) {
+        validation.push('chart_fallback');
+        publishableReply = formatDisplayReply(checkedFacts);
+      }
     }
     return {
       schema: "vedastro-direct-reply-v1",
