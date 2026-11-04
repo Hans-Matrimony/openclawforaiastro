@@ -613,7 +613,7 @@ export async function directAnswer(
       ) &&
       !/[.!।]\s|\n\s*\n/.test(reply.trim());
     if (matchingSelfProfile && !readingTools.has('get_match_report') && clarification &&
-        /\b(?:both\s+people|dono\s+logon|dono\s+ki)\b/iu.test(reply)) {
+        /\b(?:both\s+people|dono\s+logon|dono\s+ki)\b|दोनों(?:\s+लोगों)?/iu.test(reply)) {
       reply = missingMatchingReply();
     }
     if (!matchingLimitations && asksGunaScore(value.query) && !readingTools.has('get_match_report') && !clarification) {

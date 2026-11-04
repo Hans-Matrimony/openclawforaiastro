@@ -28,12 +28,13 @@ test('a new vyakti cannot silently reuse an older matching partner',()=>{
   for(const query of ['Mere aur ek naye vyakti ka Guna Milan bataiye.','My different person matching score?', 'Mere aur dusre vyakti ka milan?'])assert.equal(matchingEvidence(args,{...context,query}),false,query);
 });
 
-for(const self of [true,false])test(`missing matching details asks only for relevant subjects; self=${self}`,async()=>{
+for(const self of [true,false])for(const language of ['hinglish','hindi','english'])test(`missing matching details asks only for relevant subjects; self=${self}; language=${language}`,async()=>{
   let calls=0;
   const query=self?'Mere aur ek naye vyakti ka Guna Milan score bataiye. Unki janam tithi, samay aur jagah abhi mere paas nahi hai.':'Meri dost aur uske partner ka Guna Milan score bataiye.';
-  const result=await directAnswer({user_id:'synthetic-missing-pair',query,birth,user_gender:'male',language:'hinglish',history:[]},{env,makeMemory:()=>({read:async()=>[]}),makeTools:()=>()=>assert.fail('No calculation without both confirmed profiles'),fetchImpl:async()=>{calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:'Kya aap dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain?'}}]}));}});
+  const content=language==='hindi'?'क्या आप दोनों लोगों की जन्म तिथि, समय और स्थान बता सकते हैं?':language==='english'?"Please confirm both people's birth dates, birth times and birthplaces?":'Kya aap dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain?';
+  const result=await directAnswer({user_id:'synthetic-missing-pair',query,birth,user_gender:'male',language,history:[]},{env,makeMemory:()=>({read:async()=>[]}),makeTools:()=>()=>assert.fail('No calculation without both confirmed profiles'),fetchImpl:async()=>{calls++;return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content}}]}));}});
   assert.equal(calls,1);
-  assert.match(result.reply,self?/doosre vyakti ki/:/dono logon ki/);
+  assert.match(result.reply,language==='hindi'?(self?/दूसरे व्यक्ति/:/दोनों लोगों/):language==='english'?(self?/other person's/:/both people's/):(self?/doosre vyakti ki/:/dono logon ki/));
   assert.doesNotMatch(result.reply,/\d+\/36/);
 });
 
