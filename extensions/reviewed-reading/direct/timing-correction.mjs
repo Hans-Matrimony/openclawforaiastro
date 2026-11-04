@@ -125,7 +125,24 @@ export function timingCorrection(results, query, language, asOf) {
         },
       },
     },
-    render(message) {
+    fallback() {
+      // Never choose the next period just because its boundary is known. A
+      // unique period linked to a returned positive topic factor can retain a
+      // qualified interpretation; multiple candidates remain undetermined.
+      const candidates = periods.flatMap((period, index) => {
+        const factor = factors.findIndex(f => f.polarity === 'positive' &&
+          new RegExp(`\\b${period.lord}\\b`, 'i').test(f.source));
+        return factor < 0 ? [] : [{index, factor}];
+      });
+      const selected = candidates.length === 1 ? candidates[0] : null;
+      const outlook = signals[0].trend === 'NEGATIVE' ? 'unfavorable'
+        : factors.some(f=>f.polarity==='negative') ? 'mixed' : 'possible';
+      const data = selected
+        ? {period_id:`p${selected.index}`,outlook,factor_ids:[`f${selected.factor}`]}
+        : {period_id:'none',outlook:'undetermined',factor_ids:['f0']};
+      return this.render({tool_calls:[{function:{name,arguments:JSON.stringify(data)}}]}, {includePartner:false});
+    },
+    render(message, {includePartner = true} = {}) {
       const calls = message?.tool_calls;
       if (!Array.isArray(calls) || calls.length !== 1 || calls[0].function?.name !== name) {
         return null;
@@ -162,7 +179,7 @@ export function timingCorrection(results, query, language, asOf) {
         }
       }
       const explanation = selected.map((f) => f.text.replace(/[.!?]+$/, "") + ".").join(" ");
-      const partner = area === "marriage" ? partnerFallback(rows, language, query) : "";
+      const partner = includePartner && area === "marriage" ? partnerFallback(rows, language, query) : "";
       const first = explanation + (partner ? " " + partner : "");
       if (data.period_id === "none") {
         if (data.outlook !== "undetermined") {

@@ -60,7 +60,7 @@ void test("fallback rejects malformed factors and avoids conclusions across diff
         "When will I marry?",
         now,
       ),
-      /calculated Mars sub-period/,
+      /couldn't verify/,
     );
   }
   const verdict_signals = [{ area: "marriage", trend: "POSITIVE", positive: [], negative: [] }];

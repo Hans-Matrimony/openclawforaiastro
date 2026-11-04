@@ -1,6 +1,8 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
 import { periodFallback } from "./period-fallback.mjs";
 import { asksForTiming } from "./reading-intent.mjs";
+import { timingCorrection } from "./timing-correction.mjs";
+import { chartClarificationFallback } from './chart-grounding.mjs';
 
 const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
 const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
@@ -14,7 +16,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     ? "career"
     : /financ|money|pais|income/i.test(query)
       ? "money"
-      : /shaadi|shadi|marriage|partner/i.test(query)
+      : /sha+di|marriage|marry|married|wedding|partner/i.test(query)
         ? "marriage"
         : null;
   const rows = results.flatMap((raw) => {
@@ -36,6 +38,14 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     subjects.size <= 1 && signals.every((s) => JSON.stringify(s) === JSON.stringify(signals[0]))
       ? signals[0]
       : null;
+  if (area && asksForTiming(query)) {
+    const checked = timingCorrection(results, query, language, asOf)?.fallback();
+    // A bare schedule cannot answer a personal event-timing question.
+    if (checked) return checked;
+    if (!signal) return english ? UNVERIFIED_EN : UNVERIFIED_HI;
+  }
+  const clarification = chartClarificationFallback(results, language, query);
+  if (clarification) return clarification;
   if (signal && ["POSITIVE", "NEGATIVE", "MIXED"].includes(signal.trend)) {
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
     const trend = { POSITIVE: "supportive", NEGATIVE: "challenging", MIXED: "mixed" }[signal.trend];
@@ -51,12 +61,9 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       money: english ? "Money timing" : "Paise ki sthiti",
       marriage: english ? "Relationship timing" : "Shaadi ka samay",
     }[area];
-    const checkedSchedule = periodFallback(rows, language, asOf);
-    const timingLine = checkedSchedule
-      ? `${leadIn}: ${checkedSchedule}`
-      : english
-        ? `${leadIn}: this calculation returned no period data.`
-        : `${leadIn}: is calculation me period data nahi aaya.`;
+    const timingLine = english
+      ? `${leadIn}: this reading does not establish a supported event window.`
+      : `${leadIn}: is reading se koi supported samay tay nahi hota.`;
     return (
       (english
         ? `${label} indications in the calculated chart are ${trend}.`

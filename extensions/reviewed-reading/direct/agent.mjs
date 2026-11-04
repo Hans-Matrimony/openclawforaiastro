@@ -1,6 +1,7 @@
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
+import { chartGroundingConflicts } from './chart-grounding.mjs';
 import { readingContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
@@ -664,7 +665,7 @@ export async function directAnswer(
     }
     const questionMismatch = mismatchedQuestionReply(value.query, reply);
     const lordConflicts = sourceFlow
-      ? [...houseLordConflicts(reply, chartResults), ...chartClaimConflicts(reply, chartResults)]
+      ? [...houseLordConflicts(reply, chartResults), ...chartClaimConflicts(reply, chartResults), ...chartGroundingConflicts(reply, chartResults, value)]
       : [];
     if (lordConflicts.length) {
       validation.push("chart_claim_conflict");
@@ -880,9 +881,21 @@ export async function directAnswer(
       readingTools.size > 0 && !listeningTurn && !emotionalFriendship && !unverifiedReading
         ? await polishReplyBubbles(displayText, { fetchModel, signal, env })
         : displayText;
+    // Presentation is not a new source of chart facts. Check the exact text at
+    // the delivery boundary too, including any optional shortening stage.
+    let publishableReply = checkMatchingScore && (invalidGunaScore(polishedReply, chartResults) || invalidGunaPresentation(polishedReply, chartResults, value.query))
+      ? (verifiedGunaFallback(chartResults, value.language) || displayText) : polishedReply;
+    if (sourceFlow && readingTools.size > 0 && !emotionalFriendship &&
+        (chartGroundingConflicts(publishableReply, chartResults, value).length ||
+         chartClaimConflicts(publishableReply, chartResults).length ||
+         houseLordConflicts(publishableReply, chartResults).length ||
+         unsupportedPeriodClaim(publishableReply, chartResults))) {
+      validation.push('chart_claim_conflict','chart_fallback');
+      publishableReply = formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now()));
+    }
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: limitResponseLength(checkMatchingScore && invalidGunaScore(polishedReply, chartResults) ? displayText : polishedReply),
+      reply: limitResponseLength(publishableReply),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],

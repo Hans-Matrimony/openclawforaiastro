@@ -33,13 +33,13 @@ void test("observed source factors become complete sentences without scores or r
   assert.match(marriage, /Guru ka 7ve ghar/);
   assert.match(marriage, /7ve ghar ki majbooti ka alag sanket kamzor/);
   assert.doesNotMatch(marriage, /specific mahina|saal nahi mila/);
-  assert.match(marriage, /is calculation me period data nahi aaya/);
+  assert.match(marriage, /koi supported samay tay nahi hota/);
   assert.match(marriage, /Shaadi ka samay:/);
   assert.doesNotMatch(marriage, /2027/);
   assert.doesNotMatch(marriage, /saaf nahi dikh raha|Finance|20\/48|benefic|weak support/);
 });
 
-void test("timing fallback labels a returned period without inventing an event window", () => {
+void test("an unrelated upcoming period cannot replace an unsupported event window", () => {
   const row = {
     engine: "local-sweph-v2",
     verdict_signals: [
@@ -61,9 +61,8 @@ void test("timing fallback labels a returned period without inventing an event w
     "Shaadi kab hogi?",
     new Date("2026-10-25T12:00:00Z"),
   );
-  assert.match(reply, /Mars antardasha 2027-09-15 se 2028-11-14 tak hai/);
-  assert.doesNotMatch(reply, /event ki bhavishyavani nahi/);
-  assert.match(reply, /Shaadi ka samay:/);
+  assert.match(reply, /koi supported samay tay nahi hota/);
+  assert.doesNotMatch(reply, /2027|2028|Mars antardasha/);
   assert.doesNotMatch(reply, /hisaab ke hisaab|saaf nahi dikh raha/);
 });
 
@@ -117,7 +116,7 @@ void test("finance fallback preserves mixed factors without another generic even
   };
   const reply = evidenceFallback([JSON.stringify(row)], "hinglish", "Paise kab behtar honge?");
   assert.match(reply, /sahyog bhi hai aur rukawatein bhi/);
-  assert.match(reply, /is calculation me period data nahi aaya/);
+  assert.match(reply, /koi supported samay tay nahi hota/);
   assert.doesNotMatch(reply, /2027|event ki date/);
 });
 void test("unrepaired reading provides only supported period facts", () => {

@@ -154,7 +154,9 @@ for (const fixture of contract.fixtures) {
     assert.equal(toolCalls, 1);
     // The source request stays identical; the pilot's display layer localizes
     // this fallback schedule without changing its dates or chart explanation.
-    const displayedReading = fixture.expectedReading.replace(
+    const displayedReading = fixture.id === 'fallback'
+      ? 'Guru ka 7ve ghar mein hona sahyog ka sanket hai. Mangal ki 7ve ghar par drishti dabav aur deri ka sanket deti hai.\n\nJupiter ki antardasha mein November 2031 se July 2034 ke beech shaadi sambhavit hai, lekin rukawatein bhi hain.'
+      : fixture.expectedReading.replace(
       "Shaadi ka samay: Jupiter antardasha 2031-11-15 se 2034-07-16 tak hai.",
       "Guru ki antardasha 15 November 2031 se 16 July 2034 tak chalegi.",
     );

@@ -33,8 +33,9 @@ void test("dev fallback reports chart factors without injecting an additional pa
     original = structuredClone(row);
   const reply = evidenceFallback([JSON.stringify(row)], "hinglish", query, now);
   assert.doesNotMatch(reply, /Saathi ke swabhav/);
-  assert.match(reply, /sahyog bhi hai aur rukawatein bhi/);
-  assert.match(reply, /2027-09-15.*2028-11-14/);
+  assert.match(reply, /sambhavit hai, lekin rukawatein bhi hain/);
+  assert.match(reply, /November 2031.*July 2034/);
+  assert.doesNotMatch(reply, /2027|2028/);
   assert.doesNotMatch(reply, /sharmati|sachchi|bindu|guaranteed/);
   assert.equal(reply.split("\n\n").length, 2);
   assert.deepEqual(row, original);
@@ -222,7 +223,8 @@ void test("bounded dev-style correction retains chart evidence and fallback keep
   assert.equal(calls, 5);
   assert.equal(result.reply.split("\n\n").length, 3);
   assert.doesNotMatch(result.reply, /Saathi ke swabhav/);
-  assert.match(result.reply, /15 September 2027.*14 November 2028/);
+  assert.match(result.reply, /November 2031.*July 2034/);
+  assert.doesNotMatch(result.reply, /2027|2028/);
   assert.doesNotMatch(result.reply, /2029|pakki/);
   assert.ok(result.reply.split(/\s+/u).length <= 100);
   assert.equal(JSON.stringify(row), raw);
