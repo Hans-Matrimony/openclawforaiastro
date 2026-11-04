@@ -7,7 +7,12 @@ export function selectedSelfBirth(query, birth) {
   // In a self-chart clarification, "7ve ghar ... uski strength" refers to
   // that house, not a second person's birth profile. Keep all other-person
   // and explicit birth-correction exclusions below intact.
-  const text = query.toLowerCase().replace(/\bmy\s+(?:saved|existing|stored)\s+birth\s+details\b/gu, 'my chart').replace(
+  const text = query.toLowerCase()
+    .replace(/\b(?:my|meri|mera|mere)\s+(?:saved|existing|stored)\s+birth\s+details\b/gu, 'my chart')
+    // A request not to guess new details is not a birth correction. Preserve
+    // every explicit date/time and other-person exclusion below.
+    .replace(/\b(?:naye|nayi|new)\s+birth\s+details\s+(?:assume|guess)\s+(?:mat|na)\s+(?:kijiye|karo|karein)\b/gu, '')
+    .replace(
     /(\b(?:house\s+\d{1,2}|\d{1,2}(?:ve|ven|va|wa|we|th|st|nd|rd)?\s+(?:ghar|house))\b[^.!?\n]{0,80}?)\buski\s+(strength|majbooti|mazbooti)\b/gu,
     '$1is ghar ki $2',
   );

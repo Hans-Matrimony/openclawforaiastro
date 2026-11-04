@@ -207,6 +207,11 @@ export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
   const issues = friendshipGroundingIssues(reply, value);
+  if (['hindi','hi'].includes((value.language || '').toLowerCase()) &&
+      !/[\u0900-\u097f]/u.test(reply) && reply.trim().split(/\s+/u).length >= 8 &&
+      !/\b(?:roman|latin|hinglish)\b/iu.test(value.query)) {
+    issues.push('Use Hindi in Devanagari for this turn, not a Roman-script Hinglish reply. Preserve the same meaning and listening/advice preference.');
+  }
   if (friendshipAdviceRequested(value.query) && currentLoneliness(currentFriendshipDisclosure(value)) &&
       /\bgarmi\s+de\s+sakt[ai]\b/iu.test(reply)) {
     issues.push('The reply contains malformed everyday language. For emotional support, refer naturally to someone the user trusts, without translating warmth as someone giving physical heat.');
@@ -289,6 +294,7 @@ export function emotionalIssueCategories(issue) {
     ["awkward_reassurance", "vague or awkward"],
     ["persona_grammar", "grammatical gender"],
     ["role_grammar", "subject aap"],
+    ["script_language", "Hindi in Devanagari"],
     ["malformed_language", "malformed everyday language"],
     ["unsupported_feeling", "attribute emptiness"],
     ["unprompted_fear", "unprompted claim that there is no fear"],

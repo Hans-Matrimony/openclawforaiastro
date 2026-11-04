@@ -109,7 +109,7 @@ export function confirmedMatchingArguments(args, context) {
 
 export function matchingEvidence(args, {birth, gender, query = '', history = []}) {
   const texts = [...history.filter(t => t.role === 'user').map(t => t.text), query];
-  if (/\b(?:new|another|different|dusri|dusra|alag)\s+(?:partner|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query)) return false;
+  if (/\b(?:new|another|different|dusri|dusra|dusre|naye|naya|nayi|alag)\s+(?:partner|person|vyakti|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query)) return false;
   const recent = matchingForms({birth, gender, query, history});
   return ['male', 'female'].every(person => {
     const candidate = {date: args[`${person}_birth_date`], time: args[`${person}_birth_time`], location_name: args[`${person}_location_name`]};

@@ -299,6 +299,15 @@ export async function directAnswer(
       );
   }
   const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(activeQuestion) || asksGunaScore(value.query));
+  const matchingSelfProfile = asksGunaScore(value.query) && context.profile.status === 'READY' &&
+    ['male','female'].includes(value.user_gender) &&
+    !/\b(?:friend|mother|father|sister|brother|dost|behen|bhai)\b/iu.test(value.query) &&
+    /\b(?:mere|mera|meri)\s+(?:aur|guna?|gun|partner)\b|\b(?:my|our)\s+(?:guna?|gun|matching|match|compatibility|profile|partner)\b|मेरे\s+और/iu.test(value.query);
+  const missingMatchingReply = () => value.language === 'english'
+    ? `Please confirm ${matchingSelfProfile ? 'the other person\'s' : 'both people\'s'} birth ${matchingSelfProfile ? 'date, exact birth time and birthplace' : 'dates, exact birth times and birthplaces'} for Guna Milan?`
+    : value.language === 'hindi'
+      ? `कृपया ${matchingSelfProfile ? 'दूसरे व्यक्ति की जन्म तिथि, जन्म का सही समय और जन्म स्थान' : 'दोनों लोगों की जन्म तिथि, जन्म का सही समय और जन्म स्थान'} बताइए।`
+      : `Kya aap Guna Milan ke liye ${matchingSelfProfile ? 'doosre vyakti ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
   const timingRequired =
     sourceFlow &&
     readingRequired &&
@@ -603,15 +612,17 @@ export async function directAnswer(
         reply.trim(),
       ) &&
       !/[.!।]\s|\n\s*\n/.test(reply.trim());
+    if (matchingSelfProfile && !readingTools.has('get_match_report') && clarification &&
+        /\b(?:both\s+people|dono\s+logon|dono\s+ki)\b/iu.test(reply)) {
+      reply = missingMatchingReply();
+    }
     if (!matchingLimitations && asksGunaScore(value.query) && !readingTools.has('get_match_report') && !clarification) {
       if (!correctedGunaScore && modelCalls < maxRounds) {
         correctedGunaScore = true;
         messages.push({role:'user', content:'This asks for Guna Milan. A horoscope or house-strength result is not a matching score. Call get_match_report using both people\'s established birth details; if any are missing, ask only for those instead of estimating points.'});
         continue;
       }
-      reply = value.language === 'english'
-        ? 'Please confirm both people\'s birth dates, exact birth times and birthplaces for Guna Milan?'
-        : 'Kya aap Guna Milan ke liye dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain?';
+      reply = missingMatchingReply();
       clarification = true;
     }
     if (readingRequired && readingTools.size === 0 && !clarification) {
