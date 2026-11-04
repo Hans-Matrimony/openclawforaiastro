@@ -173,6 +173,11 @@ export function emotionalReplyIssue(reply, value) {
   // Enforce observable boundaries before the existing single rewrite. Keep
   // corrections together so fixing address does not hide unwanted advice.
   const issues = friendshipGroundingIssues(reply, value);
+  if (friendshipAdviceRequested(value.query) && isFriendshipContinuation(value.query) &&
+      currentLoneliness(currentFriendshipDisclosure(value)) &&
+      !/\b(?:lonel\w*|alone|isolated|disconnected|akela\w*|akeli|akele\w*|tanha\w*)\b|अकेल|तन्हा|ഒറ്റപ്പെട|ഏകാന്തത/iu.test(reply)) {
+    issues.push('The reply ignores the disclosed loneliness. Acknowledge that current topic before offering one relevant optional step; do not substitute a menu of unrelated activities.');
+  }
   if (friendshipNoName(value) && value.user_name && reply.toLowerCase().includes(value.user_name.toLowerCase())) {
     issues.push("The user requested no name. Remove their name from the response.");
   }

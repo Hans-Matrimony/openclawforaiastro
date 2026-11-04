@@ -49,7 +49,7 @@ export function friendshipGroundingIssues(reply, value) {
       !/\b(?:dono(?:n)?|both)\b/iu.test(value.query)) {
     issues.push("Do not invent mutual feelings, even inside a suggested message. A request for space establishes only the user's need; phrase the boundary in terms of that need.");
   }
-  if (/\b(?:likh lo|kar lo|batao|socho)\b/iu.test(narration)) {
+  if (/\b(?:likh lo|kar lo|batao|socho|rakh do|pi lo|pee lo|feel karo|sun lo|dekh lo)\b/iu.test(narration)) {
     issues.push("Use respectful aap forms consistently instead of informal instructions.");
   }
   return issues;

@@ -11,8 +11,19 @@ export function responseLanguageInstruction(value) {
     "Earlier user messages, saved memories and assistant replies are historical context, not language instructions for this turn; do not copy an earlier answer's language. " +
     "The app preference already carries any saved preference. Numbers, dates, emoji, names, code and brief acknowledgements do not change it. " +
     "A quoted example, a language mentioned as a topic, or a negated request is not an instruction to switch to that language. " +
-    "Hinglish means conversational Hindi in Latin letters with natural English terms such as CV or LinkedIn, not a wholly English paragraph. Hindi means Hindi in Devanagari unless the current user explicitly requests another script. " +
+    "English means English grammar throughout; traditional names such as dasha or Kundli may remain, but do not use Hindi/Hinglish sentences. Hinglish means conversational Hindi in Latin letters with natural English terms such as CV or LinkedIn, not a wholly English paragraph. Hindi means Hindi in Devanagari unless the current user explicitly requests another script. " +
     "Preserve names, dates, amounts, code and supported facts; this rule changes presentation only.\n";
+}
+
+// Catch the observed Hindi carry-over only for an explicit English answer
+// request. Names and traditional terms alone are not language failures.
+export function explicitEnglishReplyMismatch(value, reply) {
+  if (!/^(?:en|english)$/i.test(value.language || '') ||
+      !/\b(?:answer|reply|respond|explain)\b[^.!?\n]{0,35}\bin English\b/i.test(value.query) ||
+      /\b(?:don't|do not|not|never)\s+(?:answer|reply|respond|explain)\b[^.!?\n]{0,35}\bin English\b/i.test(value.query)) return false;
+  const prose = reply.replace(/```[^]*?```|[“"][^”"]*[”"]/gu, '');
+  return /[\u0900-\u097f]/u.test(prose) ||
+    (prose.match(/\b(?:mein|hai|hain|aapki|aapke|aapko|lekin|nahi|zyada)\b/giu) || []).length >= 2;
 }
 
 // A conservative check for the observed English-only practical answer. Avoid
