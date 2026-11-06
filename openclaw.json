@@ -302,6 +302,22 @@
         "api": "openai-completions",
         "models": [
           {
+            "id": "qwen/qwen3-next-80b-a3b-instruct",
+            "name": "Qwen3 Next 80B A3B Instruct",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0.09,
+              "output": 1.1,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 262144,
+            "maxTokens": 16384
+          },
+          {
             "id": "qwen/qwen-2.5-72b-instruct",
             "name": "Qwen 2.5 72B",
             "reasoning": false,
@@ -465,6 +481,9 @@
         "google/gemini-3-flash": {
           "alias": "gemini31"
         },
+        "openrouter/qwen/qwen3-next-80b-a3b-instruct": {
+          "alias": "qwen-next"
+        },
         "openrouter/qwen/qwen-2.5-7b-instruct": {
           "alias": "qwen-7b"
         },
@@ -520,7 +539,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "deepseek/deepseek-v4-flash",
+          "primary": "openrouter/qwen/qwen3-next-80b-a3b-instruct",
           "fallbacks": [
             "groq/llama-3.3-70b-versatile",
             "google/gemini-2.5-flash",
