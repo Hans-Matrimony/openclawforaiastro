@@ -50,12 +50,50 @@ export function matchingForms({birth, gender, query = '', history = []}) {
   return forms.slice(-(['male', 'female'].includes(gender) && birthKey(birth) ? 1 : 2));
 }
 
+function confirmedFormBirth(text) {
+  const dates = [...text.matchAll(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/.-]\d{1,2}[/.-]\d{4})\b/g)];
+  const times = [...text.matchAll(/\b\d{1,2}:\d{2}(?:\s*(?:am|pm))?\b/gi)];
+  if (dates.length !== 1 || times.length !== 1) return null;
+  const labelled = text.split(/[\n;]/).map(line => /^(?:place of birth|birth\s*place|location|pob|place|city)\s*[:=]\s*(.+)$/i.exec(line.trim())).filter(Boolean);
+  const places = labelled.length ? labelled.map(row => row[1]) : text.split(/[\n;]/).map(line => line.trim()).filter(line => /^[\p{L}\p{M}][\p{L}\p{M} .'’,-]{0,160}$/u.test(line));
+  const candidates = places.map(location_name => ({date:dates[0][0],time:times[0][0],location_name})).filter(form => suppliedBirth(form,text));
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+export function selfMatchingBirths(context) {
+  const {birth, gender, query = '', history = []} = context;
+  if (!['male','female'].includes(gender) || !birthKey(birth) ||
+      /\b(?:friend|mother|father|sister|brother|daughter|son|dost|behen|bhai)\b/i.test(query)) return null;
+  const ownComparison = /\b(?:my|our)\s+(?:compatibility|matching|match|guna|gun)\b|\b(?:mera|meri|mere|hamara|humara)\s+(?:guna|gun|matching|match)\b/i.test(query);
+  const formReply = confirmedFormBirth(matchingFormText(query)) || /\b(?:already\s+shared|already\s+(?:gave|given)|how many times|pehle.*(?:diya|bataya))\b/i.test(query);
+  const lastAssistant = [...history].reverse().find(turn => turn.role === 'assistant')?.text ?? '';
+  const respondingToPartnerPrompt = formReply && /\byour partner['’]?s?\b.*\bbirth\b|\bpartner ki janam\b/i.test(lastAssistant);
+  if (!ownComparison && !respondingToPartnerPrompt) return null;
+  const forms = matchingForms(context);
+  if (forms.length !== 1) return null;
+  const partner = confirmedFormBirth(forms[0]);
+  if (!partner || sameBirth(partner,birth)) return null;
+  const other = gender === 'male' ? 'female' : 'male';
+  const labelledGenders = [...forms[0].matchAll(/(?:^|[\n;])\s*gender\s*[:=]\s*(male|female)\b/gi)];
+  if (labelledGenders.length > 1 || (labelledGenders[0] && labelledGenders[0][1].toLowerCase() !== other)) return null;
+  return {[gender]:birth,[other]:partner};
+}
+
 // Restore qualifiers the model omitted, never discard qualifiers or infer a
 // different city. The unchanged evidence check still verifies both people.
 export function confirmedMatchingArguments(args, context) {
   const normalized = {...args};
   const {birth, gender} = context;
   const query = matchingFormText(context.query ?? '');
+  const confirmedPair = selfMatchingBirths(context);
+  if (confirmedPair) {
+    for (const [person,input] of Object.entries(confirmedPair)) {
+      normalized[`${person}_birth_date`] = input.date;
+      normalized[`${person}_birth_time`] = input.time;
+      normalized[`${person}_location_name`] = input.location_name ?? input.place;
+    }
+    return normalized;
+  }
   // An explicit saved-profile comparison has two authoritative inputs already:
   // this account's canonical profile and one complete, gender-labelled partner
   // form. Bind those inputs rather than accepting model transcription errors.

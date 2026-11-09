@@ -10,6 +10,73 @@ import {
 import { readingContext } from "../extensions/reviewed-reading/direct/context.mjs";
 import { matchingFormText } from "../extensions/reviewed-reading/direct/matching-text.mjs";
 import { sourceReading } from "../extensions/reviewed-reading/direct/source-engine.mjs";
+
+test("self compatibility binds the confirmed pair despite model date, clock or qualifier transcription", async () => {
+  const value = {
+    ...context,
+    birth: { ...birth, location_name: "Kolhapur, Maharashtra" },
+    query: "What does our compatibility chart say?",
+    history: [{ role: "user", text: natural }],
+  };
+  const wrong = {
+    ...args,
+    female_birth_date: "2001-01-01",
+    female_birth_time: "12:00",
+    female_location_name: "Kolhapur, Maharashtra, India",
+    male_birth_date: "1989-07-09",
+    male_birth_time: "20:00",
+    male_location_name: "Mumbai",
+  };
+  const normalized = confirmedMatchingArguments(wrong, value);
+  assert.equal(normalized.female_birth_date, birth.date);
+  assert.equal(normalized.female_birth_time, birth.time);
+  assert.equal(normalized.female_location_name, "Kolhapur, Maharashtra");
+  assert.equal(normalized.male_birth_date, "9/6/1989");
+  assert.equal(normalized.male_birth_time, "8:00 am");
+  assert.equal(normalized.male_location_name, "Bangalore");
+  assert.equal(matchingEvidence(normalized, value), true);
+  const execute = createTools({ ...value, memory });
+  const evidence = JSON.parse(await execute("get_match_report", wrong));
+  assert.equal(evidence.guna_milan.status, "ok");
+  assert.equal(evidence.female_chart.utc_time, "1992-01-10T00:00:00.000Z");
+  assert.equal(evidence.male_chart.utc_time, "1989-06-09T02:30:00.000Z");
+  for (const query of [
+    "Compare my friend and her partner",
+    "New partner, what does our compatibility chart say?",
+  ]) {
+    const ctx = { ...value, query };
+    assert.equal(matchingEvidence(confirmedMatchingArguments(wrong, ctx), ctx), false);
+  }
+  for (const form of [
+    "Example: " + natural,
+    natural + "\n10 June 1989",
+    natural + "; Gender: female",
+  ]) {
+    const ctx = { ...value, history: [{ role: "user", text: form }] };
+    assert.equal(matchingEvidence(confirmedMatchingArguments(wrong, ctx), ctx), false);
+  }
+});
+
+test("a form or repeated-details complaint in direct response to a partner prompt binds only that pair", () => {
+  const history = [
+    { role: "user", text: natural },
+    {
+      role: "assistant",
+      text: "Please confirm your partner's birth date, exact birth time and birthplace for the matching calculation?",
+    },
+  ];
+  for (const query of [natural, "It's already shared how many times to share"]) {
+    const ctx = { ...context, query, history };
+    const normalized = confirmedMatchingArguments({ ...args, male_birth_time: "20:00" }, ctx);
+    assert.equal(normalized.male_birth_time, "8:00 am");
+    assert.equal(matchingEvidence(normalized, ctx), true);
+  }
+  const ctx = { ...context, query: "What about my job?", history };
+  assert.equal(
+    matchingEvidence(confirmedMatchingArguments({ ...args, male_birth_time: "20:00" }, ctx), ctx),
+    false,
+  );
+});
 import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
 
 const birth = { date: "1992-01-10", time: "05:30", location_name: "Delhi" };
