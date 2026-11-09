@@ -79,6 +79,26 @@ test("a form or repeated-details complaint in direct response to a partner promp
 });
 import { createTools } from "../extensions/reviewed-reading/direct/tools.mjs";
 
+test("factor follow-ups reuse only the complete partner form confirmed in response to that partner prompt",()=>{
+  const prompt={role:'assistant',text:"Please confirm your partner's birth date, exact birth time and birthplace for the matching calculation?"};
+  const value={...context,query:'Reply in English: show all eight Guna Milan factors. Can this score tell whether he loves me or whether I should wait for him?',history:[prompt,{role:'user',text:natural},{role:'user',text:"It's already shared how many times to share"}]};
+  const wrong={...args,male_birth_time:'20:00',female_birth_date:'2001-01-01'};
+  const bound=confirmedMatchingArguments(wrong,value);
+  assert.equal(bound.male_birth_time,'8:00 am');assert.equal(bound.female_birth_date,birth.date);
+  assert.equal(matchingEvidence(bound,value),true);
+  for(const history of [
+    [{role:'user',text:natural}],
+    [prompt,{role:'assistant',text:natural}],
+    [...value.history,{role:'user',text:'Now compare a different partner'}],
+    [...value.history,{role:'user',text:'This is about my friend now'}],
+  ]){
+    const other={...value,history};assert.equal(matchingEvidence(confirmedMatchingArguments(wrong,other),other),false);
+  }
+  for(const query of ['Show my friend all eight Guna factors','Show the factors for a new partner','What about my job?']){
+    const other={...value,query};assert.equal(matchingEvidence(confirmedMatchingArguments(wrong,other),other),false);
+  }
+});
+
 const birth = { date: "1992-01-10", time: "05:30", location_name: "Delhi" };
 const other = { date: "1989-06-09", time: "08:00", location_name: "Bangalore" };
 const args = {

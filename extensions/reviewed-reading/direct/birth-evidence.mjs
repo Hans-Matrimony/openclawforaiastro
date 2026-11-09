@@ -68,9 +68,19 @@ export function selfMatchingBirths(context) {
   const formReply = confirmedFormBirth(matchingFormText(query)) || /\b(?:already\s+shared|already\s+(?:gave|given)|how many times|pehle.*(?:diya|bataya))\b/i.test(query);
   const lastAssistant = [...history].reverse().find(turn => turn.role === 'assistant')?.text ?? '';
   const respondingToPartnerPrompt = formReply && /\byour partner['’]?s?\b.*\bbirth\b|\bpartner ki janam\b/i.test(lastAssistant);
-  if (!ownComparison && !respondingToPartnerPrompt) return null;
   const forms = matchingForms(context);
   if (forms.length !== 1) return null;
+  // A factor/score follow-up can reuse the same user-confirmed partner form
+  // supplied in response to our partner prompt. Do not require the user to
+  // repeat "our compatibility" on every turn, or bind an unrelated old form.
+  const formIndex = history.findLastIndex(turn => turn.role === 'user' && matchingFormText(turn.text) === forms[0]);
+  const precedingPrompt = formIndex < 0 ? '' : history.slice(0,formIndex).findLast(turn => turn.role === 'assistant')?.text ?? '';
+  const breakdownRequest = /\b(?:show|list|explain|give|breakdown)\b.{0,100}\b(?:guna|gun|ashtakoota|factors?)\b/i.test(query);
+  const changedSubject = history.slice(formIndex + 1).some(turn => turn.role === 'user' &&
+    /\b(?:friend|mother|father|sister|brother|daughter|son|dost|behen|bhai)\b|\b(?:new|another|different|dusri|dusra|dusre|naye|naya|nayi|alag)\s+(?:partner|person|vyakti|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(turn.text));
+  const continuingConfirmedPair = breakdownRequest && formIndex >= 0 && !changedSubject &&
+    /\byour partner['’]?s?\b.*\bbirth\b|\bpartner ki janam\b/i.test(precedingPrompt);
+  if (!ownComparison && !respondingToPartnerPrompt && !continuingConfirmedPair) return null;
   const partner = confirmedFormBirth(forms[0]);
   if (!partner || sameBirth(partner,birth)) return null;
   const other = gender === 'male' ? 'female' : 'male';
