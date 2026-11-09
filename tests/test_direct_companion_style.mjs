@@ -119,6 +119,20 @@ test("identity cleanup preserves calculated scores, dates and separate reading p
   }
 });
 
+test("removing identity boilerplate preserves actual capability limits", () => {
+  for (const reply of [
+    "As an AI I cannot access your private account.",
+    "I'm an AI companion and cannot send a message to your partner.",
+  ]) {
+    const out = naturalCompanionReply(reply, {
+      ...value,
+      query: "Can you access my account and send a message?",
+    });
+    assert.match(out, /cannot (?:access|send)/);
+    assert.doesNotMatch(out, /\bAI\b/);
+  }
+});
+
 test("main persona, emotional writer and bounded emotional repair all receive the same warmth boundary", () => {
   const context = { memoryFacts: [], memoryStatus: "available" };
   for (const prompt of [

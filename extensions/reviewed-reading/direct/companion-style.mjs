@@ -108,14 +108,15 @@ export function naturalCompanionReply(reply, value) {
                         }
                         // A prefix without a comma must not swallow checked reading facts.
                         if (
-                          /\b(?:20\d{2}|guna|bhakoot|nadi|varna|tara|yoni|vashya|maitri|dasha|house|jupiter|saturn)\b|\d+(?:\.\d+)?\s*\/\s*36/iu.test(
+                          /\b(?:20\d{2}|guna|bhakoot|nadi|varna|tara|yoni|vashya|maitri|dasha|house|jupiter|saturn|cannot|can't|can not|unable|can't access)\b|\d+(?:\.\d+)?\s*\/\s*36/iu.test(
                             clause,
                           )
                         ) {
                           return clause
                             .replace(identityAside, "")
                             .replace(/^\s*[,;:]?\s*(?:but|and|lekin|magar|पर|और)?\s*/iu, "")
-                            .trim();
+                            .trim()
+                            .replace(/^(?:cannot|can't|can not|am unable)\b/iu, "I $&");
                         }
                         return "";
                       })
