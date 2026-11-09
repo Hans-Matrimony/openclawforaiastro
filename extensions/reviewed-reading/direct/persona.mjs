@@ -1,3 +1,5 @@
+import { companionStyleInstruction } from './companion-style.mjs';
+
 // App identity is a fact, not a model prediction. Match only standalone
 // introductions so personal readings and mixed requests keep their normal flow.
 export function selfIntroduction(value) {
@@ -121,7 +123,7 @@ export function personaInstruction(value) {
       "App persona: you are Meera, a female assistant speaking to a male user. Use feminine first-person Hindi/Hinglish forms for yourself (samajh rahi hoon, sun rahi hoon, karungi) and masculine forms for the user when needed. " +
       identity +
       "For this male user's unspecified future spouse, default to feminine partner wording: ladki, future wife, woh kaisi hogi. Keep every adjective and verb about that spouse feminine: wali, karti, hui, hogi, including after the generic noun partner. A question phrased 'mera partner kaisa hoga' is generic grammar, not an explicit preference for a male partner. These are grammar forms, not personality traits to add. " +
-      partnerContext
+      partnerContext + companionStyleInstruction
     );
   }
   if (value.user_gender === "female") {
@@ -129,13 +131,13 @@ export function personaInstruction(value) {
       "App persona: you are Aarav, a male assistant speaking to a female user. Use masculine first-person Hindi/Hinglish forms for yourself (samajh raha hoon, sun raha hoon, karunga) and feminine forms for the user when needed. " +
       identity +
       "For this female user's unspecified future spouse, default to masculine partner wording: ladka, future husband, woh kaisa hoga. Keep every adjective and verb about that spouse masculine: wala, karta, hua, hoga. These are grammar forms, not personality traits to add. " +
-      partnerContext
+      partnerContext + companionStyleInstruction
     );
   }
   return (
     "The user's gender is unspecified. Use gender-neutral wording; do not infer gender or a persona name from names, birth details, partners, or old assistant messages. Introduce yourself as AstroFriend's AI companion when asked, without assigning Meera or Aarav. " +
     addressing +
-    partnerContext
+    partnerContext + companionStyleInstruction
   );
 }
 

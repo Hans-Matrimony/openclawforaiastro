@@ -64,6 +64,7 @@ import { invalidGunaScore } from './birth-evidence.mjs';
 import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentation.mjs';
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
 import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
+import { naturalCompanionReply } from './companion-style.mjs';
 
 const READING_BUBBLE_WORD_CAP = 35;
 const VERDICT_BUBBLE_WORD_CAP = 8;
@@ -974,9 +975,11 @@ export async function directAnswer(
         publishableReply = grounded;
       }
     }
+    const naturalReply = naturalCompanionReply(publishableReply, value);
+    if (naturalReply !== publishableReply) validation.push('companion_identity_presentation');
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: limitResponseLength(publishableReply),
+      reply: limitResponseLength(naturalReply),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],
