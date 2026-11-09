@@ -1,7 +1,7 @@
 // Presentation validation only; scores and factor order come from the tool.
 const names = ['Varna', 'Vashya', 'Tara', 'Yoni', 'Graha Maitri', 'Gana', 'Bhakoot', 'Nadi'];
 
-function verifiedGuna(results) {
+export function verifiedGuna(results) {
   const reports = results.flatMap(raw => {
     try { const value = JSON.parse(raw)?.guna_milan; return value?.status === 'ok' ? [value] : []; }
     catch { return []; }

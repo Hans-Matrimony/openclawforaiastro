@@ -63,6 +63,7 @@ import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion } from '.
 import { invalidGunaScore } from './birth-evidence.mjs';
 import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentation.mjs';
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
+import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
 
 const READING_BUBBLE_WORD_CAP = 35;
 const VERDICT_BUBBLE_WORD_CAP = 8;
@@ -584,6 +585,10 @@ export async function directAnswer(
         ? 'Please confirm both people\'s birth dates, exact birth times and birthplaces so I can verify the Guna Milan score?'
         : 'Kya aap dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain, taaki Guna Milan score verify ho sake?');
     }
+    if (readingTools.has('get_match_report') && matchingGroundingIssues(reply, chartResults).length) {
+      validation.push('matching_grounding_rejected');
+      reply = groundedMatchingFallback(chartResults, value) ?? reply;
+    }
     if (emotionalIssue) {
       console.info(JSON.stringify({event:"emotional_reply_validation",stage:correctedEmotionalReply ? "rewrite" : "initial",categories:emotionalIssueCategories(emotionalIssue)}));
       if (correctedEmotionalReply || modelCalls >= maxRounds) {
@@ -957,6 +962,17 @@ export async function directAnswer(
     if (explicitEnglishReplyMismatch(value, publishableReply)) {
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, 'english', value.query, now()));
       validation.push('english_language_fallback');
+    }
+    // Matching cannot decide a real person's intentions or the user's choice.
+    // Run after shortening and every fallback, including cached completions.
+    if (readingTools.has('get_match_report') &&
+        (matchingGroundingIssues(publishableReply, chartResults).length || matchingDecisionQuestion(value) ||
+         validation.includes('matching_grounding_rejected'))) {
+      const grounded = groundedMatchingFallback(chartResults, value);
+      if (grounded) {
+        validation.push('matching_grounded_delivery');
+        publishableReply = grounded;
+      }
     }
     return {
       schema: "vedastro-direct-reply-v1",

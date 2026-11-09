@@ -3,6 +3,7 @@ import { personaInstruction } from "./persona.mjs";
 import { responseLanguageInstruction } from "./response-language.mjs";
 import { SOURCE_PROMPT, SOURCE_FLOW_PROMPT } from "./source-contract.mjs";
 import { matchingForms } from './birth-evidence.mjs';
+import { matchingGroundingInstruction } from './matching-grounding.mjs';
 
 export function savedBirthContext(birth) {
   const fields = {};
@@ -170,5 +171,6 @@ export async function readingContext(
     "This controls speaker identity and grammar only, not chart calculations or interpretations. Do not introduce yourself repeatedly. Old assistant names do not override this app identity.\n";
   prompt +=
     "\nInterpret current tool results independently before consulting prior assistant answers. A current antardasha end date is only a period boundary, not a marriage/job event or a permanent denial after that date. If tools provide only current-period signals, limit the verdict to that period; do not extend it to all later years. If correcting an earlier date or lifetime verdict, acknowledge the correction briefly.\n";
+  prompt += matchingGroundingInstruction;
   return { prompt, profile, memoryStatus: status, memoryFacts: facts };
 }
