@@ -41,9 +41,15 @@ export function matchingGroundingIssues(reply, results) {
     ) {
       issues.add("matching_determinism");
     }
+    // An explicit limit such as "cannot decide whether you should wait" is
+    // not a directive. Remove only that phrase, never the rest of the clause.
+    const directive = text.replace(
+      /\b(?:cannot|can't|does not|doesn't)\s+(?:decide|determine)\s+whether\s+you\s+should\s+(?:wait(?:\s+or\s+move\s+(?:on|forward))?|move\s+(?:on|forward))\b/giu,
+      "",
+    );
     if (
       /(?:^|[,：:]\s*|\b(?:so|therefore)\s+)(?:don't wait|do not wait|move (?:on|forward)|leave (?:him|her|them)|wait for (?:him|her|them)|stay with (?:him|her|them)|marry (?:him|her|them)|break up|end (?:this|the|your) relationship)\b|\byou (?:must|should|need to|have to)\s+(?:move on|move forward|leave|wait|marry|break up)\b|^(?:aage badh|intezaar mat|intazaar mat|unhe chhod|use chhod)|^(?:आगे बढ़|इंतज़ार मत|इंतजार मत|उसे छोड़|पुढे जा|वाट पाहू नका|त्याला सोड|तिला सोड)/iu.test(
-        text,
+        directive,
       )
     ) {
       issues.add("relationship_directive");

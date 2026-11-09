@@ -52,6 +52,7 @@ test("matching preserves qualified limits, optional practical steps and checked 
     "You can ask him for a clear arrival time and choose a waiting limit that suits you.",
     "Traditional indicators are mixed; this does not prove the relationship will fail.",
     "Gana: 6/6; Nadi: 8/8. These factors have full points in this calculation.",
+    "The score cannot decide whether you should wait or move forward.",
   ]) {
     assert.deepEqual(matchingGroundingIssues(text, results), [], text);
   }
@@ -60,6 +61,10 @@ test("matching preserves qualified limits, optional practical steps and checked 
       "This cannot determine his feelings. But he does not love you.",
       results,
     ).length,
+  );
+  assert.ok(
+    matchingGroundingIssues("The score cannot decide whether you should wait, so move on.", results)
+      .length,
   );
 });
 
@@ -71,6 +76,10 @@ test("grounded fallback uses only verified scores, requested factors and current
   assert.match(reply, /arrival time/);
   assert.doesNotMatch(reply, /he cannot confirm|he did not|not coming back|Move forward\./);
   assert.deepEqual(matchingGroundingIssues(reply, results), []);
+  assert.deepEqual(
+    matchingGroundingIssues(groundedMatchingFallback(results, { ...value, history: [] }), results),
+    [],
+  );
   const detail = groundedMatchingFallback(results, { ...value, query: "Show all eight factors" });
   assert.equal(invalidGunaPresentation(detail, results, "all eight factors"), false);
   assert.doesNotMatch(detail, /arrival|waiting/);
