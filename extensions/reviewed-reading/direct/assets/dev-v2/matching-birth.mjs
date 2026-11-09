@@ -2,7 +2,7 @@
 // calendar rollover or fixed-offset approximation for cities observing DST.
 const REGIONS = [
   ["Delhi|New Delhi", ["Delhi", "New Delhi", "NCT of Delhi"]],
-  ["Mumbai|Pune|Nagpur|Thane|Navi Mumbai|Kalyan|Nashik|Aurangabad|Solapur", ["Maharashtra"]],
+  ["Mumbai|Pune|Nagpur|Thane|Navi Mumbai|Kalyan|Nashik|Aurangabad|Solapur|Kolhapur", ["Maharashtra"]],
   ["Bangalore|Bengaluru|Mysore|Mysuru|Hubli|Mangalore", ["Karnataka"]],
   ["Chennai|Coimbatore|Madurai|Salem", ["Tamil Nadu", "Tamilnadu"]],
   ["Hyderabad|Warangal", ["Telangana"]],
@@ -82,7 +82,12 @@ export function matchingBirth(date, time, place, geocode) {
   }
   if (clock[3]) hour = hour % 12 + (clock[3].toUpperCase() === "PM" ? 12 : 0);
   const labels = place.split(",").map(value => value.trim().toLowerCase());
-  const loc = geocode(labels[0]);
+  // Match-only gazetteer addition; do not alter shared natal geocoding or use
+  // nearby-city/substr substitutions. Maharashtra Gazetteer: 16°42′N, 74°14′E.
+  // https://www.gazetteers.maharashtra.gov.in/cultural.maharashtra.gov.in/english/gazetteer/KOLHAPUR/places_Kolhapur.html
+  const loc = labels[0] === "kolhapur"
+    ? {name:"Kolhapur",latitude:16.7,longitude:74 + 14 / 60,tzOffset:"+05:30"}
+    : geocode(labels[0]);
   if (!loc || loc.name.toLowerCase() !== labels[0]) throw new Error("Birthplace must be a supported exact city, not a guessed nearby location");
   const international = INTERNATIONAL[loc.name];
   const region = REGIONS.find(([cities]) => cities.toLowerCase().split("|").includes(labels[0]));

@@ -48,7 +48,14 @@
     {
       "path": "matching-birth.mjs",
       "source": "AstroFriend local matching implementation",
-      "sha256": "a2bf813980cbcaa871603719ca2384c16f8fc63cf731546cf2a58751ac5abed3"
+      "sha256": "e7d4227de6e73ba2be9c18f2d70d73cebaaaade88a43e80767b7f25ed0185413",
+      "city_addition": {
+        "city": "Kolhapur",
+        "latitude": 16.7,
+        "longitude": 74.23333333333333,
+        "source": "https://www.gazetteers.maharashtra.gov.in/cultural.maharashtra.gov.in/english/gazetteer/KOLHAPUR/places_Kolhapur.html",
+        "scope": "Matching only; existing natal, transit and horary geocoding unchanged"
+      }
     }
   ]
 }

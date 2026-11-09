@@ -1,3 +1,4 @@
+import { matchingFormText } from './matching-text.mjs';
 // Input provenance belongs at the tool boundary, outside the chart calculators.
 export function birthKey(birth) {
   const date = String(birth?.date ?? '').trim();
@@ -23,9 +24,10 @@ export function sameBirth(a, b) {
 export function suppliedBirth(birth, text) {
   const key = birthKey(birth);
   if (!key || typeof text !== 'string' || text.length > 8000) return false;
+  text = matchingFormText(text);
   // Negative/correction examples are not affirmative birth facts. Ambiguity asks
   // for confirmation rather than silently selecting one of several profiles.
-  if (/\b(?:not|wrong|incorrect|galat|example|suppose|assume|imagine)\b/i.test(text)) return false;
+  if (/\b(?:not|wrong|incorrect|galat|example|suppose|assume|imagine|guessed)\b/i.test(text)) return false;
   const dates = [...text.matchAll(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})\b/g)];
   const clocks = [...text.matchAll(/\b\d{1,2}:\d{2}(?:\s*(?:am|pm))?\b/gi)];
   if (dates.length !== 1 || clocks.length !== 1) return false;
@@ -39,8 +41,9 @@ export function suppliedBirth(birth, text) {
   return places.includes(key.place);
 }
 
-function matchingForms({birth, gender, query = '', history = []}) {
-  const texts = [...history.filter(t => t.role === 'user').map(t => t.text), query];
+export function matchingForms({birth, gender, query = '', history = []}) {
+  const newPerson = /\b(?:new|another|different|dusri|dusra|dusre|naye|naya|nayi|alag)\s+(?:partner|person|vyakti|girlfriend|boyfriend|gf|bf|wife|husband)\b/i.test(query);
+  const texts = [...(newPerson ? [] : history).filter(t => t.role === 'user').map(t => t.text), query].map(matchingFormText);
   // A newer complete form supersedes older partner inputs. Do not select an
   // earlier person's valid dates just because they are still in chat history.
   const forms = texts.filter(text => /\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})\b/.test(text) && /\b\d{1,2}:\d{2}\b/.test(text));
@@ -51,7 +54,8 @@ function matchingForms({birth, gender, query = '', history = []}) {
 // different city. The unchanged evidence check still verifies both people.
 export function confirmedMatchingArguments(args, context) {
   const normalized = {...args};
-  const {birth, gender, query = ''} = context;
+  const {birth, gender} = context;
+  const query = matchingFormText(context.query ?? '');
   // An explicit saved-profile comparison has two authoritative inputs already:
   // this account's canonical profile and one complete, gender-labelled partner
   // form. Bind those inputs rather than accepting model transcription errors.
