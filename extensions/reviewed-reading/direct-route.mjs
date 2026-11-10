@@ -39,6 +39,7 @@ export function validateDirectInput(value) {
           "language",
           "user_gender",
           "user_name",
+          "reply_surface",
           "quota_context",
           "reply_to",
           "profile_update_status",
@@ -61,6 +62,7 @@ export function validateDirectInput(value) {
     ) ||
     (value.user_gender !== undefined &&
       !["male", "female", "unknown"].includes(value.user_gender)) ||
+    (value.reply_surface !== undefined && value.reply_surface !== "whatsapp") ||
     (value.user_name !== undefined &&
       (typeof value.user_name !== "string" || value.user_name.length > 80 ||
         !/^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u.test(value.user_name))) ||

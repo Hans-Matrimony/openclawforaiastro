@@ -855,7 +855,8 @@ export async function directAnswer(
       if (canAskFollowup(formatted, value, !clarification)) {
         // A new chart request is not permission to revisit a prior breakup or
         // career conversation. Keep reading evidence and calculations intact.
-        const closingValue = readingRequired || readingTools.size > 0 ? { ...value, history: [], readingOnlyClosing: true } : value;
+        const closingValue = (readingRequired || readingTools.size > 0) && value.reply_surface !== "whatsapp"
+          ? { ...value, history: [], readingOnlyClosing: true } : value;
         finalReply = await contextualClosing(formatted, closingValue, {
           facts: closingValue.readingOnlyClosing ? [] : context.memoryFacts,
           redact: (text) => redactIdentity(text, value.user_id),
