@@ -74,9 +74,9 @@ export function finishWhatsAppReply(reply, value, {facts = []} = {}) {
   if (value.reply_surface !== 'whatsapp' || !prose(reply)) return reply;
   const language = /\b(?:reply|answer|respond) in (english|hindi)\b/iu.exec(value.query)?.[1]?.toLowerCase() ?? value.language;
   const note = /^(en|english|hi|hindi|hinglish)$/iu.test(language) && needsWhatsAppCorrection(reply, value)
-    ? /^(en|english)$/iu.test(language) ? 'My earlier replies gave conflicting years; that was my mistake. '
-      : /^(hi|hindi)$/iu.test(language) ? 'पहले मेरे जवाबों में अलग-अलग साल आए थे; यह मेरी गलती थी। '
-        : 'Pehle mere jawabon mein alag-alag saal aaye the; yeh meri galti thi. '
+    ? /^(en|english)$/iu.test(language) ? 'Those conflicting years were my mistake. '
+      : /^(hi|hindi)$/iu.test(language) ? 'पहले अलग-अलग साल बताना मेरी गलती थी। '
+        : 'Pehle alag saal batana meri galti thi. '
     : '';
   let text = note + reply;
   const name = value.user_name;

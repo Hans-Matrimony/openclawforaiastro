@@ -2,12 +2,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {finishWhatsAppReply, needsWhatsAppCorrection, whatsappStyleInstruction, whatsappWordingIssue} from '../extensions/reviewed-reading/direct/whatsapp-presentation.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
+import {asksForTiming} from '../extensions/reviewed-reading/direct/reading-intent.mjs';
+import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
 
 const value={user_id:'synthetic-wa-production',query:'Meri shadi kab hogi?',history:[],birth:null,language:'hinglish',user_gender:'male',user_name:'Test Person',reply_surface:'whatsapp'};
 const old='Shaadi November 2031 se July 2034 ke beech sambhavit hai.';
 const wrong='Shaadi December 2026 se February 2027 mein hogi.';
 const history=[{role:'user',text:'Meri shadi kab hogi?'},{role:'assistant',text:old},
  {role:'user',text:'Meri GF se shaadi hogi?'},{role:'assistant',text:wrong}];
+
+test('reported kaunsa samay request retains timing intent through evidence fallback',()=>{
+ const query='Pehle aapne shaadi ke liye 2031-2034 bola tha, phir 2026-2027. Yeh saal kyun badle? Ab meri shaadi ka kaunsa samay supported hai?';
+ for(const question of [query,'Shaadi ka kaunsa samay hai?','Kaun sa waqt supported hai?','Kis period mein job mil sakti hai?','कौन सा समय अनुकूल है?'])assert.equal(asksForTiming(question),true,question);
+ for(const question of ['What does samay mean?','Kaunsa samay ka matlab kya hai?','Meri girlfriend se shaadi hogi?'])assert.equal(asksForTiming(question),false,question);
+ const chart={engine:'local-sweph-v2',verdict_signals:[{area:'marriage',trend:'MIXED',positive:['benefic Jupiter house 7 mein'],negative:['house 7 (Taurus) bindus sirf 20/48 weak support']}]};
+ const reply=evidenceFallback([JSON.stringify(chart)],'hinglish',query,new Date('2026-11-10'));
+ assert.match(reply,/supported samay tay nahi hota/);
+ assert.doesNotMatch(reply,/Relationship ki reading mein mixed/);
+});
 
 test('same-topic contradictions are acknowledged without replacing the checked dates',()=>{
  const input={...value,history};
@@ -65,7 +77,7 @@ test('actual WhatsApp dispatch adds one companion after a final checked fallback
   dasha:{current_mahadasha:{lord:'Venus',from:'2021-09-15',to:'2041-09-15'},upcoming_antardashas:[{lord:'Mars',from:'2027-09-15',to:'2028-11-14'},{lord:'Jupiter',from:'2031-11-15',to:'2034-07-16'}]},
   verdict_signals:[{area:'marriage',trend:'MIXED',positive:['benefic Jupiter house 7 mein'],negative:['house 7 (Taurus) bindus sirf 20/48 weak support','Mars ki drishti house 7 par']}]};
  let calls=0,tools=0,closingCalls=0;
- const result=await directAnswer({...value,birth:{date:'2000-01-01',time:'05:00',location_name:'Delhi'},history},{
+ const result=await directAnswer({...value,query:'Pehle shaadi 2031-2034, phir 2026-2027 bola. Ab meri shaadi ka kaunsa samay supported hai?',birth:{date:'2000-01-01',time:'05:00',location_name:'Delhi'},history},{
   env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1'},
   now:()=>new Date('2026-11-10T10:00:00Z'),makeMemory:()=>({read:async()=>[]}),
   makeTools:()=>async()=>{tools++;return JSON.stringify(chart);},

@@ -9,6 +9,12 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query) {
+  // Natural Hindi/Hinglish timing requests need not contain kab/when. Keep
+  // definitions outside this rule; reading scope still decides tool use.
+  if (!/\b(?:define|definition|meaning|matlab)\b/iu.test(query) &&
+      /\b(?:kaun(?:sa|si|se|\s+s[aei])|kis|which|what)\s+(?:(?:exact|supported|sambhavit|favourable|favorable)\s+)?(?:samay|waqt|period|window)\b|(?:कौन\s*सा|किस)\s+(?:समय|वक्त|अवधि)/iu.test(query)) {
+    return true;
+  }
   // A personal event-window request is timing even without kab/when. Keep
   // definitions and ordinary requests for time outside this additional rule.
   if (/\b(?:time|timing)[ -]+window\b/iu.test(query) &&
