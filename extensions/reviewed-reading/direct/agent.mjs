@@ -1,4 +1,5 @@
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply } from "./whatsapp-presentation.mjs";
+import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -983,7 +984,7 @@ export async function directAnswer(
     }
     // Final checked fallbacks can replace a draft. Add companionship only now,
     // once, within the existing model-call budget; no reading is replayed.
-    if (value.reply_surface === "whatsapp" && !matchingLimitations && !listeningTurn &&
+    if (value.reply_surface === "whatsapp" && !isBriefWhatsAppGreeting(value) && !matchingLimitations && !listeningTurn &&
         !emotionalFriendship && !isUnverifiedReadingReply(publishableReply) &&
         env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" &&
         canAskFollowup(publishableReply, value, !clarification)) {

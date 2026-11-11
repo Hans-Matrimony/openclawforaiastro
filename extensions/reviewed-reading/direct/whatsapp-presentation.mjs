@@ -1,5 +1,6 @@
 // WhatsApp presentation only. Prior answers establish what we said, never
 // whether a prediction is true. Calculation and evidence checks stay upstream.
+import {isBriefWhatsAppGreeting, boundWhatsAppGreeting} from './brief-greeting.mjs';
 const marriage = /\b(?:shaa?di|marriage|wedding|vivah)\b|शादी|विवाह/iu;
 const career = /\b(?:career|job|naukri|promotion)\b|नौकरी|करियर/iu;
 const changed = /\b(?:bad[al]+|chang\w*|contradic\w*|pehle|earlier|previous)\b|पहले|बदल/iu;
@@ -9,7 +10,7 @@ const detail = /\b(?:detail|detailed|thorough|full report|step.by.step)\b|वि
 const otherPerson = /\b(?:my|meri|mere)\s+(?:sister|brother|friend|behen|bhai|dost|daughter|son|beti|beta)\b|मेरी बहन|मेरे भाई/iu;
 
 function prose(text) {
-  if (/```|`|https?:\/\/|(?:^|\n)\s*\|/.test(text)) return false;
+  if (/```|`|https?:\/\/|(?:^|\n)\s*\||(?:PDF_REQUEST|MEDIA_BASE64|KUNDLI_IMAGE|MEDIA|IMAGE_URL|IMAGE):/.test(text)) return false;
   try { JSON.parse(text); return false; } catch { return true; }
 }
 
@@ -51,6 +52,7 @@ export function needsWhatsAppCorrection(reply, value) {
 
 export function whatsappStyleInstruction(value) {
   if (value.reply_surface !== 'whatsapp') return '';
+  if (isBriefWhatsAppGreeting(value)) return '\n# WhatsApp final wording\nThis turn is only a social greeting. Reply warmly in 1-2 short sentences, at most 20 words TOTAL in one bubble, including the name and any question. Use the requested language and respectful aap wording in Hindi/Hinglish. You may ask how they are, respecting no-question preferences. Do not recap earlier readings, predict anything, ask for birth details, offer a service menu, advice or an app link. Use a saved name only when allowed by their preferences and not just used.\n';
   return '\n# WhatsApp final wording\nUse the same PWA calculation and conversation rules. ' +
     (detail.test(value.query) ? 'The user requested detail; preserve the requested explanation. ' :
       'Use 20-30 words of explanation and a short verdict, at most 50 words before the companion. Put the exact timing window once; retain both month-year boundaries, opposing factors and uncertainty. Remove repeated explanations rather than cutting facts. ') +
@@ -72,6 +74,7 @@ export function whatsappWordingIssue(reply, value) {
 
 export function finishWhatsAppReply(reply, value, {facts = []} = {}) {
   if (value.reply_surface !== 'whatsapp' || !prose(reply)) return reply;
+  reply = boundWhatsAppGreeting(reply, value);
   const language = /\b(?:reply|answer|respond) in (english|hindi)\b/iu.exec(value.query)?.[1]?.toLowerCase() ?? value.language;
   const note = /^(en|english|hi|hindi|hinglish)$/iu.test(language) && needsWhatsAppCorrection(reply, value)
     ? /^(en|english)$/iu.test(language) ? 'Those conflicting years were my mistake. '
@@ -87,7 +90,7 @@ export function finishWhatsAppReply(reply, value, {facts = []} = {}) {
     if (/\b(?:(?:do not|don't|dont|never) (?:use|say|call|address).{0,35}(?:name|me)|(?:does not|doesn't|prefers not to).{0,40}(?:use|address|name)|(?:naam|name).{0,25}(?:mat|nahi|nahin|don't|do not))\b|नाम.{0,20}(?:मत|नहीं)/iu.test(text)) noName = true;
     else if (/\b(?:you (?:can|may)|please) use my name\b|\bnaam (?:le sak\w*|use kar sak\w*)\b/iu.test(text)) noName = false;
   }
-  const personal = note || scope(value) || /\b(?:my|meri|mera|mujhe|I feel|khush|upset|lonely)\b|मेरा|मेरी|मुझे/iu.test(value.query);
+  const personal = isBriefWhatsAppGreeting(value) || note || scope(value) || /\b(?:my|meri|mera|mujhe|I feel|khush|upset|lonely)\b|मेरा|मेरी|मुझे/iu.test(value.query);
   if (personal && !noName && typeof name === 'string' && name.length <= 80 &&
       /^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u.test(name) &&
       !/^(?:unknown|user|guest|please update|anonymous)$/iu.test(name) &&
@@ -95,5 +98,5 @@ export function finishWhatsAppReply(reply, value, {facts = []} = {}) {
       !recent.some(t => t.text.toLocaleLowerCase().includes(name.toLocaleLowerCase()))) {
     text = name + ', ' + text;
   }
-  return text;
+  return boundWhatsAppGreeting(text, value);
 }
