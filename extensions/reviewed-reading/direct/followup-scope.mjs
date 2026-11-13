@@ -15,15 +15,24 @@ function abbreviatedReading(query) {
      /\b(?:house|ghar)\b.*\b(?:strength|score)\b.*\b(?:kaise|how|kyu|why)\b/i.test(query));
 }
 
+function answerRetry(query) {
+  // A retry can contain several messages joined by the WhatsApp burst buffer.
+  // Match the entire request so a new topic, person or correction stops recovery.
+  const text = query.toLowerCase().replace(/[?!.、,।\n]+/gu, ' ').replace(/\s+/gu, ' ').trim();
+  return text.length <= 180 && /^(?:(?:please |plz )?(?:response|reply|answer|jawab|jawaab)(?: toh| to)?(?: do| de| dijiye| dijiye na| karo| kar do| please)?(?: na+)?|(?:i |mai |main )?(?:did not understand|didn't understand|dont understand|don't understand)|(?:matlab|mtlb|mtlb)?\s*(?:samajh|samjh|samjha|smjha|samjha? nahi|smjh)(?: nahi| nhi| nahin)(?: aaya| aya)?(?: mai| main| mujhe)?)(?:\s+(?:response|reply|answer|jawab)(?: toh| to)?(?: do| de| dijiye)(?: na+)?)?$/iu.test(text);
+}
+
 export function activeReadingQuestion(value) {
   if (isPersonalChartQuestion(value.query) || asksGunaScore(value.query)) return value.query;
-  if (!abbreviatedReading(value.query)) return value.query;
+  const retry = answerRetry(value.query);
+  if (!abbreviatedReading(value.query) && !retry) return value.query;
+  if (retry && value.reply_to) return value.query;
   // Only the latest user subject can resolve an abbreviated follow-up. Never
   // skip a changed topic to resurrect an older assistant prediction.
   const previous = [...(value.history ?? [])].reverse().filter(t => t.role === 'user').slice(0, 4);
   for (const turn of previous) {
     if (selectedSelfBirth(turn.text, value.birth)) return `${turn.text}\nFollow-up: ${value.query}`;
-    if (!abbreviatedReading(turn.text)) break;
+    if (!abbreviatedReading(turn.text) && !answerRetry(turn.text)) break;
   }
   return value.query;
 }

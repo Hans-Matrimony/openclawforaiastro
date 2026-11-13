@@ -1,3 +1,5 @@
+import {normalizePersonalQuery} from './personal-query.mjs';
+
 export const CHART_TOOL_NAMES = new Set([
   "get_horoscope_predictions",
   "get_current_transits",
@@ -48,7 +50,7 @@ export function requiresChartReading(query, profile) {
 }
 
 export function isPersonalChartQuestion(query) {
-  const text = query.toLowerCase().trim();
+  const text = normalizePersonalQuery(query).toLowerCase().trim();
   if (isPracticalFollowup(query)) return false;
   // Keep general explanations, ordinary chat and another person's profile on auto routing.
   if (

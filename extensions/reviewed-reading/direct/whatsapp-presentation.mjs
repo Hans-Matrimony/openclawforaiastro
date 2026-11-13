@@ -61,7 +61,11 @@ export function whatsappStyleInstruction(value) {
 }
 
 export function whatsappWordingIssue(reply, value) {
-  if (value.reply_surface !== 'whatsapp' || detail.test(value.query) || !prose(reply)) return null;
+  if (value.reply_surface !== 'whatsapp' || !prose(reply)) return null;
+  if (/\b(?:tool[ -]based|chart tool|tool call|model draft|upstream provider)\b/iu.test(reply)) {
+    return 'Remove internal tool/provider wording. Give the requested answer from the checked evidence in everyday language. A missing calculation is not a negative prediction: if verification failed, say you could not check the answer, never that the career has no support. Do not replace the answer with a question.';
+  }
+  if (detail.test(value.query)) return null;
   const parts = reply.trim().split(/\n\s*\n/u);
   if (/\bpoints?\s+(?:sirf\s+)?kamzor\b|\bki points?\b/iu.test(reply)) {
     return 'Replace the awkward orphaned point-score phrase with a complete natural sentence about the checked strength or limitation. Keep its adverse meaning and the supported dates.';

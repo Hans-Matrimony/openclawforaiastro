@@ -1,3 +1,5 @@
+import {normalizePersonalQuery} from './personal-query.mjs';
+
 // Bind only unambiguous self questions. Corrections, other people and ambiguous
 // continuations retain the existing conversational birth-detail workflow.
 export function selectedSelfBirth(query, birth) {
@@ -7,7 +9,7 @@ export function selectedSelfBirth(query, birth) {
   // In a self-chart clarification, "7ve ghar ... uski strength" refers to
   // that house, not a second person's birth profile. Keep all other-person
   // and explicit birth-correction exclusions below intact.
-  const text = query.toLowerCase()
+  const text = normalizePersonalQuery(query).toLowerCase()
     .replace(/\b(?:my|meri|mera|mere)\s+(?:saved|existing|stored)\s+birth\s+details\b/gu, 'my chart')
     // A request not to guess new details is not a birth correction. Preserve
     // every explicit date/time and other-person exclusion below.
