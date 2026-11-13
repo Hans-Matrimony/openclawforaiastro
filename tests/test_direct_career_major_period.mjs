@@ -63,7 +63,7 @@ test('structured repair can retain a relevant major period and adverse factors w
 });
 
 test('missing or ambiguous timing stays honest and natural without choosing a distant period automatically',()=>{
- const reply=evidenceFallback(evidence,'hinglish',query,now());
+ const reply=evidenceFallback([JSON.stringify({...chart,birth_chart:undefined})],'hinglish',query,now());
  assert.match(reply,/exact waqt abhi saaf nahi/);
  assert.doesNotMatch(reply,/supported samay|alag sanket|2040|2046/);
  assert.match(reply,/Career ke ghar ki majbooti achhi/);assert.match(reply,/deri ho sakti/);
@@ -74,6 +74,24 @@ test('missing or ambiguous timing stays honest and natural without choosing a di
   assert.deepEqual(upcomingPeriods({next_mahadasha:invalid}),[]);
  }
  assert.deepEqual(upcomingPeriods({upcoming_antardashas:[null,{},'bad']}),[]);
+});
+
+test('unique checked career ownership survives a failed prose repair without losing positive or adverse factors',()=>{
+ const reply=evidenceFallback(evidence,'hinglish',query,now());
+ assert.match(reply,/Sun mahadasha/);assert.match(reply,/January 2040 se January 2046/);
+ assert.match(reply,/Shani/);assert.match(reply,/rukawat/);assert.match(reply,/rukna zaroori nahi/);
+ assert.equal(unsupportedEventTiming(reply,evidence,query),false);
+ const unsupported={...chart,birth_chart:{...chart.birth_chart,ashtakavarga_house_bindus:{}}};
+ assert.doesNotMatch(evidenceFallback([JSON.stringify(unsupported)],'hinglish',query,now()),/2040|2046/);
+});
+
+test('captured PWA career assertion cannot deny all earlier change or hide an open-ended career year',()=>{
+ for(const reply of [
+  'Career ke liye current support kam hai. Sun mahadasha 2040 mein aayega, aur tab tak koi clear shift nahi hoga.\n\nCareer set hona 2040 ke baad sambhavna hai.',
+  'There will be no career change before 2040.',
+  'Career set hona 2040 ke baad sambhavna hai.',
+ ])assert.equal(unsupportedEventTiming(reply,evidence,query),true,reply);
+ assert.equal(unsupportedEventTiming('Career settle hone ka exact waqt abhi saaf nahi hai.',evidence,query),false);
 });
 
 test('PWA and WhatsApp dispatch preserve the same checked career interpretation after an unrelated marriage answer',async()=>{

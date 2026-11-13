@@ -27,6 +27,11 @@ export function unsupportedEventTiming(reply, results, query = "") {
       /\b(?:solid\s+move\s+nahi\s+hoga|job\s+change\s+(?:mat|nahi)|(?:do not|don't)\s+(?:apply|change jobs))\b/i.test(reply)) {
     return true;
   }
+  // A distant period does not establish that nothing can change beforehand.
+  // Keep this separate from a qualified adverse interpretation of that period.
+  if (/\b20\d{2}\b/u.test(reply) && /\b(?:career|job|naukri)\b/iu.test(reply) &&
+      (/\b(?:tab|us|uss)\s+tak\b[^.!?\n]{0,70}\b(?:nahi|nahin|nhi)\s+(?:hoga|hogi|aayega|aayegi|milega|milegi)\b/iu.test(reply) ||
+       /\b(?:no|not|cannot|can't|won't)\b[^.!?\n]{0,70}\b(?:change|shift|improve\w*|progress|settle|job|work)\b[^.!?\n]{0,50}\b(?:until|before)\s+(?:[a-z]+\s+)?20\d{2}\b/iu.test(reply))) return true;
   if ((!query || asksForTiming(query)) && isPeriodInterpretation(reply, data)) {
     return false;
   }
@@ -56,7 +61,7 @@ export function unsupportedEventTiming(reply, results, query = "") {
       ({ sentence, dated }) =>
         dated &&
         (eventTopic || /\b(?:girlfriend|boyfriend|gf|bf|rishta)\b/i.test(sentence)) &&
-        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|sha+di|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:sahi|right|clear|better)\s+(?:direction|disha|raah|raasta)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|honge|hongi|clear|pass|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary|pareshani)\b.{0,80}\b(?:kam|badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
+        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|sha+di|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\bcareer\b[^.!?\n]{0,55}\b(?:set|settle\w*|stabili[sz]\w*)\b|\b(?:sahi|right|clear|better)\s+(?:direction|disha|raah|raasta)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|honge|hongi|clear|pass|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary|pareshani)\b.{0,80}\b(?:kam|badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
           sentence,
         ) &&
         !/\b(?:not a calculated|not an event|date nahi|tay nahi|establish|cannot|does not|no verified)\b/i.test(
