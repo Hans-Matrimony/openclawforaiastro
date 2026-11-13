@@ -3,7 +3,7 @@ import test from 'node:test';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
 import {fallbackFactor} from '../extensions/reviewed-reading/direct/fallback-factors.mjs';
-import {careerAnswerEvidence,careerEventTimingUnavailable,careerAnswerMessages,unsupportedCareerDeadline} from '../extensions/reviewed-reading/direct/career-answer.mjs';
+import {careerAnswerEvidence,careerEventTimingUnavailable,careerAnswerMessages,unsupportedCareerDeadline,careerAnswerWordingIssue} from '../extensions/reviewed-reading/direct/career-answer.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
 const chart={engine:'local-sweph-v2',birth_chart:{planets:['Sun: Taurus | house 2','Saturn: Virgo | house 6'],ashtakavarga_house_bindus:{house_10:{sign:'Leo',bindus:31}}},
@@ -94,11 +94,33 @@ test('an honest undated career answer is not forced back into a date-seeking rev
 });
 
 test('a career forecast cannot replace an unknown date with a promise of improvement soon',()=>{
- for(const reply of ['Career will improve soon.','Jald hi koi shift aayega.','Jaldi hi career set hoga.'])
+ for(const reply of ['Career will improve soon.','Jald hi koi shift aayega.','Jaldi hi career set hoga.',
+  'Abhi koi fixed date nahi bata sakti, lekin next 1 to 2 saal mein progress shuru hoga.',
+  'Your career may take two years to settle.','Progress is likely in the coming months.','Career will improve within 6 months.'])
   assert.equal(unsupportedCareerDeadline(reply,'When will my career settle?',rows),true,reply);
- for(const reply of ['I cannot say your career will settle soon.','Jald career set hoga, yeh kehna sahi nahi hai.','There may be delays, and no reliable date is established.'])
+ for(const reply of ['I cannot say your career will settle soon.','Jald career set hoga, yeh kehna sahi nahi hai.','There may be delays, and no reliable date is established.',
+  'You said you have worked for two years.','These factors cannot establish progress within two years.'])
   assert.equal(unsupportedCareerDeadline(reply,'When will my career settle?',rows),false,reply);
  assert.equal(unsupportedCareerDeadline('Sun mahadasha begins in 2040.','Explain Sun mahadasha for my career',rows),false);
+});
+
+test('career delivery rejects process jargon and an unqualified claim that progress is already blocked',()=>{
+ for(const reply of ['Timing abhi clear nahi hai, kyun ki koi calculated event window nahi hai.',
+  'Saturn aur dasha lord ka direct link na hona results ko rok raha hai.',
+  'Career ka foundation strong hai lekin Saturn se delay ho raha hai.'])
+  assert.ok(careerAnswerWordingIssue(reply,'When will my career settle?',rows));
+ assert.equal(careerAnswerWordingIssue('Career ke liye sahyog hai, lekin deri ho sakti hai.\n\nAbhi bharosemand samay batana mumkin nahi.','When will my career settle?',rows),null);
+});
+
+test('a relative deadline is corrected through the normal writer without publishing it or selecting another date',async()=>{
+ const good='Your career house is supportive, while Saturn may bring delays.\n\nThese factors do not establish a reliable career settlement date.';
+ let requests=0;
+ const result=await directAnswer({...base,reply_surface:'whatsapp',query:'When will my career settle?'},{env,now,
+  makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
+  fetchImpl:async()=>{requests++;const message=requests===1?{tool_calls:[call]}:{content:requests===2?'Your career house is supportive.\n\nYour career will improve within 1 to 2 years.':good};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+ });
+ assert.equal(requests,3);assert.ok(result.reply.startsWith(good));assert.ok(result.answer_validation.includes('timing_claim_rejected'));
+ assert.ok(!result.answer_validation.some(v=>/fallback/.test(v)));assert.doesNotMatch(result.reply,/1 to 2 years|20\d{2}/);
 });
 
 test('a complete two-line WhatsApp career answer is measured after whitespace formatting',async()=>{

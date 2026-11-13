@@ -16,9 +16,10 @@ export function unsupportedCareerDeadline(reply, query, chartResults) {
   if (/\b20\d{2}\b/u.test(reply)) return true;
   // An unspecified "soon" forecast is still a forecast. Missing event timing
   // must not be replaced with a promise that the next period will improve it.
-  return reply.split(/[.!?।\n]+/u).some(sentence => {
-    const relative = /\b(?:soon|shortly|jald(?:i)?|jaldi hi)\b/iu.test(sentence);
-    const forecast = /\b(?:will|aayega|aayegi|hoga|hogi|ho jayega|ho jayegi)\b/iu.test(sentence);
+  return reply.split(/[.!?।\n]+|\b(?:but|lekin|however)\b/iu).some(sentence => {
+    const duration = /\b(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|ek|do|teen|char|paanch|chhe)\s*(?:(?:to|se|[-–])\s*(?:\d+|one|two|three|four|five|six|ek|do|teen|char|paanch)\s*)?(?:years?|months?|weeks?|days?|saal|mahine?|hafte?|din)\b/iu.test(sentence);
+    const relative = duration || /\b(?:soon|shortly|jald(?:i)?|jaldi hi|(?:next|coming|agle|agli)\s+(?:years?|months?|weeks?|days?|saal|mahine?|hafte?|din))\b/iu.test(sentence);
+    const forecast = /\b(?:will|aayega|aayegi|hoga|hogi|ho jayega|ho jayegi|may take|could take|likely|expected|possible|sambhav)\b/iu.test(sentence);
     const negated = /\b(?:not|cannot|can't|nahi|nahin|mat)\b/iu.test(sentence);
     return relative && forecast && !negated;
   });
@@ -26,6 +27,12 @@ export function unsupportedCareerDeadline(reply, query, chartResults) {
 
 export function careerAnswerWordingIssue(reply, query, chartResults) {
   if (!careerEventTimingUnavailable(query, chartResults) || asksForDetail(query)) return null;
+  if (/\b(?:calculated\s+(?:event\s+)?window|(?:missing|no)\s+transit\s+evidence|external push|dasha lord ka direct link)\b/iu.test(reply)) {
+    return 'Remove calculation-process jargon. Explain the checked support and possible delay in everyday language, and state the timing uncertainty naturally. Preserve the meaning without mentioning computed windows or missing tool evidence.';
+  }
+  if (/\b(?:delay ho raha|results? ko rok raha|progress (?:slow|ruk) ho rah[ai])\b/iu.test(reply) && !/\b(?:ho sak|may|might|could|possible)\b/iu.test(reply)) {
+    return 'Describe the checked delay as a possibility, not an observed fact or guaranteed outcome. Keep both the supportive factor and the timing uncertainty.';
+  }
   const parts = reply.trim().split(/\n\s*\n/u);
   if (reply.trim().split(/\s+/u).length > 50 || parts.some(p => p.trim().split(/\s+/u).length > 35)) {
     return 'Keep the supported meaning in two complete short paragraphs: explanation at most 30 words, timing conclusion at most 15 words, and at most 50 words total. Remove repetition and jargon. Do not add advice, a date, a soon forecast, or a follow-up question.';
