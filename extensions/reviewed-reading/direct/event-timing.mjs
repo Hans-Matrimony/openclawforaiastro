@@ -1,5 +1,5 @@
 import { isPeriodInterpretation } from "./period-interpretation.mjs";
-import { asksForTiming } from "./reading-intent.mjs";
+import { asksForTiming, isPersonalChartQuestion } from "./reading-intent.mjs";
 
 // The local natal/transit tools provide periods, not calculated event windows.
 // Restrict this check to that explicit contract; do not reinterpret other tools.
@@ -34,6 +34,16 @@ export function unsupportedEventTiming(reply, results, query = "") {
     /\b(?:sha+di|marriage|career|job|financial|finance|income|paise|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b/i.test(
       reply,
     );
+  // A general personal reading does not invite dates from a period schedule.
+  // Match within a sentence so a saved birth date elsewhere remains harmless.
+  // Explicit schedule questions and years supplied by the user keep their scope.
+  if (query && isPersonalChartQuestion(query) && !asksForTiming(query) &&
+      !/\b(?:dasha|antardasha|mahadasha|schedule|period|calendar)\b/iu.test(query) &&
+      reply.split(/[.!?\n]+/u).some(sentence =>
+        /\b(?:dasha|antardasha|mahadasha)\b/iu.test(sentence) &&
+        [...sentence.matchAll(/\b20\d{2}\b/gu)].some(match => !query.includes(match[0])))) {
+    return true;
+  }
   return reply
     .split(/\n\s*\n/)
     .flatMap((paragraph) =>
@@ -46,7 +56,7 @@ export function unsupportedEventTiming(reply, results, query = "") {
       ({ sentence, dated }) =>
         dated &&
         (eventTopic || /\b(?:girlfriend|boyfriend|gf|bf|rishta)\b/i.test(sentence)) &&
-        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|sha+di|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|honge|hongi|clear|pass|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary|pareshani)\b.{0,80}\b(?:kam|badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
+        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|sha+di|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:sahi|right|clear|better)\s+(?:direction|disha|raah|raasta)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|honge|hongi|clear|pass|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary|pareshani)\b.{0,80}\b(?:kam|badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
           sentence,
         ) &&
         !/\b(?:not a calculated|not an event|date nahi|tay nahi|establish|cannot|does not|no verified)\b/i.test(
