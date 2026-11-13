@@ -1,4 +1,4 @@
-import {isPersonalChartQuestion, asksForTiming} from './reading-intent.mjs';
+import {isPersonalChartQuestion} from './reading-intent.mjs';
 import {selectedSelfBirth} from './selected-self-birth.mjs';
 
 export function generalMatchingQuestion(query) {
@@ -8,11 +8,31 @@ export function generalMatchingQuestion(query) {
 
 export const asksGunaScore = query => !generalMatchingQuestion(query) && /\b(?:guna?|gun|ashtakoota)\b.*\b(?:milan|match|score|kitne|bata|puch|puchha)|\b(?:guna?|gun)\s*(?:batao|bataiye|kitne)\b/iu.test(query);
 
+function singleAbbreviatedReading(query) {
+  const text = query.trim().replace(/[?!.।]+$/gu, '').replace(/\s+/gu, ' ');
+  if (text.split(/\s+/u).length > 16 ||
+      /\b(?:friend|partner|girlfriend|boyfriend|gf|bf|crush|wife|husband|mother|father|sister|brother|behen|bhai|dost|feel|feeling|sad|upset|career|job|money|kundli|chart)\b/iu.test(text)) return false;
+  // Only topic-free ellipses may borrow the previous self question. A broad
+  // why/how/when prefix also matches greetings and entirely new questions.
+  return /^(?:why|how)(?: exactly| so| is that| did you (?:calculate|check|verify)(?: that| this)?| do you (?:say|know) that)?$/iu.test(text) ||
+    /^(?:kyu|kyun|kaise)(?: (?:aisa|ye|yeh|pata|calculate|verify|check)(?: (?:kiya|hua|chala|hai|hoga))?)?$/iu.test(text) ||
+    /^(?:aisa|ye|yeh) (?:kyu|kyun|kaise)(?: (?:hai|hoga|hua))?$/iu.test(text) ||
+    /^(?:kab|kb)(?:\s+(?:tak|tk|hoga|hogi|honge|aayega|aayegi|milegi|milega|se|start|shuru|hona|hone|wala|wali|hai|batao|bataiye|exactly|phir|toh))*$/iu.test(text) ||
+    /^(?:when|how soon|how long|which (?:year|month|date)|what (?:year|month|date))(?:\s+(?:will|would|could|can|it|that|this|happen|be|start|end|exactly|then|please|do|you|mean))*$/iu.test(text) ||
+    /^(?:kis (?:basis|aadhar|adhar|bunyaad)(?: (?:pe|par))?|on what (?:basis|grounds)|what (?:evidence|proof))$/iu.test(text) ||
+    /^(?:(?:why|kyu|kyun)(?: not| only| sirf)?\s+20\d{2}|20\d{2}\s+(?:kyu|kyun))$/iu.test(text) ||
+    /^(?:क्यों|कैसे|किस आधार पर|कब(?: तक)?(?: होगा| होगी| होंगे)?)$/u.test(text) ||
+    (/\b(?:house\s+\d{1,2}|\d{1,2}(?:ve|va|th|st|nd|rd)?\s+(?:ghar|house))\b/iu.test(text) &&
+     /\b(?:strength|score|majbooti|mazbooti|bindus)\b/iu.test(text) && /\b(?:kaise|how|kyu|kyun|why)\b/iu.test(text));
+}
+
 function abbreviatedReading(query) {
-  return query.trim().split(/\s+/).length <= 16 &&
-    !/\b(?:friend|partner|girlfriend|boyfriend|gf|bf|crush|wife|husband|mother|father|sister|brother|behen|bhai|dost|feel|feeling|sad|upset|career|job|money|kundli|chart)\b/i.test(query) &&
-    (/^(?:why|how|kyu|kyun|kaise|kis\s+(?:basis|aadhar)|kab|kb|when)\b/i.test(query) || asksForTiming(query) ||
-     /\b(?:house|ghar)\b.*\b(?:strength|score)\b.*\b(?:kaise|how|kyu|why)\b/i.test(query));
+  if (singleAbbreviatedReading(query)) return true;
+  // Keep a burst of short follow-ups together, while any new question in the
+  // same burst prevents borrowing the previous reading's subject.
+  const parts = query.trim().split(/[?!।]+(?:\s+|$)|\n+/u).map(part=>part.trim()).filter(Boolean);
+  return query.trim().split(/\s+/u).length <= 16 && parts.length > 1 && parts.length <= 4 &&
+    parts.every(part=>singleAbbreviatedReading(part) || answerRetry(part));
 }
 
 function answerRetry(query) {
@@ -23,10 +43,12 @@ function answerRetry(query) {
 }
 
 export function activeReadingQuestion(value) {
+  // An explicit quote supplies its own subject; do not override it with a
+  // different topic from the latest unquoted user history.
+  if (value.reply_to) return value.query;
   if (isPersonalChartQuestion(value.query) || asksGunaScore(value.query)) return value.query;
   const retry = answerRetry(value.query);
   if (!abbreviatedReading(value.query) && !retry) return value.query;
-  if (retry && value.reply_to) return value.query;
   // Only the latest user subject can resolve an abbreviated follow-up. Never
   // skip a changed topic to resurrect an older assistant prediction.
   const previous = [...(value.history ?? [])].reverse().filter(t => t.role === 'user').slice(0, 4);
