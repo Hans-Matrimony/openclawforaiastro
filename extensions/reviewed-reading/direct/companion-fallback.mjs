@@ -2,6 +2,7 @@ import { companionFocus, companionNotes, asksKnownDetail } from "./companion-con
 import { repeatsCompanionIntent } from "./companion-repetition.mjs";
 import { fallbackGrammar } from "./persona.mjs";
 import { questionScope } from "./question-scope.mjs";
+import { borrowsCompanionTopic } from './followup-scope.mjs';
 // Used only when the companion writer fails or offers no usable closing.
 // Topic acknowledgments do not infer personal circumstances from chart claims.
 export function companionFallback(value, facts = [], { requireQuestion = false } = {}) {
@@ -22,16 +23,10 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
   if (
     !personal &&
     !topics.test(topicQuery) &&
-    /\b(?:why|kyu|kyun|kaise|matlab|samjhao|explain|thik se|aur batao|or batao|sabhi|sab kuch)\b|क्यों|कैसे|समझाओ/i.test(
-      topicQuery,
-    )
+    borrowsCompanionTopic(topicQuery)
   ) {
     topicQuery =
-      (value.history ?? [])
-        .filter((turn) => turn.role === "user")
-        .toReversed()
-        .find((turn) => topics.test(turn.text) || personalTopic.test(turn.text))?.text ??
-      value.query;
+      companionFocus(value).user_topic;
     personal = personalTopic.test(topicQuery);
   }
   const focusedTopics = companionFocus(value).topics;

@@ -1,4 +1,5 @@
 import { unsupportedActionProgress } from "./companion-action-progress.mjs";
+import { borrowsCompanionTopic, newCompanionQuestion } from './followup-scope.mjs';
 
 // Companion-only topic hints. These never select chart tools or alter readings.
 const TOPICS = {
@@ -40,11 +41,7 @@ export function companionFocus(value) {
   if (topics.length) {
     return { topics, user_topic: query };
   }
-  if (
-    /\b(?:why|kyu|kyun|kaise|matlab|samjhao|explain|thik se|aur|or|haan|yes|nahi|then|what next|ab kya|tak|kab|summarize)\b|क्यों|कैसे|बताओ/i.test(
-      query,
-    )
-  ) {
+  if (borrowsCompanionTopic(query)) {
     for (const turn of (value.history ?? []).toReversed()) {
       if (turn.role !== "user") {
         continue;
@@ -53,6 +50,7 @@ export function companionFocus(value) {
       if (topics.length) {
         return { topics, user_topic: turn.text };
       }
+      if (!borrowsCompanionTopic(turn.text)) break;
     }
   }
   return { topics: [], user_topic: query };
@@ -107,6 +105,9 @@ export function companionNotes(facts, focus, value) {
 
 export function closingDrifts(question, focus, value, facts) {
   const topics = companionTopics(question);
+  if (!focus.topics.length && topics.length && newCompanionQuestion(value.query)) {
+    return true; // An unrelated new question cannot reopen an old personal topic.
+  }
   // A bare marriage-timing question does not invite an unrelated self-care
   // interview. Keep neutral relationship follow-ups and explicit user context.
   if (focus.topics.length === 1 && focus.topics[0] === "relationship" &&

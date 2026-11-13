@@ -18,6 +18,7 @@ import { isCompanionParagraph } from "./friendly-closing.mjs";
 import { personaInstruction, fallbackGrammar } from "./persona.mjs";
 import { stressFollowup } from "./stress-followup.mjs";
 import { responseLanguageInstruction } from "./response-language.mjs";
+import { newCompanionQuestion } from './followup-scope.mjs';
 
 const generic =
   /(?:Iske baare mein thoda aur bataun|Would you like me to explain this a little more|Would you like more detail|क्या इसके बारे में थोड़ा और बताऊँ)\?\s*$/i;
@@ -103,6 +104,10 @@ export async function contextualClosing(
   } else if (!boundaries.length) {
     base = reply.replace(generic, "").trimEnd();
   }
+  const focus = companionFocus(value);
+  // A complete question on a new, non-personal subject needs no companion
+  // interview about an earlier reading. Keep genuine short follow-ups intact.
+  if (!focus.topics.length && newCompanionQuestion(value.query)) return base;
   if (!base || (/[?？]\s*$/.test(base) && !listeningOnly(value.query))) {
     return reply;
   }
@@ -129,7 +134,6 @@ export async function contextualClosing(
       return (stockOnly ? "" : base + "\n\n") + fallbackGrammar(support, value);
     }
   }
-  const focus = companionFocus(value);
   const notes = companionNotes(facts, focus, value).map((fact) => redact(fact).slice(0, 1000));
   const history = (value.history ?? [])
     .slice(-20)
