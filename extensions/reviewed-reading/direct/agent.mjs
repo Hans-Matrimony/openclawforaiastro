@@ -1,6 +1,6 @@
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
-import {careerAnswerMessages,careerEventTimingUnavailable} from './career-answer.mjs';
+import {careerAnswerMessages,careerEventTimingUnavailable,careerAnswerWordingIssue,unsupportedCareerDeadline} from './career-answer.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -832,7 +832,7 @@ export async function directAnswer(
       }
     }
     if (
-      (careerTiming && careerEventTimingUnavailable(value.query,chartResults) && /\b20\d{2}\b/u.test(reply)) ||
+      (careerTiming && unsupportedCareerDeadline(reply,value.query,chartResults)) ||
       unsupportedPeriodClaim(reply, chartResults) ||
       (sourceFlow && unsupportedTopicOpportunity(reply, chartResults, value.query)) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults, value.query))
@@ -912,7 +912,11 @@ export async function directAnswer(
     }
     // Validate the wording users will see: display cleanup removes separators,
     // which can expose ambiguous period labels hidden by a draft's dashes.
-    const wordingIssue = readingTools.size > 0 ? (readingPresentationIssue(formatDisplayReply(reply)) || whatsappWordingIssue(formatDisplayReply(reply), value)) : null;
+    // Normalize existing line/sentence boundaries before measuring paragraphs.
+    // A valid two-line answer must not be rejected as one oversized paragraph.
+    if (careerTiming) reply = formatReadingReply(reply, true);
+    const wordingIssue = readingTools.size > 0 ? (readingPresentationIssue(formatDisplayReply(reply)) ||
+      (careerTiming && careerAnswerWordingIssue(formatDisplayReply(reply),value.query,chartResults)) || whatsappWordingIssue(formatDisplayReply(reply), value)) : null;
     if (wordingIssue) {
       validation.push("reading_wording_rejected");
       if (!correctedReadingPresentation && modelCalls < maxRounds && upstreamCalls < maxCalls) {
@@ -929,8 +933,11 @@ export async function directAnswer(
           }).replace(/</g,"\\u003c").replace(/>/g,"\\u003e"),
         });
         if(careerTiming&&careerEventTimingUnavailable(value.query,chartResults)){
-          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,reply,text=>redactIdentity(text,value.user_id),now()));
-          messages[0].content+=' Correct the wording issue without a new chart interpretation: '+wordingIssue;
+          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,undefined,text=>redactIdentity(text,value.user_id),now()));
+          // This draft already passed fact checks. Preserve it as edit input
+          // instead of starting another interpretation from an empty draft.
+          messages[0].content+=' Edit only current_draft to correct this wording issue, preserving its supported facts and uncertainty: '+wordingIssue;
+          messages[1].content=JSON.stringify({...JSON.parse(messages[1].content),current_draft:redactIdentity(reply,value.user_id)}).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
         }
         continue;
       }

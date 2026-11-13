@@ -3,7 +3,7 @@ import test from 'node:test';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
 import {fallbackFactor} from '../extensions/reviewed-reading/direct/fallback-factors.mjs';
-import {careerAnswerEvidence,careerEventTimingUnavailable,careerAnswerMessages} from '../extensions/reviewed-reading/direct/career-answer.mjs';
+import {careerAnswerEvidence,careerEventTimingUnavailable,careerAnswerMessages,unsupportedCareerDeadline} from '../extensions/reviewed-reading/direct/career-answer.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
 const chart={engine:'local-sweph-v2',birth_chart:{planets:['Sun: Taurus | house 2','Saturn: Virgo | house 6'],ashtakavarga_house_bindus:{house_10:{sign:'Leo',bindus:31}}},
@@ -91,4 +91,42 @@ test('an honest undated career answer is not forced back into a date-seeking rev
    return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
  });
  assert.equal(requests,2);assert.ok(result.reply.startsWith(good));assert.deepEqual(result.answer_validation,[]);
+});
+
+test('a career forecast cannot replace an unknown date with a promise of improvement soon',()=>{
+ for(const reply of ['Career will improve soon.','Jald hi koi shift aayega.','Jaldi hi career set hoga.'])
+  assert.equal(unsupportedCareerDeadline(reply,'When will my career settle?',rows),true,reply);
+ for(const reply of ['I cannot say your career will settle soon.','Jald career set hoga, yeh kehna sahi nahi hai.','There may be delays, and no reliable date is established.'])
+  assert.equal(unsupportedCareerDeadline(reply,'When will my career settle?',rows),false,reply);
+ assert.equal(unsupportedCareerDeadline('Sun mahadasha begins in 2040.','Explain Sun mahadasha for my career',rows),false);
+});
+
+test('a complete two-line WhatsApp career answer is measured after whitespace formatting',async()=>{
+ const draft='Your career house is supportive, although Saturn may bring some delays in your work; these are mixed indications, rather than a guarantee of a particular outcome.\nThese factors do not establish a reliable career settlement date.';
+ let requests=0;
+ const result=await directAnswer({...base,reply_surface:'whatsapp',query:'When will my career settle?'},{env,now,
+  makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
+  fetchImpl:async()=>{requests++;const message=requests===1?{tool_calls:[call]}:{content:draft};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+ });
+ assert.equal(requests,2);assert.deepEqual(result.answer_validation,[]);
+ assert.ok(result.reply.startsWith(draft.replace('\n','\n\n')));
+});
+
+test('long career answers on either surface are edited from the actual checked draft before delivery limits',async()=>{
+ const long='Your career house is supportive, while Saturn may bring delays in work. These indications are mixed, with support from the career house alongside the caution about delays. Neither indication establishes that a particular outcome is certain.\n\nThese factors do not establish a reliable career settlement date, so an exact time cannot be concluded from them.';
+ const good='Your career house is supportive, while Saturn may bring delays.\n\nThese factors do not establish a reliable career settlement date.';
+ for(const reply_surface of [undefined,'whatsapp']){
+  let requests=0;
+  const result=await directAnswer({...base,reply_surface,query:'When will my career settle?'},{env,now,
+   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
+   fetchImpl:async(_url,options)=>{requests++;
+    if(requests===3){const body=JSON.parse(options.body),data=JSON.parse(body.messages[1].content);
+     assert.equal(data.current_draft,long);assert.doesNotMatch(JSON.stringify(data.checked_chart_results),/2040|current_period_lords/);
+     assert.match(body.messages[0].content,/Edit only current_draft/);
+    }
+    const message=requests===1?{tool_calls:[call]}:{content:requests===2?long:good};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+  });
+  assert.equal(requests,3);assert.ok(result.reply.startsWith(good));assert.ok(!result.answer_validation.some(v=>/fallback/.test(v)));
+  assert.doesNotMatch(result.reply,/…/);
+ }
 });
