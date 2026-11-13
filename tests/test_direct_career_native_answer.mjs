@@ -167,3 +167,25 @@ test('long career answers on either surface are edited from the actual checked d
   assert.doesNotMatch(result.reply,/…/);
  }
 });
+
+test('captured obstacle assertions and eventual improvement promises are repaired on both surfaces',async()=>{
+ const drafts=[
+  'Career ka base strong hai, lekin Saturn ki wajah se thoda rukavat hai.\n\nKoi clear date abhi nahi dikhti.',
+  'Career ke liye sahyog hai, lekin deri ho sakti hai.\n\nAbhi koi clear timing nahi dikh rahi, lekin yeh sab time ke saath sudhar jayega.',
+ ];
+ const good='Career ke liye sahyog hai, lekin deri ho sakti hai.\n\nAbhi bharosemand samay batana mumkin nahi.';
+ for(const reply_surface of [undefined,'whatsapp'])for(const draft of drafts){
+  let requests=0;
+  const result=await directAnswer({...base,language:'hinglish',reply_surface,query:'Mera career kab set hoga?'},{env,now,
+   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
+   fetchImpl:async()=>{requests++;const message=requests===1?{tool_calls:[call]}:{content:requests===2?draft:good};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+  });
+  assert.equal(requests,3);assert.ok(result.reply.startsWith(good));
+  assert.ok(!result.answer_validation.some(v=>/fallback/.test(v)));
+ }
+ for(const text of ['Your career will improve eventually.','Things will improve with time.','Samay ke saath career sudhar jayega.'])
+  assert.equal(unsupportedCareerDeadline(text,'When will my career settle?',rows),true);
+ assert.equal(unsupportedCareerDeadline('I cannot promise things will improve with time.','When will my career settle?',rows),false);
+ assert.equal(careerAnswerWordingIssue(good,'When will my career settle?',rows),null);
+ assert.equal(careerAnswerWordingIssue(drafts[0],'Explain my career dasha in detail',rows),null);
+});
