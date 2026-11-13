@@ -774,7 +774,7 @@ export async function directAnswer(
       }
       reply = practicalFallback(value);
     }
-    if (timingRequired && !careerTiming && !clarification && !attemptedTimingRepair && modelCalls < maxRounds &&
+    if (timingRequired && !clarification && !attemptedTimingRepair && modelCalls < maxRounds &&
         omittedSupportedTiming(reply, chartResults, value.query)) {
       if (!correctedUndatedTiming && upstreamCalls < maxCalls) {
         correctedUndatedTiming = true;

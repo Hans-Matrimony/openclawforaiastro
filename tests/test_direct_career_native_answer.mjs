@@ -14,11 +14,30 @@ const rows=[JSON.stringify(chart)],now=()=>new Date('2026-11-13T00:00:00Z');
 const base={user_id:'synthetic-native-career',birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'},language:'english',history:[]};
 const call={id:'fixture-chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}};
 
+test('ordinary career timing retains a supported dated period after marriage on both surfaces',async()=>{
+ const supported={...chart,birth_chart:{...chart.birth_chart,planets:[...chart.birth_chart.planets,'Jupiter: Capricorn | house 10']},
+  verdict_signals:[{area:'career',trend:'MIXED',positive:['benefic Jupiter house 10 mein'],negative:['Saturn retrograde => results me Atkaav']}]};
+ const reply='Jupiter in house 10 supports career, while Saturn may bring delays.\n\nJanuary 2030 to January 2033, Jupiter antardasha: career progress may be possible.';
+ for(const reply_surface of [undefined,'whatsapp']){
+  let requests=0;
+  const result=await directAnswer({...base,reply_surface,query:'When will my career settle?',history:[{role:'user',text:'When will I marry?'},{role:'assistant',text:'Marriage in 2028.'}]},{env,now,
+   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>JSON.stringify(supported),
+   fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
+    if(requests===2){assert.match(body.messages[0].content,/Compare these candidates/);assert.match(body.messages[1].content,/2030-01-01/);assert.doesNotMatch(body.messages[1].content,/Marriage in 2028/);}
+    const message=requests===1?{tool_calls:[call]}:{content:reply};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+  });
+  assert.equal(requests,2);assert.match(result.reply,/January 2030/);assert.match(result.reply,/January 2033/);
+  assert.doesNotMatch(result.reply,/2028|marriage/i);assert.ok(!result.answer_validation.some(v=>/fallback|rejected/.test(v)),JSON.stringify(result.answer_validation));
+ }
+ assert.equal(unsupportedCareerDeadline(reply,'When will my career settle?',[JSON.stringify(supported)]),false);
+ assert.equal(unsupportedCareerDeadline(reply.replaceAll('2033','2034'),'When will my career settle?',[JSON.stringify(supported)]),true);
+});
+
 test('a generic career event question gets relevant evidence, while explicit period questions retain the full schedule',()=>{
  const original=JSON.stringify(chart);
  const generic=careerAnswerEvidence('When will my career settle?',rows);
- assert.equal(generic[0].dasha,undefined);assert.deepEqual(generic[0].verdict_signals,chart.verdict_signals);
- assert.deepEqual(generic[0].career_house_strength,chart.birth_chart.ashtakavarga_house_bindus.house_10);assert.doesNotMatch(JSON.stringify(generic),/2040|2046/);
+ assert.deepEqual(generic[0].dasha,chart.dasha);assert.deepEqual(generic[0].verdict_signals,chart.verdict_signals);
+ assert.deepEqual(generic[0].birth_chart,chart.birth_chart);
  for(const query of ['Which career period is relevant?','Explain Sun mahadasha for my career','My career in 2040?'])
   assert.deepEqual(careerAnswerEvidence(query,rows)[0].dasha,chart.dasha);
  const event={...chart,event_windows:[{from:'2031-01-01',to:'2031-06-01'}]};
@@ -31,7 +50,7 @@ test('career correction cannot reintroduce rejected dates or other-topic chart f
  const input=[JSON.stringify(expanded)],value={...base,query:'When will my career settle?'};
  assert.equal(careerEventTimingUnavailable(value.query,input),true);
  const messages=careerAnswerMessages(value,{profile:{status:'READY'},memoryFacts:[]},input,'Career will settle after 2025.');
- assert.doesNotMatch(messages[1].content,/2025|2040|2046|unrelated marriage factor/);
+ assert.doesNotMatch(messages[1].content,/2025|unrelated marriage factor/);
  assert.match(messages[1].content,/NO_CALCULATED_CAREER_EVENT_WINDOW/);
  assert.equal(careerEventTimingUnavailable('How is my career in 2040?',input),false);
 });
@@ -78,7 +97,7 @@ test('the English emergency renderer translates the current-period limitation in
  assert.match(fallbackFactor(factor,true,'career'),/current|period/i);
 });
 
-test('an honest undated career answer is not forced back into a date-seeking review',async()=>{
+test('an undated career answer reviews returned adverse periods once without forcing a positive date',async()=>{
  const futureSaturn={...chart,dasha:{...chart.dasha,upcoming_antardashas:[{lord:'Saturn',from:'2033-01-01',to:'2036-01-01'}]}};
  const good='Your career house is supportive, while Saturn may bring delays.\n\nThese factors do not establish a reliable career settlement date.';
  let requests=0;
@@ -90,7 +109,7 @@ test('an honest undated career answer is not forced back into a date-seeking rev
    const message=requests===1?{tool_calls:[call]}:{content:good};
    return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
  });
- assert.equal(requests,2);assert.ok(result.reply.startsWith(good));assert.deepEqual(result.answer_validation,[]);
+ assert.equal(requests,3);assert.ok(result.reply.startsWith(good));assert.deepEqual(result.answer_validation,['undated_timing_review']);
 });
 
 test('a career forecast cannot replace an unknown date with a promise of improvement soon',()=>{
@@ -158,7 +177,7 @@ test('long career answers on either surface are edited from the actual checked d
    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
    fetchImpl:async(_url,options)=>{requests++;
     if(requests===3){const body=JSON.parse(options.body),data=JSON.parse(body.messages[1].content);
-     assert.equal(data.current_draft,long);assert.doesNotMatch(JSON.stringify(data.checked_chart_results),/2040|current_period_lords/);
+     assert.equal(data.current_draft,long);assert.deepEqual(data.checked_chart_results[0].dasha,chart.dasha);
      assert.match(body.messages[0].content,/Edit only current_draft/);
     }
     const message=requests===1?{tool_calls:[call]}:{content:requests===2?long:good};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
