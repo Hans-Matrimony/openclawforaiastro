@@ -3,6 +3,7 @@ import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
 import { upcomingPeriods } from './returned-periods.mjs';
 import { topicPeriodEvidence } from './topic-period-context.mjs';
+import {questionScope} from './question-scope.mjs';
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
@@ -12,7 +13,7 @@ export function timingCorrection(results, query, language, asOf) {
     ? ["shaadi", "marriage"]
     : /girlfriend|boyfriend|\bgf\b|\bbf\b|relationship|rishta/i.test(query)
       ? ["naya rishta", "a new relationship"]
-      : /career|job|naukri/i.test(query)
+      : questionScope(query) === 'career' || /career|job|naukri/i.test(query)
         ? ["career", "career"]
         : /financ|money|pais|income/i.test(query)
           ? ["aarthik sudhaar", "financial improvement"]

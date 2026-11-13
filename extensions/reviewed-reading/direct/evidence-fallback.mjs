@@ -3,6 +3,7 @@ import { periodFallback } from "./period-fallback.mjs";
 import { asksForTiming } from "./reading-intent.mjs";
 import { timingCorrection } from "./timing-correction.mjs";
 import { chartClarificationFallback } from './chart-grounding.mjs';
+import {questionScope} from './question-scope.mjs';
 
 const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
 const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
@@ -12,7 +13,7 @@ export const isUnverifiedReadingReply = reply => reply === UNVERIFIED_EN || repl
 // the rejected prediction. This fallback uses only returned period facts.
 export function evidenceFallback(results, language, query = "", asOf = new Date()) {
   const english = language === "english";
-  const area = /career|job|work|naukri|fields?/i.test(query)
+  const area = questionScope(query) === 'career' || /career|job|work|naukri|fields?/i.test(query)
     ? "career"
     : /financ|money|pais|income/i.test(query)
       ? "money"

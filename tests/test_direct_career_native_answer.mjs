@@ -14,8 +14,8 @@ const base={user_id:'synthetic-native-career',birth:{date:'1991-04-11',time:'08:
 const call={id:'fixture-chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}};
 
 test('career error recovery never chooses a date from ownership or a positive factor',()=>{
- for(const language of ['english','hinglish'])for(const evidence of [chart,{...chart,verdict_signals:[{...chart.verdict_signals[0],positive:['benefic Jupiter house 10 mein']}]}]){
-  const reply=evidenceFallback([JSON.stringify(evidence)],language,'Mera career kab set hoga?',now());
+ for(const language of ['english','hinglish'])for(const query of ['Mera career kab set hoga?','Mera promotion kab hoga?','मेरा करियर कब सेट होगा?'])for(const evidence of [chart,{...chart,verdict_signals:[{...chart.verdict_signals[0],positive:['benefic Jupiter house 10 mein']}]}]){
+  const reply=evidenceFallback([JSON.stringify(evidence)],language,query,now());
   assert.doesNotMatch(reply,/20\d{2}|mahadasha|antardasha/iu);
   assert.match(reply,/career/i);
  }
