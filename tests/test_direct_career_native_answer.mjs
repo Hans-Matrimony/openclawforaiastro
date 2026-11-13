@@ -3,7 +3,7 @@ import test from 'node:test';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
 import {fallbackFactor} from '../extensions/reviewed-reading/direct/fallback-factors.mjs';
-import {careerAnswerEvidence} from '../extensions/reviewed-reading/direct/career-answer.mjs';
+import {careerAnswerEvidence,careerEventTimingUnavailable,careerAnswerMessages} from '../extensions/reviewed-reading/direct/career-answer.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
 const chart={engine:'local-sweph-v2',birth_chart:{planets:['Sun: Taurus | house 2','Saturn: Virgo | house 6'],ashtakavarga_house_bindus:{house_10:{sign:'Leo',bindus:31}}},
@@ -18,12 +18,22 @@ test('a generic career event question gets relevant evidence, while explicit per
  const original=JSON.stringify(chart);
  const generic=careerAnswerEvidence('When will my career settle?',rows);
  assert.equal(generic[0].dasha,undefined);assert.deepEqual(generic[0].verdict_signals,chart.verdict_signals);
- assert.deepEqual(generic[0].birth_chart,chart.birth_chart);assert.doesNotMatch(JSON.stringify(generic),/2040|2046/);
+ assert.deepEqual(generic[0].career_house_strength,chart.birth_chart.ashtakavarga_house_bindus.house_10);assert.doesNotMatch(JSON.stringify(generic),/2040|2046/);
  for(const query of ['Which career period is relevant?','Explain Sun mahadasha for my career','My career in 2040?'])
   assert.deepEqual(careerAnswerEvidence(query,rows)[0].dasha,chart.dasha);
  const event={...chart,event_windows:[{from:'2031-01-01',to:'2031-06-01'}]};
  assert.deepEqual(careerAnswerEvidence('When will my career settle?',[JSON.stringify(event)])[0].event_windows,event.event_windows);
  assert.equal(JSON.stringify(chart),original);
+});
+
+test('career correction cannot reintroduce rejected dates or other-topic chart factors',()=>{
+ const expanded={...chart,verdict_signals:[...chart.verdict_signals,{area:'marriage',positive:['unrelated marriage factor']}]};
+ const input=[JSON.stringify(expanded)],value={...base,query:'When will my career settle?'};
+ assert.equal(careerEventTimingUnavailable(value.query,input),true);
+ const messages=careerAnswerMessages(value,{profile:{status:'READY'},memoryFacts:[]},input,'Career will settle after 2025.');
+ assert.doesNotMatch(messages[1].content,/2025|2040|2046|unrelated marriage factor/);
+ assert.match(messages[1].content,/NO_CALCULATED_CAREER_EVENT_WINDOW/);
+ assert.equal(careerEventTimingUnavailable('How is my career in 2040?',input),false);
 });
 
 test('career error recovery never chooses a date from ownership or a positive factor',()=>{

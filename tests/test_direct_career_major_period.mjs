@@ -98,7 +98,7 @@ test('PWA and WhatsApp dispatch preserve the same checked career interpretation 
  const replies=[];
  for(const surface of [undefined,'whatsapp']){
   let calls=0,chartCalls=0;
-  const result=await directAnswer({user_id:'synthetic-career-major',query,language:'hinglish',reply_surface:surface,
+  const result=await directAnswer({user_id:'synthetic-career-major',query:'Mere career ke liye Sun mahadasha kab aayegi aur kaisi rahegi?',language:'hinglish',reply_surface:surface,
    birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'},history:[{role:'user',text:'Meri shaadi kab hogi?'},{role:'assistant',text:'An old marriage answer.'}]},{
    env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0'},now,
    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{chartCalls++;return evidence[0];},

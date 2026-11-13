@@ -1,6 +1,6 @@
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
-import {careerAnswerMessages} from './career-answer.mjs';
+import {careerAnswerMessages,careerEventTimingUnavailable} from './career-answer.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -617,7 +617,7 @@ export async function directAnswer(
         });
       });
       if (careerTiming && readingTools.has('get_horoscope_predictions')) {
-        messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,undefined,text=>redactIdentity(text,value.user_id)));
+        messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,undefined,text=>redactIdentity(text,value.user_id),now()));
       }
       if (missingMatchingBirth && !readingTools.has('get_match_report')) {
         // Repeating the same rejected matching call cannot supply user-confirmed
@@ -832,6 +832,7 @@ export async function directAnswer(
       }
     }
     if (
+      (careerTiming && careerEventTimingUnavailable(value.query,chartResults) && /\b20\d{2}\b/u.test(reply)) ||
       unsupportedPeriodClaim(reply, chartResults) ||
       (sourceFlow && unsupportedTopicOpportunity(reply, chartResults, value.query)) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults, value.query))
@@ -850,7 +851,7 @@ export async function directAnswer(
       } else {
         correctedPeriod = true;
         if (careerTiming) {
-          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,reply,text=>redactIdentity(text,value.user_id)));
+          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,reply,text=>redactIdentity(text,value.user_id),now()));
           continue;
         }
         if (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) {
@@ -927,6 +928,10 @@ export async function directAnswer(
             user_context:value.history.filter(turn=>turn.role==='user').slice(-4).map(turn=>redactIdentity(turn.text.slice(0,2000),value.user_id)),
           }).replace(/</g,"\\u003c").replace(/>/g,"\\u003e"),
         });
+        if(careerTiming&&careerEventTimingUnavailable(value.query,chartResults)){
+          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,reply,text=>redactIdentity(text,value.user_id),now()));
+          messages[0].content+=' Correct the wording issue without a new chart interpretation: '+wordingIssue;
+        }
         continue;
       }
       validation.push("reading_wording_fallback");
