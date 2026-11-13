@@ -323,6 +323,12 @@ export async function directAnswer(
     : value.language === 'hindi'
       ? `कृपया ${matchingSelfProfile ? 'दूसरे व्यक्ति की जन्म तिथि, जन्म का सही समय और जन्म स्थान' : 'दोनों लोगों की जन्म तिथि, जन्म का सही समय और जन्म स्थान'} बताइए।`
       : `Kya aap Guna Milan ke liye ${matchingSelfProfile ? 'doosre vyakti ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
+  const unconfirmedMatchingReply = () => {
+    const partnerOnly = context.profile.status === 'READY' && ['male', 'female'].includes(value.user_gender);
+    return value.language === 'english'
+      ? `Please confirm ${partnerOnly ? 'your partner\'s birth date, exact birth time and birthplace' : 'both people\'s birth dates, exact birth times and birthplaces'} for the matching calculation?`
+      : `Kya aap ${partnerOnly ? 'partner ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
+  };
   const timingRequired =
     sourceFlow &&
     readingRequired &&
@@ -603,6 +609,19 @@ export async function directAnswer(
           content: results[index],
         });
       });
+      if (missingMatchingBirth && !readingTools.has('get_match_report')) {
+        // Repeating the same rejected matching call cannot supply user-confirmed
+        // partner details. Ask once instead of exhausting the loop into a 503.
+        return {
+          schema: 'vedastro-direct-reply-v1',
+          reply: finishWhatsAppReply(unconfirmedMatchingReply(), value, {facts: context.memoryFacts}),
+          answer_model_calls: upstreamCalls,
+          answer_cache_hits: cacheHits,
+          answer_reading_tools: [...readingTools],
+          answer_usage: answerUsage,
+          answer_validation: [...validation, 'matching_birth_required'],
+        };
+      }
       if (timingRequired) {
         const comparison = topicPeriodContext(chartResults, value.query);
         if (comparison) {
@@ -635,10 +654,7 @@ export async function directAnswer(
     }
     const emotionalIssue = emotionalFriendship ? emotionalReplyIssue(reply, value) : null;
     if (missingMatchingBirth && !readingTools.has('get_match_report')) {
-      const partnerOnly = value.birth && ['male', 'female'].includes(value.user_gender);
-      reply = value.language === 'english'
-        ? `Please confirm ${partnerOnly ? 'your partner\'s birth date, exact birth time and birthplace' : 'both people\'s birth dates, exact birth times and birthplaces'} for the matching calculation?`
-        : `Kya aap ${partnerOnly ? 'partner ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
+      reply = unconfirmedMatchingReply();
     }
     if (matchingLimitations) reply = matchingLimitations;
     const checkMatchingScore = !matchingLimitations && !generalMatchingQuestion(value.query) &&

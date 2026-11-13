@@ -1,5 +1,6 @@
 import {isPersonalChartQuestion} from './reading-intent.mjs';
 import {selectedSelfBirth} from './selected-self-birth.mjs';
+import {quotedSelfReading} from './quoted-reading.mjs';
 
 export function generalMatchingQuestion(query) {
   return !/\b(?:my|our|meri|mera|mere|hamara|hum|ham|dono|partner|girlfriend|boyfriend|gf|bf)\b/i.test(query) &&
@@ -43,9 +44,12 @@ function answerRetry(query) {
 }
 
 export function activeReadingQuestion(value) {
-  // An explicit quote supplies its own subject; do not override it with a
-  // different topic from the latest unquoted user history.
-  if (value.reply_to) return value.query;
+  // Resolve a short quoted follow-up only from the selected quote's own
+  // subject. Never substitute a different subject from unquoted history.
+  if (value.reply_to) {
+    const subject = (abbreviatedReading(value.query) || answerRetry(value.query)) && quotedSelfReading(value);
+    return subject ? `${subject}\nFollow-up: ${value.query}` : value.query;
+  }
   if (isPersonalChartQuestion(value.query) || asksGunaScore(value.query)) return value.query;
   const retry = answerRetry(value.query);
   if (!abbreviatedReading(value.query) && !retry) return value.query;
