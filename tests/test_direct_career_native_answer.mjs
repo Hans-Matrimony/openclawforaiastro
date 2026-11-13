@@ -54,3 +54,18 @@ test('the English emergency renderer translates the current-period limitation in
  assert.doesNotMatch(fallbackFactor(factor,true,'career'),/linked nahi|is area se|=>/u);
  assert.match(fallbackFactor(factor,true,'career'),/current|period/i);
 });
+
+test('an honest undated career answer is not forced back into a date-seeking review',async()=>{
+ const futureSaturn={...chart,dasha:{...chart.dasha,upcoming_antardashas:[{lord:'Saturn',from:'2033-01-01',to:'2036-01-01'}]}};
+ const good='Your career house is supportive, while Saturn may bring delays.\n\nThese factors do not establish a reliable career settlement date.';
+ let requests=0;
+ const result=await directAnswer({...base,query:'When will my career settle?',history:[{role:'assistant',text:'OLD_FORECAST: Career will settle after 2040.'}]},{env,now,
+  makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>JSON.stringify(futureSaturn),
+  fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
+   if(requests===1)assert.equal(body.tool_choice.function.name,'mcp__VedAstro__get_horoscope_predictions');
+   else {assert.equal(body.messages.length,2);assert.doesNotMatch(JSON.stringify(body.messages),/OLD_FORECAST/);}
+   const message=requests===1?{tool_calls:[call]}:{content:good};
+   return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+ });
+ assert.equal(requests,2);assert.ok(result.reply.startsWith(good));assert.deepEqual(result.answer_validation,[]);
+});

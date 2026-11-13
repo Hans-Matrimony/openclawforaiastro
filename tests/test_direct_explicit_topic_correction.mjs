@@ -48,5 +48,5 @@ test('actual dispatch requests career evidence after an explicit rejection of ma
    return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:'Shaadi mein sahyog hai.'}}]}));
   },
  }),/Personal reading requires a successful chart tool/);
- assert.ok(requests.some(r=>r.tool_choice==='required'));
+ assert.equal(requests[0].tool_choice.function.name,'mcp__VedAstro__get_horoscope_predictions');
 });

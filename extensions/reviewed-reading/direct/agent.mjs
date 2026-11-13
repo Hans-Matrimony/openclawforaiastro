@@ -1,5 +1,6 @@
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
+import {careerAnswerMessages} from './career-answer.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -335,6 +336,7 @@ export async function directAnswer(
     readingRequired &&
     !isDeathTimingQuestion(value.query) &&
     asksForTiming(activeQuestion);
+  const careerTiming = timingRequired && questionScope(value.query) === 'career' && context.profile.status === 'READY';
   // Career stays in the normal prose writer. A repair tool must not turn a
   // failed draft into an application-selected career-settlement date.
   const structuredTimingRepair = () => questionScope(value.query) === 'career' ? null
@@ -459,8 +461,8 @@ export async function directAnswer(
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
     // Saved conversation predictions are not a substitute for this turn's chart.
     const requireChart =
-      readingTools.size === 0 && correctedMissingReading && context.profile.status === "READY";
-    const requireTiming = correctedMissingTiming && !readingTools.has("get_horoscope_predictions");
+      readingTools.size === 0 && (correctedMissingReading || careerTiming) && context.profile.status === "READY";
+    const requireTiming = (correctedMissingTiming || careerTiming) && !readingTools.has("get_horoscope_predictions");
     const body = {
       model: env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
       messages: pendingTimingRepair
@@ -614,6 +616,9 @@ export async function directAnswer(
           content: results[index],
         });
       });
+      if (careerTiming && readingTools.has('get_horoscope_predictions')) {
+        messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,undefined,text=>redactIdentity(text,value.user_id)));
+      }
       if (missingMatchingBirth && !readingTools.has('get_match_report')) {
         // Repeating the same rejected matching call cannot supply user-confirmed
         // partner details. Ask once instead of exhausting the loop into a 503.
@@ -627,7 +632,7 @@ export async function directAnswer(
           answer_validation: [...validation, 'matching_birth_required'],
         };
       }
-      if (timingRequired) {
+      if (timingRequired && !careerTiming) {
         const comparison = topicPeriodContext(chartResults, value.query);
         if (comparison) {
           messages.push({ role: "user", content: comparison });
@@ -769,7 +774,7 @@ export async function directAnswer(
       }
       reply = practicalFallback(value);
     }
-    if (timingRequired && !clarification && !attemptedTimingRepair && modelCalls < maxRounds &&
+    if (timingRequired && !careerTiming && !clarification && !attemptedTimingRepair && modelCalls < maxRounds &&
         omittedSupportedTiming(reply, chartResults, value.query)) {
       if (!correctedUndatedTiming && upstreamCalls < maxCalls) {
         correctedUndatedTiming = true;
@@ -844,6 +849,10 @@ export async function directAnswer(
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
         correctedPeriod = true;
+        if (careerTiming) {
+          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,reply,text=>redactIdentity(text,value.user_id)));
+          continue;
+        }
         if (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) {
           pendingTimingRepair = structuredTimingRepair();
           if (pendingTimingRepair) {
