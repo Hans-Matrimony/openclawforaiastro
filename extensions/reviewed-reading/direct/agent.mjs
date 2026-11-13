@@ -4,7 +4,7 @@ import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { chartGroundingConflicts, chartClarificationFallback } from './chart-grounding.mjs';
-import { readingContext } from "./context.mjs";
+import { readingContext, savedBirthContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
 import { evidenceFallback, isUnverifiedReadingReply } from "./evidence-fallback.mjs";
@@ -67,7 +67,7 @@ import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentati
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
 import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
 import { naturalCompanionReply } from './companion-style.mjs';
-import { conversationGroundingInstruction, conversationGroundingIssue, conversationGroundingFallback } from './conversation-grounding.mjs';
+import { conversationGroundingInstruction, conversationGroundingIssue, conversationGroundingFallback, groundedConversationReply } from './conversation-grounding.mjs';
 
 const READING_BUBBLE_WORD_CAP = 35;
 const VERDICT_BUBBLE_WORD_CAP = 8;
@@ -220,6 +220,16 @@ export async function directAnswer(
   const matchingLimitations = quotedMatchingLimitations(value);
   const activeQuestion = activeReadingQuestion(value);
   if (activeQuestion !== value.query) value = {...value, query: activeQuestion};
+  const acknowledgement = groundedConversationReply(value, savedBirthContext(value.birth));
+  if (acknowledgement) {
+    return {
+      schema:'vedastro-direct-reply-v1',
+      reply:finishWhatsAppReply(acknowledgement.reply,value,{facts:[]}),
+      answer_model_calls:0,answer_cache_hits:0,answer_reading_tools:[],answer_usage:[],
+      answer_conversation_rule:acknowledgement.kind,
+      answer_validation:['grounded_conversation_acknowledgement'],
+    };
+  }
   const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
   const context = await readingContext(
     value,

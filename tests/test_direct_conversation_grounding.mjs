@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
-import {conversationGroundingIssue as issue, conversationGroundingInstruction as instruction} from '../extensions/reviewed-reading/direct/conversation-grounding.mjs';
+import {conversationGroundingIssue as issue, conversationGroundingInstruction as instruction, groundedConversationReply} from '../extensions/reviewed-reading/direct/conversation-grounding.mjs';
 
 const value={user_id:'synthetic-conversation',query:'Jaise?',language:'hinglish',reply_surface:'whatsapp',
  birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'},history:[
@@ -54,9 +54,9 @@ test('saved-details clarification does not deny the image path or offer unrelate
  assert.equal(issue('हथेली की फोटो के लिए जन्म जानकारी दोबारा देने की ज़रूरत नहीं है।',input,profile),null);
 });
 
-async function run(query,replies,history=value.history){
+async function run(query,replies,history=value.history,surface=undefined){
  let calls=0;
- const result=await directAnswer({...value,query,history},{
+ const result=await directAnswer({...value,query,history,reply_surface:surface},{
   env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0'},
   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{throw Error('No reading was requested');},
   fetchImpl:async()=>new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content:replies[Math.min(calls++,replies.length-1)]}}]})),
@@ -93,4 +93,31 @@ test('captured palm refusal cannot survive the repair and final delivery boundar
  assert.equal(calls,2);assert.match(result.reply,/saved hain/);assert.match(result.reply,/photo dobara/);
  assert.doesNotMatch(result.reply,/nahi kar sakta|shadi|career|Vedic/i);
  assert.ok(result.answer_validation.includes('conversation_grounding_fallback'));
+});
+
+test('WhatsApp relationship examples are grounded before any model or memory access',async()=>{
+ const result=await directAnswer({...value,user_name:'Anita'},{env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_ENVIRONMENT:'development'},
+  makeMemory:()=>{throw Error('No memory access needed');},makeTools:()=>{throw Error('No tool needed');},
+  fetchImpl:async()=>{throw Error('No provider call allowed');}});
+ assert.equal(result.answer_model_calls,0);assert.deepEqual(result.answer_usage,[]);
+ assert.equal(result.answer_conversation_rule,'relationship_example_clarification');
+ assert.match(result.reply,/regular baat|introduction/);assert.doesNotMatch(result.reply,/trigger|2031|2034|best/i);
+});
+
+test('WhatsApp palm reminders acknowledge the selected profile with no model rewrite',async()=>{
+ const history=[{role:'user',text:'[User attached an image. Caption: Mera haath padh kr batao]'},
+  {role:'assistant',text:'Please provide birth details.'}];
+ const {result,calls}=await run('maine pehle hi details de rekha hai',['Palm reading nahi kar sakta'],history,'whatsapp');
+ assert.equal(calls,0);assert.equal(result.answer_model_calls,0);
+ assert.equal(result.answer_conversation_rule,'palm_profile_acknowledgement');
+ assert.match(result.reply,/saved hain/);assert.match(result.reply,/photo dobara/);
+ assert.doesNotMatch(result.reply,/sirf|Vedic|sha+di|career|kaam nahi/i);
+});
+
+test('context acknowledgements cannot replace explicit readings, missing profiles, quotes or other examples',()=>{
+ assert.equal(groundedConversationReply({...value,query:'Meri shaadi kab hogi?'},profile),null);
+ assert.equal(groundedConversationReply({...value,reply_to:{role:'user',text:'What should I do for work?'}},profile),null);
+ assert.equal(groundedConversationReply({...value,reply_surface:undefined},profile),null);
+ assert.equal(groundedConversationReply({...value,history:[{role:'assistant',text:'What kind of work do you prefer?'}]},profile),null);
+ assert.equal(groundedConversationReply({...value,query:'already provided details',history:[{role:'user',text:'palm'}]},{status:'PARTIAL'}),null);
 });

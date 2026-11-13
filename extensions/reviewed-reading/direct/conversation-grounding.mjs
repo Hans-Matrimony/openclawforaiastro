@@ -19,6 +19,21 @@ function palmReminder(value) {
   return reminder.test(value.query) && palm.test(latest);
 }
 
+// These are acknowledgements of existing context, not readings. A model cannot
+// improve their factual content and must not replace them with another forecast.
+export function groundedConversationReply(value, profile) {
+  if (value.reply_surface !== 'whatsapp' || value.reply_to || !conversationalTurn(value)) return null;
+  if (palmReminder(value) && profile.status === 'READY') {
+    return {kind:'palm_profile_acknowledgement',reply:conversationGroundingFallback(value,profile)};
+  }
+  const previous = [...(value.history ?? [])].reverse().find(turn => turn.role === 'assistant')?.text ?? '';
+  if (/^(?:jaise|for example|examples?)[?!.\s]*$/iu.test(value.query.trim()) &&
+      /\b(?:serious\s+(?:connection|relationship)|rishta|dating)\b|रिश्ता/iu.test(previous)) {
+    return {kind:'relationship_example_clarification',reply:conversationGroundingFallback(value,profile)};
+  }
+  return null;
+}
+
 export function conversationalTurn(value) {
   return !isPersonalChartQuestion(value.query) && !asksForTiming(value.query);
 }
