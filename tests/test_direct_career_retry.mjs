@@ -8,6 +8,7 @@ import {whatsappWordingIssue} from '../extensions/reviewed-reading/direct/whatsa
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {createTools} from '../extensions/reviewed-reading/direct/tools.mjs';
 import {sourceReading} from '../extensions/reviewed-reading/direct/source-engine.mjs';
+import {contextualClosing} from '../extensions/reviewed-reading/direct/contextual-closing.mjs';
 
 const birth = {date:'1991-04-11',time:'08:00',location_name:'Pune'};
 const question = 'Mea career ke baare mai batao';
@@ -124,4 +125,24 @@ test('complete reply uses the real selected chart for both reported career turns
     assert.doesNotMatch(result.reply,/Bina jaanch|purani prediction|tool[ -]based|shaadi|marriage|20\d{2}/iu);
     assert.ok(calls<=7);
   }
+});
+
+test('captured closing cannot add incoming opportunities after a validated career answer',async()=>{
+  const base='Career mein sahyog aur rukawat dono ke sanket hain.\n\nEk field ko sabse behtar nahi kaha ja sakta.';
+  for (const closing of [
+    'Career ke liye abhi kuch naye opportunities aa rahe hain, bas thoda patience chahiye. Kya aapne koi specific field choose kiya hai?',
+    'New opportunities are coming. What kind of work interests you?',
+    'Job offers are on the way. Which field interests you?',
+    'Career mein naye mauke aa rahe hain. Kis kaam mein dilchaspi hai?',
+    'नए अवसर आ रहे हैं। आप किस क्षेत्र में काम करना चाहते हैं?',
+  ]) {
+    let calls=0;
+    const reply=await contextualClosing(base,value,{generate:async()=>{calls++;return closing;}});
+    assert.equal(calls,1,'Rejection uses the existing bounded fallback without another model call');
+    assert.ok(reply.startsWith(base+'\n\n'),'Never alter the checked reading');
+    assert.ok(!reply.endsWith(closing));
+    assert.doesNotMatch(reply,/opportunities aa rahe|are coming|on the way|mauke aa rahe/iu);
+  }
+  const question='Kya aapko abhi koi job offers mile hain?';
+  assert.equal(await contextualClosing(base,value,{generate:async()=>question}),base+'\n\n'+question);
 });

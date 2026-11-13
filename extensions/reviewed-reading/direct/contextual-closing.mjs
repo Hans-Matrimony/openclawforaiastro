@@ -59,6 +59,11 @@ const timingDisclaimer =
 const closingPrediction =
   /\b(?:shaa?di|marriage|wedding|rishta|relationship|career|job|paisa|paise)\b[^.!?\n]{0,70}\b(?:aayega|aayegi|hoga|hogi|ho jayeg[aie]|will (?:come|happen|improve|work))\b/i;
 
+// An undated "opportunities are coming" claim is still a new forecast.
+// Keep questions about offers already received; the closing adds no evidence.
+const incomingOpportunity =
+  /\b(?:opportunit(?:y|ies)|offers?|mauke?|avsar)\b[^.!?\n]{0,65}\b(?:aa\s+rah[aei]|aane\s+wal[aei]|coming|on\s+the\s+way|opening\s+up|lie\s+ahead)\b|\b(?:new\s+)?(?:opportunit(?:y|ies)|offers?)\b[^.!?\n]{0,45}\b(?:are|is)\s+(?:arriving|approaching)\b|(?:अवसर|मौके)[^.!?।\n]{0,40}(?:आ\s*रह[ेी]|आने\s*वाले)/iu;
+
 // A companion question must not replace the completed timing explanation with
 // a new causal claim about readiness, routines, or positive thinking.
 const closingTimingCause =
@@ -141,6 +146,8 @@ export async function contextualClosing(
     return closing &&
       isCompanionParagraph(closing) &&
       !poorCompanion(closing) &&
+      !closingPrediction.test(closing) &&
+      !incomingOpportunity.test(closing) &&
       !unsupportedClosingDetail(closing, value, notes) &&
       !/\b(?:20\d{2}|dasha|antardasha|transit|kundli|saturn|jupiter|rahu|ketu|shani|mercury|venus)\b/i.test(
         closing,
@@ -275,6 +282,7 @@ export async function contextualClosing(
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
       closingPrediction.test(question) ||
+      incomingOpportunity.test(question) ||
       closingTimingCause.test(question) ||
       /\b(?:rishta|rishte|relationship|job|career)\b[^.!?\n]{0,45}\b(?:shuru|start)\s+hone\s+wal[aei]\b/i.test(
         question,
