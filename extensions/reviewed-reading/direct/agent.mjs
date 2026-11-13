@@ -67,6 +67,7 @@ import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentati
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
 import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
 import { naturalCompanionReply } from './companion-style.mjs';
+import { conversationGroundingInstruction, conversationGroundingIssue, conversationGroundingFallback } from './conversation-grounding.mjs';
 
 const READING_BUBBLE_WORD_CAP = 35;
 const VERDICT_BUBBLE_WORD_CAP = 8;
@@ -334,6 +335,7 @@ export async function directAnswer(
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
   context.prompt += whatsappStyleInstruction(value);
+  context.prompt += conversationGroundingInstruction(value, context.profile);
   const messages = [
     { role: "system", content: context.prompt + (sourceFlow && !emotionalFriendship && !ordinaryConcern && !practicalFollowup ? readingPresentationInstruction : "") },
     ...value.history
@@ -375,6 +377,7 @@ export async function directAnswer(
   let correctedHouseLord = false;
   let correctedReadingPresentation = false;
   let correctedEnglishReply = false;
+  let correctedConversationGrounding = false;
   let correctedGunaScore = false;
   let missingMatchingBirth = false;
   const validation = [];
@@ -664,6 +667,17 @@ export async function directAnswer(
         }, { role: "user", content: redactIdentity(value.query, value.user_id) });
         continue;
       }
+    }
+    const conversationIssue = conversationGroundingIssue(reply, value, context.profile, readingTools.size > 0);
+    if (conversationIssue) {
+      validation.push('conversation_grounding_rejected');
+      if (!correctedConversationGrounding && modelCalls < maxRounds && upstreamCalls < maxCalls) {
+        correctedConversationGrounding = true;
+        messages.push({role:'system',content:conversationIssue + conversationGroundingInstruction(value, context.profile) + ' Rewrite the current answer without new tools or predictions. Respect the saved profile and latest user request. ' + responseLanguageInstruction(value)});
+        continue;
+      }
+      reply = conversationGroundingFallback(value, context.profile);
+      validation.push('conversation_grounding_fallback');
     }
     // A closing friendly question must not let an ungrounded reading bypass tools.
     let clarification =
@@ -996,9 +1010,14 @@ export async function directAnswer(
     }
     const naturalReply = naturalCompanionReply(publishableReply, value);
     if (naturalReply !== publishableReply) validation.push('companion_identity_presentation');
+    let deliveredReply = finishWhatsAppReply(limitResponseLength(naturalReply), value, {facts: context.memoryFacts});
+    if (conversationGroundingIssue(deliveredReply, value, context.profile, readingTools.size > 0)) {
+      deliveredReply = finishWhatsAppReply(conversationGroundingFallback(value, context.profile), value, {facts: context.memoryFacts});
+      validation.push('conversation_grounding_delivery_fallback');
+    }
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: finishWhatsAppReply(limitResponseLength(naturalReply), value, {facts: context.memoryFacts}),
+      reply: deliveredReply,
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],
