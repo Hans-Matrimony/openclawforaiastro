@@ -1,6 +1,8 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
+import { upcomingPeriods } from './returned-periods.mjs';
+import { topicPeriodEvidence } from './topic-period-context.mjs';
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
@@ -43,15 +45,13 @@ export function timingCorrection(results, query, language, asOf) {
       : null;
   };
   const schedule = rows.find((r) => r.dasha)?.dasha;
-  const periods = (
-    Array.isArray(schedule?.upcoming_antardashas) ? schedule.upcoming_antardashas : []
-  ).flatMap((p) => {
+  const periods = upcomingPeriods(schedule).flatMap((p) => {
     if (!p || !/^(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)$/.test(p.lord)) {
       return [];
     }
     const from = date(p.from),
       to = date(p.to);
-    return from && to && p.from < p.to && p.from >= today ? [{ lord: p.lord, from, to }] : [];
+    return from && to && p.from < p.to && p.from >= today ? [{ lord: p.lord, kind:p.kind, from, to }] : [];
   });
   if (!periods.length) {
     return null;
@@ -70,10 +70,22 @@ export function timingCorrection(results, query, language, asOf) {
   const english = language === "english";
   const factors = ["positive", "negative"].flatMap((polarity) =>
     (Array.isArray(signals[0][polarity]) ? signals[0][polarity] : []).flatMap((source) => {
-      const text = fallbackFactor(source, english);
+      const text = fallbackFactor(source, english, area);
       return text ? [{ source, text, polarity }] : [];
     }),
   );
+  // A checked house ruler establishes topic relevance even when the current
+  // period's signal list does not mention that future period lord. Keep it
+  // distinct from a positive forecast and retain the existing contrary factors.
+  const periodEvidence = topicPeriodEvidence(results, query);
+  for (const period of periodEvidence?.periods ?? []) {
+    for (const house of period.relevant_house_lord) {
+      const source = `${period.lord} is the natal lord of house ${house}`;
+      if (!factors.some(f => f.source === source)) factors.push({source, polarity:'relevance',
+        text:english ? `${period.lord} rules natal house ${house}`
+          : `${period.lord} ${house}ve ghar ke swami hain`});
+    }
+  }
   if (!factors.length) {
     return null;
   }
@@ -188,7 +200,10 @@ export function timingCorrection(results, query, language, asOf) {
         return (
           first +
           "\n\n" +
-          (english
+          (area === 'career'
+            ? english ? "I can't identify a clear career-settling date from these indications."
+              : 'Career settle hone ka exact waqt abhi saaf nahi hai.'
+            : english
             ? `This reading does not establish a supported period for ${subject[1]}; that does not mean it cannot happen.`
             : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ke liye is reading se koi supported samay tay nahi hota; iska matlab yeh nahi ki yeh hoga hi nahi.`)
         );
@@ -222,8 +237,14 @@ export function timingCorrection(results, query, language, asOf) {
         return null;
       }
       const timing = english
-        ? `${period.from} to ${period.to} (${period.lord} antardasha): ${verdict}.`
-        : `${period.lord} ki antardasha mein ${period.from} se ${period.to} ke beech ${verdict}.`;
+        ? `${period.from} to ${period.to} (${period.lord} ${period.kind}): ${verdict}.`
+        : `${period.lord} ki ${period.kind} mein ${period.from} se ${period.to} ke beech ${verdict}.`;
+      if (period.kind === 'mahadasha') {
+        const interpretation = english
+          ? {possible:`${subject[1]} may receive support`,mixed:`${subject[1]} may have support and obstacles`,unfavorable:`support for ${subject[1]} may be limited`}[data.outlook]
+          : {possible:`${subject[0]} ko sahyog mil sakta hai`,mixed:`${subject[0]} mein sahyog aur rukawat dono sambhav hain`,unfavorable:`${subject[0]} mein sahyog kam reh sakta hai`}[data.outlook];
+        return `${first}\n\n${period.lord} mahadasha, ${period.from} ${english?'to':'se'} ${period.to}: ${interpretation}. ${english?'This does not require waiting.':'Tab tak rukna zaroori nahi.'}`;
+      }
       return `${first}\n\n${timing}`;
     },
   };

@@ -204,7 +204,8 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
     ...(language === "hinglish" && career && !education && !finance
       ? [
           "Kaam mein apni kaunsi skill ko aur use karne ka mann hai?",
-          "Career mein agla kadam lene se pehle kis baat par saath mein sochna chahenge?",
+          ...(!/\b(?:job|naukri|promotion|employed|unemployed|jobless|I work|working|kaam karta|kaam karti)\b/iu.test(userContext)
+            ? ["Aap nayi job dhoondh rahe hain ya current kaam mein growth chahte hain?"] : []),
         ]
       : language === "hinglish" && finance
         ? [

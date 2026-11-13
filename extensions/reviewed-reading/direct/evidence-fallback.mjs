@@ -52,7 +52,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     const timing = asksForTiming(query);
     const factors = [signal.positive, signal.negative]
       .map((items) =>
-        (Array.isArray(items) ? items : []).map((s) => fallbackFactor(s, english)).find(Boolean),
+        (Array.isArray(items) ? items : []).map((s) => fallbackFactor(s, english, area)).find(Boolean),
       )
       .filter(Boolean)
       .join(english ? ", while " : ", lekin ");
@@ -61,7 +61,10 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       money: english ? "Money timing" : "Paise ki sthiti",
       marriage: english ? "Relationship timing" : "Shaadi ka samay",
     }[area];
-    const timingLine = english
+    const timingLine = area === 'career'
+      ? english ? "I can't identify a clear career-settling date from these indications."
+        : 'Career settle hone ka exact waqt abhi saaf nahi hai.'
+      : english
       ? `${leadIn}: this reading does not establish a supported event window.`
       : `${leadIn}: is reading se koi supported samay tay nahi hota.`;
     return (
@@ -80,10 +83,14 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
         ? timingLine
         : english
           ? area === "career"
-            ? "This reading does not identify one career field as better than the others."
+            ? /\b(?:fields?|options?|suit|best)\b/iu.test(query)
+              ? "This reading does not identify one career field as better than the others."
+              : `The career outlook is ${trend}.`
             : `The ${label.toLowerCase()} reading has ${trend} indications.`
           : area === "career"
-            ? "Is reading mein kisi ek career field ko baaki se behtar batane ka aadhar nahi mila."
+            ? /\b(?:fields?|options?|suit|best)\b/iu.test(query)
+              ? "Is reading mein kisi ek career field ko baaki se behtar batane ka aadhar nahi mila."
+              : {POSITIVE:'Career mein sahyog ke sanket hain.',NEGATIVE:'Career mein filhaal rukawat ke sanket zyada hain.',MIXED:'Career ke sanket mile-jule hain.'}[signal.trend]
             : `${label} ki reading mein ${trend} sanket hain.`)
     );
   }

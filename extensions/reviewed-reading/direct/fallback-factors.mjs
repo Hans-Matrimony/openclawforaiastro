@@ -11,9 +11,19 @@ const planets = {
   Ketu: "Ketu",
 };
 
-export function fallbackFactor(text, english) {
+export function fallbackFactor(text, english, area) {
   if (typeof text !== "string") {
     return null;
+  }
+  if (area === 'career') {
+    if (/^house 10 \([^)]+\) bindus (?:sirf )?\d+\/48 .* (?:strong|weak) support$/.test(text)) {
+      const strong = /strong support$/.test(text);
+      return english ? `The career house's strength is ${strong ? 'supportive' : 'limited'}`
+        : `Career ke ghar ki majbooti ${strong ? 'achhi' : 'kam'} hai`;
+    }
+    if (/^Saturn retrograde .* results me Atkaav$/.test(text)) {
+      return english ? 'Saturn indicates possible delays in work' : 'Shani ke asar se kaam mein deri ho sakti hai';
+    }
   }
   if (english) {
     // Unknown source phrases are not translated speculatively.

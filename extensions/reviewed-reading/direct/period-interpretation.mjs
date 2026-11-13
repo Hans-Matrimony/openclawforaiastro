@@ -1,4 +1,5 @@
 import { hasPredictionGuarantee } from "./prediction-certainty.mjs";
+import { upcomingPeriods } from './returned-periods.mjs';
 
 const months =
   "January February March April May June July August September October November December".split(
@@ -36,7 +37,7 @@ export function isPeriodInterpretation(reply, data) {
   if (dates.length < 2 || /\b20\d{2}-\d{2}-\d{2}\b/.test(reply)) {
     return false;
   }
-  const periods = data.flatMap((d) => d.dasha?.upcoming_antardashas ?? []);
+  const periods = data.flatMap(d => upcomingPeriods(d.dasha));
   return periods.some((p) => {
     if (!/^(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)$/.test(p.lord ?? "")) {
       return false;
@@ -45,6 +46,7 @@ export function isPeriodInterpretation(reply, data) {
       to = String(p.to ?? "").slice(0, 7);
     return (
       new RegExp(`\\b${p.lord}\\b`, "i").test(reply) &&
+      !new RegExp(`\\b${p.lord}\\s+(?:ki\\s+)?${p.kind === 'mahadasha' ? 'antardasha' : 'mahadasha'}\\b`, "i").test(reply) &&
       dates.some((d) => d.month === from) &&
       dates.some((d) => d.month === to) &&
       // Abbreviations and full dates represent the same period. When a day is
@@ -100,7 +102,7 @@ export function alignPeriodVerdict(reply, results) {
       ? `${months[parsed.getUTCMonth()]} ${parsed.getUTCFullYear()}`
       : null;
   };
-  const matches = (schedules[0]?.dasha.upcoming_antardashas ?? []).flatMap((period) => {
+  const matches = upcomingPeriods(schedules[0]?.dasha).flatMap((period) => {
     const from = label(period.from),
       to = label(period.to);
     if (
@@ -115,12 +117,12 @@ export function alignPeriodVerdict(reply, results) {
       return [];
     }
     const prefix = new RegExp(
-      `^${period.from.slice(0, 4)} ke baad ${period.lord} antardasha mein `,
+      `^${period.from.slice(0, 4)} ke baad ${period.lord} ${period.kind} mein `,
       "i",
     );
     return prefix.test(parts[1]) &&
       /\bsambhavna|\bsambhavana|\bsambhavit|\b(?:ho|ban) sak(?:ta|ti|te)\b/i.test(parts[1])
-      ? [{ prefix, from, to, lord: period.lord }]
+      ? [{ prefix, from, to, lord: period.lord, kind: period.kind }]
       : [];
   });
   if (matches.length !== 1) {
@@ -129,7 +131,7 @@ export function alignPeriodVerdict(reply, results) {
   const period = matches[0];
   parts[1] = parts[1].replace(
     period.prefix,
-    `${period.from} se ${period.to} ke beech ${period.lord} antardasha mein `,
+    `${period.from} se ${period.to} ke beech ${period.lord} ${period.kind} mein `,
   );
   return parts.join("\n\n");
 }
