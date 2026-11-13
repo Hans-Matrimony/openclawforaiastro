@@ -2,6 +2,21 @@ import {personaInstruction} from './persona.mjs';
 import {responseLanguageInstruction} from './response-language.mjs';
 import {whatsappStyleInstruction} from './whatsapp-presentation.mjs';
 
+export function careerAnswerEvidence(query, chartResults) {
+  const periodsRequested=/\b(?:dasha|mahadasha|antardasha|periods?|schedule|20\d{2})\b|दशा|अवधि/u.test(query.toLowerCase());
+  return chartResults.map(raw=>{
+    let row;try{row=JSON.parse(raw);}catch{return raw;}
+    if(row?.engine!=='local-sweph-v2')return raw;
+    // The full result remains with the validators. Do not feed a timetable or
+    // tool UI instructions to a writer answering an undated career-event question.
+    return {engine:row.engine,birth_chart:row.birth_chart,verdict_signals:row.verdict_signals,
+      evidence_scope:row.evidence_scope,
+      current_period_lords:{mahadasha:row.dasha?.current_mahadasha?.lord,antardasha:row.dasha?.current_antardasha?.lord},
+      ...(periodsRequested||row.event_windows?.length?{dasha:row.dasha}:{}),
+      ...(row.event_windows?.length?{event_windows:row.event_windows}:{})};
+  });
+}
+
 // Keep the career event answer separate from earlier assistant forecasts and
 // period-selection repairs. The model still writes the answer; no date is chosen here.
 export function careerAnswerMessages(value, context, chartResults, rejectedDraft, redact = text => text) {
@@ -12,7 +27,7 @@ export function careerAnswerMessages(value, context, chartResults, rejectedDraft
     personaInstruction(value) + responseLanguageInstruction(value) + whatsappStyleInstruction(value);
   const data={question:value.query,selected_birth:value.birth,
     user_circumstances:(value.history??[]).filter(t=>t.role==='user').slice(-6).map(t=>t.text.slice(0,2000)),
-    saved_context:context.memoryFacts,checked_chart_results:chartResults,
+    saved_context:context.memoryFacts,checked_chart_results:careerAnswerEvidence(value.query,chartResults),
     ...(rejectedDraft?{rejected_draft:rejectedDraft}:{})};
   return [{role:'system',content:instruction},{role:'user',content:redact(JSON.stringify(data)).replace(/</g,'\\u003c').replace(/>/g,'\\u003e')}];
 }

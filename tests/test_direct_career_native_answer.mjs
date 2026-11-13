@@ -3,6 +3,7 @@ import test from 'node:test';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
 import {fallbackFactor} from '../extensions/reviewed-reading/direct/fallback-factors.mjs';
+import {careerAnswerEvidence} from '../extensions/reviewed-reading/direct/career-answer.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
 const chart={engine:'local-sweph-v2',birth_chart:{planets:['Sun: Taurus | house 2','Saturn: Virgo | house 6'],ashtakavarga_house_bindus:{house_10:{sign:'Leo',bindus:31}}},
@@ -12,6 +13,18 @@ const chart={engine:'local-sweph-v2',birth_chart:{planets:['Sun: Taurus | house 
 const rows=[JSON.stringify(chart)],now=()=>new Date('2026-11-13T00:00:00Z');
 const base={user_id:'synthetic-native-career',birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'},language:'english',history:[]};
 const call={id:'fixture-chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}};
+
+test('a generic career event question gets relevant evidence, while explicit period questions retain the full schedule',()=>{
+ const original=JSON.stringify(chart);
+ const generic=careerAnswerEvidence('When will my career settle?',rows);
+ assert.equal(generic[0].dasha,undefined);assert.deepEqual(generic[0].verdict_signals,chart.verdict_signals);
+ assert.deepEqual(generic[0].birth_chart,chart.birth_chart);assert.doesNotMatch(JSON.stringify(generic),/2040|2046/);
+ for(const query of ['Which career period is relevant?','Explain Sun mahadasha for my career','My career in 2040?'])
+  assert.deepEqual(careerAnswerEvidence(query,rows)[0].dasha,chart.dasha);
+ const event={...chart,event_windows:[{from:'2031-01-01',to:'2031-06-01'}]};
+ assert.deepEqual(careerAnswerEvidence('When will my career settle?',[JSON.stringify(event)])[0].event_windows,event.event_windows);
+ assert.equal(JSON.stringify(chart),original);
+});
 
 test('career error recovery never chooses a date from ownership or a positive factor',()=>{
  for(const language of ['english','hinglish'])for(const query of ['Mera career kab set hoga?','Mera promotion kab hoga?','मेरा करियर कब सेट होगा?'])for(const evidence of [chart,{...chart,verdict_signals:[{...chart.verdict_signals[0],positive:['benefic Jupiter house 10 mein']}]}]){
