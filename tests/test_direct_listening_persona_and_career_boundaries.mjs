@@ -104,7 +104,7 @@ test('a career draft rejected for both facts and wording closes with checked fac
     },
   });
   assert.equal(calls,4);assert.equal(calculations,1);
-  assert.ok(result.answer_validation.includes('career_checked_fallback'));
+  assert.ok(result.answer_validation.includes('chart_fallback'));
   assert.match(result.reply,/mixed/);assert.doesNotMatch(result.reply,/relationships|inner drive|Management/);
 });
 
@@ -121,6 +121,6 @@ test('an English career wording repair cannot silently introduce a new interpret
     },
   });
   assert.equal(calls,3);assert.equal(calculations,1);
-  assert.ok(result.answer_validation.includes('career_checked_fallback'));
+  assert.ok(result.answer_validation.includes('chart_fallback'));
   assert.doesNotMatch(result.reply,/relationships|inner drive|Management/);assert.match(result.reply,/mixed/);
 });

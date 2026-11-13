@@ -26,6 +26,12 @@ export function fallbackFactor(text, english, area) {
     }
   }
   if (english) {
+    if (text.startsWith('current dasha lords is area se directly linked nahi')) {
+      return 'The current period has limited direct support for this area';
+    }
+    if (/^current dasha\/antardasha lord .*period ACTIVE hai$/.test(text)) {
+      return 'The current period is connected with this area';
+    }
     // Unknown source phrases are not translated speculatively.
     if (/bindus?|benefic|malefic|combust|retrograde|house \d/i.test(text)) {
       const house = /house (\d{1,2})/i.exec(text)?.[1];

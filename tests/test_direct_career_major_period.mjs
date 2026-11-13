@@ -76,10 +76,10 @@ test('missing or ambiguous timing stays honest and natural without choosing a di
  assert.deepEqual(upcomingPeriods({upcoming_antardashas:[null,{},'bad']}),[]);
 });
 
-test('unique checked career ownership survives a failed prose repair without losing positive or adverse factors',()=>{
+test('a failed career draft retains checked factors without selecting a date from house ownership',()=>{
  const reply=evidenceFallback(evidence,'hinglish',query,now());
- assert.match(reply,/Sun mahadasha/);assert.match(reply,/January 2040 se January 2046/);
- assert.match(reply,/Shani/);assert.match(reply,/rukawat/);assert.match(reply,/rukna zaroori nahi/);
+ assert.doesNotMatch(reply,/20\d{2}|mahadasha/);assert.match(reply,/exact waqt abhi saaf nahi/);
+ assert.match(reply,/Career ke ghar/);assert.match(reply,/Shani/);assert.match(reply,/deri ho sakti/);
  assert.equal(unsupportedEventTiming(reply,evidence,query),false);
  const unsupported={...chart,birth_chart:{...chart.birth_chart,ashtakavarga_house_bindus:{}}};
  assert.doesNotMatch(evidenceFallback([JSON.stringify(unsupported)],'hinglish',query,now()),/2040|2046/);
@@ -106,8 +106,8 @@ test('PWA and WhatsApp dispatch preserve the same checked career interpretation 
     calls++;const body=JSON.parse(options.body);
     const message=calls===1?{tool_calls:[call('mcp__VedAstro__get_horoscope_predictions',{})]}
      :calls===2?{content:'Jupiter antardasha, January 2030 to January 2033: career improvement is possible.'}
-      :{tool_calls:[call('submit_timing_reading',{period_id:'p2',outlook:'mixed',factor_ids:['f2']})]};
-    if(calls===3)assert.equal(body.tool_choice.function.name,'submit_timing_reading');
+      :{content:'Sun rules house 10. Saturn may cause delays.\n\nSun mahadasha from January 2040 to January 2046 may support career, with obstacles.'};
+    if(calls===3)assert.notEqual(body.tool_choice?.function?.name,'submit_timing_reading');
     assert.ok(calls<=3,'No endless repair loop or extra model call');
     return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
    },

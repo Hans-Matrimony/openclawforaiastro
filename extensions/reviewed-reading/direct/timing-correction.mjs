@@ -141,18 +141,14 @@ export function timingCorrection(results, query, language, asOf) {
       // Never choose the next period just because its boundary is known. A
       // unique period linked to a returned positive topic factor can retain a
       // qualified interpretation; multiple candidates remain undetermined.
-      const candidatesFor = polarity => periods.flatMap((period, index) => {
-        const factor = factors.findIndex(f => f.polarity === polarity &&
+      const candidates = periods.flatMap((period, index) => {
+        const factor = factors.findIndex(f => f.polarity === 'positive' &&
           new RegExp(`\\b${period.lord}\\b`, 'i').test(f.source));
         return factor < 0 ? [] : [{index, factor}];
       });
-      const positiveCandidates=candidatesFor('positive');
-      // Prefer explicit supportive period factors as before. When none exists,
-      // a unique checked topic ruler may retain a qualified interpretation if
-      // the returned topic has positive support; never infer it from dates alone.
-      const candidates=positiveCandidates.length ? positiveCandidates
-        : factors.some(f=>f.polarity==='positive') ? candidatesFor('relevance') : [];
-      const selected = candidates.length === 1 ? candidates[0] : null;
+      // A failed career draft is not permission for application code to choose
+      // its event date. Keep actual model interpretations separate from recovery.
+      const selected = area !== 'career' && candidates.length === 1 ? candidates[0] : null;
       const outlook = signals[0].trend === 'NEGATIVE' ? 'unfavorable'
         : factors.some(f=>f.polarity==='negative') ? 'mixed' : 'possible';
       const data = selected

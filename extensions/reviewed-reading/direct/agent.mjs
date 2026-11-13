@@ -29,6 +29,7 @@ import { alignPeriodVerdict } from "./period-interpretation.mjs";
 import { selfIntroduction, personaInstruction } from "./persona.mjs";
 import {
   questionScopeInstruction,
+  questionScope,
   mismatchedQuestionReply,
   unresolvedQuestionReply,
 } from "./question-scope.mjs";
@@ -334,6 +335,10 @@ export async function directAnswer(
     readingRequired &&
     !isDeathTimingQuestion(value.query) &&
     asksForTiming(activeQuestion);
+  // Career stays in the normal prose writer. A repair tool must not turn a
+  // failed draft into an application-selected career-settlement date.
+  const structuredTimingRepair = () => questionScope(value.query) === 'career' ? null
+    : timingCorrection(chartResults, value.query, value.language, now());
   if (sourceFlow && readingRequired) {
     context.prompt +=
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
@@ -778,7 +783,7 @@ export async function directAnswer(
         });
         continue;
       }
-      pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+      pendingTimingRepair = structuredTimingRepair();
       if (pendingTimingRepair) {
         validation.push("undated_timing_review");
         continue;
@@ -790,9 +795,9 @@ export async function directAnswer(
       : [];
     if (lordConflicts.length) {
       validation.push("chart_claim_conflict");
-      if (correctedHouseLord || modelCalls >= maxRounds) {
+      if (correctedHouseLord || correctedReadingPresentation || modelCalls >= maxRounds) {
         if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
-          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          pendingTimingRepair = structuredTimingRepair();
           if (pendingTimingRepair) continue;
         }
         validation.push("chart_fallback");
@@ -805,7 +810,7 @@ export async function directAnswer(
             ["unsupported_future_aspect", "linked_house_lord"].includes(c.type),
           )
         ) {
-          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          pendingTimingRepair = structuredTimingRepair();
           if (pendingTimingRepair) {
             continue;
           }
@@ -832,7 +837,7 @@ export async function directAnswer(
         // available round on the existing structured verdict repair instead
         // of immediately substituting the first upcoming dasha schedule.
         if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
-          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          pendingTimingRepair = structuredTimingRepair();
           if (pendingTimingRepair) continue;
         }
         validation.push("timing_fallback");
@@ -840,7 +845,7 @@ export async function directAnswer(
       } else {
         correctedPeriod = true;
         if (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) {
-          pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
+          pendingTimingRepair = structuredTimingRepair();
           if (pendingTimingRepair) {
             continue;
           }
@@ -995,17 +1000,6 @@ export async function directAnswer(
         validation.push('chart_fallback');
         publishableReply = formatDisplayReply(checkedFacts);
       }
-    }
-    if (sourceFlow && readingTools.size > 0 && !timingRequired && !asksForTiming(value.query) &&
-        /\b(?:career|job|naukri)\b/iu.test(value.query) &&
-        validation.includes('reading_wording_rejected') &&
-        (validation.includes('chart_claim_conflict') || value.language === 'english')) {
-      // An English career wording edit can trade one invented explanation for
-      // another even without a detected placement conflict. Close the failed repair
-      // with the existing facts renderer. Valid first-pass career answers,
-      // other topics and event timing stay intact.
-      publishableReply = formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now()));
-      validation.push('career_checked_fallback');
     }
     if (explicitEnglishReplyMismatch(value, publishableReply)) {
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, 'english', value.query, now()));
