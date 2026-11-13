@@ -107,9 +107,24 @@ test('a career forecast cannot replace an unknown date with a promise of improve
 test('career delivery rejects process jargon and an unqualified claim that progress is already blocked',()=>{
  for(const reply of ['Timing abhi clear nahi hai, kyun ki koi calculated event window nahi hai.',
   'Saturn aur dasha lord ka direct link na hona results ko rok raha hai.',
-  'Career ka foundation strong hai lekin Saturn se delay ho raha hai.'])
+  'Career ka foundation strong hai lekin Saturn se delay ho raha hai.',
+  'Saturn aur dasha link ki kami se abhi progress thoda rukaa hua hai.',
+  'Progress thoda rukta hai.', 'Your progress is blocked. Support may improve.'])
   assert.ok(careerAnswerWordingIssue(reply,'When will my career settle?',rows));
  assert.equal(careerAnswerWordingIssue('Career ke liye sahyog hai, lekin deri ho sakti hai.\n\nAbhi bharosemand samay batana mumkin nahi.','When will my career settle?',rows),null);
+});
+
+test('both reply surfaces repair categorical career delays without replacing the checked answer',async()=>{
+ const good='Your career house is supportive, while Saturn may bring delays.\n\nThese factors do not establish a reliable career settlement date.';
+ for(const reply_surface of [undefined,'whatsapp']){
+  let requests=0;
+  const result=await directAnswer({...base,reply_surface,query:'When will my career settle?'},{env,now,
+   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
+   fetchImpl:async()=>{requests++;const message=requests===1?{tool_calls:[call]}:{content:requests===2?'Your career house is supportive, but your progress is blocked.\n\nThese factors do not establish a reliable career settlement date.':good};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+  });
+  assert.equal(requests,3);assert.ok(result.reply.startsWith(good));
+  assert.ok(!result.answer_validation.some(v=>/fallback/.test(v)));
+ }
 });
 
 test('a relative deadline is corrected through the normal writer without publishing it or selecting another date',async()=>{
