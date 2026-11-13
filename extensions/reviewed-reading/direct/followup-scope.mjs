@@ -1,6 +1,7 @@
 import {isPersonalChartQuestion} from './reading-intent.mjs';
 import {selectedSelfBirth} from './selected-self-birth.mjs';
 import {quotedSelfReading} from './quoted-reading.mjs';
+import {correctedReadingSubject} from './personal-query.mjs';
 
 export function generalMatchingQuestion(query) {
   return !/\b(?:my|our|meri|mera|mere|hamara|hum|ham|dono|partner|girlfriend|boyfriend|gf|bf)\b/i.test(query) &&
@@ -53,6 +54,8 @@ export const newCompanionQuestion = query => !borrowsCompanionTopic(query) && !i
   /^(?:why|how|when|which|kaise|kyun|kab)\b/iu.test(query.trim());
 
 export function activeReadingQuestion(value) {
+  const correctedSubject=correctedReadingSubject(value.query);
+  if (correctedSubject !== value.query) return correctedSubject;
   // Resolve a short quoted follow-up only from the selected quote's own
   // subject. Never substitute a different subject from unquoted history.
   if (value.reply_to) {
