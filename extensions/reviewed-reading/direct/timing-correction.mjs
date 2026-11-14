@@ -2,6 +2,7 @@ import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
 import { periodFallback } from "./period-fallback.mjs";
+import { careerTimingUnavailable } from "./career-timing-unavailable.mjs";
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
@@ -186,6 +187,7 @@ export function timingCorrection(results, query, language, asOf) {
         if (data.outlook !== "undetermined") {
           return null;
         }
+        if (area === "career") return careerTimingUnavailable(first, english);
         // Keep the returned schedule visible without promoting it to an event
         // prediction. The same renderer checks dates and conflicting subjects.
         const schedule = periodFallback(rows, language, asOf);
