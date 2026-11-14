@@ -9,10 +9,11 @@ export function spokenReply(reply, value) {
       .replace(/The separate house[ -]strength indicator for house (\d{1,2}) is supportive/giu, 'House $1 shows support')
       .replace(/The separate house[ -]strength indicator for house (\d{1,2}) shows limited support/giu, 'House $1 shows limited support')
       .replace(/current dasha lords is area se directly linked nahi external push kam/giu, 'The current planetary period offers limited direct support')
-      .replace(/The calculated (\w+) sub[ -]period runs/giu, 'Your $1 sub period runs');
+      .replace(/The calculated (\w+) sub[ -]period runs/giu, 'Your $1 sub period runs')
+      .replace(/, while The current/gu, ', while the current');
   }
   // The full day, month and year survive; only the spoken representation changes.
-  text = text.replace(/\b(20\d{2})-(\d{2})-(\d{2})\b/gu, (original, year, month, day) => {
+  text = text.replace(/\b(20\d{2})-(\d{2})-(\d{2})\b/gu, (original) => {
     const date = new Date(`${original}T00:00:00Z`);
     if (!Number.isFinite(date.valueOf()) || date.toISOString().slice(0, 10) !== original) return original;
     return new Intl.DateTimeFormat('en-GB', {day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(date);

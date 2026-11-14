@@ -9,6 +9,7 @@ import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
 import { pastPrediction, futureDateInstruction } from './past-prediction.mjs';
 import { spokenReply } from './voice-presentation.mjs';
+import { prepareVoiceChart } from './voice-chart.mjs';
 import { evidenceFallback, isUnverifiedReadingReply } from "./evidence-fallback.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import {
@@ -456,6 +457,19 @@ export async function directAnswer(
     }
     return result.choices[0].message.content;
   };
+  if (sourceFlow && readingRequired && !emotionalFriendship && !matchingLimitations) {
+    const prepared = await prepareVoiceChart(value, execute, signal);
+    if (prepared) {
+      readingTools.add('get_horoscope_predictions');
+      chartResults.push(prepared.content);
+      messages[0].content += '\nThe required selected-self career chart has already been calculated for this current voice question and is supplied below as a real tool result. Use it directly without repeating the same natal calculation. Additional relevant tools remain available when their distinct evidence is needed. All existing evidence and timing checks still apply.\n';
+      messages.push({role:'assistant',content:null,tool_calls:[prepared.call]},
+        {role:'tool',tool_call_id:prepared.call.id,content:redactIdentity(prepared.content,value.user_id)});
+      const comparison = timingRequired && topicPeriodContext(chartResults, value.query);
+      if (comparison) messages.push({role:'user',content:comparison});
+      validation.push('voice_chart_prepared');
+    }
+  }
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
     // Saved conversation predictions are not a substitute for this turn's chart.
     const requireChart =
