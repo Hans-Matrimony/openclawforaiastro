@@ -72,6 +72,16 @@ test('repair cannot promote house ownership into a selectable career support fac
  assert.match(correction.render({tool_calls:[call('submit_timing_reading',{period_id:'p1',outlook:'unfavorable',factor_ids:['f1']})]}),/2033 se January 2036/);
 });
 
+test('career repair offers only factor-linked periods with stable IDs and explicit outlooks',()=>{
+ const correction=timingCorrection(evidence,query,'hinglish',now());
+ assert.deepEqual(correction.tool.function.parameters.properties.period_id.enum,['none','p1']);
+ assert.match(correction.instruction,/"id":"p1","lord":"Saturn"/);
+ assert.match(correction.instruction,/"factor_ids":\["f1"\],"allowed_outlooks":\["unfavorable"\]/);
+ assert.doesNotMatch(correction.instruction,/"id":"p0"|"id":"p2"/);
+ const unrelated={...chart,verdict_signals:[{area:'career',positive:['house 10 (Leo) bindus 31/48 => strong support'],negative:[]}]};
+ assert.deepEqual(timingCorrection([JSON.stringify(unrelated)],query,'hinglish',now()).tool.function.parameters.properties.period_id.enum,['none']);
+});
+
 test('missing or ambiguous timing stays honest and natural without choosing a distant period automatically',()=>{
  const reply=evidenceFallback([JSON.stringify({...chart,birth_chart:undefined})],'hinglish',query,now());
  assert.match(reply,/exact waqt abhi saaf nahi/);

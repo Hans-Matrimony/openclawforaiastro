@@ -632,7 +632,11 @@ export async function directAnswer(
       if (timingRequired) {
         const comparison = topicPeriodContext(chartResults, value.query);
         if (comparison) {
-          messages.push({ role: "user", content: comparison });
+          const candidates = careerTiming ? structuredTimingRepair()?.careerCandidates : null;
+          messages.push({ role: "user", content: comparison + (candidates
+            ? '\nCareer periods linked to explicit topic factors: ' + JSON.stringify(candidates) +
+              '\nUse the listed allowed_outlooks for these candidates. Unfavorable describes possible pressure during that period, not when career settles or a prohibition on earlier progress. Do not turn a general strong house into support for an unrelated period, and do not infer a settlement year from a distant house-lord period. If no supported settlement window exists, distinguish that limitation from the useful career interpretation. Give the answer in natural prose, not IDs or a schedule.'
+            : '') });
         }
       }
       continue;

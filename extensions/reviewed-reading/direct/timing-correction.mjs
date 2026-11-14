@@ -80,11 +80,26 @@ export function timingCorrection(results, query, language, asOf) {
   if (!factors.length) {
     return null;
   }
+  // The old schema offered every period even when the renderer would reject
+  // it. In live captures the model selected Rahu with Saturn's factor, turning
+  // a correctable draft into an undated fallback. Keep stable IDs, but expose
+  // only career candidates with an actual matching topic factor.
+  const careerCandidates = area === 'career' ? periods.flatMap((period, index) => {
+    const linked = factors.flatMap((factor, factorIndex) =>
+      new RegExp(`\\b${period.lord}\\b`, 'i').test(factor.source)
+        ? [{id:`f${factorIndex}`,polarity:factor.polarity}] : []);
+    if (!linked.length) return [];
+    const positive = linked.some(f => f.polarity === 'positive');
+    const negative = linked.some(f => f.polarity === 'negative');
+    return [{id:`p${index}`,...period,factor_ids:linked.map(f=>f.id),
+      allowed_outlooks:[...(positive?['possible','mixed']:[]),...(negative?['unfavorable']:[])]}];
+  }) : null;
   const name = "submit_timing_reading";
   const keys = ["period_id", "outlook", "factor_ids"];
   return {
     name,
     evidence: rows,
+    careerCandidates,
     instruction:
       "Submit the corrected reading with submit_timing_reading. This replaces the free-text correction, not the chart calculation. " +
       "Choose a period ONLY if its lord has a checked, topic-specific chart reason; do not select the first period merely because it is next. " +
@@ -94,7 +109,8 @@ export function timingCorrection(results, query, language, asOf) {
       "If the evidence cannot support a period interpretation, select none and undetermined. " +
       "Select one to three factor_ids from the list; at least one must mention the selected period lord and its relevant chart relationship. " +
       "Do not write new chart prose. The application renders the selected checked factors, retains opposing factors and requested partner nature, and inserts the exact period boundaries and qualification. Available periods: " +
-      JSON.stringify(periods.map((p, i) => ({ id: `p${i}`, ...p }))) +
+      JSON.stringify(careerCandidates ?? periods.map((p, i) => ({ id: `p${i}`, ...p }))) +
+      (careerCandidates ? '\nFor each career candidate, use its listed factor_ids and allowed_outlooks. A general strong house does not turn a delay-only candidate into a positive window. None means no supported event window; it must not imply that the career cannot improve.' : '') +
       "\nChecked topic factors: " +
       JSON.stringify(
         factors.map((f, i) => ({ id: `f${i}`, source: f.source, polarity: f.polarity })),
@@ -116,7 +132,7 @@ export function timingCorrection(results, query, language, asOf) {
           additionalProperties: false,
           required: keys,
           properties: {
-            period_id: { type: "string", enum: ["none", ...periods.map((_, i) => `p${i}`)] },
+            period_id: { type: "string", enum: ["none", ...(careerCandidates ? careerCandidates.map(p=>p.id) : periods.map((_, i) => `p${i}`))] },
             outlook: { type: "string", enum: ["possible", "unfavorable", "mixed", "undetermined"] },
             factor_ids: {
               type: "array",
@@ -205,6 +221,10 @@ export function timingCorrection(results, query, language, asOf) {
         return null;
       }
       const period = periods[Number(data.period_id.slice(1))];
+      if (careerCandidates && !careerCandidates.some(candidate =>
+        candidate.id === data.period_id && candidate.allowed_outlooks.includes(data.outlook))) {
+        return null;
+      }
       if (
         !period ||
         !data.factor_ids.some((id) =>
