@@ -104,7 +104,7 @@ test('a career draft rejected for both facts and wording closes with checked fac
     },
   });
   assert.equal(calls,4);assert.equal(calculations,1);
-  assert.ok(result.answer_validation.includes('career_checked_fallback'));
+  assert.ok(result.answer_validation.includes('chart_fallback'));
   assert.match(result.reply,/mixed/);assert.doesNotMatch(result.reply,/relationships|inner drive|Management/);
 });
 
@@ -121,6 +121,23 @@ test('an English career wording repair cannot silently introduce a new interpret
     },
   });
   assert.equal(calls,3);assert.equal(calculations,1);
-  assert.ok(result.answer_validation.includes('career_checked_fallback'));
+  assert.ok(result.answer_validation.includes('chart_fallback'));
   assert.doesNotMatch(result.reply,/relationships|inner drive|Management/);assert.match(result.reply,/mixed/);
+});
+
+test('a valid English career rewrite retains its qualified options instead of generic facts',async()=>{
+  let calls=0,calculations=0;
+  const result=await directAnswer({user_id:'synthetic-valid-career-rewrite',query,language:'english',history:[],birth:{date:'2000-01-01',time:'12:00',location_name:'Delhi'}},{
+    env,makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(chart);},
+    fetchImpl:async()=>{
+      calls++;
+      const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2
+        ? 'Career progress will be delayed.\n\nManagement may be an option.' : goodCareer};
+      return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));
+    },
+  });
+  assert.equal(calls,3);assert.equal(calculations,1);
+  assert.match(result.reply,/Leadership or analysis may be options/);
+  assert.ok(!result.answer_validation.includes('career_checked_fallback'));
+  assert.doesNotMatch(result.reply,/does not identify one career field/);
 });

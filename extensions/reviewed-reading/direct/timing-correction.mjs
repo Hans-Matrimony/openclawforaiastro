@@ -1,6 +1,7 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
+import { periodFallback } from "./period-fallback.mjs";
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
@@ -184,6 +185,14 @@ export function timingCorrection(results, query, language, asOf) {
       if (data.period_id === "none") {
         if (data.outlook !== "undetermined") {
           return null;
+        }
+        // Keep the returned schedule visible without promoting it to an event
+        // prediction. The same renderer checks dates and conflicting subjects.
+        const schedule = periodFallback(rows, language, asOf);
+        if (schedule) {
+          return first + "\n\n" + schedule + (english
+            ? " These are dasha dates, not a confirmed date for the event."
+            : " Yeh dasha ki avadhi hai, ghatna hone ki pakki tareekh nahi.");
         }
         return (
           first +

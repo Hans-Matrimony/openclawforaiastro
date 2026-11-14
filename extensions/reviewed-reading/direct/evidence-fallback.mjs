@@ -40,7 +40,8 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       : null;
   if (area && asksForTiming(query)) {
     const checked = timingCorrection(results, query, language, asOf)?.fallback();
-    // A bare schedule cannot answer a personal event-timing question.
+    // Keep a qualified interpretation when available; otherwise the repair
+    // preserves calculated dates as schedule context, not an event promise.
     if (checked) return checked;
     if (!signal) return english ? UNVERIFIED_EN : UNVERIFIED_HI;
   }
@@ -61,7 +62,12 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       money: english ? "Money timing" : "Paise ki sthiti",
       marriage: english ? "Relationship timing" : "Shaadi ka samay",
     }[area];
-    const timingLine = english
+    const checkedSchedule = periodFallback(rows, language, asOf);
+    const timingLine = checkedSchedule
+      ? checkedSchedule + (english
+        ? " These are dasha dates, not a confirmed date for the event."
+        : " Yeh dasha ki avadhi hai, ghatna hone ki pakki tareekh nahi.")
+      : english
       ? `${leadIn}: this reading does not establish a supported event window.`
       : `${leadIn}: is reading se koi supported samay tay nahi hota.`;
     return (

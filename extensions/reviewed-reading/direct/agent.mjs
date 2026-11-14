@@ -790,7 +790,7 @@ export async function directAnswer(
       : [];
     if (lordConflicts.length) {
       validation.push("chart_claim_conflict");
-      if (correctedHouseLord || modelCalls >= maxRounds) {
+      if (correctedHouseLord || correctedReadingPresentation || modelCalls >= maxRounds) {
         if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
           pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
           if (pendingTimingRepair) continue;
@@ -995,17 +995,6 @@ export async function directAnswer(
         validation.push('chart_fallback');
         publishableReply = formatDisplayReply(checkedFacts);
       }
-    }
-    if (sourceFlow && readingTools.size > 0 && !timingRequired && !asksForTiming(value.query) &&
-        /\b(?:career|job|naukri)\b/iu.test(value.query) &&
-        validation.includes('reading_wording_rejected') &&
-        (validation.includes('chart_claim_conflict') || value.language === 'english')) {
-      // An English career wording edit can trade one invented explanation for
-      // another even without a detected placement conflict. Close the failed repair
-      // with the existing facts renderer. Valid first-pass career answers,
-      // other topics and event timing stay intact.
-      publishableReply = formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now()));
-      validation.push('career_checked_fallback');
     }
     if (explicitEnglishReplyMismatch(value, publishableReply)) {
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, 'english', value.query, now()));

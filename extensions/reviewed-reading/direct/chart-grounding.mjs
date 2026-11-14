@@ -33,6 +33,11 @@ function careerCautionConflicts(reply, rows, query) {
     }
     for (const planet of unique([...clause.matchAll(new RegExp(`\\b(${planets})\\b`, 'giu'))].map(match => match[1]))) {
       const delayFactor = negative.some(factor => new RegExp(`\\b${planet}\\b`, 'iu').test(factor) && /\b(?:delay\w*|atkaav|rukawat\w*)\b/iu.test(factor));
+      if (delayFactor && /\b(?:affects?|influences?)\s+(?:only\s+)?relationships?\b/iu.test(clause) &&
+          /\bnot\s+(?:your\s+)?(?:career|work|progress|inner drive)\b/iu.test(clause) &&
+          !/\b(?:earlier|previously|said|claimed)\b/iu.test(clause)) {
+        conflicts.push({type:'denied_career_caution',planet,reason:'The returned career caution cannot be reassigned exclusively to relationships. Preserve the qualified career factor.'});
+      }
       if (delayFactor && /\bnot delays?\b/iu.test(clause) && !/\b(?:earlier|previously|said|claimed)\b/iu.test(clause))
         conflicts.push({type:'denied_career_caution',planet,reason:'The returned career factor includes a possible delay or obstacle. Preserve that qualified limitation instead of denying it or substituting an unsupported internal trait; it is not a guaranteed outcome.'});
     }

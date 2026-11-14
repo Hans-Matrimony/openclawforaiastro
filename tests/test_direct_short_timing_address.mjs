@@ -34,7 +34,7 @@ void test("address corrections do not bypass personal reading checks; relatives 
   assert.equal(isPersonalChartQuestion("When will my brother marry? Don't call me bro."), false);
 });
 
-void test("kb and kab both avoid substituting an unsupported schedule for a marriage answer", () => {
+void test("kb and kab preserve the same calculated schedule without an event promise", () => {
   const row = {
     engine: "local-sweph-v2",
     verdict_signals: [{ area: "marriage", trend: "MIXED" }],
@@ -43,7 +43,7 @@ void test("kb and kab both avoid substituting an unsupported schedule for a marr
   const render = (query, data = row) =>
     evidenceFallback([JSON.stringify(data)], "hinglish", query, new Date("2026-10-26T00:00:00Z"));
   assert.equal(render("Shaadi kb hogi"), render("Shaadi kab hogi"));
-  assert.doesNotMatch(render("Shaadi kb hogi"), /2027-09-15/);
+  assert.match(render("Shaadi kb hogi"), /2027-09-15.*2028-11-14.*pakki tareekh nahi/);
   assert.doesNotMatch(render("Shaadi kb hogi", { ...row, dasha: undefined }), /2027/);
 });
 

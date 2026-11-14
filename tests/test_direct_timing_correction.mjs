@@ -68,7 +68,7 @@ void test("structured timing uses the selected period, never automatically the n
   assert.equal(reply.split("\n\n").length, 2);
 });
 
-void test("all three outlooks preserve their meaning and no support forces no date", () => {
+void test("all three outlooks retain meaning and undetermined preserves only schedule dates", () => {
   const correction = timingCorrection(evidence, "shaadi kb hogi", "hinglish", now());
   for (const [outlook, expected] of [
     ["possible", /sambhavna hai/],
@@ -84,9 +84,9 @@ void test("all three outlooks preserve their meaning and no support forces no da
       outlook: "undetermined",
     }),
   );
-  assert.doesNotMatch(none, /20\d{2}|Mars|Jupiter/);
+  assert.match(none, /Mars antardasha 2027-09-15 se 2028-11-14/);
   assert.match(none, /deri/);
-  assert.match(none, /iska matlab yeh nahi/);
+  assert.match(none, /dasha ki avadhi.*pakki tareekh nahi/);
 });
 
 void test("malformed submissions, fabricated dates and unsupported period selections fail closed", () => {

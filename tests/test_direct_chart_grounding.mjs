@@ -51,8 +51,8 @@ test('timing fallback retains the sole positively grounded interpretation, never
   const answer=evidenceFallback(results,'hinglish','Meri shaadi kab hogi?',now());
   assert.match(answer,/November 2031.*July 2034/);assert.match(answer,/rukawatein/);assert.doesNotMatch(answer,/2027|2028/);
   const ambiguous=structuredClone(chart);ambiguous.verdict_signals[0].positive.push('benefic Mars house 7 mein');
-  assert.doesNotMatch(evidenceFallback([JSON.stringify(ambiguous)],'hinglish','Meri shaadi kab hogi?',now()),/2031|2027/);
-  assert.match(evidenceFallback([JSON.stringify(ambiguous)],'hinglish','Meri shaadi kab hogi?',now()),/supported samay tay nahi hota/);
+  assert.match(evidenceFallback([JSON.stringify(ambiguous)],'hinglish','Meri shaadi kab hogi?',now()),/2027-09-15.*2028-11-14/);
+  assert.match(evidenceFallback([JSON.stringify(ambiguous)],'hinglish','Meri shaadi kab hogi?',now()),/pakki tareekh nahi/);
   const negative=structuredClone(chart);negative.verdict_signals[0].trend='NEGATIVE';
   assert.match(evidenceFallback([JSON.stringify(negative)],'hinglish','Meri shaadi kab hogi?',now()),/sambhavna kam hai/);
 });

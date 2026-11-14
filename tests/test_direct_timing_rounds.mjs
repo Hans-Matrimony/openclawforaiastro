@@ -62,8 +62,8 @@ void test("timing intent stays consistent across topics and shorthand without ad
       query,
       new Date("2026-10-26T00:00:00Z"),
     );
-    assert.doesNotMatch(answer, /2027|2028/);
-    assert.match(answer, /supported samay tay nahi hota/);
+    assert.match(answer, /2027-09-15.*2028-11-14/);
+    assert.match(answer, /pakki tareekh nahi/);
     assert.doesNotMatch(answer, /Relationship ki reading mein mixed/);
   }
 });
@@ -248,8 +248,8 @@ for (const toolRounds of [4, 6]) {
       assert.match(result.reply, /September 2027 se November 2028/);
       assert.doesNotMatch(result.reply, /Shaadi ka samay:|Rishte ko lekar/);
     } else {
-      assert.doesNotMatch(result.reply, /2027|2028/);
-      assert.match(result.reply, /supported samay tay nahi hota/);
+      assert.match(result.reply, /2027-09-15.*2028-11-14/);
+      assert.match(result.reply, /pakki tareekh nahi/);
     }
     assert.doesNotMatch(result.reply, /2029|sub-period runs|schedule/);
   });

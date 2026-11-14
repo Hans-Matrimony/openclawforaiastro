@@ -39,7 +39,7 @@ void test("observed source factors become complete sentences without scores or r
   assert.doesNotMatch(marriage, /saaf nahi dikh raha|Finance|20\/48|benefic|weak support/);
 });
 
-void test("an unrelated upcoming period cannot replace an unsupported event window", () => {
+void test("a returned schedule is preserved without claiming an event window", () => {
   const row = {
     engine: "local-sweph-v2",
     verdict_signals: [
@@ -61,8 +61,8 @@ void test("an unrelated upcoming period cannot replace an unsupported event wind
     "Shaadi kab hogi?",
     new Date("2026-10-25T12:00:00Z"),
   );
-  assert.match(reply, /koi supported samay tay nahi hota/);
-  assert.doesNotMatch(reply, /2027|2028|Mars antardasha/);
+  assert.match(reply, /dasha ki avadhi.*pakki tareekh nahi/);
+  assert.match(reply, /Mars antardasha 2027-09-15 se 2028-11-14/);
   assert.doesNotMatch(reply, /hisaab ke hisaab|saaf nahi dikh raha/);
 });
 
