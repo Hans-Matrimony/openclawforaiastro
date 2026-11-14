@@ -10,7 +10,7 @@ export function hasPredictionGuarantee(reply) {
       const after = text.slice(match.index + match[0].length).trim();
       // "not guaranteed" / "pakki nahi hai" are qualifications, not guarantees.
       if (
-        /\b(?:not|never|isn't|is not|nahi|nahin)\s*$/iu.test(before) ||
+        /\b(?:not|never|isn't|is not|no|nahi|nahin)(?:\s+(?:a|an))?\s*$/iu.test(before) ||
         /(?:नहीं|नही)\s*$/u.test(before) ||
         /^(?:(?:hai|hain|hoga|hogi)\s+)?(?:nahi|nahin)\b|^(?:नहीं|नही)/iu.test(after)
       ) {

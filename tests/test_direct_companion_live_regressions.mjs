@@ -5,6 +5,14 @@ import { contextualClosing } from "../extensions/reviewed-reading/direct/context
 const reading = "Unchanged astrology explanation.\n\nUnchanged astrology verdict.";
 const user = (text) => ({ role: "user", text });
 
+void test('career companion cannot add the captured delay and guaranteed-effort promise',async()=>{
+ for(const generated of ['Career set hone mein thoda time lagega, lekin aapki mehnat jaroor result degi. Kya aapne koi specific field choose kiya hai?',
+  'Your hard work will bring results. Which field are you considering?']){
+  const reply=await contextualClosing(reading,{query:'Career kab set hoga?',language:'hinglish',history:[]},{generate:async()=>generated});
+  assert.ok(reply.startsWith(reading));assert.doesNotMatch(reply,/time lagega|jaroor result|will bring results/);
+ }
+});
+
 void test("career and finance replace stock priority questions with concrete invitations", async () => {
   for (const query of [
     "Mere career ke liye kaunsi fields achhi rahengi?",

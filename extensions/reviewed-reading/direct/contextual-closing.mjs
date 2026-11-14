@@ -65,6 +65,9 @@ const closingPrediction =
 const incomingOpportunity =
   /\b(?:opportunit(?:y|ies)|offers?|mauke?|avsar)\b[^.!?\n]{0,65}\b(?:aa\s+rah[aei]|aane\s+wal[aei]|coming|on\s+the\s+way|opening\s+up|lie\s+ahead)\b|\b(?:new\s+)?(?:opportunit(?:y|ies)|offers?)\b[^.!?\n]{0,45}\b(?:are|is)\s+(?:arriving|approaching)\b|(?:अवसर|मौके)[^.!?।\n]{0,40}(?:आ\s*रह[ेी]|आने\s*वाले)/iu;
 
+// Companionship must not reintroduce a forecast rejected by the reading.
+const careerClosingPromise = /\bcareer\b[^.!?\n]{0,65}\b(?:time|samay|waqt)\s+lagega\b|\b(?:mehnat|hard work|effort)\b[^.!?\n]{0,65}\b(?:jaroor|zaroor|definitely|guaranteed|will)\b[^.!?\n]{0,40}\b(?:result|results|pay off|success)\b/iu;
+
 // A companion question must not replace the completed timing explanation with
 // a new causal claim about readiness, routines, or positive thinking.
 const closingTimingCause =
@@ -151,6 +154,7 @@ export async function contextualClosing(
       isCompanionParagraph(closing) &&
       !poorCompanion(closing) &&
       !closingPrediction.test(closing) &&
+      !careerClosingPromise.test(closing) &&
       !incomingOpportunity.test(closing) &&
       !unsupportedClosingDetail(closing, value, notes) &&
       !/\b(?:20\d{2}|dasha|antardasha|transit|kundli|saturn|jupiter|rahu|ketu|shani|mercury|venus)\b/i.test(
@@ -286,6 +290,7 @@ export async function contextualClosing(
       partnerAlternatives.test(question) ||
       timingDisclaimer.test(question) ||
       closingPrediction.test(question) ||
+      careerClosingPromise.test(question) ||
       incomingOpportunity.test(question) ||
       closingTimingCause.test(question) ||
       /\b(?:rishta|rishte|relationship|job|career)\b[^.!?\n]{0,45}\b(?:shuru|start)\s+hone\s+wal[aei]\b/i.test(

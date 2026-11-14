@@ -3,6 +3,7 @@ import test from 'node:test';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
 import {fallbackFactor} from '../extensions/reviewed-reading/direct/fallback-factors.mjs';
+import {hasPredictionGuarantee} from '../extensions/reviewed-reading/direct/prediction-certainty.mjs';
 import {careerAnswerEvidence,careerEventTimingUnavailable,careerAnswerMessages,unsupportedCareerDeadline,careerAnswerWordingIssue} from '../extensions/reviewed-reading/direct/career-answer.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'};
@@ -13,6 +14,55 @@ const chart={engine:'local-sweph-v2',birth_chart:{planets:['Sun: Taurus | house 
 const rows=[JSON.stringify(chart)],now=()=>new Date('2026-11-13T00:00:00Z');
 const base={user_id:'synthetic-native-career',birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'},language:'english',history:[]};
 const call={id:'fixture-chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}};
+
+test('a negated guarantee is not a promise, but a separate guaranteed outcome still is',()=>{
+ for(const text of ['This is not a guaranteed settlement date.','There is no guaranteed result.','This is not an guaranteed outcome.'])
+  assert.equal(hasPredictionGuarantee(text),false,text);
+ for(const text of ['This is a guaranteed settlement date.','Not a guaranteed date, but success is guaranteed.','No delay: guaranteed success.'])
+  assert.equal(hasPredictionGuarantee(text),true,text);
+});
+
+test('a rejected career draft is corrected without stale assistant history or another calculation',async()=>{
+ let requests=0,calculations=0;
+ const good='Your career house is supportive, while Saturn may bring delays.\n\nThese factors do not establish a reliable career settlement date.';
+ const result=await directAnswer({...base,query:'When will my career settle?',history:[{role:'assistant',text:'STALE_FORECAST: Career settles in 2040.'}]},{env,now,
+  makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return rows[0];},
+  fetchImpl:async(_url,options)=>{
+   requests++;const body=JSON.parse(options.body);
+   if(requests===3){assert.equal(body.messages.length,2);assert.doesNotMatch(JSON.stringify(body.messages),/STALE_FORECAST/);assert.match(body.messages[1].content,/Checked chart results/);}
+   const message=requests===1?{tool_calls:[call]}:{content:requests===2?'2040 ke baad career set hoga.':good};
+   return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+  }});
+ assert.equal(calculations,1);assert.equal(requests,3);assert.ok(result.reply.startsWith(good));
+ assert.ok(!result.answer_validation.some(v=>/fallback|topic_timing_repaired/.test(v)));
+});
+
+test('shortening a dated career answer preserves its checked period on both reply surfaces',async()=>{
+ for(const reply_surface of [undefined,'whatsapp'])for(const kind of ['antardasha','mahadasha']){
+  const period={lord:'Jupiter',from:'2030-01-01',to:'2033-01-01'};
+  const supported={...chart,birth_chart:{...chart.birth_chart,planets:[...chart.birth_chart.planets,'Jupiter: Capricorn | house 10']},
+   dasha:kind==='antardasha'?{upcoming_antardashas:[period]}:{next_mahadasha:period},
+   verdict_signals:[{area:'career',positive:['benefic Jupiter house 10 mein'],negative:['Saturn retrograde => results me Atkaav']}]};
+  const long=`Jupiter in house 10 supports your career, while Saturn may bring some delays in work. These are mixed indications rather than a guarantee, so the support and the caution both matter when interpreting this period.\n\nJupiter ${kind}, January 2030 to January 2033, may support career progress; this is a possible period, not a guaranteed settlement date.`;
+  const short=`Jupiter in house 10 supports career, while Saturn may bring delays.\n\nJupiter ${kind}, January 2030 to January 2033, may support career progress.`;
+  let requests=0,calculations=0;
+  const result=await directAnswer({...base,reply_surface,query:'When will my career settle?'},{env,now,
+   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(supported);},
+   fetchImpl:async(_url,options)=>{
+    requests++;const body=JSON.parse(options.body);
+    if(requests===3){
+     assert.match(body.messages[1].content,/Preserve the existing checked period lord/,JSON.stringify(body.messages.at(-1)));
+     assert.doesNotMatch(body.messages[1].content,/Do not add advice, a date/);
+    }
+    const message=requests===1?{tool_calls:[call]}:{content:requests===2?long:short};
+    return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+   }});
+  assert.equal(requests,3);assert.equal(calculations,1);
+  assert.match(result.reply,/January 2030 to January 2033/);
+  assert.ok(result.reply.includes(kind));assert.ok(result.reply.includes('may'));
+  assert.ok(!result.answer_validation.some(v=>/fallback|timing_claim_rejected|topic_timing_repaired/.test(v)),JSON.stringify(result));
+ }
+});
 
 test('rejected career dates recover through baseline checked period selection on both surfaces',async()=>{
  const supported={...chart,birth_chart:{...chart.birth_chart,planets:[...chart.birth_chart.planets,'Jupiter: Capricorn | house 10']},verdict_signals:[{area:'career',trend:'MIXED',positive:['benefic Jupiter house 10 mein'],negative:['Saturn retrograde => results me Atkaav']}]};

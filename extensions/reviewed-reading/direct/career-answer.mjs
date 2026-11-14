@@ -41,7 +41,7 @@ export function careerAnswerWordingIssue(reply, query, chartResults) {
   }
   const parts = reply.trim().split(/\n\s*\n/u);
   if (reply.trim().split(/\s+/u).length > 50 || parts.some(p => p.trim().split(/\s+/u).length > 35)) {
-    return 'Keep the supported meaning in two complete short paragraphs: explanation at most 30 words, timing conclusion at most 15 words, and at most 50 words total. Remove repetition and jargon. Do not add advice, a date, a soon forecast, or a follow-up question.';
+    return 'Shorten repeated wording into two complete paragraphs, aiming at 50 words total. Preserve the existing checked period lord, its mahadasha or antardasha label, both full month-year boundaries, the supporting reason, contrary factors and uncertainty. Allow the words needed to retain these facts. Do not replace a supported period interpretation with an unknown-date answer. Do not introduce a new date, advice, a soon forecast, or a follow-up question.';
   }
   return null;
 }
