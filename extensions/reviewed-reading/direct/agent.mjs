@@ -198,6 +198,7 @@ export async function directAnswer(
     now = () => new Date(),
     replyCache = directReplyCache,
     remedyLookup = retrieveRemedies,
+    signal: requestSignal,
   } = {},
 ) {
   // App access stays pilot-only; the astrology loop below follows dev 1e1c39164.
@@ -216,7 +217,9 @@ export async function directAnswer(
   // Source has seven agent rounds; reserve a separate call for our companion.
   const maxRounds = sourceFlow ? 7 : 5;
   const maxCalls = sourceFlow ? 8 : 5;
-  const signal = AbortSignal.timeout(120000);
+  const signal = requestSignal ? AbortSignal.any([requestSignal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000);
+  signal.throwIfAborted();
+  const voiceReply = value.reply_surface === 'voice';
   const originalQuery = value.query;
   const matchingLimitations = quotedMatchingLimitations(value);
   const activeQuestion = activeReadingQuestion(value);
@@ -945,7 +948,7 @@ export async function directAnswer(
       // This writer owns the complete emotional reply, including any welcomed
       // practical suggestion. A second companion would repeat the comfort.
       finalReply = formatted;
-    } else if (value.reply_surface === "whatsapp") {
+    } else if (value.reply_surface === "whatsapp" || voiceReply) {
       // Attach the WhatsApp companion after final evidence fallbacks below.
     } else if (env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1") {
       // Companionship follows ordinary replies too; it is not chart-tool evidence.
@@ -1035,6 +1038,7 @@ export async function directAnswer(
       deliveredReply = finishWhatsAppReply(formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now())), value, {facts: context.memoryFacts});
       validation.push('past_prediction_delivery_rejected');
     }
+    signal.throwIfAborted();
     return {
       schema: "vedastro-direct-reply-v1",
       reply: deliveredReply,

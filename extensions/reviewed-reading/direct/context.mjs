@@ -6,6 +6,8 @@ import { matchingForms } from './birth-evidence.mjs';
 import { matchingGroundingInstruction } from './matching-grounding.mjs';
 import { futureDateInstruction } from './past-prediction.mjs';
 
+const spokenDelivery = '\n\n# Spoken delivery\nThis answer will be spoken in a live call. Answer the current question naturally in two or three short sentences, aiming for 45 to 60 words. Give the direct answer first, then the one most relevant checked reason. Keep all supported dates, negation, uncertainty and necessary qualifications. Do not repeat the verdict, add a separate follow-up question, recap, greeting or service menu. Do not change calculations or invent a date to shorten the answer. This spoken format replaces the multi-paragraph chat layout only.\n';
+
 export function savedBirthContext(birth) {
   const fields = {};
   for (const key of ["date", "time", "location_name"]) {
@@ -121,6 +123,7 @@ export async function readingContext(
       "A period start is a calculated boundary, not proof that an event will occur then. Explain the topic-specific support for a chosen window; do not invent a house relationship to justify it. " +
       "Do not display bindu, bindus, retrograde or combust; describe their supported meaning without leaving orphaned scores. " +
       "Chart symbolism does not establish an actual death date, medical diagnosis or guaranteed outcome; do not present those as facts.\n";
+    if (value.reply_surface === 'voice') prompt += spokenDelivery;
     return { prompt, profile, memoryStatus: status, memoryFacts: facts };
   }
   prompt = prompt
@@ -142,7 +145,9 @@ export async function readingContext(
         "# Timing and delivery consistency\n\n" +
         "Use only the dasha names and date boundaries actually returned by the tool. A current period ending does not establish a future antardasha, marriage window or event date. Do not invent a future period to make an answer more specific. Keep the answer natural and direct, with one brief qualification when necessary rather than repeated disclaimers.\n\n",
     );
-  prompt += separateCompanion
+  prompt += value.reply_surface === 'voice'
+    ? spokenDelivery
+    : separateCompanion
     ? "\n\n# Companion ownership\nReturn only the original answer: for readings, explanation then one short verdict separated by a blank line. Do not generate a friendly closing or follow-up here; a separate companion stage adds the third paragraph using the same user context. Ordinary replies and clarifications remain brief.\n"
     : "\n\n# Friendly closing\n" +
       "For a completed reading, use three separate paragraphs: first the simple explanation, second only the short direct answer or verdict (one brief sentence), third the friendly topic-relevant follow-up in the user's language. Separate paragraphs with a blank line. Never attach the follow-up to the second paragraph. " +

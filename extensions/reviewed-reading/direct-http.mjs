@@ -28,8 +28,15 @@ export function createReadingHandler(
       return;
     }
     concurrency.active += 1;
+    const controller = new AbortController();
+    const disconnected = () => {
+      if (!res.writableEnded) controller.abort();
+    };
+    req.on?.('aborted', disconnected);
+    res.on?.('close', disconnected);
     const timer = setTimeout(() => {
       send(408, { error: "request_timeout" });
+      controller.abort();
       req.destroy();
     }, 10_000);
     timer.unref();
@@ -58,7 +65,8 @@ export function createReadingHandler(
         return;
       }
       try {
-        send(200, await calculate(value, undefined, contractVersion));
+        controller.signal.throwIfAborted();
+        send(200, await calculate(value, { signal: controller.signal }, contractVersion));
       } catch {
         // Never expose child output, birth details or filesystem information.
         send(failureStatus, { error: failureCode });
@@ -67,6 +75,8 @@ export function createReadingHandler(
       send(400, { error: "invalid_reading_request" });
     } finally {
       clearTimeout(timer);
+      req.off?.('aborted', disconnected);
+      res.off?.('close', disconnected);
       concurrency.active -= 1;
     }
   };

@@ -62,7 +62,7 @@ export function validateDirectInput(value) {
     ) ||
     (value.user_gender !== undefined &&
       !["male", "female", "unknown"].includes(value.user_gender)) ||
-    (value.reply_surface !== undefined && value.reply_surface !== "whatsapp") ||
+    (value.reply_surface !== undefined && !['whatsapp', 'voice'].includes(value.reply_surface)) ||
     (value.user_name !== undefined &&
       (typeof value.user_name !== "string" || value.user_name.length > 80 ||
         !/^[\p{L}\p{M}][\p{L}\p{M} .'’-]*$/u.test(value.user_name))) ||
@@ -93,9 +93,9 @@ export function createDirectHandler(
   calculate = directAnswer,
   { env = process.env, ...options } = {},
 ) {
-  const handler = createReadingHandler(async (value) => {
+  const handler = createReadingHandler(async (value, requestOptions) => {
     try {
-      const result = await calculate(value, { env });
+      const result = await calculate(value, { env, signal: requestOptions?.signal });
       // Enforce presentation at the HTTP boundary as well as the agent result.
       // This covers alternate/cached producers without touching chart evidence.
       return typeof result?.reply === "string"
