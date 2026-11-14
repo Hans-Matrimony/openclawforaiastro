@@ -22,7 +22,10 @@ export function selectedSelfBirth(query, birth) {
   if (/\b(?:friend|girlfriend|boyfriend|gf|bf|wife|husband|partner|spouse|sister|brother|mother|father|daughter|son|dost|behen|bhai|mummy|papa|uski|uska|unki|unka|his|her|their)\b|(?:उसकी|उसका|उनकी|उनका|दोस्त|पत्नी|पति|बहन|भाई|माँ|पिता|बेटी|बेटा)/u.test(text) ||
       /\b\d{1,4}[/-]\d{1,2}[/-]\d{1,4}\b|\b\d{1,2}:\d{2}\b|\b\d{4}\b|\b\d{1,2}\s*(?:am|pm)\b|\b(?:born|dob|tob|birthplace|janam|janm|correction|corrected|actually|instead|galat)\b|\bbirth\s+(?:date|time|place|details)\b|\b(?:birth|date|time|place)\s+(?:is|was|actually|galat|sahi|of birth)\b|\b[a-z]+['’]s\b|\b(?:for|about)\s+[a-z]+|जन्म|सुधार/u.test(text)) return null;
   const own = /\b(?:meri|mera|mere|my)\s+(?:sha+di|marriage|wedding|career|job|naukri|promotion|education|studies|study|exam|exams|padhai|finances?|money|income|salary|kundli|horoscope|chart|birth chart)\b|\b(?:when|will|can)\s+(?:will\s+)?i\s+(?:marry|get married|get a job)\b|(?:मेरी|मेरा|मेरे)\s*(?:शादी|विवाह|नौकरी|करियर|कुंडली|पढ़ाई)/u.test(text);
-  return own ? { ...birth } : null;
+  // A bare personal timing question is common in chat. Keep the whole-turn
+  // match narrow so another person's question cannot inherit this profile.
+  const bareCareer = /^(?:career|job|naukri)\s+(?:kab|kb)(?:\s+(?:tak|tk))?(?:\s+(?:set|settle))?\s+(?:hoga|hogaa|hogi|milegi|milega|lagegi)[?!.\s]*$/iu.test(text);
+  return own || bareCareer ? { ...birth } : null;
 }
 
 export function selectedSelfArguments(name, args, birth) {

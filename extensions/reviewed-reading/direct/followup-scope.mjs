@@ -17,6 +17,7 @@ function singleAbbreviatedReading(query) {
   // Only topic-free ellipses may borrow the previous self question. A broad
   // why/how/when prefix also matches greetings and entirely new questions.
   return /^(?:why|how)(?: exactly| so| is that| did you (?:calculate|check|verify)(?: that| this)?| do you (?:say|know) that)?$/iu.test(text) ||
+    /^(?:(?:matlab|mtlb|mtlab|toh|to)\s+)?(?:kis|kaunsi|kaun si)\s+(?:date|tareekh|taareekh|tarikh|saal|mahine)(?:\s+(?:tak|tk|mein|me|ho|hoga|hogi|honge|payega|payegi|paayega|paayegi|sakega|sakegi|milegi|milega|batao|bataiye|exactly))*$/iu.test(text) ||
     /^(?:kyu|kyun|kaise)(?: (?:aisa|ye|yeh|pata|calculate|verify|check)(?: (?:kiya|hua|chala|hai|hoga))?)?$/iu.test(text) ||
     /^(?:aisa|ye|yeh) (?:kyu|kyun|kaise)(?: (?:hai|hoga|hua))?$/iu.test(text) ||
     /^(?:kab|kb)(?:\s+(?:tak|tk|hoga|hogi|honge|aayega|aayegi|milegi|milega|se|start|shuru|hona|hone|wala|wali|hai|batao|bataiye|exactly|phir|toh))*$/iu.test(text) ||

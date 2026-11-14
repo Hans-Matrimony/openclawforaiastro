@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {isPersonalChartQuestion} from '../extensions/reviewed-reading/direct/reading-intent.mjs';
+import {asksForTiming,isPersonalChartQuestion} from '../extensions/reviewed-reading/direct/reading-intent.mjs';
 import {selectedSelfBirth} from '../extensions/reviewed-reading/direct/selected-self-birth.mjs';
 import {activeReadingQuestion} from '../extensions/reviewed-reading/direct/followup-scope.mjs';
 import {conversationGroundingInstruction, conversationGroundingIssue} from '../extensions/reviewed-reading/direct/conversation-grounding.mjs';
@@ -75,7 +75,7 @@ test('WhatsApp wording cannot expose internal generation failures as a negative 
 });
 
 test('actual engine requires chart work for the reported question and merged retry',async()=>{
-  for (const input of [value,{...value,query:'Mtlb smjha nahi mai\nResponse toh do naa',history}]) {
+  for (const input of [value,{...value,query:'Mtlb smjha nahi mai\nResponse toh do naa',history},{...value,query:'mtlb kis date tak ho payegi',history}]) {
     const requests=[];
     await assert.rejects(directAnswer(input,{
       env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0'},
@@ -107,7 +107,7 @@ test('real tool adapter overrides hallucinated birth arguments for typo and reco
 });
 
 test('complete reply uses the real selected chart for both reported career turns',async()=>{
-  for (const input of [value,{...value,query:'Mtlb smjha nahi mai\nResponse toh do naa',history}]) {
+  for (const input of [value,{...value,query:'Mtlb smjha nahi mai\nResponse toh do naa',history},{...value,query:'mtlb kis date tak ho payegi',history}]) {
     let calls=0,calculations=0;
     const result=await directAnswer(input,{
       env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
@@ -121,8 +121,14 @@ test('complete reply uses the real selected chart for both reported career turns
     });
     assert.equal(calculations,1);
     assert.deepEqual(result.answer_reading_tools,['get_horoscope_predictions']);
-    assert.match(result.reply,/career/i);
-    assert.doesNotMatch(result.reply,/Bina jaanch|purani prediction|tool[ -]based|shaadi|marriage|20\d{2}/iu);
+    if (asksForTiming(input.query)) {
+      assert.match(result.reply,/10ve ghar/);
+      assert.match(result.reply,/2027-06-09 se 2030-08-09/);
+    } else {
+      assert.match(result.reply,/career/i);
+      assert.doesNotMatch(result.reply,/20\d{2}/);
+    }
+    assert.doesNotMatch(result.reply,/Bina jaanch|purani prediction|tool[ -]based|shaadi|marriage/iu);
     assert.ok(calls<=7);
   }
 });
@@ -145,4 +151,18 @@ test('captured closing cannot add incoming opportunities after a validated caree
   }
   const question='Kya aapko abhi koi job offers mile hain?';
   assert.equal(await contextualClosing(base,value,{generate:async()=>question}),base+'\n\n'+question);
+});
+
+
+test('date clarification recovers the latest career question without borrowing marriage dates',()=>{
+  const h=[...history,{role:'user',text:'career kab tak set hoga'}, {role:'assistant',text:'Mars antardasha 2027-09-15 se 2028-11-14 tak hai.'}];
+  for(const query of ['mtlb kis date tak ho payegi','matlab kis tareekh tak hoga','kis date tak','kaunsi date tak ho paayega']) {
+    assert.equal(asksForTiming(query),true,query);
+    assert.equal(activeReadingQuestion({...value,query,history:h}), 'career kab tak set hoga\nFollow-up: '+query);
+    assert.equal(activeReadingQuestion({...value,query,history:[...h,{role:'user',text:'Cancel my payment'}]}),query);
+    assert.equal(activeReadingQuestion({...value,query,history:[h.at(-1)]}),query);
+  }
+  for(const query of ['kis date tak meri behen ki shaadi hogi','mtlb kis date tak ho payegi, payment ki baat hai','kis date ko holiday hai']) {
+    assert.equal(activeReadingQuestion({...value,query,history:h}),query);
+  }
 });

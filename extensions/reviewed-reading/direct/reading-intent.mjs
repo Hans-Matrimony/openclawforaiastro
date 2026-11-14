@@ -11,6 +11,8 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query) {
+  if (/\b(?:kis|kaunsi|kaun si)\s+(?:date|tareekh|taareekh|tarikh)\b/iu.test(query) &&
+      !/\b(?:define|definition|meaning)\b/iu.test(query)) return true;
   // Natural Hindi/Hinglish timing requests need not contain kab/when. Keep
   // definitions outside this rule; reading scope still decides tool use.
   if (!/\b(?:define|definition|meaning|matlab)\b/iu.test(query) &&
