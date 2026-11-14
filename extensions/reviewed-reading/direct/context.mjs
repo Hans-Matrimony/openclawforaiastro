@@ -6,7 +6,7 @@ import { matchingForms } from './birth-evidence.mjs';
 import { matchingGroundingInstruction } from './matching-grounding.mjs';
 import { futureDateInstruction } from './past-prediction.mjs';
 
-const spokenDelivery = '\n\n# Spoken delivery\nThis answer will be spoken in a live call. Answer the current question naturally in two or three short sentences, aiming for 45 to 60 words. Give the direct answer first, then the one most relevant checked reason. Keep all supported dates, negation, uncertainty and necessary qualifications. Do not repeat the verdict, add a separate follow-up question, recap, greeting or service menu. Do not change calculations or invent a date to shorten the answer. This spoken format replaces the multi-paragraph chat layout only.\n';
+const spokenDelivery = '\n\n# Spoken delivery\nThis answer will be spoken in a live call. Answer the current question naturally in two or three short sentences, aiming for 25 to 40 words. Give the direct answer first, then the one most relevant checked reason. Keep all supported dates, negation, uncertainty and necessary qualifications. Do not repeat the verdict, add a separate follow-up question, recap, greeting or service menu. Do not change calculations or invent a date to shorten the answer. This spoken format replaces the multi-paragraph chat layout only.\n';
 
 export function savedBirthContext(birth) {
   const fields = {};

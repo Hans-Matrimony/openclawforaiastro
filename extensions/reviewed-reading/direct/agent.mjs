@@ -8,6 +8,7 @@ import { readingContext, savedBirthContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
 import { pastPrediction, futureDateInstruction } from './past-prediction.mjs';
+import { spokenReply } from './voice-presentation.mjs';
 import { evidenceFallback, isUnverifiedReadingReply } from "./evidence-fallback.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import {
@@ -1041,7 +1042,7 @@ export async function directAnswer(
     signal.throwIfAborted();
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: deliveredReply,
+      reply: spokenReply(deliveredReply, value),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],

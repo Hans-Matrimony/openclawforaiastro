@@ -5,6 +5,7 @@ import { Readable } from 'node:stream';
 import { directAnswer } from '../extensions/reviewed-reading/direct/agent.mjs';
 import { validateDirectInput, createDirectHandler } from '../extensions/reviewed-reading/direct-route.mjs';
 import { createReadingHandler } from '../extensions/reviewed-reading/direct-http.mjs';
+import { spokenReply } from '../extensions/reviewed-reading/direct/voice-presentation.mjs';
 
 const value = {user_id:'synthetic-voice',query:'How is my career?',language:'english',history:[],birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'}};
 const env = {OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1'};
@@ -16,6 +17,14 @@ function response() {
 test('voice delivery is explicit; existing chat requests and invalid surfaces retain their boundary', () => {
   for (const reply_surface of [undefined,'whatsapp','voice']) assert.doesNotThrow(()=>validateDirectInput({...value,reply_surface}));
   for (const reply_surface of ['pwa','audio','Voice',null,{}]) assert.throws(()=>validateDirectInput({...value,reply_surface}));
+});
+
+test('captured voice wording is localized without dropping the dates or cautions', () => {
+  const text='The separate house strength indicator for house 10 is supportive. current dasha lords is area se directly linked nahi external push kam.\n\nThe calculated Mars sub period runs 2027-09-15 to 2028-11-14.';
+  assert.equal(spokenReply(text,{reply_surface:'voice',language:'english'}), 'House 10 shows support. The current planetary period offers limited direct support. Your Mars sub period runs 15 September 2027 to 14 November 2028.');
+  for (const reply_surface of [undefined,'whatsapp']) assert.equal(spokenReply(text,{reply_surface,language:'english'}),text);
+  for (const text of ['{"date":"2027-09-15"}', '```2027-09-15```', 'https://example.invalid/2027-09-15']) assert.equal(spokenReply(text,{reply_surface:'voice',language:'english'}),text);
+  assert.equal(spokenReply('Not guaranteed: 2028-02-29 to 2028-11-14. Invalid: 2027-02-29.',{reply_surface:'voice',language:'english'}), 'Not guaranteed: 29 February 2028 to 14 November 2028. Invalid: 2027-02-29.');
 });
 
 test('spoken reading retains checked evidence without a separate companion model call', async () => {
