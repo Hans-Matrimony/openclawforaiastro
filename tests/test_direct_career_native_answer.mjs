@@ -41,7 +41,7 @@ test('ordinary career timing retains a supported dated period after marriage on 
   const result=await directAnswer({...base,reply_surface,query:'When will my career settle?',history:[{role:'user',text:'When will I marry?'},{role:'assistant',text:'Marriage in 2028.'}]},{env,now,
    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>JSON.stringify(supported),
    fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
-    if(requests===2){assert.match(body.messages[0].content,/Compare these candidates/);assert.match(body.messages[1].content,/2030-01-01/);assert.doesNotMatch(body.messages[1].content,/Marriage in 2028/);}
+    if(requests===2){assert.match(body.messages.at(-1).content,/Compare these candidates/);assert.match(body.messages.find(m=>m.role==='tool').content,/2030-01-01/);assert.match(body.messages[0].content,/Answer only this current question/);}
     const message=requests===1?{tool_calls:[call]}:{content:reply};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
   });
   assert.equal(requests,2);assert.match(result.reply,/January 2030/);assert.match(result.reply,/January 2033/);
@@ -123,7 +123,7 @@ test('an undated career answer reviews returned adverse periods once without for
   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>JSON.stringify(futureSaturn),
   fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
    if(requests===1)assert.equal(body.tool_choice.function.name,'mcp__VedAstro__get_horoscope_predictions');
-   else {assert.equal(body.messages.length,2);assert.doesNotMatch(JSON.stringify(body.messages),/OLD_FORECAST/);}
+   else if(requests>=3){assert.equal(body.messages.length,2);assert.doesNotMatch(JSON.stringify(body.messages),/OLD_FORECAST/);}
    const message=requests===1?{tool_calls:[call]}:requests===4?{tool_calls:[{id:'repair',type:'function',function:{name:'submit_timing_reading',arguments:JSON.stringify({period_id:'p0',outlook:'unfavorable',factor_ids:['f1']})}}]}:{content:good};
    return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
  });
@@ -195,9 +195,9 @@ test('long career answers on either surface are edited from the actual checked d
   const result=await directAnswer({...base,reply_surface,query:'When will my career settle?'},{env,now,
    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>rows[0],
    fetchImpl:async(_url,options)=>{requests++;
-    if(requests===3){const body=JSON.parse(options.body),data=JSON.parse(body.messages[1].content);
-     assert.equal(data.current_draft,long);assert.deepEqual(data.checked_chart_results[0].dasha,chart.dasha);
-     assert.match(body.messages[0].content,/Edit only current_draft/);
+    if(requests===3){const body=JSON.parse(options.body);
+     assert.ok(body.messages[1].content.includes(JSON.stringify(long)));assert.ok(body.messages[1].content.includes('2040-01-01'));
+     assert.match(body.messages[0].content,/Edit only the wording/);
     }
     const message=requests===1?{tool_calls:[call]}:{content:requests===2?long:good};return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
   });

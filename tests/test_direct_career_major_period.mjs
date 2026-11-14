@@ -52,14 +52,24 @@ test('career fallback asks a concrete unanswered question rather than the report
 });
 
 test('structured repair can retain a relevant major period and adverse factors without saying to wait for employment',()=>{
- const correction=timingCorrection(evidence,query,'hinglish',now());
- assert.match(correction.instruction,/Sun is the natal lord of house 10/);
- const reply=correction.render({tool_calls:[call('submit_timing_reading',{period_id:'p2',outlook:'mixed',factor_ids:['f2']})]});
+ const supported={...chart,verdict_signals:[{...chart.verdict_signals[0],positive:[...chart.verdict_signals[0].positive,'benefic Sun house 10 mein']}]};
+ const correction=timingCorrection([JSON.stringify(supported)],query,'hinglish',now());
+ const reply=correction.render({tool_calls:[call('submit_timing_reading',{period_id:'p2',outlook:'mixed',factor_ids:['f1']})]});
  assert.match(reply,/January 2040 se January 2046/);assert.match(reply,/Sun mahadasha/);
- assert.match(reply,/Sun 10ve ghar ke swami/);assert.match(reply,/Shani/);
+ assert.match(reply,/Sun/);assert.match(reply,/Shani/);
  assert.match(reply,/rukna zaroori nahi/);assert.doesNotMatch(reply,/supported samay|alag sanket|2030/);
  assert.equal(unsupportedEventTiming(reply,evidence,query),false);
  assert.ok(reply.split(/\s+/u).length<=50);
+});
+
+test('repair cannot promote house ownership into a selectable career support factor',()=>{
+ const correction=timingCorrection(evidence,query,'hinglish',now());
+ assert.doesNotMatch(correction.instruction,/Sun is the natal lord of house 10/);
+ for(const factor_ids of [['f0'],['f1'],['f2']])
+  assert.equal(correction.render({tool_calls:[call('submit_timing_reading',{period_id:'p2',outlook:'mixed',factor_ids})]}),null);
+ for(const outlook of ['possible','mixed'])
+  assert.equal(correction.render({tool_calls:[call('submit_timing_reading',{period_id:'p1',outlook,factor_ids:['f0','f1']})]}),null);
+ assert.match(correction.render({tool_calls:[call('submit_timing_reading',{period_id:'p1',outlook:'unfavorable',factor_ids:['f1']})]}),/2033 se January 2036/);
 });
 
 test('missing or ambiguous timing stays honest and natural without choosing a distant period automatically',()=>{

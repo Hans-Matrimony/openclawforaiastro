@@ -2,7 +2,6 @@ import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
 import { upcomingPeriods } from './returned-periods.mjs';
-import { topicPeriodEvidence } from './topic-period-context.mjs';
 import {questionScope} from './question-scope.mjs';
 
 // A bounded repair of an existing reading, never another calculation tool.
@@ -75,18 +74,9 @@ export function timingCorrection(results, query, language, asOf) {
       return text ? [{ source, text, polarity }] : [];
     }),
   );
-  // A checked house ruler establishes topic relevance even when the current
-  // period's signal list does not mention that future period lord. Keep it
-  // distinct from a positive forecast and retain the existing contrary factors.
-  const periodEvidence = topicPeriodEvidence(results, query);
-  for (const period of periodEvidence?.periods ?? []) {
-    for (const house of period.relevant_house_lord) {
-      const source = `${period.lord} is the natal lord of house ${house}`;
-      if (!factors.some(f => f.source === source)) factors.push({source, polarity:'relevance',
-        text:english ? `${period.lord} rules natal house ${house}`
-          : `${period.lord} ${house}ve ghar ke swami hain`});
-    }
-  }
+  // Recovery uses the tool's topic factors, as in the original flow. Do not
+  // manufacture a selectable support factor from house ownership: relevance
+  // alone must not turn a failed draft into a distant success window.
   if (!factors.length) {
     return null;
   }
@@ -223,6 +213,12 @@ export function timingCorrection(results, query, language, asOf) {
         (data.outlook === "possible" && !factors.some((f) => f.polarity === "positive")) ||
         (data.outlook === "unfavorable" && !factors.some((f) => f.polarity === "negative"))
       ) {
+        return null;
+      }
+      if (area === 'career' && ['possible','mixed'].includes(data.outlook) &&
+          !factors.some(f => f.polarity === 'positive' && new RegExp(`\\b${period.lord}\\b`, 'i').test(f.source))) {
+        // A strong career house cannot turn this planet's delay-only evidence
+        // into a positive window. The unfavorable interpretation remains valid.
         return null;
       }
       const verdict = english

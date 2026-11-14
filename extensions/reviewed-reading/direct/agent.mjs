@@ -1,6 +1,6 @@
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
-import {careerAnswerMessages,careerEventTimingUnavailable,careerAnswerWordingIssue,unsupportedCareerDeadline} from './career-answer.mjs';
+import {careerAnswerWordingIssue,unsupportedCareerDeadline} from './career-answer.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -616,9 +616,6 @@ export async function directAnswer(
           content: results[index],
         });
       });
-      if (careerTiming && readingTools.has('get_horoscope_predictions')) {
-        messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,undefined,text=>redactIdentity(text,value.user_id),now()));
-      }
       if (missingMatchingBirth && !readingTools.has('get_match_report')) {
         // Repeating the same rejected matching call cannot supply user-confirmed
         // partner details. Ask once instead of exhausting the loop into a 503.
@@ -632,7 +629,7 @@ export async function directAnswer(
           answer_validation: [...validation, 'matching_birth_required'],
         };
       }
-      if (timingRequired && !careerTiming) {
+      if (timingRequired) {
         const comparison = topicPeriodContext(chartResults, value.query);
         if (comparison) {
           messages.push({ role: "user", content: comparison });
@@ -850,11 +847,7 @@ export async function directAnswer(
         reply = evidenceFallback(chartResults, value.language, value.query, now());
       } else {
         correctedPeriod = true;
-        if (careerTiming) {
-          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,reply,text=>redactIdentity(text,value.user_id),now()));
-          continue;
-        }
-        if (timingRequired && unsupportedTopicOpportunity(reply, chartResults, value.query)) {
+        if (timingRequired && !careerTiming && unsupportedTopicOpportunity(reply, chartResults, value.query)) {
           pendingTimingRepair = structuredTimingRepair();
           if (pendingTimingRepair) {
             continue;
@@ -932,18 +925,7 @@ export async function directAnswer(
             user_context:value.history.filter(turn=>turn.role==='user').slice(-4).map(turn=>redactIdentity(turn.text.slice(0,2000),value.user_id)),
           }).replace(/</g,"\\u003c").replace(/>/g,"\\u003e"),
         });
-        if(careerTiming&&careerEventTimingUnavailable(value.query,chartResults)){
-          messages.splice(0,messages.length,...careerAnswerMessages(value,context,chartResults,undefined,text=>redactIdentity(text,value.user_id),now()));
-          // This draft already passed fact checks. Preserve it as edit input
-          // instead of starting another interpretation from an empty draft.
-          messages[0].content+=' Edit only current_draft to correct this wording issue, preserving its supported facts and uncertainty: '+wordingIssue;
-          messages[1].content=JSON.stringify({...JSON.parse(messages[1].content),current_draft:redactIdentity(reply,value.user_id)}).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
-        }
         continue;
-      }
-      if (careerTiming && !attemptedTimingRepair && modelCalls < maxRounds && upstreamCalls < maxCalls) {
-        pendingTimingRepair = structuredTimingRepair();
-        if (pendingTimingRepair) continue;
       }
       validation.push("reading_wording_fallback");
       reply = evidenceFallback(chartResults, value.language, value.query, now());
