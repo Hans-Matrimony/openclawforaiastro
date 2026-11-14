@@ -32,6 +32,24 @@ test('negative outcomes, genuine multiple questions, birth changes and other peo
  assert.match(edit,/1992-02-02/);assert.equal(selectedSelfBirth(edit,birth),null);
 });
 
+test('conversational corrections preserve the new subject and reject outcome reports',()=>{
+ for(const query of [
+  'Shaadi nahi, main career ke baare mein pooch raha hoon. Career kab set hoga?',
+  'Shaadi nahi, mai apne career ke baare mein pooch raha hoon',
+  'Not marriage, I am asking about my career',
+  'Not career, I was asking about my marriage',
+ ]) {
+  const active=activeReadingQuestion({...value,query});
+  assert.equal(active,query.slice(query.indexOf(',')+1).trim());
+  assert.equal(questionScope(active),query.startsWith('Not career')?'marriage':'career');
+ }
+ for(const query of ['Shaadi nahi hui, main career bhi pooch raha hoon',
+  'Shaadi nahi, main dukhi hoon. Career bhi kharab hai',
+  'Shaadi nahi, main apni behen ka career pooch raha hoon']) {
+  assert.equal(correctedReadingSubject(query),query);
+ }
+});
+
 test('actual dispatch requests career evidence after an explicit rejection of marriage',async()=>{
  const requests=[];
  await assert.rejects(directAnswer(value,{

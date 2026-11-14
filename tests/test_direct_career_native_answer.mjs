@@ -16,9 +16,10 @@ const call={id:'fixture-chart',type:'function',function:{name:'mcp__VedAstro__ge
 
 test('rejected career dates recover through baseline checked period selection on both surfaces',async()=>{
  const supported={...chart,birth_chart:{...chart.birth_chart,planets:[...chart.birth_chart.planets,'Jupiter: Capricorn | house 10']},verdict_signals:[{area:'career',trend:'MIXED',positive:['benefic Jupiter house 10 mein'],negative:['Saturn retrograde => results me Atkaav']}]};
- for(const reply_surface of [undefined,'whatsapp']){
+ for(const reply_surface of [undefined,'whatsapp'])for(const query of ['When will my career settle?',
+  'Shaadi nahi, main career ke baare mein pooch raha hoon. Career kab set hoga?']){
   let requests=0,calculations=0;
-  const result=await directAnswer({...base,reply_surface,query:'When will my career settle?'},{env,now,
+  const result=await directAnswer({...base,reply_surface,query},{env,now,
    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(supported);},
    fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
     const repair=body.tool_choice?.function?.name==='submit_timing_reading';
