@@ -29,12 +29,14 @@ test('failed, malformed or unreviewed tools never become prepared chart evidence
   await assert.rejects(prepareVoiceChart(value,async()=>JSON.stringify(chart),controller.signal),{name:'AbortError'});
 });
 
-test('prepared voice chart removes the selection-only model round while retaining final validation',async()=>{
+test('prepared voice chart overlaps memory and removes selection round while retaining validation',{timeout:3000},async()=>{
   let calculations=0,calls=0;
+  let chartReady;
+  const calculated=new Promise(resolve=>{chartReady=resolve;});
   const result=await directAnswer(value,{
     env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',VEDASTRO_DIRECT_REPLY_CACHE:'0'},
-    makeMemory:()=>({read:async()=>[]}),
-    makeTools:()=>async()=>{calculations++;return JSON.stringify(chart);},
+    makeMemory:()=>({read:async()=>{await calculated;return [];}}),
+    makeTools:()=>async()=>{calculations++;chartReady();return JSON.stringify(chart);},
     fetchImpl:async(_url,options)=>{
       assert.ok(++calls<=1,'No model round just to select a known required chart');
       const body=JSON.parse(options.body);
