@@ -1,8 +1,6 @@
 import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
-import { upcomingPeriods } from './returned-periods.mjs';
-import {questionScope} from './question-scope.mjs';
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
@@ -12,7 +10,7 @@ export function timingCorrection(results, query, language, asOf) {
     ? ["shaadi", "marriage"]
     : /girlfriend|boyfriend|\bgf\b|\bbf\b|relationship|rishta/i.test(query)
       ? ["naya rishta", "a new relationship"]
-      : questionScope(query) === 'career' || /career|job|naukri/i.test(query)
+      : /career|job|naukri/i.test(query)
         ? ["career", "career"]
         : /financ|money|pais|income/i.test(query)
           ? ["aarthik sudhaar", "financial improvement"]
@@ -45,13 +43,15 @@ export function timingCorrection(results, query, language, asOf) {
       : null;
   };
   const schedule = rows.find((r) => r.dasha)?.dasha;
-  const periods = upcomingPeriods(schedule).flatMap((p) => {
+  const periods = (
+    Array.isArray(schedule?.upcoming_antardashas) ? schedule.upcoming_antardashas : []
+  ).flatMap((p) => {
     if (!p || !/^(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)$/.test(p.lord)) {
       return [];
     }
     const from = date(p.from),
       to = date(p.to);
-    return from && to && p.from < p.to && p.from >= today ? [{ lord: p.lord, kind:p.kind, from, to }] : [];
+    return from && to && p.from < p.to && p.from >= today ? [{ lord: p.lord, from, to }] : [];
   });
   if (!periods.length) {
     return null;
@@ -70,36 +70,18 @@ export function timingCorrection(results, query, language, asOf) {
   const english = language === "english";
   const factors = ["positive", "negative"].flatMap((polarity) =>
     (Array.isArray(signals[0][polarity]) ? signals[0][polarity] : []).flatMap((source) => {
-      const text = fallbackFactor(source, english, area);
+      const text = fallbackFactor(source, english);
       return text ? [{ source, text, polarity }] : [];
     }),
   );
-  // Recovery uses the tool's topic factors, as in the original flow. Do not
-  // manufacture a selectable support factor from house ownership: relevance
-  // alone must not turn a failed draft into a distant success window.
   if (!factors.length) {
     return null;
   }
-  // The old schema offered every period even when the renderer would reject
-  // it. In live captures the model selected Rahu with Saturn's factor, turning
-  // a correctable draft into an undated fallback. Keep stable IDs, but expose
-  // only career candidates with an actual matching topic factor.
-  const careerCandidates = area === 'career' ? periods.flatMap((period, index) => {
-    const linked = factors.flatMap((factor, factorIndex) =>
-      new RegExp(`\\b${period.lord}\\b`, 'i').test(factor.source)
-        ? [{id:`f${factorIndex}`,polarity:factor.polarity}] : []);
-    if (!linked.length) return [];
-    const positive = linked.some(f => f.polarity === 'positive');
-    const negative = linked.some(f => f.polarity === 'negative');
-    return [{id:`p${index}`,...period,factor_ids:linked.map(f=>f.id),
-      allowed_outlooks:[...(positive?['possible','mixed']:[]),...(negative?['unfavorable']:[])]}];
-  }) : null;
   const name = "submit_timing_reading";
   const keys = ["period_id", "outlook", "factor_ids"];
   return {
     name,
     evidence: rows,
-    careerCandidates,
     instruction:
       "Submit the corrected reading with submit_timing_reading. This replaces the free-text correction, not the chart calculation. " +
       "Choose a period ONLY if its lord has a checked, topic-specific chart reason; do not select the first period merely because it is next. " +
@@ -109,8 +91,7 @@ export function timingCorrection(results, query, language, asOf) {
       "If the evidence cannot support a period interpretation, select none and undetermined. " +
       "Select one to three factor_ids from the list; at least one must mention the selected period lord and its relevant chart relationship. " +
       "Do not write new chart prose. The application renders the selected checked factors, retains opposing factors and requested partner nature, and inserts the exact period boundaries and qualification. Available periods: " +
-      JSON.stringify(careerCandidates ?? periods.map((p, i) => ({ id: `p${i}`, ...p }))) +
-      (careerCandidates ? '\nFor each career candidate, use its listed factor_ids and allowed_outlooks. A general strong house does not turn a delay-only candidate into a positive window. None means no supported event window; it must not imply that the career cannot improve.' : '') +
+      JSON.stringify(periods.map((p, i) => ({ id: `p${i}`, ...p }))) +
       "\nChecked topic factors: " +
       JSON.stringify(
         factors.map((f, i) => ({ id: `f${i}`, source: f.source, polarity: f.polarity })),
@@ -132,7 +113,7 @@ export function timingCorrection(results, query, language, asOf) {
           additionalProperties: false,
           required: keys,
           properties: {
-            period_id: { type: "string", enum: ["none", ...(careerCandidates ? careerCandidates.map(p=>p.id) : periods.map((_, i) => `p${i}`))] },
+            period_id: { type: "string", enum: ["none", ...periods.map((_, i) => `p${i}`)] },
             outlook: { type: "string", enum: ["possible", "unfavorable", "mixed", "undetermined"] },
             factor_ids: {
               type: "array",
@@ -153,9 +134,7 @@ export function timingCorrection(results, query, language, asOf) {
           new RegExp(`\\b${period.lord}\\b`, 'i').test(f.source));
         return factor < 0 ? [] : [{index, factor}];
       });
-      // A failed career draft is not permission for application code to choose
-      // its event date. Keep actual model interpretations separate from recovery.
-      const selected = area !== 'career' && candidates.length === 1 ? candidates[0] : null;
+      const selected = candidates.length === 1 ? candidates[0] : null;
       const outlook = signals[0].trend === 'NEGATIVE' ? 'unfavorable'
         : factors.some(f=>f.polarity==='negative') ? 'mixed' : 'possible';
       const data = selected
@@ -209,10 +188,7 @@ export function timingCorrection(results, query, language, asOf) {
         return (
           first +
           "\n\n" +
-          (area === 'career'
-            ? english ? "I can't identify a clear career-settling date from these indications."
-              : 'Career settle hone ka exact waqt abhi saaf nahi hai.'
-            : english
+          (english
             ? `This reading does not establish a supported period for ${subject[1]}; that does not mean it cannot happen.`
             : `${/job|naukri/i.test(query) ? "Naukri" : subject[0]} ke liye is reading se koi supported samay tay nahi hota; iska matlab yeh nahi ki yeh hoga hi nahi.`)
         );
@@ -221,10 +197,6 @@ export function timingCorrection(results, query, language, asOf) {
         return null;
       }
       const period = periods[Number(data.period_id.slice(1))];
-      if (careerCandidates && !careerCandidates.some(candidate =>
-        candidate.id === data.period_id && candidate.allowed_outlooks.includes(data.outlook))) {
-        return null;
-      }
       if (
         !period ||
         !data.factor_ids.some((id) =>
@@ -233,12 +205,6 @@ export function timingCorrection(results, query, language, asOf) {
         (data.outlook === "possible" && !factors.some((f) => f.polarity === "positive")) ||
         (data.outlook === "unfavorable" && !factors.some((f) => f.polarity === "negative"))
       ) {
-        return null;
-      }
-      if (area === 'career' && ['possible','mixed'].includes(data.outlook) &&
-          !factors.some(f => f.polarity === 'positive' && new RegExp(`\\b${period.lord}\\b`, 'i').test(f.source))) {
-        // A strong career house cannot turn this planet's delay-only evidence
-        // into a positive window. The unfavorable interpretation remains valid.
         return null;
       }
       const verdict = english
@@ -256,14 +222,8 @@ export function timingCorrection(results, query, language, asOf) {
         return null;
       }
       const timing = english
-        ? `${period.from} to ${period.to} (${period.lord} ${period.kind}): ${verdict}.`
-        : `${period.lord} ki ${period.kind} mein ${period.from} se ${period.to} ke beech ${verdict}.`;
-      if (period.kind === 'mahadasha') {
-        const interpretation = english
-          ? {possible:`${subject[1]} may receive support`,mixed:`${subject[1]} may have support and obstacles`,unfavorable:`support for ${subject[1]} may be limited`}[data.outlook]
-          : {possible:`${subject[0]} ko sahyog mil sakta hai`,mixed:`${subject[0]} mein sahyog aur rukawat dono sambhav hain`,unfavorable:`${subject[0]} mein sahyog kam reh sakta hai`}[data.outlook];
-        return `${first}\n\n${period.lord} mahadasha, ${period.from} ${english?'to':'se'} ${period.to}: ${interpretation}. ${english?'This does not require waiting.':'Tab tak rukna zaroori nahi.'}`;
-      }
+        ? `${period.from} to ${period.to} (${period.lord} antardasha): ${verdict}.`
+        : `${period.lord} ki antardasha mein ${period.from} se ${period.to} ke beech ${verdict}.`;
       return `${first}\n\n${timing}`;
     },
   };

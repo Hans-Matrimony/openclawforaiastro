@@ -1,5 +1,4 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
-import { upcomingPeriods } from './returned-periods.mjs';
 
 // Expose natal relationships for comparison, not invented event scores or dates.
 export function topicPeriodEvidence(results, query) {
@@ -34,7 +33,7 @@ export function topicPeriodEvidence(results, query) {
   const signals = rows
     .flatMap((r) => r.verdict_signals ?? [])
     .filter((s) => s.area === (topic === "relationship" ? "marriage" : topic));
-  const periods = upcomingPeriods(schedules[0]).map((period) => {
+  const periods = (schedules[0].upcoming_antardashas ?? []).map((period) => {
     const placement = (chart.planets ?? []).find(
       (p) => typeof p === "string" && p.startsWith(period.lord + ":"),
     );
@@ -85,7 +84,7 @@ export function unsupportedTopicOpportunity(reply, results, query) {
     return true;
   }
   if (
-    /sambhavn?a\s+(?:bahut\s+)?(?:kam|nahi)|sambhavana\s+(?:kam|nahi)|\b(?:unlikely|unfavorable|not supported)\b|\b(?:prospects|support)\s+for\s+[^.!?\n]{1,60}\bmay be limited\b|(?:shaadi|job|rishta|girlfriend).{0,40}\bnahi\b/i.test(
+    /sambhavn?a\s+(?:bahut\s+)?(?:kam|nahi)|sambhavana\s+(?:kam|nahi)|\b(?:unlikely|unfavorable|not supported)\b|(?:shaadi|job|rishta|girlfriend).{0,40}\bnahi\b/i.test(
       verdict,
     )
   ) {
@@ -100,7 +99,7 @@ export function unsupportedTopicOpportunity(reply, results, query) {
     return false;
   }
   return evidence.periods.some((p) => {
-    const named = new RegExp("\\b" + p.lord + "\\s+(?:ki\\s+)?" + p.kind + "\\b", "i").test(reply);
+    const named = new RegExp("\\b" + p.lord + "\\s+(?:ki\\s+)?antardasha\\b", "i").test(reply);
     const dated =
       reply.includes(String(p.from).slice(0, 4)) && reply.includes(String(p.to).slice(0, 4));
     return (

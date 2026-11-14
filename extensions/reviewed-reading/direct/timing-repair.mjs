@@ -1,5 +1,3 @@
-import { upcomingPeriods } from './returned-periods.mjs';
-
 // Explain the validation contract before drafting, rather than only after rejection.
 export const timingAnswerInstruction =
   "\n\n# Timing answer\nThe user asks when. Use get_horoscope_predictions for the actual period schedule. Compare the available periods using topic-specific supportive AND adverse factors; the first upcoming period is not automatically the best one. Never treat a delay factor as a reason for improvement. Lead with the direct conclusion, without blanket reassurance, preserving negative readings. Answer with a relevant chart-based interpretation and a short timing verdict, preserving supportive, unfavorable or mixed indications. If interpreting a returned period, include its lord and BOTH start and end month-year boundaries, with a natural qualification such as sambhavna or ho sakti hai. These checked boundaries and the qualification take priority over a short verdict word limit; use enough words to retain them. Review relevant unfavorable periods too: give their checked boundaries and unfavorable outlook rather than omitting dates solely because their indications are adverse. Explain the checked chart reason; a period change alone does not prove an event. Do not substitute a bare dasha schedule for the answer, invent an exact event month, or copy a date from history. If the evidence cannot support a timing interpretation, say that briefly without inventing one. The separate companion stage handles the friendly question.\n";
@@ -34,13 +32,15 @@ export function timingRepairEvidence(results) {
     }
     return parsed.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
   };
-  const periods = upcomingPeriods(rows[0]?.dasha).flatMap((p) => {
+  const periods = (
+    Array.isArray(rows[0]?.dasha.upcoming_antardashas) ? rows[0].dasha.upcoming_antardashas : []
+  ).flatMap((p) => {
     if (!p || !/^(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)$/.test(p.lord)) {
       return [];
     }
     const from = month(p.from),
       to = month(p.to);
-    return from && to && p.from < p.to ? [{ lord: p.lord, kind:p.kind, from, to }] : [];
+    return from && to && p.from < p.to ? [{ lord: p.lord, from, to }] : [];
   });
   if (!periods.length) {
     return "";
@@ -48,6 +48,6 @@ export function timingRepairEvidence(results) {
   return (
     "\nExact returned period boundaries (data, not event predictions): " +
     JSON.stringify(periods) +
-    "\nDo not merely replace an open-ended year claim with an ISO start date. A topic-supported period interpretation must include BOTH month-year boundaries, its period lord, a relevant checked chart reason and one natural qualification such as sambhavna. A returned next mahadasha is eligible too: preserve its level, and never imply employment cannot happen before that broad period. 'Tab yog balwaan hoga' is not a reason: a period change alone does not establish improvement. Preserve unfavorable or mixed factors. Do not copy the rejected rationale unless supported by the tool. If no topic-specific support exists, do not invent it or a narrower event month."
+    "\nDo not merely replace an open-ended year claim with an ISO start date. A topic-supported period interpretation must include BOTH month-year boundaries, its period lord, a relevant checked chart reason and one natural qualification such as sambhavna. 'Tab yog balwaan hoga' is not a reason: a period change alone does not establish improvement. Preserve unfavorable or mixed factors. Do not copy the rejected rationale unless supported by the tool. If no topic-specific support exists, do not invent it or a narrower event month."
   );
 }

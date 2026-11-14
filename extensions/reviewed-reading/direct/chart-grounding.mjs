@@ -26,13 +26,6 @@ function careerCautionConflicts(reply, rows, query) {
   const conflicts = [];
   const prose = reply.replace(/```[^]*?```|[“"][^”"]*[”"]/gu, '');
   for (const clause of prose.split(/[.!?\n;]+/u)) {
-    // A wording edit must not replace a checked work caution with an unrelated
-    // relationship explanation. Check the new claim, not the reply's language.
-    if (!/\b(?:relationship|marriage|partner)\b/iu.test(query + '\n' + checked) &&
-        !/\b(?:earlier|previously|said|claimed)\b/iu.test(clause) &&
-        new RegExp(`\\b(?:${planets})\\b\\s+(?:affects?|influences?)\\s+(?:your\\s+)?relationships?\\b`,'iu').test(clause)) {
-      conflicts.push({type:'unsupported_career_consequence',reason:'The returned career factors do not establish this relationship consequence. Answer the career question and retain the checked work limitation.'});
-    }
     const internalTrait = new RegExp(`\\b(?:${planets})\\b[^,;.!?]{0,60}\\b(?:adds?|brings?|means?|creates?|indicates?|gives?)\\s+(?:an?\\s+)?internal caution\\b`, 'iu').exec(clause);
     if (internalTrait && !/\binternal caution\b/iu.test(checked) &&
         !/\b(?:not|no|never|earlier|previously|said|claimed)\b/iu.test(clause.slice(0, clause.toLowerCase().indexOf('internal caution')))) {
