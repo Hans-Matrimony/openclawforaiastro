@@ -16,6 +16,11 @@ export function fallbackFactor(text, english) {
     return null;
   }
   if (english) {
+    const delay = /^(Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn) retrograde(?:\s+[—–-]|\s+hai)?\s+results me Atkaav$/.exec(text);
+    if (delay) return `${delay[1]}'s position indicates possible delays`;
+    if (/^current dasha lords is area se directly linked nahi(?:\s+[—–-])?\s+external push kam$/.test(text)) {
+      return 'The current planetary period offers limited direct support';
+    }
     // Unknown source phrases are not translated speculatively.
     if (/bindus?|benefic|malefic|combust|retrograde|house \d/i.test(text)) {
       const house = /house (\d{1,2})/i.exec(text)?.[1];

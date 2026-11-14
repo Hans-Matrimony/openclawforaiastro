@@ -10,6 +10,7 @@ import { unsupportedEventTiming } from "./event-timing.mjs";
 import { pastPrediction, futureDateInstruction } from './past-prediction.mjs';
 import { spokenReply } from './voice-presentation.mjs';
 import { prepareVoiceChart } from './voice-chart.mjs';
+import { preparedVoiceTiming } from './voice-timing.mjs';
 import { evidenceFallback, isUnverifiedReadingReply } from "./evidence-fallback.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import {
@@ -473,6 +474,10 @@ export async function directAnswer(
       const comparison = timingRequired && topicPeriodContext(chartResults, value.query);
       if (comparison) messages.push({role:'user',content:comparison});
       validation.push('voice_chart_prepared');
+      if (timingRequired) {
+        pendingTimingRepair = preparedVoiceTiming(chartResults, value, now());
+        if (pendingTimingRepair) validation.push('voice_timing_prepared');
+      }
     }
   }
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
