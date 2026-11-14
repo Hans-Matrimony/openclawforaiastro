@@ -840,6 +840,7 @@ export async function directAnswer(
             "Correct the proposed reading using the existing chart results. These explicit chart claims contradict or lack the required tool evidence: " +
             JSON.stringify(lordConflicts) +
             ". Do not repeat the rejected claim. Reconsider any timing rationale depending on it; an upcoming period lord is not automatically this house lord. Answer the original question using supported factors, without calling the same tools again. If current transit evidence is missing, either call get_current_transits or omit the transit claim; never relabel natal placements as transits. Preserve the exact supplied period sequence." +
+            (voiceReply ? " This is a spoken answer: use two or three short natural sentences, without repeating the verdict or adding a follow-up question. Review the timing in this same correction, not just the house claim. " + futureDateInstruction(now()) + timingRepairEvidence(chartResults) + (timingRequired ? topicPeriodContext(chartResults, value.query) : nonTimingAnswerInstruction) : "") +
             rejectedDraftContext(redactIdentity(reply, value.user_id)),
         });
         continue;

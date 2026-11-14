@@ -41,13 +41,17 @@ test('observed career certainty receives a qualification without rejecting a qua
   assert.equal(readingPresentationIssue('Saturn may weaken support, potentially creating delays.'),null);
 });
 
-for(const persistent of [false,true])test(`unsupported career cause is corrected once without repeating chart calculations: ${persistent}`,async()=>{
+for(const surface of [undefined, 'voice'])for(const persistent of [false,true])test(`unsupported career cause is corrected once without repeating chart calculations: ${surface} ${persistent}`,async()=>{
   let calls=0,calculations=0;
-  const result=await directAnswer({user_id:'synthetic-final-career',query,language:'english',history:[],birth:{date:'2000-01-01',time:'12:00',location_name:'Delhi'}},{
+  const result=await directAnswer({user_id:'synthetic-final-career',reply_surface:surface,reply_to:surface?{role:'user',text:query}:undefined,query,language:'english',history:[],birth:{date:'2000-01-01',time:'12:00',location_name:'Delhi'}},{
     env,makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(chart);},
     fetchImpl:async(_url,options)=>{
       calls++;const body=JSON.parse(options.body);
-      if(calls===3)assert.match(body.messages.at(-1).content,/unsupported_career_caution/);
+      if(calls===3){
+        assert.match(body.messages.at(-1).content,/unsupported_career_caution/);
+        if(surface==='voice')assert.match(body.messages.at(-1).content,/Review the timing in this same correction/);
+        else assert.doesNotMatch(body.messages.at(-1).content,/This is a spoken answer/);
+      }
       const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:{content:calls===2||persistent?badCareer:goodCareer};
       return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));
     },
@@ -56,7 +60,7 @@ for(const persistent of [false,true])test(`unsupported career cause is corrected
   assert.ok(result.answer_validation.includes('chart_claim_conflict'));
   assert.equal(result.answer_validation.includes('chart_fallback'),persistent);
   assert.doesNotMatch(result.reply,/Rahu|creating delays/);
-  if(!persistent)assert.ok(result.reply.startsWith(goodCareer));
+  if(!persistent && !surface)assert.ok(result.reply.startsWith(goodCareer));
 });
 
 test('fresh loneliness advice uses neutral contact wording and an optional trusted-person fallback',()=>{
