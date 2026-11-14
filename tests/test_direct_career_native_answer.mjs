@@ -14,6 +14,23 @@ const rows=[JSON.stringify(chart)],now=()=>new Date('2026-11-13T00:00:00Z');
 const base={user_id:'synthetic-native-career',birth:{date:'1991-04-11',time:'08:00',location_name:'Pune'},language:'english',history:[]};
 const call={id:'fixture-chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}};
 
+test('rejected career dates recover through baseline checked period selection on both surfaces',async()=>{
+ const supported={...chart,birth_chart:{...chart.birth_chart,planets:[...chart.birth_chart.planets,'Jupiter: Capricorn | house 10']},verdict_signals:[{area:'career',trend:'MIXED',positive:['benefic Jupiter house 10 mein'],negative:['Saturn retrograde => results me Atkaav']}]};
+ for(const reply_surface of [undefined,'whatsapp']){
+  let requests=0,calculations=0;
+  const result=await directAnswer({...base,reply_surface,query:'When will my career settle?'},{env,now,
+   makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(supported);},
+   fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
+    const repair=body.tool_choice?.function?.name==='submit_timing_reading';
+    const message=requests===1?{tool_calls:[call]}:repair?{tool_calls:[{id:'repair',type:'function',function:{name:'submit_timing_reading',arguments:JSON.stringify({period_id:'p0',outlook:'mixed',factor_ids:['f0','f1']})}}]}:{content:'Your career will settle in 2034.'};
+    return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
+  });
+  assert.equal(calculations,1);assert.equal(requests,4,JSON.stringify(result));
+  assert.ok(result.answer_validation.includes('topic_timing_repaired'));
+  assert.match(result.reply,/2030/);assert.match(result.reply,/2033/);assert.doesNotMatch(result.reply,/2034|exact waqt|clear career-settling/);
+ }
+});
+
 test('ordinary career timing retains a supported dated period after marriage on both surfaces',async()=>{
  const supported={...chart,birth_chart:{...chart.birth_chart,planets:[...chart.birth_chart.planets,'Jupiter: Capricorn | house 10']},
   verdict_signals:[{area:'career',trend:'MIXED',positive:['benefic Jupiter house 10 mein'],negative:['Saturn retrograde => results me Atkaav']}]};
@@ -106,10 +123,11 @@ test('an undated career answer reviews returned adverse periods once without for
   fetchImpl:async(_url,options)=>{requests++;const body=JSON.parse(options.body);
    if(requests===1)assert.equal(body.tool_choice.function.name,'mcp__VedAstro__get_horoscope_predictions');
    else {assert.equal(body.messages.length,2);assert.doesNotMatch(JSON.stringify(body.messages),/OLD_FORECAST/);}
-   const message=requests===1?{tool_calls:[call]}:{content:good};
+   const message=requests===1?{tool_calls:[call]}:requests===4?{tool_calls:[{id:'repair',type:'function',function:{name:'submit_timing_reading',arguments:JSON.stringify({period_id:'p0',outlook:'unfavorable',factor_ids:['f1']})}}]}:{content:good};
    return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));}
  });
- assert.equal(requests,3);assert.ok(result.reply.startsWith(good));assert.deepEqual(result.answer_validation,['undated_timing_review']);
+ assert.equal(requests,4,JSON.stringify(result));assert.match(result.reply,/2033/);assert.match(result.reply,/2036/);
+ assert.doesNotMatch(result.reply,/2040|exact waqt/);assert.ok(result.answer_validation.includes('undated_timing_review'));
 });
 
 test('a career forecast cannot replace an unknown date with a promise of improvement soon',()=>{

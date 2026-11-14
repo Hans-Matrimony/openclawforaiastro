@@ -85,7 +85,7 @@ export function unsupportedTopicOpportunity(reply, results, query) {
     return true;
   }
   if (
-    /sambhavn?a\s+(?:bahut\s+)?(?:kam|nahi)|sambhavana\s+(?:kam|nahi)|\b(?:unlikely|unfavorable|not supported)\b|(?:shaadi|job|rishta|girlfriend).{0,40}\bnahi\b/i.test(
+    /sambhavn?a\s+(?:bahut\s+)?(?:kam|nahi)|sambhavana\s+(?:kam|nahi)|\b(?:unlikely|unfavorable|not supported)\b|\b(?:prospects|support)\s+for\s+[^.!?\n]{1,60}\bmay be limited\b|(?:shaadi|job|rishta|girlfriend).{0,40}\bnahi\b/i.test(
       verdict,
     )
   ) {

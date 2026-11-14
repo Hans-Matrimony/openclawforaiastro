@@ -337,10 +337,10 @@ export async function directAnswer(
     !isDeathTimingQuestion(value.query) &&
     asksForTiming(activeQuestion);
   const careerTiming = timingRequired && questionScope(value.query) === 'career' && context.profile.status === 'READY';
-  // Career stays in the normal prose writer. A repair tool must not turn a
-  // failed draft into an application-selected career-settlement date.
-  const structuredTimingRepair = () => questionScope(value.query) === 'career' ? null
-    : timingCorrection(chartResults, value.query, value.language, now());
+  // Restore the baseline's checked repair for career as well as other topics.
+  // The model chooses only among returned periods and checked topic factors;
+  // this is a qualified period interpretation, never a guaranteed event date.
+  const structuredTimingRepair = () => timingCorrection(chartResults, value.query, value.language, now());
   if (sourceFlow && readingRequired) {
     context.prompt +=
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
@@ -940,6 +940,10 @@ export async function directAnswer(
           messages[1].content=JSON.stringify({...JSON.parse(messages[1].content),current_draft:redactIdentity(reply,value.user_id)}).replace(/</g,'\\u003c').replace(/>/g,'\\u003e');
         }
         continue;
+      }
+      if (careerTiming && !attemptedTimingRepair && modelCalls < maxRounds && upstreamCalls < maxCalls) {
+        pendingTimingRepair = structuredTimingRepair();
+        if (pendingTimingRepair) continue;
       }
       validation.push("reading_wording_fallback");
       reply = evidenceFallback(chartResults, value.language, value.query, now());
