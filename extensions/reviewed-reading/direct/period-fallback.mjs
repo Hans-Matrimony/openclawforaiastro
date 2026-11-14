@@ -46,7 +46,7 @@ export function periodFallback(rows, language, asOf = new Date()) {
   if (upcoming) {
     return english
       ? `The calculated ${upcoming.lord} sub-period runs ${upcoming.from} to ${upcoming.to}.`
-      : `${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak hai.`;
+      : `Aapke chart mein ${upcoming.lord} antardasha ${upcoming.from} se ${upcoming.to} tak chalti hai.`;
   }
   if (validCurrent) {
     return english

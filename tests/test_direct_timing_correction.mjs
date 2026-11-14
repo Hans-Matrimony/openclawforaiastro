@@ -48,7 +48,7 @@ test("mixed placement and strength evidence remain distinct without changing dat
   const raw = JSON.stringify(mixed);
   const output = timingCorrection([raw], "shaadi kb hogi", "hinglish", now()).render(message(value));
   assert.match(output, /Guru ka 7ve ghar mein hona sahyog ka sanket/);
-  assert.match(output, /7ve ghar ki majbooti ka alag sanket kamzor/);
+  assert.match(output, /7ve ghar ki majbooti kam/);
   assert.match(output, /November 2031 se July 2034/);
   assert.equal(JSON.stringify(mixed), raw);
   const english = timingCorrection([raw], "When will I marry?", "english", now()).render(message(value));

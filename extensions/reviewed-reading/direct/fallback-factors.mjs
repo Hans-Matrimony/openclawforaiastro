@@ -37,7 +37,7 @@ export function fallbackFactor(text, english) {
     text,
   );
   if (match) {
-    return `${match[1]}ve ghar ki majbooti ka alag sanket ${match[2] === "strong" ? "achha" : "kamzor"} hai`;
+    return `${match[1]}ve ghar ki majbooti ${match[2] === "strong" ? "achhi" : "kam"} hai`;
   }
   match = /^(benefic|malefic) (\w+) house (\d{1,2}) mein/.exec(text);
   if (match && planets[match[2]]) {

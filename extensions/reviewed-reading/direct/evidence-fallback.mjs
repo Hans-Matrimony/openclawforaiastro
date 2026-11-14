@@ -3,7 +3,6 @@ import { periodFallback } from "./period-fallback.mjs";
 import { asksForTiming } from "./reading-intent.mjs";
 import { timingCorrection } from "./timing-correction.mjs";
 import { chartClarificationFallback } from './chart-grounding.mjs';
-import { careerTimingUnavailable } from './career-timing-unavailable.mjs';
 
 const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
 const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
@@ -64,11 +63,6 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       marriage: english ? "Relationship timing" : "Shaadi ka samay",
     }[area];
     const checkedSchedule = periodFallback(rows, language, asOf);
-    if (timing && area === "career") {
-      return careerTimingUnavailable(factors ? factors + "." : (english
-        ? `Career indications in the chart are ${trend}.`
-        : "Career ki reading mein mile-jule sanket hain."), english);
-    }
     const timingLine = checkedSchedule
       ? checkedSchedule
       : english
