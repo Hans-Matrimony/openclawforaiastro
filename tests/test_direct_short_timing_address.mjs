@@ -43,7 +43,7 @@ void test("kb and kab preserve the same calculated schedule without an event pro
   const render = (query, data = row) =>
     evidenceFallback([JSON.stringify(data)], "hinglish", query, new Date("2026-10-26T00:00:00Z"));
   assert.equal(render("Shaadi kb hogi"), render("Shaadi kab hogi"));
-  assert.match(render("Shaadi kb hogi"), /2027-09-15.*2028-11-14.*pakki tareekh nahi/);
+  assert.match(render("Shaadi kb hogi"), /antardasha 2027-09-15.*2028-11-14/);
   assert.doesNotMatch(render("Shaadi kb hogi", { ...row, dasha: undefined }), /2027/);
 });
 

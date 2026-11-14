@@ -61,7 +61,7 @@ void test("a returned schedule is preserved without claiming an event window", (
     "Shaadi kab hogi?",
     new Date("2026-10-25T12:00:00Z"),
   );
-  assert.match(reply, /dasha ki avadhi.*pakki tareekh nahi/);
+  assert.match(reply, /antardasha/);
   assert.match(reply, /Mars antardasha 2027-09-15 se 2028-11-14/);
   assert.doesNotMatch(reply, /hisaab ke hisaab|saaf nahi dikh raha/);
 });

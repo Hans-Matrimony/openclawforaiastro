@@ -15,8 +15,9 @@ for(const language of ['english','hinglish']) test(`undetermined career keeps sc
   const repaired=correction.render({tool_calls:[{function:{name:correction.name,arguments:JSON.stringify({period_id:'none',outlook:'undetermined',factor_ids:['f0']})}}]});
   const fallback=evidenceFallback(results,language,'career kab set hoga',now);
   assert.equal(repaired,fallback);
+  assert.doesNotMatch(repaired,/pakki tareekh|not a confirmed date/i);
   assert.match(repaired,/2027-09-15.*2028-11-14/);
-  assert.match(repaired,language==='english'?/not a confirmed date/:/pakki tareekh nahi/);
+  assert.match(repaired,language==='english'?/calculated Mars sub-period/:/antardasha/);
   assert.doesNotMatch(repaired,/career (?:will|hoga|set hoga)|2041|2047/i);
   assert.doesNotMatch(evidenceFallback(results,language,'career fields',now),/2027|2028/);
 });

@@ -86,7 +86,7 @@ void test("all three outlooks retain meaning and undetermined preserves only sch
   );
   assert.match(none, /Mars antardasha 2027-09-15 se 2028-11-14/);
   assert.match(none, /deri/);
-  assert.match(none, /dasha ki avadhi.*pakki tareekh nahi/);
+  assert.match(none, /antardasha/);
 });
 
 void test("malformed submissions, fabricated dates and unsupported period selections fail closed", () => {

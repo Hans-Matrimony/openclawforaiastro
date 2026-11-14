@@ -190,9 +190,7 @@ export function timingCorrection(results, query, language, asOf) {
         // prediction. The same renderer checks dates and conflicting subjects.
         const schedule = periodFallback(rows, language, asOf);
         if (schedule) {
-          return first + "\n\n" + schedule + (english
-            ? " These are dasha dates, not a confirmed date for the event."
-            : " Yeh dasha ki avadhi hai, ghatna hone ki pakki tareekh nahi.");
+          return first + "\n\n" + schedule;
         }
         return (
           first +

@@ -64,9 +64,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     }[area];
     const checkedSchedule = periodFallback(rows, language, asOf);
     const timingLine = checkedSchedule
-      ? checkedSchedule + (english
-        ? " These are dasha dates, not a confirmed date for the event."
-        : " Yeh dasha ki avadhi hai, ghatna hone ki pakki tareekh nahi.")
+      ? checkedSchedule
       : english
       ? `${leadIn}: this reading does not establish a supported event window.`
       : `${leadIn}: is reading se koi supported samay tay nahi hota.`;
