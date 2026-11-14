@@ -7,6 +7,7 @@ import { readingPresentationInstruction } from "../extensions/reviewed-reading/d
 import { personaInstruction } from "../extensions/reviewed-reading/direct/persona.mjs";
 import { responseLanguageInstruction } from "../extensions/reviewed-reading/direct/response-language.mjs";
 import { SOURCE_FLOW_PROMPT } from "../extensions/reviewed-reading/direct/source-contract.mjs";
+import { futureDateInstruction } from '../extensions/reviewed-reading/direct/past-prediction.mjs';
 import {
   timingAnswerInstruction,
   nonTimingAnswerInstruction,
@@ -70,6 +71,14 @@ for (const fixture of contract.fixtures) {
             body.messages.every((m) => ["system", "user", "assistant", "tool"].includes(m.role)),
           );
           for (const message of body.messages) {
+            const dateInstruction = futureDateInstruction(new Date('2026-10-26T00:00:00Z'));
+            if (message.role === 'system') {
+              if (calls === 1) assert.ok(message.content.includes(dateInstruction));
+              message.content = message.content.replace('\n\n# Current prediction date\n' + dateInstruction, '');
+            }
+            if (message.role === 'user' && message.content.startsWith(dateInstruction)) {
+              message.content = message.content.slice(dateInstruction.length + 1).replace('an expired or unsupported event date', 'an unsupported event date');
+            }
             // The pilot now explains its existing timing contract before drafting.
             // All other source prompts, tools and request fields remain pinned.
             if (message.role === "system") {

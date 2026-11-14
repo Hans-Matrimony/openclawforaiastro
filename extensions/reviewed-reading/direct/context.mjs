@@ -4,6 +4,7 @@ import { responseLanguageInstruction } from "./response-language.mjs";
 import { SOURCE_PROMPT, SOURCE_FLOW_PROMPT } from "./source-contract.mjs";
 import { matchingForms } from './birth-evidence.mjs';
 import { matchingGroundingInstruction } from './matching-grounding.mjs';
+import { futureDateInstruction } from './past-prediction.mjs';
 
 export function savedBirthContext(birth) {
   const fields = {};
@@ -91,6 +92,7 @@ export async function readingContext(
   prompt = prompt
     .replace(/Today's date is \d{4}-\d{2}-\d{2}/, `Today's date is ${date}`)
     .replace(/Current year is \d{4}/, `Current year is ${date.slice(0, 4)}`);
+  prompt += '\n\n# Current prediction date\n' + futureDateInstruction(asOf);
   if (value.quota_context) {
     prompt += "\n\n# Trusted app access guidance\n" + value.quota_context;
   }

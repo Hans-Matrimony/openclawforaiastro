@@ -7,6 +7,7 @@ import { chartGroundingConflicts, chartClarificationFallback } from './chart-gro
 import { readingContext, savedBirthContext } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
+import { pastPrediction, futureDateInstruction } from './past-prediction.mjs';
 import { evidenceFallback, isUnverifiedReadingReply } from "./evidence-fallback.mjs";
 import { formatDisplayReply, formatReadingReply, sanitizeBindus } from "./format-reply.mjs";
 import {
@@ -822,7 +823,7 @@ export async function directAnswer(
       }
     }
     if (
-      unsupportedPeriodClaim(reply, chartResults) ||
+      pastPrediction(reply, now()) || unsupportedPeriodClaim(reply, chartResults) ||
       (sourceFlow && unsupportedTopicOpportunity(reply, chartResults, value.query)) ||
       (sourceFlow && unsupportedEventTiming(reply, chartResults, value.query))
     ) {
@@ -848,7 +849,7 @@ export async function directAnswer(
         messages.push({
           role: "user",
           content:
-            "The proposed timing contains an unsupported event date or a period claim that does not match the schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the original question: " +
+            futureDateInstruction(now()) + " The proposed timing contains an expired or unsupported event date or a period claim that does not match the schedule. Use only the actual structured tool periods. Do not invent the next lord or convert a current end date into an event prediction. Answer the original question: " +
             JSON.stringify(value.query) +
             ". Preserve the useful supported topic explanation. For a question about fields or choices, answer that question without adding an unsolicited date. For a timing question, a topic-supported period interpretation is allowed: name the returned upcoming antardasha lord, its exact start and end as English month-year, and the checked house/lord reason relevant to this question. Clearly label it sambhavit or an interpretation, not a guaranteed event. Do not invent a period or supporting factor. Keep the short verdict within the same qualified window. Do not discard a supported period merely because the tool does not calculate an event date." +
             rejectedDraftContext(redactIdentity(reply, value.user_id)) +
@@ -1029,6 +1030,10 @@ export async function directAnswer(
     if (conversationGroundingIssue(deliveredReply, value, context.profile, readingTools.size > 0)) {
       deliveredReply = finishWhatsAppReply(conversationGroundingFallback(value, context.profile), value, {facts: context.memoryFacts});
       validation.push('conversation_grounding_delivery_fallback');
+    }
+    if (pastPrediction(deliveredReply, now())) {
+      deliveredReply = finishWhatsAppReply(formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now())), value, {facts: context.memoryFacts});
+      validation.push('past_prediction_delivery_rejected');
     }
     return {
       schema: "vedastro-direct-reply-v1",
