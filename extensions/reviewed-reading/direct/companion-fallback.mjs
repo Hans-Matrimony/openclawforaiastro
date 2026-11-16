@@ -3,6 +3,7 @@ import { repeatsCompanionIntent } from "./companion-repetition.mjs";
 import { fallbackGrammar } from "./persona.mjs";
 import { questionScope } from "./question-scope.mjs";
 import { borrowsCompanionTopic } from './followup-scope.mjs';
+import {isForeignTravelQuestion} from './reading-intent.mjs';
 // Used only when the companion writer fails or offers no usable closing.
 // Topic acknowledgments do not infer personal circumstances from chart claims.
 export function companionFallback(value, facts = [], { requireQuestion = false } = {}) {
@@ -30,6 +31,7 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
     personal = personalTopic.test(topicQuery);
   }
   const focusedTopics = companionFocus(value).topics;
+  const foreignTravel=focusedTopics.length===1&&focusedTopics[0]==='relocation'&&isForeignTravelQuestion(topicQuery);
   const education = focusedTopics.includes("education");
   const finance = focusedTopics.includes("finance");
   const relationship =
@@ -38,7 +40,7 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
     );
   const career = /career|job|naukri|work|करियर|नौकरी/i.test(topicQuery);
   const newRelationship = questionScope(topicQuery) === "dating";
-  if (!education && !finance && !relationship && !career && !personal) {
+  if (!education && !finance && !relationship && !career && !personal && !foreignTravel) {
     if (
       !requireQuestion ||
       /\b(?:death|maut|mrityu|lifespan|martyrdom|shahe+e?d)\b|मृत्यु|मौत/i.test(value.query)
@@ -65,7 +67,11 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
     ? value.query
     : userContext;
   const contextual =
-    (education || career) && /\bMBA\b/i.test(detail)
+    foreignTravel ? {
+      hinglish:'Videsh jaane ko lekar abhi aapki kya yojana hai?',
+      english:'What plans do you have about going abroad?',
+      hindi:'विदेश जाने को लेकर अभी आपकी क्या योजना है?',
+    } : (education || career) && /\bMBA\b/i.test(detail)
       ? {
           hinglish: "MBA ko lekar abhi aapke mann mein sabse badi uljhan kya hai?",
           english: "What feels most difficult about the MBA decision right now?",
@@ -235,6 +241,7 @@ export function companionFallback(value, facts = [], { requireQuestion = false }
       : []),
   ]
     .filter(Boolean)
+    .filter(text=>!foreignTravel||isForeignTravelQuestion(text))
     .filter(
       (text) =>
         !((career || finance) && /\bsabse (?:zyada|zaroori) kya\b/i.test(text)) &&

@@ -12,7 +12,7 @@ const TOPICS = {
   relationship:
     /\b(?:gf|bf|sha+di|marriage|married|partner|crush|relationship|rishte?|family|parents|girlfriend|boyfriend|mummy|papa|mom|dad|mother|father)\b|ghar wal|शादी|रिश्त|परिवार|घरवाल|मम्मी|पापा/i,
   wellbeing: /\b(?:stress|tension|sad|udaas|lonely|pareshan|health|sleep)\b|तनाव|परेशान|सेहत|नींद/i,
-  relocation: /\b(?:relocat[a-z]*|moving|abroad|ghar badal|shift house)\b|घर बदल/i,
+  relocation: /\b(?:relocat[a-z]*|moving|abroad|overseas|videsh|foreign travel|foreign settlement|ghar badal|shift house)\b|विदेश|घर बदल/i,
 };
 
 export const companionTopics = (text) =>
@@ -105,6 +105,10 @@ export function companionNotes(facts, focus, value) {
 
 export function closingDrifts(question, focus, value, facts) {
   const topics = companionTopics(question);
+  if(focus.topics.length===1&&focus.topics[0]==='relocation'&&
+      /\b(?:abroad|overseas|videsh|foreign)\b|विदेश/iu.test(focus.user_topic)&&
+      !/\b(?:abroad|overseas|videsh|foreign|country|countries|visa|travel|desh)\b|विदेश|देश/iu.test(question)&&
+      /\b(?:zindagi|life|apne liye|khud ke liye)\b|ज़िंदगी|ज़िन्दगी|जीवन/iu.test(question))return true;
   if (!focus.topics.length && topics.length && newCompanionQuestion(value.query)) {
     return true; // An unrelated new question cannot reopen an old personal topic.
   }

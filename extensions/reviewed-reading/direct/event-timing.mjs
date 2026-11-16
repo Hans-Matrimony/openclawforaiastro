@@ -1,5 +1,5 @@
 import { isPeriodInterpretation } from "./period-interpretation.mjs";
-import { asksForTiming } from "./reading-intent.mjs";
+import { asksForTiming,isForeignTravelQuestion } from "./reading-intent.mjs";
 
 // The local natal/transit tools provide periods, not calculated event windows.
 // Restrict this check to that explicit contract; do not reinterpret other tools.
@@ -30,7 +30,7 @@ export function unsupportedEventTiming(reply, results, query = "") {
   if ((!query || asksForTiming(query)) && isPeriodInterpretation(reply, data)) {
     return false;
   }
-  const eventTopic =
+  const eventTopic = isForeignTravelQuestion(reply) ||
     /\b(?:sha+di|marriage|career|job|financial|finance|income|paise|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b/i.test(
       reply,
     );
