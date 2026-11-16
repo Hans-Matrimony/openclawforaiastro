@@ -1,4 +1,5 @@
 import { chartClaimConflicts } from './chart-claims.mjs';
+import {planetDignityConflicts} from './planet-dignity.mjs';
 
 const planets = 'Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu';
 const housePattern = /\bhouse\s+(\d{1,2})\b|\b(\d{1,2})(?:ve|ven|va|we|th|st|nd|rd)?\s+(?:ghar|house)\b/gi;
@@ -58,6 +59,7 @@ function careerCautionConflicts(reply, rows, query) {
 export function chartGroundingConflicts(reply, results, value = {}) {
   const rows=rowsFrom(results), chart=chartFrom(rows), conflicts=[];
   if (!chart) return conflicts;
+  conflicts.push(...planetDignityConflicts(reply,rows));
   conflicts.push(...careerCautionConflicts(reply, rows, value.query ?? ''));
   for (const clause of reply.split(/[.!?\n;]+/)) {
     const mentioned=unique(houses(clause));

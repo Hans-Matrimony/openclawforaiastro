@@ -1,4 +1,4 @@
-import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply } from "./whatsapp-presentation.mjs";
+import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fitWhatsAppReadingParagraphs } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
@@ -43,6 +43,7 @@ import {
   asksForTiming,
   isOrdinaryConcern,
   isPracticalFollowup,
+  isForeignTravelQuestion,
 } from "./reading-intent.mjs";
 import { directReleaseEnabled } from "./release.mjs";
 import {
@@ -351,6 +352,9 @@ export async function directAnswer(
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
       JSON.stringify(redactIdentity(value.query, value.user_id)) +
       ". Earlier questions are not the current request. Preserve user circumstances as context, not earlier forecasts or unrelated topics.\n";
+    if(isForeignTravelQuestion(activeQuestion)){
+      context.prompt += "\nFor this foreign-travel question, use the birth date, time and place explicitly supplied in the active question for this reading; do not substitute an older profile or claim it was saved. Use only the current returned chart for natal placements, dignity and current periods. Read each planet's actual returned dignity label: an Own sign planet must not be called debilitated or neecha. The tool's marriage, career, money and health verdict_signals are not a foreign-travel verdict; do not repurpose them. Explain any foreign-travel interpretation from relevant returned natal facts with its limits, without copying an old prediction, inventing a transit, a favorable period or a required wait until a new dasha. A question about chances alone does not ask for a year. Answer the abroad question directly, briefly, in the user's language, instead of discussing changed profiles.\n";
+    }
     if (/\b(?:career|job|work|naukri|promotion)\b/iu.test(value.query)) {
       context.prompt += "\nFor career cautions, attribute a negative effect to a planet only when the returned career negative factors establish it, or explicitly refer to the checked current period lords. A planet merely appearing in the natal chart or earlier assistant prose is not evidence that it weakens career support. Translate the actual limitation neutrally; do not replace a possible delay with an internal personality trait or deny the returned caution. Offer career options as possibilities, never a best-field ranking that these results do not calculate. Describe possible limitations without promising success or asserting an inevitable delay.\n";
     }
@@ -927,6 +931,7 @@ export async function directAnswer(
     }
     // Validate the wording users will see: display cleanup removes separators,
     // which can expose ambiguous period labels hidden by a draft's dashes.
+    if(readingTools.size>0)reply=fitWhatsAppReadingParagraphs(reply,value);
     const wordingIssue = readingTools.size > 0 ? (readingPresentationIssue(formatDisplayReply(reply)) || whatsappWordingIssue(formatDisplayReply(reply), value)) : null;
     if (wordingIssue) {
       validation.push("reading_wording_rejected");

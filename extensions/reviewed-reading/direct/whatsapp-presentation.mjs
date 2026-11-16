@@ -76,6 +76,21 @@ export function whatsappWordingIssue(reply, value) {
   return null;
 }
 
+// Preserve every word and date when a short answer only needs paragraph
+// boundaries. Overlong sentences still go through the existing wording edit.
+export function fitWhatsAppReadingParagraphs(reply,value){
+  if(value.reply_surface!=='whatsapp'||detail.test(value.query)||!prose(reply)||reply.trim().split(/\s+/u).length>50)return reply;
+  if(!reply.trim().split(/\n\s*\n/u).some(part=>part.trim().split(/\s+/u).length>35))return reply;
+  const sentences=reply.trim().split(/\n\s*\n|(?<=[.!?।])\s+/u),groups=[];
+  for(const sentence of sentences){
+    if(sentence.trim().split(/\s+/u).length>35)return reply;
+    const previous=groups.at(-1);
+    if(previous&&(previous+' '+sentence).split(/\s+/u).length<=35)groups[groups.length-1]=previous+' '+sentence;
+    else groups.push(sentence);
+  }
+  return groups.join('\n\n');
+}
+
 export function finishWhatsAppReply(reply, value, {facts = []} = {}) {
   if (value.reply_surface !== 'whatsapp' || !prose(reply)) return reply;
   reply = boundWhatsAppGreeting(reply, value);
