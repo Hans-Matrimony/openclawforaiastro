@@ -54,6 +54,11 @@ export function requiresChartReading(query, profile) {
 export function isPersonalChartQuestion(query) {
   const text = normalizePersonalQuery(query).toLowerCase().trim();
   if (isPracticalFollowup(query)) return false;
+  // Foreign-travel predictions need the same current chart evidence as other
+  // personal readings. Practical travel/visa information stays conversational.
+  if (isForeignTravelQuestion(text) &&
+      /\b(?:documents?|requirements?|paperwork|fees?|costs?|application|process|flights?|hotels?|itinerary|passport)\b/iu.test(text) &&
+      !/\b(?:chart|kundli|horoscope|astrology|yog|chances?|predict|prediction)\b/iu.test(text)) return false;
   // Keep general explanations, ordinary chat and another person's profile on auto routing.
   if (
     /^(?:what (?:is|are|does)|how does|explain|define|tell me what)\b/.test(text) &&
@@ -89,6 +94,10 @@ export function isPersonalChartQuestion(query) {
   const request =
     /\?|\b(?:tell me|batao|bataiye|kaisa|kaisi|kaise|kya|kab|kb|hogi|hoga|lagegi|will|when|should|can|which|how|reading|predict|analy[sz]e|kundli)\b/;
   return (
-    topic.test(subjectText) && request.test(text) && (personal.test(text) || timing.test(text))
+    (topic.test(subjectText) || isForeignTravelQuestion(subjectText)) &&
+    (request.test(text) || (isForeignTravelQuestion(text) && /\b(?:chances?|yog|jaane|jane|jaa|settle|jaunga|jaungi)\b/iu.test(text))) &&
+    (personal.test(text) || timing.test(text))
   );
 }
+
+export const isForeignTravelQuestion = query => /\b(?:abroad|overseas|videsh|foreign\s+(?:travel|settlement|residence))\b|विदेश/iu.test(query);

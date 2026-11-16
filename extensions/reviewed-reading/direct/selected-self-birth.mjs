@@ -25,7 +25,8 @@ export function selectedSelfBirth(query, birth) {
   // A bare personal timing question is common in chat. Keep the whole-turn
   // match narrow so another person's question cannot inherit this profile.
   const bareCareer = /^(?:career|job|naukri)\s+(?:kab|kb)(?:\s+(?:tak|tk))?(?:\s+(?:set|settle))?\s+(?:hoga|hogaa|hogi|milegi|milega|lagegi)[?!.\s]*$/iu.test(text);
-  return own || bareCareer ? { ...birth } : null;
+  const ownTravel = /\b(?:meri|mera|mere|my)\s+(?:abroad|overseas|videsh|foreign\s+(?:travel|settlement|residence))\b|\b(?:can|will|when\s+will)\s+i\s+(?:go|move|travel|settle)\s+(?:abroad|overseas)\b/u.test(text);
+  return own || bareCareer || ownTravel ? { ...birth } : null;
 }
 
 export function selectedSelfArguments(name, args, birth) {

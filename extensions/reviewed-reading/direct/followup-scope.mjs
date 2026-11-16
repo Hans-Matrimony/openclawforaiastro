@@ -1,7 +1,9 @@
-import {isPersonalChartQuestion} from './reading-intent.mjs';
+import {isPersonalChartQuestion,isForeignTravelQuestion} from './reading-intent.mjs';
 import {selectedSelfBirth} from './selected-self-birth.mjs';
 import {quotedSelfReading} from './quoted-reading.mjs';
 import {correctedReadingSubject} from './personal-query.mjs';
+import {birthKey} from './birth-evidence.mjs';
+import {isUnresolvedPredictionNotice} from './conversation-grounding.mjs';
 
 export function generalMatchingQuestion(query) {
   return !/\b(?:my|our|meri|mera|mere|hamara|hum|ham|dono|partner|girlfriend|boyfriend|gf|bf)\b/i.test(query) &&
@@ -61,7 +63,10 @@ export function activeReadingQuestion(value) {
   // subject. Never substitute a different subject from unquoted history.
   if (value.reply_to) {
     const subject = (abbreviatedReading(value.query) || answerRetry(value.query)) && quotedSelfReading(value);
-    return subject ? `${subject}\nFollow-up: ${value.query}` : value.query;
+    if (subject) return `${subject}\nFollow-up: ${value.query}`;
+    // Our generic rejection has no subject of its own. Only that exact notice
+    // may fall through to the latest user question; other quotes keep priority.
+    if (value.reply_to.role !== 'assistant' || !isUnresolvedPredictionNotice(value.reply_to.text)) return value.query;
   }
   if (isPersonalChartQuestion(value.query) || asksGunaScore(value.query)) return value.query;
   const retry = answerRetry(value.query);
@@ -70,7 +75,10 @@ export function activeReadingQuestion(value) {
   // skip a changed topic to resurrect an older assistant prediction.
   const previous = [...(value.history ?? [])].reverse().filter(t => t.role === 'user').slice(0, 4);
   for (const turn of previous) {
-    if (selectedSelfBirth(turn.text, value.birth)) return `${turn.text}\nFollow-up: ${value.query}`;
+    if (selectedSelfBirth(turn.text, value.birth) ||
+        (birthKey(value.birth) && isForeignTravelQuestion(turn.text) && isPersonalChartQuestion(turn.text))) {
+      return `${turn.text}\nFollow-up: ${value.query}`;
+    }
     if (!abbreviatedReading(turn.text) && !answerRetry(turn.text)) break;
   }
   return value.query;

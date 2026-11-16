@@ -109,3 +109,8 @@ export function conversationGroundingFallback(value, profile) {
     : value.language === 'hindi' ? 'बिना जाँच के पुरानी भविष्यवाणी दोहराना सही नहीं होगा। मेरे पिछले जवाब की किस बात को स्पष्ट करूँ?'
       : 'Bina jaanch ke purani prediction dohrana sahi nahi hoga. Mere pichhle jawab ki kis baat ko saaf karun?';
 }
+
+export function isUnresolvedPredictionNotice(text) {
+  return typeof text === 'string' && ['english','hindi','hinglish'].some(language =>
+    text.trim() === conversationGroundingFallback({query:'',history:[],language},{status:'VERIFIED_EMPTY'}));
+}

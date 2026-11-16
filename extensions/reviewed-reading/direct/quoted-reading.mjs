@@ -1,18 +1,21 @@
-import {isPersonalChartQuestion} from './reading-intent.mjs';
+import {isPersonalChartQuestion,isForeignTravelQuestion} from './reading-intent.mjs';
 import {selectedSelfBirth} from './selected-self-birth.mjs';
+import {birthKey} from './birth-evidence.mjs';
 
 const topics = [
   [/\b(?:marriage|marry|wedding|sha+di)\b/iu, 'Meri shaadi ke baare mein batao'],
   [/\b(?:career|job|naukri|promotion)\b/iu, 'Mera career ke baare mein batao'],
   [/\b(?:education|studies|study|exams?|padhai)\b/iu, 'Meri padhai ke baare mein batao'],
   [/\b(?:finances?|financial|money|income|salary|paisa|paise)\b/iu, 'Meri finances ke baare mein batao'],
+  [/\b(?:abroad|overseas|videsh|foreign\s+(?:travel|settlement|residence))\b/iu, 'Mere abroad jaane ke chances batao'],
 ];
 
 export function quotedSelfReading(value) {
   const quote = value.reply_to;
   if (!quote || typeof quote.text !== 'string') return null;
   if (quote.role === 'user') {
-    return isPersonalChartQuestion(quote.text) && selectedSelfBirth(quote.text, value.birth)
+    return isPersonalChartQuestion(quote.text) && (selectedSelfBirth(quote.text, value.birth) ||
+      (isForeignTravelQuestion(quote.text) && birthKey(value.birth)))
       ? quote.text : null;
   }
   if (quote.role !== 'assistant') return null;
