@@ -9,6 +9,30 @@ import {companionFallback} from '../extensions/reviewed-reading/direct/companion
 const chart={engine:'local-sweph-v2',birth_chart:{planets:['Venus: Taurus | house 12 | Own sign (strong)']}};
 const results=[JSON.stringify(chart)];
 const value={user_id:'synthetic-foreign-grounding',query:'Can I go abroad?',birth:{date:'2000-01-01',time:'06:00',location_name:'Delhi'},history:[],language:'hinglish',reply_surface:'whatsapp'};
+test('a chart cannot invent the captured real-world visa problem',()=>{
+ const bad='Saturn aur sade sati ki wajah se visa ya paperwork mein dikkat aati hai.';
+ assert.ok(chartGroundingConflicts(bad,results,value).some(row=>row.type==='unsupported_foreign_circumstance'));
+ assert.ok(chartGroundingConflicts('Your visa will be rejected.',results,value).some(row=>row.type==='unsupported_foreign_circumstance'));
+ assert.deepEqual(chartGroundingConflicts('Visa mein dikkat aa sakti hai, pakka nahi.',results,value),[]);
+ assert.deepEqual(chartGroundingConflicts('Aapne visa mein dikkat batayi hai.',results,value),[]);
+ assert.deepEqual(chartGroundingConflicts(bad,results,{...value,history:[{role:'user',text:'Visa mein dikkat hai.'}]}),[]);
+ assert.deepEqual(chartGroundingConflicts(bad,results,{...value,query:'What visa documents do I need?'}),[]);
+});
+test('the actual reply flow corrects the captured visa circumstance using the same chart',async()=>{
+ let calls=0,charts=0;
+ const result=await directAnswer(value,{
+  env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0'},
+  makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{charts++;return results[0];},
+  fetchImpl:async(_url,options)=>{
+   const body=JSON.parse(options.body);calls++;
+   if(calls===3)assert.match(body.messages.at(-1).content,/unsupported_foreign_circumstance/);
+   const message=calls===1?{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}:
+    {content:calls===2?'Abroad ke liye Venus 12ve ghar mein hai, lekin visa ya paperwork mein dikkat aati hai.\n\nAbhi chance kam hai.':'Venus apni rashi mein 12ve ghar mein hai. Isse akela videsh jaana pakka nahi hota.\n\nAbroad jaane ki sambhavana ek interpretation hai, guarantee nahi.'};
+   return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+  }});
+ assert.equal(charts,1);assert.equal(calls,3);assert.doesNotMatch(result.reply,/paperwork|verify nahi/);
+ assert.ok(result.answer_validation.includes('chart_claim_conflict'));assert.ok(!result.answer_validation.includes('chart_fallback'));
+});
 test('foreign travel cannot turn a dasha boundary into the captured unsolicited promise',()=>{
  const evidence=[JSON.stringify({...chart,evidence_scope:{timing:'does not calculate event-specific windows'}})];
  for(const text of ['Venus 12th mein strong hai, abroad ke liye signal hai.\n\n2027-03-31 ke baad Mercury dasha shuru hone se abroad ka mauka clear hoga.','Overseas ka mauka 2027 ke baad banega.','Videsh jaane ka chance 2028 ke baad hoga.'])assert.equal(unsupportedEventTiming(text,evidence,value.query),true,text);

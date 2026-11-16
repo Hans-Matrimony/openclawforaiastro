@@ -1,5 +1,6 @@
 import { chartClaimConflicts } from './chart-claims.mjs';
 import {planetDignityConflicts} from './planet-dignity.mjs';
+import {isForeignTravelQuestion} from './reading-intent.mjs';
 
 const planets = 'Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu';
 const housePattern = /\bhouse\s+(\d{1,2})\b|\b(\d{1,2})(?:ve|ven|va|we|th|st|nd|rd)?\s+(?:ghar|house)\b/gi;
@@ -60,6 +61,17 @@ export function chartGroundingConflicts(reply, results, value = {}) {
   const rows=rowsFrom(results), chart=chartFrom(rows), conflicts=[];
   if (!chart) return conflicts;
   conflicts.push(...planetDignityConflicts(reply,rows));
+  if(isForeignTravelQuestion(value.query??'')){
+    const userContext=[value.query,...(value.history??[]).filter(turn=>turn.role==='user').map(turn=>turn.text)].join('\n');
+    for(const sentence of reply.split(/[.!?\n;]+/u)){
+      if(!/\b(?:visa|paperwork|documents?)\b/iu.test(sentence)||
+          /\b(?:may|might|could|possible|possibly|not|nahi|nahin|sak[taei]+|aapne|you said|reported)\b/iu.test(sentence))continue;
+      if(/\b(?:dikkat|pareshani)\s+(?:aati|hoti)\s+hai\b|\b(?:will|always)\b.{0,45}\b(?:delay|reject|refus|trouble|problem)|\b(?:delayed|rejected|refused)\b/iu.test(sentence)&&
+          !/\b(?:visa|paperwork|documents?)\b.{0,65}\b(?:delay|reject|refus|problem|issue|dikkat|pareshani)\b/iu.test(userContext)){
+        conflicts.push({type:'unsupported_foreign_circumstance',reason:'The user has not reported visa or paperwork trouble, and the natal chart does not establish an actual visa outcome. Remove that asserted circumstance. Explain supported natal factors as a qualified interpretation; do not invent a low probability or a requirement to wait from general Saturn/sade-sati labels.'});
+      }
+    }
+  }
   conflicts.push(...careerCautionConflicts(reply, rows, value.query ?? ''));
   for (const clause of reply.split(/[.!?\n;]+/)) {
     const mentioned=unique(houses(clause));
