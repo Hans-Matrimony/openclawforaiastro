@@ -3,6 +3,7 @@ import { periodFallback } from "./period-fallback.mjs";
 import { asksForTiming } from "./reading-intent.mjs";
 import { timingCorrection } from "./timing-correction.mjs";
 import { chartClarificationFallback } from './chart-grounding.mjs';
+import {foreignChartSummary} from './foreign-reading.mjs';
 
 const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
 const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
@@ -11,6 +12,8 @@ export const isUnverifiedReadingReply = reply => reply === UNVERIFIED_EN || repl
 // A failed bounded correction must not become a transport failure or publish
 // the rejected prediction. This fallback uses only returned period facts.
 export function evidenceFallback(results, language, query = "", asOf = new Date()) {
+  const foreign=foreignChartSummary(results,language,query);
+  if(foreign)return foreign;
   const english = language === "english";
   const area = /career|job|work|naukri|fields?/i.test(query)
     ? "career"

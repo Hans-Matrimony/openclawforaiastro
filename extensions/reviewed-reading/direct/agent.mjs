@@ -1,5 +1,6 @@
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fitWhatsAppReadingParagraphs } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
+import {foreignChartContext} from './foreign-reading.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -642,6 +643,8 @@ export async function directAnswer(
           content: results[index],
         });
       });
+      const foreignContext=foreignChartContext(chartResults,value.query);
+      if(foreignContext)messages.push({role:'user',content:foreignContext});
       if (missingMatchingBirth && !readingTools.has('get_match_report')) {
         // Repeating the same rejected matching call cannot supply user-confirmed
         // partner details. Ask once instead of exhausting the loop into a 503.
