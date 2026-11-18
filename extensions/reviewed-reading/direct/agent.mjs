@@ -486,6 +486,12 @@ export async function directAnswer(
     }
   }
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
+    // Tools cannot produce a user-facing answer themselves. Reserve the last
+    // existing round for synthesis instead of executing tools and then falling
+    // out of the loop into a 503. Structured timing repair remains independent;
+    // every normal evidence/language/date check below still applies.
+    const finalAnswerRound = !pendingTimingRepair &&
+      (modelCalls === maxRounds || upstreamCalls >= maxCalls - 1);
     // Saved conversation predictions are not a substitute for this turn's chart.
     const requireChart =
       readingTools.size === 0 && correctedMissingReading && context.profile.status === "READY";
@@ -518,7 +524,7 @@ export async function directAnswer(
             : TOOLS,
       tool_choice: pendingTimingRepair
         ? { type: "function", function: { name: pendingTimingRepair.name } }
-        : matchingLimitations || correctedReadingPresentation || correctedUndatedTiming || correctedEnglishReply ? "none"
+        : finalAnswerRound || matchingLimitations || correctedReadingPresentation || correctedUndatedTiming || correctedEnglishReply ? "none"
         : requireTiming
           ? { type: "function", function: { name: "mcp__VedAstro__get_horoscope_predictions" } }
           : requireChart
@@ -583,6 +589,9 @@ export async function directAnswer(
       validation.push(repaired ? "topic_timing_repaired" : "topic_timing_repair_unavailable");
     }
     if (choice.finish_reason === "tool_calls" && choice.message.tool_calls?.length) {
+      // A provider ignoring tool_choice must not execute more work after the
+      // answer-only boundary, including writes requested by a broken response.
+      if (finalAnswerRound) throw new Error("Direct tool loop did not converge");
       if (choice.message.tool_calls.length > 8) {
         throw new Error("Too many tool calls");
       }
@@ -763,7 +772,7 @@ export async function directAnswer(
       clarification = true;
     }
     if (readingRequired && readingTools.size === 0 && !clarification) {
-      if (correctedMissingReading) {
+      if (correctedMissingReading || finalAnswerRound) {
         throw new Error("Personal reading requires a successful chart tool");
       }
       correctedMissingReading = true;
@@ -778,7 +787,7 @@ export async function directAnswer(
       continue;
     }
     if (timingRequired && !readingTools.has("get_horoscope_predictions") && !clarification) {
-      if (correctedMissingTiming) {
+      if (correctedMissingTiming || finalAnswerRound) {
         throw new Error("Timing reading requires the period schedule");
       }
       correctedMissingTiming = true;
