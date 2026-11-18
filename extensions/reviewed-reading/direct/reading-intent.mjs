@@ -11,6 +11,11 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query) {
+  // In a timing follow-up, leading "matlab" means "so, when", rather
+  // than asking for a definition. Keep actual meaning/definition questions
+  // excluded below, and never borrow a different topic from history.
+  query = query.replace(/^(?:matlab|mtlb|mtlab)\s+(?=(?:kis|kaun(?:sa|si|se|\s+s[aei]))\s+(?:samay|waqt|period|window)\b)/iu, '');
+  if (/\b(?:samay|waqt|period|window)\s+(?:ka\s+)?(?:meaning|definition|matlab|kya\s+hota)\b/iu.test(query)) return false;
   if (/\b(?:kis|kaunsi|kaun si)\s+(?:date|tareekh|taareekh|tarikh)\b/iu.test(query) &&
       !/\b(?:define|definition|meaning)\b/iu.test(query)) return true;
   // Natural Hindi/Hinglish timing requests need not contain kab/when. Keep
@@ -90,13 +95,12 @@ export function isPersonalChartQuestion(query) {
   const topic =
     /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exams?|padhai|padhaai|padhayi|parhai|finances?|financial|money|paisa|paise|kundli|horoscope|chart|birth chart)\b/;
   const personal = /\b(?:i|my|me|meri|mera|mere|mujhe|mujhse|main)\b/;
-  const timing = /\b(?:when|kab|kb|hogi|hoga|lagegi)\b/;
   const request =
     /\?|\b(?:tell me|batao|bataiye|kaisa|kaisi|kaise|kya|kab|kb|hogi|hoga|lagegi|will|when|should|can|which|how|reading|predict|analy[sz]e|kundli)\b/;
   return (
     (topic.test(subjectText) || isForeignTravelQuestion(subjectText)) &&
     (request.test(text) || (isForeignTravelQuestion(text) && /\b(?:chances?|yog|jaane|jane|jaa|settle|jaunga|jaungi)\b/iu.test(text))) &&
-    (personal.test(text) || timing.test(text))
+    (personal.test(text) || asksForTiming(text) || /\b(?:hogi|hoga|lagegi)\b/u.test(text))
   );
 }
 
