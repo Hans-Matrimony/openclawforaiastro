@@ -1,9 +1,21 @@
 // Keep the supplied calculation/judgment code unchanged; adapt only input formatting.
 function sourceDate(value) {
-  const text = String(value ?? "");
+  const text = String(value ?? "").trim();
   const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
   const dmy = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(text);
-  const parts = iso ? [+iso[1], +iso[2], +iso[3]] : dmy ? [+dmy[3], +dmy[2], +dmy[1]] : [];
+  // WhatsApp stores user-authored month names verbatim. Normalize only an
+  // explicit complete date; Date.parse would guess locale/roll invalid days.
+  const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+  const monthNumber = name => {
+    const token = String(name).toLowerCase().replace(/\.$/, '');
+    return months.findIndex(month => token === month || token === month.slice(0,3) || (month === 'september' && token === 'sept')) + 1;
+  };
+  const namedDmy = /^(\d{1,2})(?:st|nd|rd|th)?[\s/-]+([a-z]+\.?)[\s,/-]+(\d{4})$/i.exec(text);
+  const namedMdy = /^([a-z]+\.?)\s+(\d{1,2})(?:st|nd|rd|th)?[\s,]+(\d{4})$/i.exec(text);
+  const parts = iso ? [+iso[1], +iso[2], +iso[3]]
+    : dmy ? [+dmy[3], +dmy[2], +dmy[1]]
+    : namedDmy ? [+namedDmy[3], monthNumber(namedDmy[2]), +namedDmy[1]]
+    : namedMdy ? [+namedMdy[3], monthNumber(namedMdy[1]), +namedMdy[2]] : [];
   const [year, month, day] = parts;
   const date = new Date(Date.UTC(year, month - 1, day));
   if (

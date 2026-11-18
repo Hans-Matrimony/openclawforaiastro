@@ -87,6 +87,33 @@ void test("invalid dates and times fail before loading the engine", async () => 
   }
 });
 
+void test('saved month-name dates normalize without guessing or changing the selected person', async () => {
+  for (const date of ['14 September 2002','14th september 2002','14 Sep 2002','14 Sept. 2002','September 14, 2002',' 14-september-2002 ']) {
+    let input;
+    await sourceReading('get_current_transits',{}, {date,time:'6:00 am',location_name:'Delhi'}, {
+      loadEngine:async()=>({get_current_transits:args=>{input=args;return {content:[]};}}),
+    });
+    assert.deepEqual(input,{birth_date:'14/9/2002',birth_time:'06:00',location_name:'Delhi'},date);
+  }
+  for (const date of ['31 June 2002','29 February 2001','14 Septober 2002','September 2002','next June','14 September 2002 or 2003']) {
+    await assert.rejects(sourceReading('get_current_transits',{}, {date,time:'06:00',place:'Delhi'}, {
+      loadEngine:()=>assert.fail('Invalid date must not reach calculator'),
+    }),/Invalid birth date/,date);
+  }
+});
+
+void test('selected self month-name profile reaches the real calculator despite model formatting', async () => {
+  const query='Meri shadi kab hogi';
+  const birth={date:'14 September 2002',time:'6:00 am',location_name:'Delhi'};
+  const execute=createTools({memory:{},birth,query,history:[],env:{VEDASTRO_DIRECT_FLOW:'source'}});
+  const actual=JSON.parse(await execute('mcp__VedAstro__get_horoscope_predictions',{
+    birth_date:'2002-09-14',birth_time:'06:00',location_name:'Delhi',query_text:query,
+  }));
+  const numeric=JSON.parse((await sourceReading('get_horoscope_predictions',{}, {...birth,date:'2002-09-14'}, {rawSource:true})).content[0].text);
+  assert.equal(actual.engine,'local-sweph-v2');
+  assert.deepEqual(actual,numeric);
+});
+
 void test("actual Dev calculation produces complete natal, transit, horary and matching tools", async () => {
   const birth = { date: "2001-01-03", time: "05:00", location_name: "Delhi" };
   const natal = JSON.parse(
