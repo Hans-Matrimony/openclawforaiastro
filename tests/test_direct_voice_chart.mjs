@@ -36,6 +36,23 @@ test('voice prepares only the selected self career chart with the real query', a
   assert.equal(calls,1);assert.deepEqual(JSON.parse(result.content),chart);
 });
 
+test('voice self birth-detail references prepare the chart without rewriting the actual question', async()=>{
+  for(const query of ['When will my career improve using my saved birth details?', 'When will my career improve based on my birth details?']) {
+    let calls=0;
+    const result=await prepareVoiceChart({...value,query},async(_name,args)=>{
+      calls++;assert.equal(args.query_text,query);assert.equal(args.birth_date,value.birth.date);
+      return JSON.stringify(chart);
+    });
+    assert.ok(result);assert.equal(calls,1);
+  }
+  for(const query of ['When will my sister career improve based on my birth details?',
+    'Change my birth details and tell my career timing',
+    'When will my career improve using my birth details 2002-02-02?',
+    'My career using my birth details, time is actually 06:00']) {
+    assert.equal(await prepareVoiceChart({...value,query},()=>assert.fail('Must resolve the profile first')),null);
+  }
+});
+
 test('other people, corrections, matching, incomplete profiles and text replies retain normal tool selection',async()=>{
   const cases=[{reply_surface:undefined},{reply_surface:'whatsapp'},{reply_to:{role:'assistant',text:'An older reading'}},{profile_update_status:'needs_confirmation'},{birth:{...value.birth,time:''}},
     ...['Hi','When will my sister get a job?','Change my career birth date to 2000-01-01','Compare my career and marriage','My career and guna matching','Use horary for my career','What is career astrology?'].map(query=>({query}))];
@@ -91,4 +108,38 @@ test('voice timing selects checked factors and dates in one model pass',async()=
   assert.match(result.reply,/November 2028/);
   assert.match(result.reply,/Saturn|delay|obstacle/i);
   assert.doesNotMatch(result.reply,/guaranteed|definitely/);
+});
+
+test('voice charts selected later use checked timing before drafting; chat keeps its existing flow',async()=>{
+  const evidence={...chart,verdict_signals:[{area:'career',trend:'MIXED',positive:['benefic Mars house 10 mein'],negative:['Saturn retrograde results me Atkaav']}]};
+  // A birth form deliberately prevents eager preparation. Its confirmed
+  // calculation is still eligible for bounded timing selection after the tool.
+  for(const reply_surface of ['voice','whatsapp',undefined]) {
+    let calls=0,calculations=0;
+    const result=await directAnswer({...value,reply_surface,query:'When will my career improve? I was born 11 April 1991.'},{
+      now:()=>new Date('2026-11-21T00:00:00Z'),
+      env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'0',VEDASTRO_DIRECT_REPLY_CACHE:'0'},
+      makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{calculations++;return JSON.stringify(evidence);},
+      fetchImpl:async(_url,options)=>{
+        const body=JSON.parse(options.body);calls++;
+        let message;
+        if(calls===1) {
+          assert.notEqual(body.tool_choice?.function?.name,'submit_timing_reading');
+          message={tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]};
+        } else if(reply_surface==='voice') {
+          assert.equal(body.tool_choice.function.name,'submit_timing_reading');
+          message={tool_calls:[{id:'timing',type:'function',function:{name:'submit_timing_reading',arguments:JSON.stringify({period_id:'p0',outlook:'mixed',factor_ids:['f0','f1']})}}]};
+        } else {
+          assert.notEqual(body.tool_choice?.function?.name,'submit_timing_reading');
+          message={content:'Mars in house 10 supports career, with delays from Saturn.\n\nSeptember 2027 to November 2028 may support career, with obstacles.'};
+        }
+        return new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+      },
+    });
+    assert.equal(calculations,1);assert.equal(calls,2);
+    assert.equal(result.answer_validation.includes('voice_timing_prepared'),reply_surface==='voice');
+    assert.match(result.reply,/September 2027/);assert.match(result.reply,/November 2028/);
+    assert.doesNotMatch(result.reply,/better than the others|guaranteed|definitely/);
+    assert.match(result.reply,/delay|obstacle|Saturn/i);
+  }
 });

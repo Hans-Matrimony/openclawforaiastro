@@ -469,6 +469,7 @@ export async function directAnswer(
     return result.choices[0].message.content;
   };
   if (sourceFlow && readingRequired && !emotionalFriendship && !matchingLimitations) {
+    if (voiceReply) validation.push(timingRequired ? 'voice_timing_question' : 'voice_general_question');
     const prepared = preparedVoiceChart;
     if (prepared) {
       readingTools.add('get_horoscope_predictions');
@@ -483,6 +484,8 @@ export async function directAnswer(
         pendingTimingRepair = preparedVoiceTiming(chartResults, value, now());
         if (pendingTimingRepair) validation.push('voice_timing_prepared');
       }
+    } else if (voiceReply) {
+      validation.push('voice_chart_not_prepared');
     }
   }
   for (let modelCalls = 1; modelCalls <= maxRounds; modelCalls++) {
@@ -671,6 +674,14 @@ export async function directAnswer(
         const comparison = topicPeriodContext(chartResults, value.query);
         if (comparison) {
           messages.push({ role: "user", content: comparison });
+        }
+        // A chart selected by the agent is the same checked evidence as a
+        // prepared chart. Use the bounded timing selector before a free-text
+        // draft can enter repeated chart-claim repairs. Unknown or conflicting
+        // evidence still retains the normal loop and all existing validators.
+        if (voiceReply && sourceFlow && !attemptedTimingRepair && !pendingTimingRepair) {
+          pendingTimingRepair = preparedVoiceTiming(chartResults, value, now());
+          if (pendingTimingRepair) validation.push('voice_timing_prepared');
         }
       }
       continue;

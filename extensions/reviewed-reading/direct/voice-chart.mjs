@@ -8,7 +8,11 @@ export async function prepareVoiceChart(value, execute, signal) {
       (value.profile_update_status && value.profile_update_status !== 'saved') ||
       /\b(?:guna?|matching|compatibility|marriage|shaadi|wedding|horary|prashna)\b/iu.test(value.query) ||
       !/\b(?:career|job|naukri|promotion)\b/iu.test(value.query)) return null;
-  const birth = selectedSelfBirth(value.query, value.birth);
+  // Realtime may refer to the account's birth details without repeating
+  // "saved". This is still a self reference, not a new birth form. Retain
+  // the existing correction, explicit-date and other-person exclusions.
+  const selfQuery = value.query.replace(/\bmy\s+(?:(?:saved|existing|stored)\s+)?birth\s+details\b/giu, 'my chart');
+  const birth = selectedSelfBirth(selfQuery, value.birth);
   if (!birth) return null;
   const call = {id:'voice_selected_career_chart',type:'function',function:{
     name:'mcp__VedAstro__get_horoscope_predictions',
