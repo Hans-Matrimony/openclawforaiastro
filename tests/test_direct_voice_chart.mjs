@@ -18,7 +18,7 @@ test('voice constrained timing declines incomplete factors and other surfaces',(
   const now=new Date('2026-11-14T00:00:00Z');
   assert.ok(preparedVoiceTiming([JSON.stringify(evidence)],value,now));
   for(const surface of [undefined,'whatsapp'])assert.equal(preparedVoiceTiming([JSON.stringify(evidence)],{...value,reply_surface:surface},now),null);
-  for(const factor of ['unknown factor','karak Saturn DEBILITATED (Aries) — karak weak',null]){
+  for(const factor of ['unknown factor','karak Saturn DEBILITATED (Aries) — guaranteed job loss',null]){
     const other=structuredClone(evidence);other.verdict_signals[0].negative.push(factor);
     assert.equal(preparedVoiceTiming([JSON.stringify(other)],value,now),null);
   }

@@ -534,7 +534,7 @@ export async function directAnswer(
             ? "required"
             : "auto",
       stream: false,
-      max_tokens: 4096,
+      max_tokens: voiceReply && pendingTimingRepair ? 256 : 4096,
       ...generation,
     };
     if (Buffer.byteLength(JSON.stringify(body)) > 131072) {

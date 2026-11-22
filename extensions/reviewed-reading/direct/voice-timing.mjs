@@ -1,4 +1,4 @@
-import {fallbackFactor} from './fallback-factors.mjs';
+import {voiceFactor} from './voice-factors.mjs';
 import {timingCorrection} from './timing-correction.mjs';
 
 // Use constrained selection only when every supplied career factor has a
@@ -13,8 +13,8 @@ export function preparedVoiceTiming(results, value, now) {
   if (!['positive', 'negative'].every(key => Array.isArray(signals[0][key]))) return null;
   const factors = ['positive', 'negative'].flatMap(key => Array.isArray(signals[0][key]) ? signals[0][key] : []);
   if (!factors.length || factors.some(source => {
-    const rendered = fallbackFactor(source, ['english', 'en'].includes(value.language));
+    const rendered = voiceFactor(source, ['english', 'en'].includes(value.language));
     return !rendered || rendered === source;
   })) return null;
-  return timingCorrection(results, value.query, value.language, now);
+  return timingCorrection(results, value.query, value.language, now, {renderFactor:voiceFactor});
 }

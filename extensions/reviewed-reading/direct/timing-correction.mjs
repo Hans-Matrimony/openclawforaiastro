@@ -6,7 +6,7 @@ import { periodFallback } from "./period-fallback.mjs";
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
 // with its start date, an invented month, or a promise about the event.
-export function timingCorrection(results, query, language, asOf) {
+export function timingCorrection(results, query, language, asOf, {renderFactor = fallbackFactor} = {}) {
   const subject = /sha+di|marriage|marry|married/i.test(query)
     ? ["shaadi", "marriage"]
     : /girlfriend|boyfriend|\bgf\b|\bbf\b|relationship|rishta/i.test(query)
@@ -71,7 +71,7 @@ export function timingCorrection(results, query, language, asOf) {
   const english = language === "english";
   const factors = ["positive", "negative"].flatMap((polarity) =>
     (Array.isArray(signals[0][polarity]) ? signals[0][polarity] : []).flatMap((source) => {
-      const text = fallbackFactor(source, english);
+      const text = renderFactor(source, english);
       return text ? [{ source, text, polarity }] : [];
     }),
   );

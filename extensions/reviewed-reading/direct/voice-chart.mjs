@@ -11,7 +11,9 @@ export async function prepareVoiceChart(value, execute, signal) {
   // Realtime may refer to the account's birth details without repeating
   // "saved". This is still a self reference, not a new birth form. Retain
   // the existing correction, explicit-date and other-person exclusions.
-  const selfQuery = value.query.replace(/\bmy\s+(?:(?:saved|existing|stored)\s+)?birth\s+details\b/giu, 'my chart');
+  const selfQuery = value.query
+    .replace(/\bmy\s+(?:(?:saved|existing|stored)\s+)?birth\s+details\b/giu, 'my chart')
+    .replace(/\b(?:about|for)\s+(?=my\s+(?:career|job|naukri|promotion|chart)\b)/giu, '');
   const birth = selectedSelfBirth(selfQuery, value.birth);
   if (!birth) return null;
   const call = {id:'voice_selected_career_chart',type:'function',function:{
