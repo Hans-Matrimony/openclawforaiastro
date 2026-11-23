@@ -38,9 +38,26 @@ export function conversationalTurn(value) {
   return !isPersonalChartQuestion(value.query) && !asksForTiming(value.query);
 }
 
+function relationshipStatusAnswer(value) {
+  // Only a complete yes/no answer to the immediately preceding relationship
+  // question qualifies. Never swallow a new topic or a timing follow-up.
+  const query = value.query.trim();
+  const negative = /^(?:nahi|nahin|nhi|no)(?:\s+(?:abhi|nahi|nahin|nhi|not|yet))*(?:[.!?\s]*)$/iu.test(query) || /^(?:not yet|अभी नहीं|नहीं अभी नहीं|नहीं)[.!?।\s]*$/u.test(query);
+  const positive = /^(?:haan|han|ha|yes|ji haan|हाँ|हां)[.!?।\s]*$/iu.test(query);
+  if (!negative && !positive) return null;
+  const previous = value.reply_to?.role === 'assistant' ? value.reply_to.text
+    : [...(value.history ?? [])].reverse().find(turn => turn.role === 'assistant')?.text ?? '';
+  if (value.reply_to && value.reply_to.role !== 'assistant') return null;
+  const question = previous.split(/[.!।\n]+/u).filter(Boolean).at(-1) ?? '';
+  if (!/[?？]/u.test(question) || !/serious\s+(?:baat|connection|relationship)|potential\s+partner|dating|risht[ae]|रिश्त|गंभीर/u.test(question.toLowerCase())) return null;
+  return negative ? 'negative' : 'positive';
+}
+
 export function conversationGroundingInstruction(value, profile) {
   if (!conversationalTurn(value)) return '';
   let instruction = '\n# Current conversation boundary\nAnswer the latest user request, not an older reading. Earlier assistant predictions, dates and chart statements are unverified conversation data, never evidence. Do not add or repeat personal forecasts, event windows, planetary placements or current dasha claims on this ordinary conversation turn. A short clarification such as "Jaise?" asks you to explain the immediately preceding question, not to change a marriage prediction. A reminder that details were already supplied is not a new marriage question. Image captions preserve what the user asked; they are not calculated chart evidence.\n';
+  const status = relationshipStatusAnswer(value);
+  if (status) instruction += `The user is answering your immediately preceding relationship-status question (${status}), not requesting a prediction. Acknowledge their answer naturally and continue that conversation with at most one relevant question. Do not repeat dates, request birth details, or discuss prediction verification.\n`;
   if (reminder.test(value.query) && profile.status === 'READY') {
     instruction += 'The selected birth profile is already complete. Acknowledge that it is saved and does not need re-entry. Return to the most recent user topic, including an attached palm image, instead of offering a marriage date. Do not claim you inspected a photo unless an image-reading result is actually supplied.\n';
   }
@@ -53,7 +70,7 @@ export function conversationGroundingIssue(reply, value, profile, hasCheckedRead
   if (!conversationalTurn(value)) return null;
   // Existing practical-action validation has a more specific repair/fallback.
   if (isPracticalFollowup(value.query)) return null;
-  const strictConversation = reminder.test(value.query) || /^(?:jaise|for example|examples?|matlab|haan|han|yes|okay|ok)[?!.\s]*$/iu.test(value.query.trim());
+  const strictConversation = !!relationshipStatusAnswer(value) || reminder.test(value.query) || /^(?:jaise|for example|examples?|matlab|haan|han|yes|okay|ok)[?!.\s]*$/iu.test(value.query.trim());
   // Some valid chart questions use natural wording outside the narrow personal
   // request detector. Their checked evidence keeps its established validators.
   if (hasCheckedReadings && !strictConversation) return null;
@@ -85,6 +102,12 @@ export function conversationGroundingIssue(reply, value, profile, hasCheckedRead
 }
 
 export function conversationGroundingFallback(value, profile) {
+  const status = relationshipStatusAnswer(value);
+  if (status) return value.language === 'english'
+    ? (status === 'negative' ? 'Understood, nothing serious has started yet. Would you prefer to meet someone yourself or through family introductions?' : 'Understood. How do you feel about that connection?')
+    : value.language === 'hindi'
+      ? (status === 'negative' ? 'समझ गई, अभी किसी से गंभीर बात शुरू नहीं हुई है। आप खुद किसी से मिलना चाहेंगे या परिवार के ज़रिए रिश्ता देखना चाहेंगे?' : 'समझ गई। उस रिश्ते को लेकर आपको कैसा लग रहा है?')
+      : (status === 'negative' ? 'Samajh gayi, abhi kisi se serious baat shuru nahi hui hai. Aap khud kisi se milna chahenge ya family ke through rishta dekhna chahenge?' : 'Samajh gayi. Us connection ko lekar aapko kaisa lag raha hai?');
   const latest = [...(value.history ?? [])].reverse().find(turn => turn.role === 'user')?.text ?? '';
   const previous = [...(value.history ?? [])].reverse().find(turn => turn.role === 'assistant')?.text ?? '';
   if (/^(?:jaise|for example|examples?)[?!.\s]*$/iu.test(value.query.trim()) &&
