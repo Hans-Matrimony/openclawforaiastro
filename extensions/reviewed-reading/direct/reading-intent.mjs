@@ -28,7 +28,7 @@ export function asksForTiming(query) {
   // definitions and ordinary requests for time outside this additional rule.
   if (/\b(?:time|timing)[ -]+window\b/iu.test(query) &&
       !/\b(?:define|definition|mean|meaning|matlab)\b/iu.test(query) &&
-      /\b(?:sha+di|marriage|marry|wedding|career|job|naukri|promotion)\b/iu.test(query) &&
+      /\b(?:sha+di|vivah|marriage|marry|wedding|career|job|naukri|promotion)\b/iu.test(query) &&
       /\?|\b(?:batao|bataiye|tell|show|give|which|what|expected|sambhavit)\b/iu.test(query)) {
     return true;
   }
@@ -93,7 +93,7 @@ export function isPersonalChartQuestion(query) {
     return false;
   }
   const topic =
-    /\b(?:marry|married|marriage|wedding|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exams?|padhai|padhaai|padhayi|parhai|finances?|financial|money|paisa|paise|kundli|horoscope|chart|birth chart)\b/;
+    /\b(?:marry|married|marriage|wedding|vivah|shaadi|shadi|girlfriend|boyfriend|gf|bf|crush|crsuh|partner|relationship|rishta|career|job|naukri|promotion|pormotion|education|studies|study|exams?|padhai|padhaai|padhayi|parhai|finances?|financial|money|paisa|paise|kundli|horoscope|chart|birth chart)\b/;
   const personal = /\b(?:i|my|me|meri|mera|mere|mujhe|mujhse|main)\b/;
   const request =
     /\?|\b(?:tell me|batao|bataiye|kaisa|kaisi|kaise|kya|kab|kb|hogi|hoga|lagegi|will|when|should|can|which|how|reading|predict|analy[sz]e|kundli)\b/;
