@@ -810,8 +810,8 @@ export async function directAnswer(
       continue;
     }
     const practicalLanguageMismatch = practicalFollowup && englishOnlyPracticalReply(value, reply);
-    if (practicalFollowup && (repeatsPrediction(reply) || stalePracticalReply(value.query, reply) || practicalLanguageMismatch)) {
-      validation.push(repeatsPrediction(reply) ? "practical_prediction_rejected" : practicalLanguageMismatch ? "practical_language_rejected" : "practical_stale_topic_rejected");
+    if (practicalFollowup && (repeatsPrediction(reply, value.query) || stalePracticalReply(value.query, reply) || practicalLanguageMismatch)) {
+      validation.push(repeatsPrediction(reply, value.query) ? "practical_prediction_rejected" : practicalLanguageMismatch ? "practical_language_rejected" : "practical_stale_topic_rejected");
       if (!correctedPractical && modelCalls < maxRounds) {
         correctedPractical = true;
         messages.push({ role: "user", content: practicalInstruction + "\nCurrent request: " + JSON.stringify(value.query) +

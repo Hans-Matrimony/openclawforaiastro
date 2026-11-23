@@ -1,4 +1,5 @@
 import {isPersonalChartQuestion, asksForTiming, isPracticalFollowup} from './reading-intent.mjs';
+import {userEventDate} from './user-event-date.mjs';
 
 const reminder = /\b(?:already|pehle|pahle)\b.{0,60}\b(?:details?|provided|diya|diye|de\s*rakh|de\s*rekh|bata)|\bdetails?\b.{0,45}\b(?:already|pehle|pahle)|पहले.{0,35}(?:जानकारी|विवरण|बताया|दी|दिया)/iu;
 const palm = /\bpalm(?:istry)?\b|\b(?:haath|hath|hand)\b.{0,30}\b(?:read|padh|pad|dekh)|हथेली|हस्तरेखा|हाथ.{0,20}(?:पढ़|देख)/iu;
@@ -89,7 +90,7 @@ export function conversationGroundingIssue(reply, value, profile, hasCheckedRead
   // Even a tool call cannot make an unsolicited prediction relevant to a
   // conversational acknowledgement. General astrology definitions stay valid.
   const generalDefinition = /^(?:what\s+(?:is|are|does)|how\s+does|explain|define)\b|\b(?:kya\s+hota|matlab|meaning|definition)\b/iu.test(value.query);
-  const scheduledByUser = /\b(?:scheduled|booked|fixed|confirmed|decided|tay\s+hai|date\s+fix)\b/iu.test(value.query) &&
+  const scheduledByUser = userEventDate(reply, value.query) || /\b(?:scheduled|booked|fixed|confirmed|decided|tay\s+hai|date\s+fix)\b/iu.test(value.query) &&
     [...reply.matchAll(/\b(?:19|20)\d{2}\b/gu)].every(match => value.query.includes(match[0]));
   if ((!generalDefinition && ((!scheduledByUser && (dated.test(reply) || periodWindow.test(reply) ||
         (currentPeriod.test(reply) && favourablePeriod.test(reply))) && forecast.test(reply)) ||
@@ -101,7 +102,7 @@ export function conversationGroundingIssue(reply, value, profile, hasCheckedRead
   return null;
 }
 
-export function conversationGroundingFallback(value, profile) {
+function legacyConversationFallback(value, profile) {
   const status = relationshipStatusAnswer(value);
   if (status) return value.language === 'english'
     ? (status === 'negative' ? 'Understood, nothing serious has started yet. Would you prefer to meet someone yourself or through family introductions?' : 'Understood. How do you feel about that connection?')
@@ -133,7 +134,16 @@ export function conversationGroundingFallback(value, profile) {
       : 'Bina jaanch ke purani prediction dohrana sahi nahi hoga. Mere pichhle jawab ki kis baat ko saaf karun?';
 }
 
+export function conversationGroundingFallback(value, profile) {
+  const reply = legacyConversationFallback(value, profile);
+  const generic = legacyConversationFallback({query:'',history:[],language:value.language},profile);
+  if (reply !== generic) return reply;
+  return value.language === 'english' ? 'I may have misunderstood your last message. Could you say a little more about what you mean?'
+    : value.language === 'hindi' ? '???? ???? ????? ??? ??? ?? ??? ???? ??? ????? ?? ??????? ?? ???? ???? ???? ???'
+      : 'Shayad aapki pichhli baat theek se samajh nahi aayi. Thoda aur batayenge ki aapka kya matlab hai?';
+}
+
 export function isUnresolvedPredictionNotice(text) {
   return typeof text === 'string' && ['english','hindi','hinglish'].some(language =>
-    text.trim() === conversationGroundingFallback({query:'',history:[],language},{status:'VERIFIED_EMPTY'}));
+    [conversationGroundingFallback,legacyConversationFallback].some(fn => text.trim() === fn({query:'',history:[],language},{status:'VERIFIED_EMPTY'})));
 }
