@@ -3,7 +3,7 @@ import { sourceHouseRuler } from "./house-evidence.mjs";
 // Expose natal relationships for comparison, not invented event scores or dates.
 export function topicPeriodEvidence(results, query) {
   const topics = [
-    ["marriage", /sha+di|marri|wedding/i, [7]],
+    ["marriage", /sha+di|vivah|marri|wedding/i, [7]],
     ["relationship", /girlfriend|boyfriend|\bgf\b|\bbf\b|crush|relationship|rishta/i, [5, 7]],
     ["career", /career|job|naukri|promotion/i, [10]],
     ["money", /financ|money|pais|income|salary/i, [2, 11]],

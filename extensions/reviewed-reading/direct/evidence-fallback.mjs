@@ -19,7 +19,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     ? "career"
     : /financ|money|pais|income/i.test(query)
       ? "money"
-      : /sha+di|marriage|marry|married|wedding|partner/i.test(query)
+      : /sha+di|vivah|marriage|marry|married|wedding|partner/i.test(query)
         ? "marriage"
         : null;
   const rows = results.flatMap((raw) => {

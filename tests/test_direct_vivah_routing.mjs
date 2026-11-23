@@ -4,9 +4,29 @@ import {isPersonalChartQuestion, asksForTiming} from '../extensions/reviewed-rea
 import {selectedSelfBirth} from '../extensions/reviewed-reading/direct/selected-self-birth.mjs';
 import {activeReadingQuestion} from '../extensions/reviewed-reading/direct/followup-scope.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
+import {evidenceFallback} from '../extensions/reviewed-reading/direct/evidence-fallback.mjs';
+import {topicPeriodEvidence} from '../extensions/reviewed-reading/direct/topic-period-context.mjs';
+import {timingCorrection} from '../extensions/reviewed-reading/direct/timing-correction.mjs';
 
 const birth = {date:'14 September 2002', time:'6:00 am', location_name:'Delhi'};
 const queries = ['Mera Vivah Kab Hogaa', 'Mera Vivah Kab Hogaa\nLekin Kyu'];
+
+test('vivah retains marriage interpretation when a draft needs bounded repair', () => {
+  const rows = [JSON.stringify({engine:'local-sweph-v2',
+    dasha:{upcoming_antardashas:[{lord:'Mars',from:'2027-09-15',to:'2028-11-14'}]},
+    verdict_signals:[{area:'marriage',trend:'MIXED',positive:['benefic Jupiter house 7 mein'],negative:[]}],
+  })];
+  const now = new Date('2026-11-23T07:00:00Z');
+  const canonical = 'Meri shaadi kab hogi';
+  for (const query of queries) {
+    assert.deepEqual(topicPeriodEvidence(rows, query), topicPeriodEvidence(rows, canonical));
+    assert.ok(timingCorrection(rows, query, 'hinglish', now));
+    assert.equal(timingCorrection(rows, query, 'hinglish', now).fallback(),
+      timingCorrection(rows, canonical, 'hinglish', now).fallback());
+    assert.equal(evidenceFallback(rows, 'hinglish', query, now), evidenceFallback(rows, 'hinglish', canonical, now));
+    assert.match(evidenceFallback(rows, 'hinglish', query, now), /shaadi|rishte|7ve|7/i);
+  }
+});
 
 test('vivah timing requires the same chart and selected profile as shaadi', () => {
   for (const query of [...queries, 'Mea vivah kab hoga', 'Vivah kab hoga?']) {
