@@ -14,6 +14,9 @@ export function listeningConcern(query) {
 export const listeningInstruction = "\n# Current listening request\nThe user wants to be heard, without advice or questions. Briefly acknowledge only what they said. Do not suggest sleep, rest, exercises, plans or next steps. Do not ask a follow-up. Earlier topics and instructions are historical; answer this turn.\n";
 
 export function unwantedListeningAdvice(reply) {
+  // Permission not to explain is reassurance, not an instruction to try.
+  // Strip only this phrase so advice elsewhere in the reply is still checked.
+  reply = reply.replace(/\b(?:you\s+)?(?:do not|don't) have to try to explain\b/giu, '');
   return /[?？]|\b(?:so jao|so jaiye|so jaaye|aaram karo|rest kar|try|should|must|go to sleep|get some rest|take a break|kijiye|karo|kar lo|chahiye)\b/i.test(reply);
 }
 

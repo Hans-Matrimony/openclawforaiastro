@@ -1,8 +1,12 @@
+import {userEventDate} from './user-event-date.mjs';
+
 // A concern-sharing turn is not permission to generate a chart prediction.
 export function ordinaryReply(reply, value) {
+  // Preserve a supplied event date, but never exempt additional chart claims.
+  const checkedReply = userEventDate(reply, value.query) ? reply.replace(/\b20\d{2}\b/gu, '') : reply;
   if (
     !/\b(?:house\s*\d+|\d+(?:st|nd|rd|th)\s+house|dasha|antardasha|transits?|Jupiter|Saturn|Venus|Mercury|Rahu|Ketu|kundli|yog|20\d{2})\b/i.test(
-      reply,
+      checkedReply,
     )
   ) {
     return reply;

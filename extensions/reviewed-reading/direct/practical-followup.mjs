@@ -4,6 +4,9 @@ export const practicalInstruction =
   "\n\n# Practical next step\nThe current question asks for a practical action, not a new chart reading or prediction. Give one or two concrete, reversible steps relevant to the user's stated goal. Use history for their circumstances, not as proof that past predictions are true. An earlier request to just listen or avoid advice applied to that earlier turn; the current explicit request for a step takes precedence. Do not continue an earlier tiredness conversation instead of answering the current goal. Do not repeat planets, dashas, predicted future years, or a reading/verdict format. You may refer to a concrete event date supplied by the user without predicting its outcome. Do not advise delaying applications, rejecting opportunities or avoiding a job change because of astrology. Do not call chart tools for this request. Keep the answer brief and leave any friendly question to the companion stage.\n";
 
 export function repeatsPrediction(reply, query = '') {
+  // Rejecting astrology as a basis for a practical decision is not a reading.
+  // Only exempt the explicit negation; subsequent predictions remain visible.
+  reply = reply.replace(/\b(?:do not|don't) base your (?:job|career) decision on (?:a |your )?(?:horoscope|kundli)\b/giu, '');
   return (/\b20\d{2}\b/u.test(reply) && !userEventDate(reply, query)) || /\b(?:dasha|antardasha|Jupiter|Saturn|Rahu|Ketu|kundli|horoscope)\b|\bjob\s+change\s+(?:mat|nahi)\b/i.test(reply);
 }
 

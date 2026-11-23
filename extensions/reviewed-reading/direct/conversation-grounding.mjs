@@ -42,7 +42,7 @@ export function conversationalTurn(value) {
 function relationshipStatusAnswer(value) {
   // Only a complete yes/no answer to the immediately preceding relationship
   // question qualifies. Never swallow a new topic or a timing follow-up.
-  const query = value.query.trim();
+  const query = value.query.replace(/[,，]+/gu, ' ').replace(/\s+/gu, ' ').trim();
   const negative = /^(?:nahi|nahin|nhi|no)(?:\s+(?:abhi|nahi|nahin|nhi|not|yet))*(?:[.!?\s]*)$/iu.test(query) || /^(?:not yet|अभी नहीं|नहीं अभी नहीं|नहीं)[.!?।\s]*$/u.test(query);
   const positive = /^(?:haan|han|ha|yes|ji haan|हाँ|हां)[.!?।\s]*$/iu.test(query);
   if (!negative && !positive) return null;
