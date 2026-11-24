@@ -2,6 +2,7 @@ import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fi
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
 import {foreignChartContext} from './foreign-reading.mjs';
 import { omittedSupportedTiming } from "./topic-period-context.mjs";
+import { conversationProgressEnabled, conversationProgressInstruction, conversationalHistory, repeatsClarification } from "./conversation-progress.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { chartGroundingConflicts, chartClarificationFallback } from './chart-grounding.mjs';
@@ -98,7 +99,8 @@ function clampReadingBubble(text, maxWords) {
     if (count + item.w <= maxWords) {
       kept.add(item.i);
       count += item.w;
-    } else if (kept.size === 0) {
+    }
+    else if (kept.size === 0) {
       return item.s.split(/\s+/).slice(0, maxWords).join(" ") + "…";
     }
   }
@@ -216,6 +218,7 @@ export async function directAnswer(
     throw new Error("Direct model not configured");
   }
   const sourceFlow = env.VEDASTRO_DIRECT_FLOW === "source";
+  const progressPilot = conversationProgressEnabled(env, value.user_id);
   if (sourceFlow && !release && env.VEDASTRO_DIRECT_ENVIRONMENT !== "development") {
     throw new Error("Source flow requires development or an authorized release pilot");
   }
@@ -228,7 +231,9 @@ export async function directAnswer(
   const originalQuery = value.query;
   const matchingLimitations = quotedMatchingLimitations(value);
   const activeQuestion = activeReadingQuestion(value);
-  if (activeQuestion !== value.query) value = {...value, query: activeQuestion};
+  // The pilot keeps the actual utterance: history supplies its referent without
+  // silently turning a request for guidance into the prior prediction question.
+  if (!progressPilot && activeQuestion !== value.query) value = {...value, query: activeQuestion};
   const acknowledgement = groundedConversationReply(value, savedBirthContext(value.birth));
   if (acknowledgement) {
     return {
@@ -327,7 +332,14 @@ export async function directAnswer(
         "\\u003c",
       );
   }
-  const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(activeQuestion) || asksGunaScore(value.query));
+  const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(progressPilot && !asksForTiming(originalQuery) ? originalQuery : activeQuestion) || asksGunaScore(value.query));
+  // Scope the imported astrology-only prohibition instead of layering a
+  // contradictory friendship instruction over it. Guidance remains allowed;
+  // predictions still require the same checked tools and validation below.
+  if (progressPilot && !readingRequired) context.prompt = context.prompt.replace(
+    "Generic advice or invented chart narration is a failure.",
+    "For an explicit astrology reading, generic advice must not replace the requested checked interpretation, and invented chart narration is a failure. For ordinary conversation or requested practical guidance, answer naturally without requiring birth details. Use the full dialogue to distinguish these tasks.",
+  );
   const matchingSelfProfile = asksGunaScore(value.query) && context.profile.status === 'READY' &&
     ['male','female'].includes(value.user_gender) &&
     !/\b(?:friend|mother|father|sister|brother|dost|behen|bhai)\b/iu.test(value.query) &&
@@ -370,9 +382,8 @@ export async function directAnswer(
   context.prompt += whatsappStyleInstruction(value);
   context.prompt += conversationGroundingInstruction(value, context.profile);
   const messages = [
-    { role: "system", content: context.prompt + (sourceFlow && !emotionalFriendship && !ordinaryConcern && !practicalFollowup ? readingPresentationInstruction : "") },
-    ...value.history
-      .filter((turn) => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user")
+    { role: "system", content: context.prompt + (progressPilot && !readingRequired ? conversationProgressInstruction : "") + (sourceFlow && (progressPilot ? readingRequired : !emotionalFriendship && !ordinaryConcern && !practicalFollowup) ? readingPresentationInstruction : "") },
+    ...(progressPilot ? conversationalHistory(value.history, ordinaryConcern || practicalFollowup) : value.history.filter(turn => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user"))
       .map((turn) => ({
         role: turn.role,
         content: redactIdentity(turn.text, value.user_id),
@@ -387,6 +398,7 @@ export async function directAnswer(
   }
   let nudged = false;
   let correctedEmotionalReply = false;
+  let correctedClarification = false;
   let upstreamCalls = 0;
   const fetchModel = createModelRequest({
     fetchImpl,
@@ -708,6 +720,14 @@ export async function directAnswer(
     ) {
       throw new Error("Incomplete direct reply");
     }
+    if (progressPilot && !readingRequired && !emotionalFriendship && !correctedClarification &&
+        modelCalls < maxRounds && upstreamCalls < maxCalls && repeatsClarification(reply, value.history)) {
+      correctedClarification = true;
+      validation.push("repeated_clarification_rewrite");
+      messages.push({ role: "user", content:
+        "Revise the draft: it repeats a clarification you already asked. Use the existing conversation to answer the current request. If the missing detail prevents a specific answer, explain that limitation and give useful conditional guidance instead of asking the same question again. Do not invent chart evidence or personal facts." + rejectedDraftContext(reply) });
+      continue;
+    }
     const emotionalIssue = emotionalFriendship ? emotionalReplyIssue(reply, value) : null;
     if (missingMatchingBirth && !readingTools.has('get_match_report')) {
       reply = unconfirmedMatchingReply();
@@ -1013,6 +1033,7 @@ export async function directAnswer(
         const closingValue = (readingRequired || readingTools.size > 0) && value.reply_surface !== "whatsapp"
           ? { ...value, history: [], readingOnlyClosing: true } : value;
         finalReply = await contextualClosing(formatted, closingValue, {
+          progressPilot,
           facts: closingValue.readingOnlyClosing ? [] : context.memoryFacts,
           redact: (text) => redactIdentity(text, value.user_id),
           generate: generateClosing,
