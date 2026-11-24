@@ -3,11 +3,11 @@ import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fi
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
 import {foreignChartContext} from './foreign-reading.mjs';
 import { omittedSupportedTiming, resolveReadingTopic } from "./topic-period-context.mjs";
-import { relationshipAssessmentInstruction, isBarePeriodSchedule, isFailedReadingResult, relationshipVerdictIssue, hasOnlyNatalRelationshipEvidence } from './pilot-relationship-reading.mjs';
+import { readingCompletenessInstruction, readingTopicArea, requestsPeriodSchedule, isBarePeriodSchedule, isFailedReadingResult, readingUnavailableIssue, readingVerdictIssue as sharedReadingVerdictIssue, hasOnlyNatalRelationshipEvidence } from './pilot-relationship-reading.mjs';
 import { conversationProgressEnabled, conversationProgressInstruction, conversationalHistory, repeatsClarification } from "./conversation-progress.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
-import { chartGroundingConflicts, chartClarificationFallback } from './chart-grounding.mjs';
+import { chartGroundingConflicts, chartClarificationFallback, isChartClarification } from './chart-grounding.mjs';
 import { readingContext, savedBirthContext, ignoresMemory } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming as legacyUnsupportedEventTiming } from "./event-timing.mjs";
@@ -223,9 +223,14 @@ export async function directAnswer(
   const progressPilot = conversationProgressEnabled(env, value.user_id);
   const conversationV2Pilot = progressPilot && sourceFlow && value.reply_surface === 'whatsapp' &&
     env.ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED === '1';
-  let relationshipPilot = conversationV2Pilot && resolveReadingTopic(value.query)?.topic === 'relationship';
-  let relationshipSubject = relationshipPilot ? value.query : null;
-  let readingOptions = relationshipPilot ? {topic:'relationship'} : undefined;
+  const acceptsCompleteness = query => !isChartClarification(query) && !isForeignTravelQuestion(query) && !asksGunaScore(query) && !asksForRemedy(query,value.history) && !requestsPeriodSchedule(query);
+  const supportedTopic = query => {const topic=resolveReadingTopic(query)?.topic;return acceptsCompleteness(query) && readingTopicArea(topic) ? topic : null;};
+  const initialTopic = conversationV2Pilot ? supportedTopic(value.query) : null;
+  let completenessPilot = Boolean(initialTopic);
+  let readingSubject = completenessPilot ? value.query : null;
+  let readingOptions = completenessPilot ? {topic:initialTopic} : undefined;
+  const completenessInstruction = () => readingCompletenessInstruction(readingOptions?.topic);
+  const readingVerdictIssue = (reply,results) => sharedReadingVerdictIssue(reply,results,readingOptions?.topic);
   const evidenceFallback = (results,language,query,asOf) => legacyEvidenceFallback(results,language,query,asOf,readingOptions);
   const timingCorrection = (results,query,language,asOf) => legacyTimingCorrection(results,query,language,asOf,readingOptions);
   const unsupportedEventTiming = (reply,results,query) => legacyUnsupportedEventTiming(reply,results,query,readingOptions);
@@ -294,14 +299,15 @@ export async function directAnswer(
     }
   }
   if (conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading' &&
-      !resolveReadingTopic(value.query) && !value.reply_to) {
+      !resolveReadingTopic(value.query) && !value.reply_to && acceptsCompleteness(value.query)) {
     // A semantic reading follow-up may have no topic words. Resolve it only
     // from the immediately preceding user subject, never past a topic change.
     const previousUser = [...(value.history ?? [])].toReversed().find(turn=>turn.role==='user');
-    if (resolveReadingTopic(previousUser?.text ?? '')?.topic === 'relationship') {
-      relationshipPilot = true;
-      relationshipSubject = previousUser.text;
-      readingOptions = {topic:'relationship'};
+    const previousTopic = supportedTopic(previousUser?.text ?? '');
+    if (previousTopic) {
+      completenessPilot = true;
+      readingSubject = previousUser.text;
+      readingOptions = {topic:previousTopic};
     }
   }
   // The bounded conversation stage must not consume the existing reading and
@@ -425,10 +431,14 @@ export async function directAnswer(
     !isDeathTimingQuestion(value.query) &&
     asksForTiming(activeQuestion);
   if (sourceFlow && readingRequired) {
-    if (relationshipPilot) {context.prompt += relationshipAssessmentInstruction;}
-    if (relationshipSubject && relationshipSubject !== value.query) {context.prompt +=
+    // Missing birth details retain the existing clarification request. The
+    // output checks below still apply if a current tool supplies the evidence.
+    if (completenessPilot && (readingOptions.topic === 'relationship' || context.profile.status === 'READY')) {
+      context.prompt += completenessInstruction();
+    }
+    if (readingSubject && readingSubject !== value.query) {context.prompt +=
       '\nThis checked-reading follow-up asks for a direct assessment of the immediately preceding user question: ' +
-      JSON.stringify(redactIdentity(relationshipSubject,value.user_id)) +
+      JSON.stringify(redactIdentity(readingSubject,value.user_id)) +
       '. Answer the latest request about that subject. Earlier assistant dates are not evidence; use current tools.\n';}
     context.prompt +=
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
@@ -661,11 +671,11 @@ export async function directAnswer(
     if (!choice?.message) {
       throw new Error("Missing direct reply");
     }
-    let renderedRelationshipTiming = false;
+    let renderedPilotTiming = false;
     if (pendingTimingRepair) {
       attemptedTimingRepair = true;
       const repaired = pendingTimingRepair.render(choice.message);
-      renderedRelationshipTiming = relationshipPilot && Boolean(repaired);
+      renderedPilotTiming = completenessPilot && Boolean(repaired);
       pendingTimingRepair = null;
       choice.message = {
         role: "assistant",
@@ -742,6 +752,10 @@ export async function directAnswer(
           content: results[index],
         });
       });
+      if (completenessPilot && results.some(result=>result.startsWith('Tool failed:')) &&
+          hasOnlyNatalRelationshipEvidence(chartResults)) {
+        messages.push({role:'user',content:'A supplementary calculation failed, but the successful natal chart results above remain available. Use their checked topic indications and reasons for a qualified answer. Distinguish the unavailable calculation from the available evidence; do not say all tools failed, discard the natal result, or keep retrying the same failed tool.'});
+      }
       const foreignContext=foreignChartContext(chartResults,value.query);
       if(foreignContext){messages.push({role:'user',content:foreignContext});}
       if (missingMatchingBirth && !readingTools.has('get_match_report')) {
@@ -1053,14 +1067,14 @@ export async function directAnswer(
     // A checked renderer may need a few extra words to retain both sides of
     // mixed evidence and the full window. Do not rewrite it just for brevity.
     const wordingIssue = readingTools.size > 0 ? (readingPresentationIssue(formatDisplayReply(reply)) ||
-      (!renderedRelationshipTiming && whatsappWordingIssue(formatDisplayReply(reply), value)) ||
-      (relationshipPilot ? relationshipVerdictIssue(reply,chartResults) ||
-        (isBarePeriodSchedule(reply,chartResults,value.language,now()) ? relationshipAssessmentInstruction : null) : null)) : null;
+      (!renderedPilotTiming && whatsappWordingIssue(formatDisplayReply(reply), value)) ||
+      (completenessPilot ? readingUnavailableIssue(reply,chartResults,readingOptions.topic) || readingVerdictIssue(reply,chartResults) ||
+        (isBarePeriodSchedule(reply,chartResults,value.language,now()) ? completenessInstruction() : null) : null)) : null;
     if (wordingIssue) {
       validation.push("reading_wording_rejected");
       // For this pilot, repair a rejected timing draft through the existing
       // checked factor/period selector rather than another unconstrained edit.
-      if (relationshipPilot && timingRequired && hasOnlyNatalRelationshipEvidence(chartResults) && !attemptedTimingRepair &&
+      if (completenessPilot && timingRequired && hasOnlyNatalRelationshipEvidence(chartResults) && !attemptedTimingRepair &&
           modelCalls < maxRounds && upstreamCalls < maxCalls) {
         pendingTimingRepair = timingCorrection(chartResults,value.query,value.language,now());
         if (pendingTimingRepair) {
@@ -1169,8 +1183,8 @@ export async function directAnswer(
       publishableReply = formatDisplayReply(evidenceFallback(chartResults, 'english', value.query, now()));
       validation.push('english_language_fallback');
     }
-    if (relationshipPilot && readingTools.size > 0 &&
-        (isBarePeriodSchedule(publishableReply,chartResults,value.language,now()) || relationshipVerdictIssue(publishableReply,chartResults))) {
+    if (completenessPilot && readingTools.size > 0 &&
+        (isBarePeriodSchedule(publishableReply,chartResults,value.language,now()) || readingUnavailableIssue(publishableReply,chartResults,readingOptions.topic) || readingVerdictIssue(publishableReply,chartResults))) {
       publishableReply = formatDisplayReply(evidenceFallback(chartResults,value.language,value.query,now()));
       validation.push('relationship_assessment_restored');
     }

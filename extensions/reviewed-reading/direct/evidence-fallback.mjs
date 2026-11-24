@@ -4,7 +4,7 @@ import { asksForTiming } from "./reading-intent.mjs";
 import { timingCorrection } from "./timing-correction.mjs";
 import { chartClarificationFallback } from './chart-grounding.mjs';
 import {foreignChartSummary} from './foreign-reading.mjs';
-import {relationshipAssessment} from './pilot-relationship-reading.mjs';
+import {readingAssessment,readingTopicArea} from './pilot-relationship-reading.mjs';
 
 const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
 const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
@@ -16,13 +16,13 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
   const foreign=foreignChartSummary(results,language,query);
   if(foreign){return foreign;}
   const english = language === "english";
-  const area = topic === 'relationship' ? 'marriage' : /career|job|work|naukri|fields?/i.test(query)
+  const area = readingTopicArea(topic) ?? (/career|job|work|naukri|fields?/i.test(query)
     ? "career"
     : /financ|money|pais|income/i.test(query)
       ? "money"
       : /sha+di|vivah|marriage|marry|married|wedding|partner/i.test(query)
         ? "marriage"
-        : null;
+        : null);
   const rows = results.flatMap((raw) => {
     try {
       const d = JSON.parse(raw);
@@ -42,10 +42,10 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     subjects.size <= 1 && signals.every((s) => JSON.stringify(s) === JSON.stringify(signals[0]))
       ? signals[0]
       : null;
-  if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signal?.trend)) {
+  if (readingTopicArea(topic) && !['POSITIVE','NEGATIVE','MIXED'].includes(signal?.trend)) {
     return english ? UNVERIFIED_EN : UNVERIFIED_HI;
   }
-  const assessment = topic === 'relationship' && signal ? relationshipAssessment(signal.trend,language) : '';
+  const assessment = signal ? readingAssessment(signal.trend,language,topic) : '';
   if (area && asksForTiming(query)) {
     const checked = timingCorrection(results, query, language, asOf, {topic})?.fallback();
     // Keep a qualified interpretation when available; otherwise the repair
@@ -65,7 +65,9 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       )
       .filter(Boolean)
       .join(english ? ", while " : ", lekin ");
-    if (topic === 'relationship' && !timing) {return assessment + (factors ? ' '+factors+'.' : '');}
+    if (assessment && !timing && !(area === 'career' && /\b(?:fields?|directions?|options?|roles?|professions?)\b/iu.test(query))) {
+      return assessment + (factors ? ' '+factors+'.' : '');
+    }
     const leadIn = {
       career: english ? "Career timing" : "Career ka waqt",
       money: english ? "Money timing" : "Paise ki sthiti",

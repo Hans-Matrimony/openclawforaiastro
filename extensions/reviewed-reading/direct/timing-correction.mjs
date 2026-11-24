@@ -2,13 +2,15 @@ import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
 import { periodFallback } from "./period-fallback.mjs";
-import { relationshipAssessment } from './pilot-relationship-reading.mjs';
+import { readingAssessment,readingTopicArea } from './pilot-relationship-reading.mjs';
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
 // with its start date, an invented month, or a promise about the event.
 export function timingCorrection(results, query, language, asOf, {renderFactor = fallbackFactor,topic} = {}) {
-  const subject = topic === 'relationship' ? ['rishte ka aage badhna','relationship progress'] : /sha+di|vivah|marriage|marry|married/i.test(query)
+  const subject = readingTopicArea(topic) ? {
+    relationship:['rishte ka aage badhna','relationship progress'],marriage:['shaadi','marriage'],career:['career','career'],money:['aarthik sudhaar','financial improvement']
+  }[topic] : /sha+di|vivah|marriage|marry|married/i.test(query)
     ? ["shaadi", "marriage"]
     : /girlfriend|boyfriend|\bgf\b|\bbf\b|relationship|rishta/i.test(query)
       ? ["naya rishta", "a new relationship"]
@@ -58,18 +60,18 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
   if (!periods.length) {
     return null;
   }
-  const area = topic === 'relationship' || ["shaadi", "naya rishta"].includes(subject[0])
+  const area = readingTopicArea(topic) ?? (["shaadi", "naya rishta"].includes(subject[0])
     ? "marriage"
     : subject[0] === "career"
       ? "career"
-      : "money";
+      : "money");
   const signals = rows
     .flatMap((r) => (Array.isArray(r.verdict_signals) ? r.verdict_signals : []))
     .filter((s) => s?.area === area);
   if (!signals.length || new Set(signals.map((s) => JSON.stringify(s))).size !== 1) {
     return null;
   }
-  if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signals[0].trend)) {return null;}
+  if (readingTopicArea(topic) && !['POSITIVE','NEGATIVE','MIXED'].includes(signals[0].trend)) {return null;}
   const english = language === "english";
   const factors = ["positive", "negative"].flatMap((polarity) =>
     (Array.isArray(signals[0][polarity]) ? signals[0][polarity] : []).flatMap((source) => {
@@ -183,7 +185,7 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
       }
       const explanation = selected.map((f) => f.text.replace(/[.!?]+$/, "") + ".").join(" ");
       const partner = includePartner && area === "marriage" ? partnerFallback(rows, language, query) : "";
-      const assessment = topic === 'relationship' ? relationshipAssessment(signals[0].trend,language) : '';
+      const assessment = readingAssessment(signals[0].trend,language,topic);
       const first = (assessment ? assessment+' ' : '') + explanation + (partner ? " " + partner : "");
       if (data.period_id === "none") {
         if (data.outlook !== "undetermined") {
