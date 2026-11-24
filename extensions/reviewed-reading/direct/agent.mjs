@@ -3,7 +3,7 @@ import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fi
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
 import {foreignChartContext} from './foreign-reading.mjs';
 import { omittedSupportedTiming, resolveReadingTopic } from "./topic-period-context.mjs";
-import { relationshipAssessmentInstruction, isBarePeriodSchedule, isFailedReadingResult, relationshipVerdictIssue } from './pilot-relationship-reading.mjs';
+import { relationshipAssessmentInstruction, isBarePeriodSchedule, isFailedReadingResult, relationshipVerdictIssue, hasOnlyNatalRelationshipEvidence } from './pilot-relationship-reading.mjs';
 import { conversationProgressEnabled, conversationProgressInstruction, conversationalHistory, repeatsClarification } from "./conversation-progress.mjs";
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
@@ -89,7 +89,7 @@ function bubbleWordCount(text) {
 // Deterministic reading-bubble cap: year-bearing sentences survive trimming
 // first, so the timing always survives the length budget.
 function clampReadingBubble(text, maxWords) {
-  if (bubbleWordCount(text) <= maxWords) return text;
+  if (bubbleWordCount(text) <= maxWords) {return text;}
   const sents = String(text)
     .split(/(?<=[.!?।])\s+/)
     .map((s) => s.trim())
@@ -107,13 +107,13 @@ function clampReadingBubble(text, maxWords) {
     }
   }
   for (const item of items) {
-    if (kept.has(item.i)) continue;
+    if (kept.has(item.i)) {continue;}
     if (count + item.w <= maxWords) {
       kept.add(item.i);
       count += item.w;
     }
   }
-  if (kept.size === 0) return items[0].s.split(/\s+/).slice(0, maxWords).join(" ") + "…";
+  if (kept.size === 0) {return items[0].s.split(/\s+/).slice(0, maxWords).join(" ") + "…";}
   return items.filter((x) => kept.has(x.i)).map((x) => x.s).join(" ");
 }
 
@@ -140,13 +140,13 @@ async function shortenVerdictBubble(verdict, { fetchModel, signal, env }) {
       stream: false,
     }),
   });
-  if (!response.ok) throw new Error("Verdict shorten unavailable");
+  if (!response.ok) {throw new Error("Verdict shorten unavailable");}
   const result = JSON.parse(await response.text());
-  if (result.choices?.[0]?.finish_reason !== "stop") throw new Error("Incomplete verdict shorten");
+  if (result.choices?.[0]?.finish_reason !== "stop") {throw new Error("Incomplete verdict shorten");}
   const out = String(result.choices?.[0]?.message?.content ?? "").trim();
   const words = bubbleWordCount(out);
-  if (!out || words > VERDICT_BUBBLE_WORD_CAP || words < 2) throw new Error("Shorten out of budget");
-  if (YEAR_IN_TEXT_RE.test(verdict) && !YEAR_IN_TEXT_RE.test(out)) throw new Error("Shorten lost the year");
+  if (!out || words > VERDICT_BUBBLE_WORD_CAP || words < 2) {throw new Error("Shorten out of budget");}
+  if (YEAR_IN_TEXT_RE.test(verdict) && !YEAR_IN_TEXT_RE.test(out)) {throw new Error("Shorten lost the year");}
   return out;
 }
 
@@ -154,12 +154,12 @@ async function shortenVerdictBubble(verdict, { fetchModel, signal, env }) {
 // is clamped deterministically, and an over-long verdict bubble is shortened
 // once (env-gated, fail-safe to the original on any error).
 async function polishReplyBubbles(text, { reading, fetchModel, signal, env }) {
-  if (!reading) return text;
+  if (!reading) {return text;}
   const bubbles = String(text)
     .split(/\n{2,}/)
     .map((b) => b.trim())
     .filter(Boolean);
-  if (bubbles.length === 0) return text;
+  if (bubbles.length === 0) {return text;}
   const out = [...bubbles];
   out[0] = clampReadingBubble(out[0], READING_BUBBLE_WORD_CAP);
   if (
@@ -243,7 +243,7 @@ export async function directAnswer(
   const activeQuestion = activeReadingQuestion(value);
   // The pilot keeps the actual utterance: history supplies its referent without
   // silently turning a request for guidance into the prior prediction question.
-  if (!progressPilot && activeQuestion !== value.query) value = {...value, query: activeQuestion};
+  if (!progressPilot && activeQuestion !== value.query) {value = {...value, query: activeQuestion};}
   const acknowledgement = groundedConversationReply(value, savedBirthContext(value.birth));
   if (acknowledgement) {
     return {
@@ -268,7 +268,7 @@ export async function directAnswer(
         try {
           pilotMemory = makeMemory(value.user_id, {env, fetchImpl, signal});
           savedContext = await pilotMemory.read();
-          if (!Array.isArray(savedContext)) savedContext = [];
+          if (!Array.isArray(savedContext)) {savedContext = [];}
         } catch {
           signal.throwIfAborted();
           savedContext = [];
@@ -281,7 +281,7 @@ export async function directAnswer(
     } catch (error) {
       signal.throwIfAborted();
       if (error.code === "conversation_review_failed" ||
-          (pilotCalls > 1 && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== "0")) throw error;
+          (pilotCalls > 1 && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== "0")) {throw error;}
       pilotTurn = {decision:null,usage:[]};
     }
     const decision = pilotTurn?.decision;
@@ -297,7 +297,7 @@ export async function directAnswer(
       !resolveReadingTopic(value.query) && !value.reply_to) {
     // A semantic reading follow-up may have no topic words. Resolve it only
     // from the immediately preceding user subject, never past a topic change.
-    const previousUser = [...(value.history ?? [])].reverse().find(turn=>turn.role==='user');
+    const previousUser = [...(value.history ?? [])].toReversed().find(turn=>turn.role==='user');
     if (resolveReadingTopic(previousUser?.text ?? '')?.topic === 'relationship') {
       relationshipPilot = true;
       relationshipSubject = previousUser.text;
@@ -307,6 +307,7 @@ export async function directAnswer(
   // The bounded conversation stage must not consume the existing reading and
   // companion allowance on handoff. Its calls remain included in usage totals.
   const maxCalls = readingMaxCalls + pilotCalls;
+  const semanticReading = conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading';
   const memory = pilotMemory ?? makeMemory(value.user_id, { env, fetchImpl, signal });
   const execute = makeTools({ memory, birth: value.birth, query: activeQuestion, history: value.history,
     selectedSelfQuery: activeQuestion !== originalQuery ? activeQuestion.split('\nFollow-up:')[0] : undefined,
@@ -328,7 +329,7 @@ export async function directAnswer(
       JSON.stringify(value.reply_to).replace(/</g, '\\u003c').replace(/>/g, '\\u003e') +
       '\nAnswer the current question; verify any quoted calculation with this turn\'s tools.\n';
   }
-  if (activeQuestion !== originalQuery) context.prompt += '\nThe latest user question resolves this abbreviated follow-up: ' + JSON.stringify(activeQuestion) + '. Recalculate from the selected profile; previous assistant predictions are not evidence.\n';
+  if (activeQuestion !== originalQuery) {context.prompt += '\nThe latest user question resolves this abbreviated follow-up: ' + JSON.stringify(activeQuestion) + '. Recalculate from the selected profile; previous assistant predictions are not evidence.\n';}
   const scopeInstruction = questionScopeInstruction(value.query);
   if (scopeInstruction && !sourceFlow) {
     context.prompt += "\n\n# Current relationship question\n" + scopeInstruction;
@@ -375,8 +376,8 @@ export async function directAnswer(
   const ordinaryConcern = !emotionalFriendship && !practicalFollowup && isOrdinaryConcern(value.query);
   const listeningTurn = sourceFlow && (emotionalFriendship
     ? friendshipListeningOnly(value.query) : listeningConcern(value.query));
-  if (listeningTurn) context.prompt += listeningInstruction;
-  if (practicalFollowup) context.prompt += practicalInstruction;
+  if (listeningTurn) {context.prompt += listeningInstruction;}
+  if (practicalFollowup) {context.prompt += practicalInstruction;}
   if (ordinaryConcern) {
     context.prompt +=
       "\nThis turn shares an everyday concern, not a request for astrology. Acknowledge only the user's stated concern in one short natural paragraph. Use respectful aap wording; do not address the user as beta, beti, tu, or with pet names. Do not add an unrequested plan, a motivational verdict, or promises of belonging or guaranteed support. No chart, planet, dasha, timing prediction, reading verdict or recap of past predictions. The companion stage handles a relevant follow-up.\n";
@@ -399,10 +400,10 @@ export async function directAnswer(
   // Scope the imported astrology-only prohibition instead of layering a
   // contradictory friendship instruction over it. Guidance remains allowed;
   // predictions still require the same checked tools and validation below.
-  if (progressPilot && !readingRequired) context.prompt = context.prompt.replace(
+  if (progressPilot && !readingRequired) {context.prompt = context.prompt.replace(
     "Generic advice or invented chart narration is a failure.",
     "For an explicit astrology reading, generic advice must not replace the requested checked interpretation, and invented chart narration is a failure. For ordinary conversation or requested practical guidance, answer naturally without requiring birth details. Use the full dialogue to distinguish these tasks.",
-  );
+  );}
   const matchingSelfProfile = asksGunaScore(value.query) && context.profile.status === 'READY' &&
     ['male','female'].includes(value.user_gender) &&
     !/\b(?:friend|mother|father|sister|brother|dost|behen|bhai)\b/iu.test(value.query) &&
@@ -424,11 +425,11 @@ export async function directAnswer(
     !isDeathTimingQuestion(value.query) &&
     asksForTiming(activeQuestion);
   if (sourceFlow && readingRequired) {
-    if (relationshipPilot) context.prompt += relationshipAssessmentInstruction;
-    if (relationshipSubject && relationshipSubject !== value.query) context.prompt +=
+    if (relationshipPilot) {context.prompt += relationshipAssessmentInstruction;}
+    if (relationshipSubject && relationshipSubject !== value.query) {context.prompt +=
       '\nThis checked-reading follow-up asks for a direct assessment of the immediately preceding user question: ' +
       JSON.stringify(redactIdentity(relationshipSubject,value.user_id)) +
-      '. Answer the latest request about that subject. Earlier assistant dates are not evidence; use current tools.\n';
+      '. Answer the latest request about that subject. Earlier assistant dates are not evidence; use current tools.\n';}
     context.prompt +=
       "\n\n# Current request\nAnswer only this current question using this turn's tools: " +
       JSON.stringify(redactIdentity(value.query, value.user_id)) +
@@ -448,7 +449,7 @@ export async function directAnswer(
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
   context.prompt += whatsappStyleInstruction(value);
-  context.prompt += conversationGroundingInstruction(value, context.profile);
+  if (!(semanticReading && readingRequired)) {context.prompt += conversationGroundingInstruction(value, context.profile);}
   const messages = [
     { role: "system", content: context.prompt + (progressPilot && !readingRequired ? conversationProgressInstruction : "") + (sourceFlow && (progressPilot ? readingRequired : !emotionalFriendship && !ordinaryConcern && !practicalFollowup) ? readingPresentationInstruction : "") },
     ...(progressPilot ? conversationalHistory(value.history, ordinaryConcern || practicalFollowup) : value.history.filter(turn => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user"))
@@ -473,7 +474,7 @@ export async function directAnswer(
     enabled: release && directReleaseEnabled(env, value.user_id),
     canCall: () => upstreamCalls < maxCalls,
     takeCall: () => {
-      if (upstreamCalls >= maxCalls) throw new Error("Direct call budget exhausted");
+      if (upstreamCalls >= maxCalls) {throw new Error("Direct call budget exhausted");}
       upstreamCalls++;
     },
   });
@@ -549,7 +550,7 @@ export async function directAnswer(
     return result.choices[0].message.content;
   };
   if (sourceFlow && readingRequired && !emotionalFriendship && !matchingLimitations) {
-    if (voiceReply) validation.push(timingRequired ? 'voice_timing_question' : 'voice_general_question');
+    if (voiceReply) {validation.push(timingRequired ? 'voice_timing_question' : 'voice_general_question');}
     const prepared = preparedVoiceChart;
     if (prepared) {
       readingTools.add('get_horoscope_predictions');
@@ -558,11 +559,11 @@ export async function directAnswer(
       messages.push({role:'assistant',content:null,tool_calls:[prepared.call]},
         {role:'tool',tool_call_id:prepared.call.id,content:redactIdentity(prepared.content,value.user_id)});
       const comparison = timingRequired && topicPeriodContext(chartResults, value.query);
-      if (comparison) messages.push({role:'user',content:comparison});
+      if (comparison) {messages.push({role:'user',content:comparison});}
       validation.push('voice_chart_prepared');
       if (timingRequired) {
         pendingTimingRepair = preparedVoiceTiming(chartResults, value, now());
-        if (pendingTimingRepair) validation.push('voice_timing_prepared');
+        if (pendingTimingRepair) {validation.push('voice_timing_prepared');}
       }
     } else if (voiceReply) {
       validation.push('voice_chart_not_prepared');
@@ -660,9 +661,11 @@ export async function directAnswer(
     if (!choice?.message) {
       throw new Error("Missing direct reply");
     }
+    let renderedRelationshipTiming = false;
     if (pendingTimingRepair) {
       attemptedTimingRepair = true;
       const repaired = pendingTimingRepair.render(choice.message);
+      renderedRelationshipTiming = relationshipPilot && Boolean(repaired);
       pendingTimingRepair = null;
       choice.message = {
         role: "assistant",
@@ -674,7 +677,7 @@ export async function directAnswer(
     if (choice.finish_reason === "tool_calls" && choice.message.tool_calls?.length) {
       // A provider ignoring tool_choice must not execute more work after the
       // answer-only boundary, including writes requested by a broken response.
-      if (finalAnswerRound) throw new Error("Direct tool loop did not converge");
+      if (finalAnswerRound) {throw new Error("Direct tool loop did not converge");}
       if (choice.message.tool_calls.length > 8) {
         throw new Error("Too many tool calls");
       }
@@ -722,7 +725,7 @@ export async function directAnswer(
               chartResults.push(content);
             }
           } catch (error) {
-            if (error?.code === 'matching_birth_required') missingMatchingBirth = true;
+            if (error?.code === 'matching_birth_required') {missingMatchingBirth = true;}
             content = error?.code === 'matching_birth_required'
               ? 'Tool failed: Both people need their own user-confirmed birth date, exact time and birthplace. Do not copy one chart into both roles; ask only for missing details. No Guna score has been calculated.'
               : error?.code === 'birth_details_required'
@@ -740,7 +743,7 @@ export async function directAnswer(
         });
       });
       const foreignContext=foreignChartContext(chartResults,value.query);
-      if(foreignContext)messages.push({role:'user',content:foreignContext});
+      if(foreignContext){messages.push({role:'user',content:foreignContext});}
       if (missingMatchingBirth && !readingTools.has('get_match_report')) {
         // Repeating the same rejected matching call cannot supply user-confirmed
         // partner details. Ask once instead of exhausting the loop into a 503.
@@ -765,7 +768,7 @@ export async function directAnswer(
         // evidence still retains the normal loop and all existing validators.
         if (voiceReply && sourceFlow && !attemptedTimingRepair && !pendingTimingRepair) {
           pendingTimingRepair = preparedVoiceTiming(chartResults, value, now());
-          if (pendingTimingRepair) validation.push('voice_timing_prepared');
+          if (pendingTimingRepair) {validation.push('voice_timing_prepared');}
         }
       }
       continue;
@@ -804,7 +807,7 @@ export async function directAnswer(
     if (missingMatchingBirth && !readingTools.has('get_match_report')) {
       reply = unconfirmedMatchingReply();
     }
-    if (matchingLimitations) reply = matchingLimitations;
+    if (matchingLimitations) {reply = matchingLimitations;}
     const checkMatchingScore = !matchingLimitations && !generalMatchingQuestion(value.query) &&
       (asksGunaScore(value.query) || readingTools.has('get_match_report') || /\b(?:guna?|gun|ashtakoota)\b/i.test(reply + ' ' + (value.reply_to?.text ?? '')));
     if (checkMatchingScore && (invalidGunaScore(reply, chartResults) || invalidGunaPresentation(reply, chartResults, value.query))) {
@@ -842,7 +845,7 @@ export async function directAnswer(
         continue;
       }
     }
-    const conversationIssue = conversationGroundingIssue(reply, value, context.profile, readingTools.size > 0);
+    const conversationIssue = semanticReading && readingRequired ? null : conversationGroundingIssue(reply, value, context.profile, readingTools.size > 0);
     if (conversationIssue) {
       validation.push('conversation_grounding_rejected');
       if (!correctedConversationGrounding && modelCalls < maxRounds && upstreamCalls < maxCalls) {
@@ -941,7 +944,7 @@ export async function directAnswer(
       if (correctedHouseLord || correctedReadingPresentation || modelCalls >= maxRounds) {
         if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
           pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
-          if (pendingTimingRepair) continue;
+          if (pendingTimingRepair) {continue;}
         }
         validation.push("chart_fallback");
         reply = evidenceFallback(chartResults, value.language, value.query, now());
@@ -982,7 +985,7 @@ export async function directAnswer(
         // of immediately substituting the first upcoming dasha schedule.
         if (timingRequired && !attemptedTimingRepair && modelCalls < maxRounds) {
           pendingTimingRepair = timingCorrection(chartResults, value.query, value.language, now());
-          if (pendingTimingRepair) continue;
+          if (pendingTimingRepair) {continue;}
         }
         validation.push("timing_fallback");
         reply = evidenceFallback(chartResults, value.language, value.query, now());
@@ -1046,12 +1049,25 @@ export async function directAnswer(
     }
     // Validate the wording users will see: display cleanup removes separators,
     // which can expose ambiguous period labels hidden by a draft's dashes.
-    if(readingTools.size>0)reply=fitWhatsAppReadingParagraphs(reply,value);
-    const wordingIssue = readingTools.size > 0 ? (readingPresentationIssue(formatDisplayReply(reply)) || whatsappWordingIssue(formatDisplayReply(reply), value) ||
+    if(readingTools.size>0){reply=fitWhatsAppReadingParagraphs(reply,value);}
+    // A checked renderer may need a few extra words to retain both sides of
+    // mixed evidence and the full window. Do not rewrite it just for brevity.
+    const wordingIssue = readingTools.size > 0 ? (readingPresentationIssue(formatDisplayReply(reply)) ||
+      (!renderedRelationshipTiming && whatsappWordingIssue(formatDisplayReply(reply), value)) ||
       (relationshipPilot ? relationshipVerdictIssue(reply,chartResults) ||
         (isBarePeriodSchedule(reply,chartResults,value.language,now()) ? relationshipAssessmentInstruction : null) : null)) : null;
     if (wordingIssue) {
       validation.push("reading_wording_rejected");
+      // For this pilot, repair a rejected timing draft through the existing
+      // checked factor/period selector rather than another unconstrained edit.
+      if (relationshipPilot && timingRequired && hasOnlyNatalRelationshipEvidence(chartResults) && !attemptedTimingRepair &&
+          modelCalls < maxRounds && upstreamCalls < maxCalls) {
+        pendingTimingRepair = timingCorrection(chartResults,value.query,value.language,now());
+        if (pendingTimingRepair) {
+          validation.push('relationship_wording_structured_repair');
+          continue;
+        }
+      }
       if (!correctedReadingPresentation && modelCalls < maxRounds && upstreamCalls < maxCalls) {
         correctedReadingPresentation = true;
         // This edits the current draft, not an old answer in conversation history.
@@ -1177,15 +1193,16 @@ export async function directAnswer(
         canAskFollowup(publishableReply, value, !clarification)) {
       publishableReply = await contextualClosing(publishableReply, value, {
         progressPilot: progressPilot && !readingRequired && readingTools.size === 0,
+        checkedReading: conversationV2Pilot && (readingRequired || readingTools.size > 0),
         facts: context.memoryFacts,
         redact: (text) => redactIdentity(text, value.user_id),
         generate: generateClosing,
       });
     }
     const naturalReply = naturalCompanionReply(publishableReply, value);
-    if (naturalReply !== publishableReply) validation.push('companion_identity_presentation');
+    if (naturalReply !== publishableReply) {validation.push('companion_identity_presentation');}
     let deliveredReply = finishWhatsAppReply(limitResponseLength(naturalReply), value, {facts: context.memoryFacts});
-    if (conversationGroundingIssue(deliveredReply, value, context.profile, readingTools.size > 0)) {
+    if (!(semanticReading && readingRequired) && conversationGroundingIssue(deliveredReply, value, context.profile, readingTools.size > 0)) {
       deliveredReply = finishWhatsAppReply(conversationGroundingFallback(value, context.profile), value, {facts: context.memoryFacts});
       validation.push('conversation_grounding_delivery_fallback');
     }

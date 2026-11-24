@@ -4,6 +4,7 @@ import { asksForTiming } from "./reading-intent.mjs";
 import { timingCorrection } from "./timing-correction.mjs";
 import { chartClarificationFallback } from './chart-grounding.mjs';
 import {foreignChartSummary} from './foreign-reading.mjs';
+import {relationshipAssessment} from './pilot-relationship-reading.mjs';
 
 const UNVERIFIED_EN = "I couldn't verify this answer right now. Please try again shortly.";
 const UNVERIFIED_HI = "Abhi is jawab ko verify nahi kar paayi. Thodi der baad phir check karte hain.";
@@ -13,7 +14,7 @@ export const isUnverifiedReadingReply = reply => reply === UNVERIFIED_EN || repl
 // the rejected prediction. This fallback uses only returned period facts.
 export function evidenceFallback(results, language, query = "", asOf = new Date(), {topic} = {}) {
   const foreign=foreignChartSummary(results,language,query);
-  if(foreign)return foreign;
+  if(foreign){return foreign;}
   const english = language === "english";
   const area = topic === 'relationship' ? 'marriage' : /career|job|work|naukri|fields?/i.test(query)
     ? "career"
@@ -44,24 +45,16 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
   if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signal?.trend)) {
     return english ? UNVERIFIED_EN : UNVERIFIED_HI;
   }
-  const assessment = topic === 'relationship' && signal ? (english ? {
-    POSITIVE:'The calculated relationship indications are supportive.',
-    NEGATIVE:'The calculated relationship indications are challenging.',
-    MIXED:'The calculated relationship indications are mixed, with support and obstacles.'
-  } : {
-    POSITIVE:'Rishte ko aage badhne ka sahyog dikh raha hai.',
-    NEGATIVE:'Rishte ko aage badhane mein rukawaton ke sanket zyada hain.',
-    MIXED:'Rishte ko aage badhne ka sahyog bhi hai aur rukawatein bhi.'
-  })[signal.trend] : '';
+  const assessment = topic === 'relationship' && signal ? relationshipAssessment(signal.trend,language) : '';
   if (area && asksForTiming(query)) {
     const checked = timingCorrection(results, query, language, asOf, {topic})?.fallback();
     // Keep a qualified interpretation when available; otherwise the repair
     // preserves calculated dates as schedule context, not an event promise.
-    if (checked) return assessment ? assessment+' '+checked : checked;
-    if (!signal) return english ? UNVERIFIED_EN : UNVERIFIED_HI;
+    if (checked) {return checked;}
+    if (!signal) {return english ? UNVERIFIED_EN : UNVERIFIED_HI;}
   }
   const clarification = chartClarificationFallback(results, language, query);
-  if (clarification) return clarification;
+  if (clarification) {return clarification;}
   if (signal && ["POSITIVE", "NEGATIVE", "MIXED"].includes(signal.trend)) {
     const label = { career: "Career", money: "Finance", marriage: "Relationship" }[area];
     const trend = { POSITIVE: "supportive", NEGATIVE: "challenging", MIXED: "mixed" }[signal.trend];
@@ -72,7 +65,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       )
       .filter(Boolean)
       .join(english ? ", while " : ", lekin ");
-    if (topic === 'relationship' && !timing) return assessment + (factors ? ' '+factors+'.' : '');
+    if (topic === 'relationship' && !timing) {return assessment + (factors ? ' '+factors+'.' : '');}
     const leadIn = {
       career: english ? "Career timing" : "Career ka waqt",
       money: english ? "Money timing" : "Paise ki sthiti",

@@ -2,6 +2,7 @@ import { fallbackFactor } from "./fallback-factors.mjs";
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import { partnerFallback } from "./partner-fallback.mjs";
 import { periodFallback } from "./period-fallback.mjs";
+import { relationshipAssessment } from './pilot-relationship-reading.mjs';
 
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
@@ -68,7 +69,7 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
   if (!signals.length || new Set(signals.map((s) => JSON.stringify(s))).size !== 1) {
     return null;
   }
-  if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signals[0].trend)) return null;
+  if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signals[0].trend)) {return null;}
   const english = language === "english";
   const factors = ["positive", "negative"].flatMap((polarity) =>
     (Array.isArray(signals[0][polarity]) ? signals[0][polarity] : []).flatMap((source) => {
@@ -182,7 +183,8 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
       }
       const explanation = selected.map((f) => f.text.replace(/[.!?]+$/, "") + ".").join(" ");
       const partner = includePartner && area === "marriage" ? partnerFallback(rows, language, query) : "";
-      const first = explanation + (partner ? " " + partner : "");
+      const assessment = topic === 'relationship' ? relationshipAssessment(signals[0].trend,language) : '';
+      const first = (assessment ? assessment+' ' : '') + explanation + (partner ? " " + partner : "");
       if (data.period_id === "none") {
         if (data.outlook !== "undetermined") {
           return null;
