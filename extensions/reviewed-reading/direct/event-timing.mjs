@@ -3,7 +3,7 @@ import { asksForTiming,isForeignTravelQuestion } from "./reading-intent.mjs";
 
 // The local natal/transit tools provide periods, not calculated event windows.
 // Restrict this check to that explicit contract; do not reinterpret other tools.
-export function unsupportedEventTiming(reply, results, query = "") {
+export function unsupportedEventTiming(reply, results, query = "", {topic} = {}) {
   const data = results.flatMap((raw) => {
     try {
       return [JSON.parse(raw)];
@@ -27,10 +27,14 @@ export function unsupportedEventTiming(reply, results, query = "") {
       /\b(?:solid\s+move\s+nahi\s+hoga|job\s+change\s+(?:mat|nahi)|(?:do not|don't)\s+(?:apply|change jobs))\b/i.test(reply)) {
     return true;
   }
-  if ((!query || asksForTiming(query)) && isPeriodInterpretation(reply, data)) {
+  // The relationship pilot uses the resolved subject, including short follow-ups.
+  // A named person's contact cannot be restricted to an exclusive natal window.
+  if (topic === 'relationship' && /\b20\d{2}\b/.test(reply) &&
+      /\b(?:sirf|only|mein hi|me hi)\b.{0,70}\b(?:possible|sambhav\w*|hogi|hoga|will)\b/i.test(reply)) return true;
+  if ((!query || asksForTiming(query) || topic === 'relationship') && isPeriodInterpretation(reply, data)) {
     return false;
   }
-  const eventTopic = isForeignTravelQuestion(reply) ||
+  const eventTopic = topic === 'relationship' || isForeignTravelQuestion(reply) ||
     /\b(?:sha+di|vivah|marriage|career|job|financial|finance|income|paise|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b/i.test(
       reply,
     );
@@ -46,9 +50,9 @@ export function unsupportedEventTiming(reply, results, query = "") {
       ({ sentence, dated }) =>
         dated &&
         (eventTopic || /\b(?:girlfriend|boyfriend|gf|bf|rishta)\b/i.test(sentence)) &&
-        /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|sha+di|vivah|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|honge|hongi|clear|pass|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary|pareshani)\b.{0,80}\b(?:kam|badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
+        ((topic === 'relationship' && /\b(?:possible|likely|sambhav\w*|hogi|hoga|will)\b/i.test(sentence)) || /\b(?:improve|improvement|growth|boost|breakthrough|mauka|yog|chance|stability|relief|opportunity|sha+di|vivah|marriage|marry|wait|intezaar|intazaar|behtar|better|progress|window)\b|\b(?:girlfriend|boyfriend|gf|bf|rishta|job|naukri|education|studies|study|padhai|padhaai|padhayi|exams?|results?)\b.{0,80}\b(?:banegi|banega|lagegi|lagega|milegi|milega|mil jayegi|mil jayega|will|hogi|hoga|honge|hongi|clear|pass|sambhavna|sambhavana|sambhavit|possible|likely)\b|\b(?:sahyog|support|income|flow|paise|paisa|salary|pareshani)\b.{0,80}\b(?:kam|badh\w*|ghat\w*|aayeg\w*|mile\w*|slow|tez|increase\w*|decrease\w*)\b/i.test(
           sentence,
-        ) &&
+        )) &&
         !/\b(?:not a calculated|not an event|date nahi|tay nahi|establish|cannot|does not|no verified)\b/i.test(
           sentence,
         ),

@@ -1,7 +1,7 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
 
-// Expose natal relationships for comparison, not invented event scores or dates.
-export function topicPeriodEvidence(results, query) {
+// One existing topic definition is shared by the pilot repair and presentation.
+export function resolveReadingTopic(query) {
   const topics = [
     ["marriage", /sha+di|vivah|marri|wedding/i, [7]],
     ["relationship", /girlfriend|boyfriend|\bgf\b|\bbf\b|crush|relationship|rishta/i, [5, 7]],
@@ -9,10 +9,14 @@ export function topicPeriodEvidence(results, query) {
     ["money", /financ|money|pais|income|salary/i, [2, 11]],
     ["education", /education|stud|exam|padh|parhai/i, [4, 5, 9]],
   ].filter(([, pattern]) => pattern.test(query));
-  if (topics.length !== 1) {
-    return "";
-  }
-  const [topic, , houses] = topics[0];
+  return topics.length === 1 ? {topic:topics[0][0],houses:topics[0][2]} : null;
+}
+
+// Expose natal relationships for comparison, not invented event scores or dates.
+export function topicPeriodEvidence(results, query) {
+  const resolved = resolveReadingTopic(query);
+  if (!resolved) return "";
+  const {topic,houses} = resolved;
   const rows = results.flatMap((raw) => {
     try {
       const row = JSON.parse(raw);

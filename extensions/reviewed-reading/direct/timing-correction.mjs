@@ -6,8 +6,8 @@ import { periodFallback } from "./period-fallback.mjs";
 // A bounded repair of an existing reading, never another calculation tool.
 // Keep dates in code-owned slots so the model cannot replace a whole period
 // with its start date, an invented month, or a promise about the event.
-export function timingCorrection(results, query, language, asOf, {renderFactor = fallbackFactor} = {}) {
-  const subject = /sha+di|vivah|marriage|marry|married/i.test(query)
+export function timingCorrection(results, query, language, asOf, {renderFactor = fallbackFactor,topic} = {}) {
+  const subject = topic === 'relationship' ? ['rishte ka aage badhna','relationship progress'] : /sha+di|vivah|marriage|marry|married/i.test(query)
     ? ["shaadi", "marriage"]
     : /girlfriend|boyfriend|\bgf\b|\bbf\b|relationship|rishta/i.test(query)
       ? ["naya rishta", "a new relationship"]
@@ -57,7 +57,7 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
   if (!periods.length) {
     return null;
   }
-  const area = ["shaadi", "naya rishta"].includes(subject[0])
+  const area = topic === 'relationship' || ["shaadi", "naya rishta"].includes(subject[0])
     ? "marriage"
     : subject[0] === "career"
       ? "career"
@@ -68,6 +68,7 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
   if (!signals.length || new Set(signals.map((s) => JSON.stringify(s))).size !== 1) {
     return null;
   }
+  if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signals[0].trend)) return null;
   const english = language === "english";
   const factors = ["positive", "negative"].flatMap((polarity) =>
     (Array.isArray(signals[0][polarity]) ? signals[0][polarity] : []).flatMap((source) => {
@@ -221,8 +222,8 @@ export function timingCorrection(results, query, language, asOf, {renderFactor =
             mixed: `${subject[1]} may be possible, with obstacles`,
           }[data.outlook]
         : {
-            possible: `${subject[0]}${area === "marriage" ? " hone" : ""} ki sambhavna hai`,
-            unfavorable: `${subject[0]}${area === "marriage" ? " hone" : ""} ki sambhavna kam hai`,
+            possible: topic === 'relationship' ? 'rishte ki baat aage badhne ki sambhavna hai' : `${subject[0]}${area === "marriage" ? " hone" : ""} ki sambhavna hai`,
+            unfavorable: topic === 'relationship' ? 'rishte ki baat aage badhne ki sambhavna kam hai' : `${subject[0]}${area === "marriage" ? " hone" : ""} ki sambhavna kam hai`,
             mixed: `${subject[0]} sambhavit hai, lekin rukawatein bhi hain`,
           }[data.outlook];
       if (!verdict) {

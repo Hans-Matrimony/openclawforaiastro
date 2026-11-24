@@ -11,11 +11,11 @@ export const isUnverifiedReadingReply = reply => reply === UNVERIFIED_EN || repl
 
 // A failed bounded correction must not become a transport failure or publish
 // the rejected prediction. This fallback uses only returned period facts.
-export function evidenceFallback(results, language, query = "", asOf = new Date()) {
+export function evidenceFallback(results, language, query = "", asOf = new Date(), {topic} = {}) {
   const foreign=foreignChartSummary(results,language,query);
   if(foreign)return foreign;
   const english = language === "english";
-  const area = /career|job|work|naukri|fields?/i.test(query)
+  const area = topic === 'relationship' ? 'marriage' : /career|job|work|naukri|fields?/i.test(query)
     ? "career"
     : /financ|money|pais|income/i.test(query)
       ? "money"
@@ -41,11 +41,23 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
     subjects.size <= 1 && signals.every((s) => JSON.stringify(s) === JSON.stringify(signals[0]))
       ? signals[0]
       : null;
+  if (topic === 'relationship' && !['POSITIVE','NEGATIVE','MIXED'].includes(signal?.trend)) {
+    return english ? UNVERIFIED_EN : UNVERIFIED_HI;
+  }
+  const assessment = topic === 'relationship' && signal ? (english ? {
+    POSITIVE:'The calculated relationship indications are supportive.',
+    NEGATIVE:'The calculated relationship indications are challenging.',
+    MIXED:'The calculated relationship indications are mixed, with support and obstacles.'
+  } : {
+    POSITIVE:'Rishte ko aage badhne ka sahyog dikh raha hai.',
+    NEGATIVE:'Rishte ko aage badhane mein rukawaton ke sanket zyada hain.',
+    MIXED:'Rishte ko aage badhne ka sahyog bhi hai aur rukawatein bhi.'
+  })[signal.trend] : '';
   if (area && asksForTiming(query)) {
-    const checked = timingCorrection(results, query, language, asOf)?.fallback();
+    const checked = timingCorrection(results, query, language, asOf, {topic})?.fallback();
     // Keep a qualified interpretation when available; otherwise the repair
     // preserves calculated dates as schedule context, not an event promise.
-    if (checked) return checked;
+    if (checked) return assessment ? assessment+' '+checked : checked;
     if (!signal) return english ? UNVERIFIED_EN : UNVERIFIED_HI;
   }
   const clarification = chartClarificationFallback(results, language, query);
@@ -60,6 +72,7 @@ export function evidenceFallback(results, language, query = "", asOf = new Date(
       )
       .filter(Boolean)
       .join(english ? ", while " : ", lekin ");
+    if (topic === 'relationship' && !timing) return assessment + (factors ? ' '+factors+'.' : '');
     const leadIn = {
       career: english ? "Career timing" : "Career ka waqt",
       money: english ? "Money timing" : "Paise ki sthiti",
