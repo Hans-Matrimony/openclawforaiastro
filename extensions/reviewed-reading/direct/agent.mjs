@@ -1,3 +1,4 @@
+import { interpretTurn } from "./conversation-turn.mjs";
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fitWhatsAppReadingParagraphs } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
 import {foreignChartContext} from './foreign-reading.mjs';
@@ -6,7 +7,7 @@ import { conversationProgressEnabled, conversationProgressInstruction, conversat
 import { readingPresentationInstruction, readingPresentationIssue, readingRewriteInstruction } from "./reading-presentation.mjs";
 import { chartClaimConflicts } from "./chart-claims.mjs";
 import { chartGroundingConflicts, chartClarificationFallback } from './chart-grounding.mjs';
-import { readingContext, savedBirthContext } from "./context.mjs";
+import { readingContext, savedBirthContext, ignoresMemory } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming } from "./event-timing.mjs";
 import { pastPrediction, futureDateInstruction } from './past-prediction.mjs';
@@ -224,7 +225,7 @@ export async function directAnswer(
   }
   // Source has seven agent rounds; reserve a separate call for our companion.
   const maxRounds = sourceFlow ? 7 : 5;
-  const maxCalls = sourceFlow ? 8 : 5;
+  const readingMaxCalls = sourceFlow ? 8 : 5;
   const signal = requestSignal ? AbortSignal.any([requestSignal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000);
   signal.throwIfAborted();
   const voiceReply = value.reply_surface === 'voice';
@@ -244,7 +245,49 @@ export async function directAnswer(
       answer_validation:['grounded_conversation_acknowledgement'],
     };
   }
-  const memory = makeMemory(value.user_id, { env, fetchImpl, signal });
+  let pilotTurn = null;
+  let pilotCalls = 0;
+  let pilotMemory = null;
+  if (progressPilot && sourceFlow && value.reply_surface === "whatsapp" &&
+      env.ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED === "1" &&
+      !isPersonalChartQuestion(value.query) && !asksGunaScore(value.query) &&
+      !asksForRemedy(value.query, value.history)) {
+    pilotCalls = 0;
+    try {
+      let savedContext = [];
+      if (env.ASTROFRIEND_CONVERSATION_MEMORY_ENABLED === "1" && !ignoresMemory(value.query)) {
+        try {
+          pilotMemory = makeMemory(value.user_id, {env, fetchImpl, signal});
+          savedContext = await pilotMemory.read();
+          if (!Array.isArray(savedContext)) savedContext = [];
+        } catch {
+          signal.throwIfAborted();
+          savedContext = [];
+        }
+      }
+      pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
+        savedContext,
+        onRequest: () => { pilotCalls++; },
+        redact: text => redactIdentity(text, value.user_id)});
+    } catch (error) {
+      signal.throwIfAborted();
+      if (error.code === "conversation_review_failed" ||
+          (pilotCalls > 1 && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== "0")) throw error;
+      pilotTurn = {decision:null,usage:[]};
+    }
+    const decision = pilotTurn?.decision;
+    if (decision && decision.route !== "checked_reading" &&
+        !conversationGroundingIssue(decision.reply, value, savedBirthContext(value.birth), false) &&
+        !pastPrediction(decision.reply, now()) && !explicitEnglishReplyMismatch(value, decision.reply)) {
+      return {schema:"vedastro-direct-reply-v1",reply:decision.reply,
+        answer_model_calls:pilotCalls,answer_cache_hits:0,answer_reading_tools:[],
+        answer_usage:pilotTurn.usage,answer_validation:[],answer_conversation_route:decision.route};
+    }
+  }
+  // The bounded conversation stage must not consume the existing reading and
+  // companion allowance on handoff. Its calls remain included in usage totals.
+  const maxCalls = readingMaxCalls + pilotCalls;
+  const memory = pilotMemory ?? makeMemory(value.user_id, { env, fetchImpl, signal });
   const execute = makeTools({ memory, birth: value.birth, query: activeQuestion, history: value.history,
     selectedSelfQuery: activeQuestion !== originalQuery ? activeQuestion.split('\nFollow-up:')[0] : undefined,
     gender: value.user_gender, profileUpdateStatus: value.profile_update_status, env, fetchImpl, signal, now });
@@ -283,10 +326,10 @@ export async function directAnswer(
       return {
         schema: "vedastro-direct-reply-v1",
         reply: formatDisplayReply(remedyUnavailableReply(value)),
-        answer_model_calls: 0,
+        answer_model_calls: pilotCalls,
         answer_cache_hits: 0,
         answer_reading_tools: [],
-        answer_usage: [],
+        answer_usage: pilotTurn?.usage ?? [],
         answer_remedy_status: knowledge.status,
         answer_remedy_sources: 0,
       };
@@ -399,7 +442,7 @@ export async function directAnswer(
   let nudged = false;
   let correctedEmotionalReply = false;
   let correctedClarification = false;
-  let upstreamCalls = 0;
+  let upstreamCalls = pilotCalls;
   const fetchModel = createModelRequest({
     fetchImpl,
     enabled: release && directReleaseEnabled(env, value.user_id),
@@ -427,7 +470,7 @@ export async function directAnswer(
   let missingMatchingBirth = false;
   const validation = [];
   const chartResults = [];
-  const answerUsage = [];
+  const answerUsage = pilotTurn?.usage ?? [];
   const generateClosing = async (instruction, data) => {
     if (upstreamCalls >= maxCalls) {
       throw new Error("Closing call budget exhausted");
@@ -1097,6 +1140,7 @@ export async function directAnswer(
         env.VEDASTRO_DIRECT_CONTEXTUAL_CLOSING === "1" &&
         canAskFollowup(publishableReply, value, !clarification)) {
       publishableReply = await contextualClosing(publishableReply, value, {
+        progressPilot: progressPilot && !readingRequired && readingTools.size === 0,
         facts: context.memoryFacts,
         redact: (text) => redactIdentity(text, value.user_id),
         generate: generateClosing,

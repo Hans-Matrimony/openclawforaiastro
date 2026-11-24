@@ -50,3 +50,25 @@ test("agent repairs a repeated clarification with the ordered dialogue preserved
   assert.equal(calls, 2);
   assert.doesNotMatch(result.reply, /specific jagah/);
 });
+
+test("WhatsApp final companion receives pilot context only for allowlisted users", async () => {
+  for (const enabled of [true, false]) {
+    let closingSeen = false;
+    await directAnswer({user_id:"919000000001",reply_surface:"whatsapp",query:"Tum batao naa",history:[{role:"user",text:"Ghar kaha kharidna chahiye?"},{role:"assistant",text:"Which city are you considering?"}],birth:{},language:"hinglish"}, {
+      env:{ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:enabled?"1":"0",ASTROFRIEND_CONVERSATION_PROGRESS_USERS:"919000000001",OPENROUTER_API_KEY:"test",VEDASTRO_DIRECT_FLOW:"source",VEDASTRO_DIRECT_ENVIRONMENT:"development",VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:"1",VEDASTRO_DIRECT_REPLY_CACHE:"0"},
+      makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{throw Error("unexpected tool");},
+      fetchImpl:async(_url,options)=>{
+        const body=JSON.parse(options.body);
+        const last=body.messages.at(-1).content;
+        let payload;try{payload=JSON.parse(last);}catch{}
+        if(payload && Object.hasOwn(payload,"current_answer")) closingSeen=true;
+        if(payload?.current_answer){
+          assert.equal(enabled,true);
+          assert.ok(payload.recent_dialogue_context_not_evidence.some(turn=>turn.text.includes("Which city")));
+        }
+        return new Response(JSON.stringify({choices:[{finish_reason:"stop",message:{content:payload?"NONE":"Rehne ke liye ghar le rahe hain toh kaam ke paas aur budget mein aane wali jagah se shuru kijiye."}}]}));
+      }
+    });
+    assert.equal(closingSeen,enabled);
+  }
+});
