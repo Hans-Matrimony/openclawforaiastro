@@ -278,7 +278,7 @@ export async function contextualClosing(
     );
     // A one-paragraph checked assessment still owns the full verdict. Its
     // optional companion cannot turn it into a promise or another answer.
-    if (checkedReading && (!/[?？]\s*$/u.test(question) || hasPredictionGuarantee(question) || categoricalOutcomeClaim(question))) {return base;}
+    if (checkedReading && (!/[?？]\s*$/u.test(question) || hasPredictionGuarantee(question) || categoricalOutcomeClaim(question) || question.split(/(?<=[.!।;])\s+/u).length > 1)) {return base;}
     // An unrelated personal question must not be appended to a chart reading.
     if (value.readingOnlyClosing && (/^none[.!]?$/iu.test(question) || /\b(?:dil|feelings?|share|emotions?|baat kahi|baat bata|apni baat|specific person|intezaar|waiting mode|positive energy|feel kiya|kisi se baat karni|field try kiya|step socha|plan banaya|next steps?|aapke mann|aapke man)\b/iu.test(question))) {return base;}
     if (

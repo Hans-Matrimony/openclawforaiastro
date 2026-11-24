@@ -366,6 +366,7 @@ test("embedded event verdicts cannot hide behind a later qualified claim", async
   }
   for (const draft of [
     "Abhi job ka yog nahi bana.",
+    "Abhi job ka clear signal nahi, agle 6 to 8 mahine tak Moon antardasha ke end tak wait karna hoga.",
     "Abhi job nahi milegi, kyunki rukawatein hain.",
     "Abhi job nahi milegi, par 2027 se 2028 ke beech Mars antardasha mein mil sakti hai.",
   ]) {
@@ -383,6 +384,8 @@ test("qualified assessments, period facts and genuine user-action questions are 
     "What kind of job will you apply for?",
     "Kya aapne koi naye roles ke liye apply kiya hai?",
     "Aapne bataya tha ki job mil gayi.",
+    "Tab tak wait karna zaroori nahi hai.",
+    "You do not have to wait.",
   ]) {
     assert.equal(categoricalOutcomeClaim(reply), false, reply);
   }
@@ -394,6 +397,7 @@ test("a checked-reading companion cannot add a promise before its question", asy
   for (const closing of [
     "Haan, job milegi — aapki mehnat abhi tak kaam kar rahi hai. Kya aapne koi naya application bheja hai?",
     "Paise thoda aur time lekar behter honge. Kya aapne koi naya income source try kiya hai?",
+    "Job ka intezaam abhi bhi chal raha hai, lekin ek naye mauke ka signal mil raha hai. Kya aapne koi naya application submit kiya hai?",
   ]) {
     const { result } = await run(topics[1].whether, { draft, closing });
     assert.equal(result.reply, draft);

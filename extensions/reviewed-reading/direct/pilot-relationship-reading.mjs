@@ -154,6 +154,19 @@ export function readingUnavailableIssue(reply, results, topic) {
 // categorical event prediction earlier in the answer or in its companion.
 export function categoricalOutcomeClaim(reply) {
   return reply.split(/[.!?;।\n]|\b(?:but|lekin|magar|par)\b/iu).some((clause) => {
+    // A natal period is not an instruction to stop pursuing the outcome.
+    // This also catches relative waits, which contain no calendar year.
+    const waiting =
+      /\b(?:wait|intezaar|intazaar)\b[^.!?;।\n]{0,25}\b(?:hoga|hogi|zaroori|zaruri|required|necessary)\b|\b(?:must|have to|need to)\s+wait\b/iu.test(
+        clause,
+      );
+    const optionalWait =
+      /\b(?:(?:do not|don't)(?:\s+have to)?|no need to|not necessary to)\s+wait\b|\b(?:wait|intezaar|intazaar)\s+(?:karna\s+)?(?:zaroori\s+|zaruri\s+)?(?:nahi|nahin)\b/iu.test(
+        clause,
+      );
+    if (waiting && !optionalWait) {
+      return true;
+    }
     if (
       /\b(?:may|might|could|possible|possibly|likely|unlikely|mixed|sambhav\w*|gunjaish|sak(?:ta|ti|te)|mile.jule|sanket|indications?)\b/iu.test(
         clause,
