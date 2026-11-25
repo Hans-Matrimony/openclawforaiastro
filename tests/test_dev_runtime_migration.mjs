@@ -57,3 +57,10 @@ test('production Dockerfile retains its original runtime', () => {
   assert.match(source, /FROM node:22-bookworm-slim/);
   assert.match(source, /openclaw@2026\.3\.28/);
 });
+
+test('custom HTTP routes and budget hooks are loaded at gateway startup', () => {
+  for (const id of ['reviewed-reading', 'inference-budget']) {
+    const manifest = JSON.parse(fs.readFileSync(new URL(`../extensions/${id}/openclaw.plugin.json`, import.meta.url)));
+    assert.equal(manifest.activation.onStartup, true);
+  }
+});
