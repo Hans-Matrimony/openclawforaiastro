@@ -1,5 +1,6 @@
 import { createReadingHandler } from "./direct-http.mjs";
 import { directAnswer } from "./direct/agent.mjs";
+import { directModelOptions } from "./direct/model-provider.mjs";
 import { directReleaseEnabled } from "./direct/release.mjs";
 import { formatDisplayReply } from "./direct/format-reply.mjs";
 
@@ -95,7 +96,7 @@ export function createDirectHandler(
 ) {
   const handler = createReadingHandler(async (value, requestOptions) => {
     try {
-      const result = await calculate(value, { env, signal: requestOptions?.signal });
+      const result = await calculate(value, { ...directModelOptions(env), signal: requestOptions?.signal });
       // Enforce presentation at the HTTP boundary as well as the agent result.
       // This covers alternate/cached producers without touching chart evidence.
       return typeof result?.reply === "string"
