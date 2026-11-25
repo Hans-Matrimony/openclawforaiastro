@@ -174,7 +174,7 @@ function wrapResult(stream, model, budget, compaction, reportStop, reportComplet
   };
   return {
     async *[Symbol.asyncIterator]() {
-      for await (const event of stream) {
+      for await (const event of await stream) {
         if (event.type === "done") {
           observeCompletion(event.message);
         }
@@ -189,7 +189,7 @@ function wrapResult(stream, model, budget, compaction, reportStop, reportComplet
       }
     },
     async result() {
-      return final(await stream.result());
+      return final(await (await stream).result());
     },
   };
 }
@@ -286,14 +286,13 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
       modelBudgets.set(model, { budget: selected, sessionId });
     }
   }
-  function installSdk(sdk) {
-    for (const provider of sdk.getApiProviders()) {
-      if (registered.get(provider.api) === provider) {
-        continue;
-      }
-      const wrap = (inner) => (model, context, options) => {
+  function wrapStream(inner, strict = false, withTransport = (_scope, run) => run()) {
+    return (model, context, options) => {
+        if (strict && options?.sessionId && forSession(options.sessionId)) {
+          bindModel(model, options.sessionId);
+        }
         const associated = modelBudgets.get(model);
-        const budget = options?.sessionId
+        const selected = options?.sessionId
           ? (forSession(options.sessionId) ??
             (associated?.sessionId === options.sessionId ? closed() : undefined))
           : associated?.sessionId
@@ -302,11 +301,13 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
         // A model association establishes session ownership, not a permanent
         // allowance. Compaction without sessionId must use that session's
         // current run; in-flight streams retain the allowance they started with.
+        const budget = selected ?? (strict ? closed() : undefined);
         if (!budget) {
           return inner(model, context, options);
         }
         const stream = transport.scope.run({ budget, api: model.api }, () =>
-          inner(model, context, options),
+          withTransport({ budget, api: model.api }, () =>
+            inner(model, strict ? recentPwaContext(context, budget.agentId) : context, options)),
         );
         const sessionId = options?.sessionId ?? associated?.sessionId;
         return wrapResult(
@@ -343,12 +344,19 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
             });
           },
         );
-      };
+    };
+  }
+  function installSdk(sdk) {
+    for (const provider of sdk.getApiProviders()) {
+      if (registered.get(provider.api) === provider) {
+        continue;
+      }
+
       sdk.registerApiProvider(
         {
           api: provider.api,
-          stream: wrap(provider.stream),
-          streamSimple: wrap(provider.streamSimple),
+          stream: wrapStream(provider.stream),
+          streamSimple: wrapStream(provider.streamSimple),
         },
         "astrofriend-inference-budget",
       );
@@ -361,6 +369,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
     bindModel,
     forSession,
     installSdk,
+    wrapStream,
     runtimeTag,
     setDiagnosticReporter: (reporter) => {
       diagnosticReporter = reporter;

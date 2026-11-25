@@ -90,7 +90,8 @@ for (const fixed of [true, false]) {
     } else {
       const reply = (await run).reply;
       assert.doesNotMatch(reply, /lord Mars|Income improves/);
-      assert.match(reply, /cannot give a supported event date/);
+      assert.match(reply, /could not be reconciled with the returned chart evidence/);
+      assert.match(reply, /did not include period data/);
     }
     assert.equal(calls, 3);
   });

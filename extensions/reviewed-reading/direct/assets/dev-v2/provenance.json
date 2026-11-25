@@ -4,7 +4,9 @@
   "files": [
     {
       "path": "engine.mjs",
-      "sha256": "e3ab64bc053e6236b7da7c25bce75065aab0aac8a91da206d1a3a8430d2fee86",
+      "sha256": "c58ca6703a3ede9ca405b5984175149557587c1290f42f928bdb43bdbf7fdabc",
+      "upstream_sha256": "e3ab64bc053e6236b7da7c25bce75065aab0aac8a91da206d1a3a8430d2fee86",
+      "vendor_revision": "f9b80ebfff197c284b03a24d85106e99dd094652",
       "source_revision": "fb060c30c10568ab9d954b9e990ba4696528e1a9"
     },
     {

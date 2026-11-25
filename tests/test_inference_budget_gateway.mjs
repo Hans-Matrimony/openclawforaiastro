@@ -13,6 +13,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { validateInstalledBudget } from "../scripts/validate-inference-budget.mjs";
+import { configureRuntimeBudget } from "../extensions/inference-budget/config.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -24,12 +25,16 @@ void test(
   },
   async () => {
     const entry = path.resolve(process.env.OPENCLAW_TEST_ENTRY);
-    assert.equal(
-      JSON.parse(await fs.readFile(path.resolve(path.dirname(entry), "../package.json"))).version,
-      "2026.3.28",
-    );
+    const version = JSON.parse(await fs.readFile(path.resolve(path.dirname(entry), "../package.json"))).version;
+    assert.ok(["2026.3.28", "2026.11.9", "2026.11.10"].includes(version));
+    const modern = version !== "2026.3.28";
+    const pluginRoot = process.env.OPENCLAW_TEST_BUDGET_PLUGIN
+      ? path.resolve(process.env.OPENCLAW_TEST_BUDGET_PLUGIN)
+      : path.join(root, "extensions/inference-budget");
+    const providerNames = modern ? ["deepseek", "groq", "openai"] : ["testa", "testb", "testc"];
     const state = await fs.mkdtemp(path.join(os.tmpdir(), "af-budget-gateway-"));
     const requests = [];
+    let compacting = false;
     const server = http.createServer(async (req, res) => {
       let body = "";
       for await (const chunk of req) {
@@ -37,7 +42,7 @@ void test(
       }
       const data = JSON.parse(body);
       const serialized = JSON.stringify(data.messages);
-      const marker = [...serialized.matchAll(/AFTEST:([a-z0-9-]+)/g)].at(-1)?.[1] ?? "unknown";
+      const marker = compacting ? "compaction" : [...serialized.matchAll(/AFTEST:([a-z0-9-]+)/g)].at(-1)?.[1] ?? "unknown";
       const currentStart = data.messages.findLastIndex((message) => message.role === "user");
       const currentToolResults = data.messages
         .slice(currentStart + 1)
@@ -86,7 +91,7 @@ void test(
               },
             ],
           }
-        : { role: "assistant", content: "Hello! I am here for a friendly chat." };
+        : { role: "assistant", content: compacting ? "AFSUMMARY:earlier-preferences" : "Hello! I am here for a friendly chat." };
       const completion = {
         id: "synthetic",
         object: "chat.completion.chunk",
@@ -118,7 +123,7 @@ void test(
       "export { default } from '../../../runtime/inference-budget/pi-extension.mjs';\n",
     );
     const providers = Object.fromEntries(
-      ["testa", "testb", "testc"].map((provider) => [
+      providerNames.map((provider) => [
         provider,
         {
           api: "openai-completions",
@@ -142,7 +147,7 @@ void test(
     );
     const token = randomUUID();
     const configPath = path.join(state, "openclaw.json");
-    const config = {
+    let config = {
       gateway: {
         mode: "local",
         port,
@@ -156,7 +161,7 @@ void test(
         defaults: {
           workspace,
           heartbeat: { every: "0m" },
-          model: { primary: "testa/test", fallbacks: ["testb/test", "testc/test"] },
+          model: { primary: `${providerNames[0]}/test`, fallbacks: providerNames.slice(1).map(p => `${p}/test`) },
         },
         list: [
           { id: "astrologer", workspace, skills: [], tools: { allow: ["read"] } },
@@ -165,21 +170,27 @@ void test(
       },
       plugins: {
         allow: ["inference-budget"],
-        load: { paths: [path.join(root, "extensions/inference-budget")] },
+        load: { paths: [pluginRoot] },
         entries: { "inference-budget": { enabled: true } },
       },
     };
+    if (modern) config = configureRuntimeBudget(config);
     await fs.writeFile(configPath, JSON.stringify(config));
-    await validateInstalledBudget(
-      path.resolve(path.dirname(entry), "../package.json"),
-      state,
-      config,
-    );
+    try {
+      await validateInstalledBudget(
+        path.resolve(path.dirname(entry), "../package.json"), state, config,
+      );
+    } catch (error) {
+      server.closeAllConnections();
+      await new Promise(resolve => server.close(resolve));
+      throw error;
+    }
+    const runtimeEnv = { ...process.env, OPENCLAW_STATE_DIR: state, OPENCLAW_CONFIG_PATH: configPath };
     const child = spawn(
       process.execPath,
       [entry, "gateway", "--port", String(port), "--bind", "loopback"],
       {
-        env: { ...process.env, OPENCLAW_STATE_DIR: state, OPENCLAW_CONFIG_PATH: configPath },
+        env: runtimeEnv,
         stdio: ["ignore", "pipe", "pipe"],
         windowsHide: true,
       },
@@ -217,7 +228,7 @@ void test(
       );
     };
     try {
-      const until = Date.now() + 180000;
+      const until = Date.now() + 300000;
       for (;;) {
         assert.equal(child.exitCode, null, output);
         try {
@@ -225,7 +236,7 @@ void test(
             signal: AbortSignal.timeout(1000),
           });
           await response.arrayBuffer();
-          if (response.ok) {
+          if (response.ok && (!modern || /\[gateway\] (?:ready|startup phase: ready)/.test(output))) {
             break;
           }
         } catch {}
@@ -272,8 +283,21 @@ void test(
         assert.ok(sent[0].bytes < 196608, "PWA history stays below the unchanged request cap");
         console.log(`Bounded PWA history turn ${turn + 1}/8 passed`);
       }
-      // Exercise actual pinned Pi compaction persistence/conversion. Only this
-      // synthetic session file is changed, while the gateway is between turns.
+      if (modern) {
+        compacting = true;
+        try {
+          const result = await promisify(execFile)(process.execPath, [entry, "gateway", "call", "sessions.compact",
+            "--url", `ws://127.0.0.1:${port}`, "--token", token, "--params",
+            JSON.stringify({key:sessionKey,agentId:"astrologer_pwa"}), "--json", "--timeout", "90000"],
+            {env:runtimeEnv,windowsHide:true,timeout:110000,maxBuffer:1048576});
+          const data=JSON.parse(result.stdout);
+          assert.equal(data.compacted,true,JSON.stringify(data));
+          const sent=requests.filter(request=>request.marker==="compaction");
+          assert.ok(sent.length > 0 && sent.length <= 6);
+          assert.ok(sent.every(request=>request.tokens <= 2048));
+        } finally { compacting = false; }
+      } else {
+      // Exercise pinned Pi persistence. The newer runtime uses its public RPC.
       const sessions = path.join(state, "agents/astrologer_pwa/sessions");
       const files = (await fs.readdir(sessions)).filter((file) => file.endsWith(".jsonl"));
       assert.equal(files.length, 1);
@@ -291,6 +315,7 @@ void test(
         .filter((item) => item.type === "message" && item.message.role === "user");
       assert.equal(users.length, 8);
       session.appendCompaction("AFSUMMARY:earlier-preferences", users.at(-1).id, 30000);
+      }
       for (let turn = 8; turn < 12; turn++) {
         const marker = `history-${turn}`;
         assert.match(

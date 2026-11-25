@@ -57,7 +57,7 @@ void test("long structured responses remain intact", () => {
   }
 });
 
-void test("fresh and cached long answers remain complete while tool evidence and companion stay intact", async () => {
+void test("fresh and cached long answers obey the response ceiling while evidence and companion stay intact", async () => {
   const cache = createReplyCache();
   const evidence = "Saturn retrograde, 31 bindus and Mercury combust are raw tool evidence.";
   const first = "Career ka mauka 2029 mein hai. " + Array(40).fill("reason").join(" ") + ".";
@@ -114,13 +114,13 @@ void test("fresh and cached long answers remain complete while tool evidence and
   };
   for (const cached of [false, true]) {
     const result = await directAnswer(input, options);
-    assert.deepEqual(result.reply.split("\n\n"), [
-      long.split("\n\n")[0],
+    const bubbles = result.reply.split("\n\n");
+    assert.deepEqual(bubbles.slice(1), [
       "2029 to 2032 mein mauka hai.",
       closing,
     ]);
-    assert.ok(count(result.reply.split("\n\n")[0]) > 50);
-    assert.ok(count(result.reply) > 90);
+    assert.equal(bubbles[0].replace(/\s+/g," "), first);
+    assert.ok(count(result.reply) <= 100);
     assert.equal(result.answer_cache_hits, cached ? 1 : 0);
     assert.equal(result.answer_model_calls, cached ? 2 : 3);
   }

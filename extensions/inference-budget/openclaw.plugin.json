@@ -1,6 +1,7 @@
 {
   "id": "inference-budget",
   "name": "AstroFriend inference budget",
+  "providers": ["astro-budget-zai", "astro-budget-openai", "astro-budget-deepseek", "astro-budget-groq", "astro-budget-google", "astro-budget-openrouter"],
   "description": "Shared per-run request and output reservations across SDK retries, fallback and compaction.",
   "configSchema": { "type": "object", "additionalProperties": false, "properties": {} }
 }

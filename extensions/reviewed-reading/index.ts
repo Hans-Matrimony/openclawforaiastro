@@ -1,4 +1,4 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
 import { createDailyHandler } from "./daily-route.mjs";
 import { createReadingHandler } from "./route.mjs";
 import { createReviewHandler } from "./verifier.mjs";

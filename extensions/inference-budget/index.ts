@@ -1,11 +1,29 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
 import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
+import { createManagedBudgetScope } from "./managed-transport.mjs";
 import { budgetDiagnostic, getBudgetRuntime } from "./runtime.mjs";
+import { registerBudgetProviders } from "./provider-bridge.mjs";
 
 export default {
   id: "inference-budget",
   register(api: OpenClawPluginApi) {
     const runtime = getBudgetRuntime();
+    if (["2026.11.9", "2026.11.10"].includes(process.env.ASTROFRIEND_OPENCLAW_RUNTIME ?? "")) {
+      if (process.env.VEDASTRO_DIRECT_ENVIRONMENT !== "development") {
+        throw new Error("New runtime budget bridge is development-only");
+      }
+      // Resolve from the public host SDK, avoiding a second transport runtime
+      // inside the plugin's isolated dependency snapshot.
+      const pluginRequire = createRequire(import.meta.url);
+      const sdk = createRequire(pluginRequire.resolve("openclaw/plugin-sdk/core"))("@openclaw/ai");
+      registerBudgetProviders(api, runtime, createManagedBudgetScope(sdk));
+      // Modern dispatch emits model_call_started before entering provider streams.
+      // Rebinding the same run preserves its allowance across retries and tools.
+      api.on("model_call_started", (event, context) => {
+        runtime.bind({ ...context, runId: event.runId, sessionId: event.sessionId ?? context.sessionId });
+      });
+    }
     runtime.setDiagnosticReporter((event: Record<string, string | number | boolean>) => {
       const name =
         event.kind === "session_binding_mismatch"

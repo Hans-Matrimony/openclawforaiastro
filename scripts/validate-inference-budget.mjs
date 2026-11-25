@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { findPackageJSON } from "node:module";
+import { createRequire, findPackageJSON } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -42,7 +42,7 @@ export function validateBudgetConfig(config) {
   ) {
     throw new Error("Inference budget plugin load path is missing");
   }
-  for (const agent of config.agents?.list ?? []) {
+  for (const agent of config.agents?.list ?? Object.entries(config.agents?.entries ?? {}).map(([id, agent]) => ({...agent,id}))) {
     if (!AGENTS.has(agent.id)) {
       continue;
     }
@@ -86,7 +86,51 @@ export function installedSdkEntry(runtimePackage, packageName) {
 
 export async function validateInstalledBudget(runtimePackage, stateDir, config) {
   validateBudgetConfig(config);
-  if (JSON.parse(fs.readFileSync(runtimePackage, "utf8")).version !== "2026.3.28") {
+  const runtimeVersion = JSON.parse(fs.readFileSync(runtimePackage, "utf8")).version;
+  if (["2026.11.9", "2026.11.10"].includes(runtimeVersion)) {
+    if (process.env.VEDASTRO_DIRECT_ENVIRONMENT !== "development" ||
+        process.env.ASTROFRIEND_OPENCLAW_RUNTIME !== runtimeVersion) {
+      throw new Error("New budget runtime is development-only");
+    }
+    for (const agent of config.agents?.list ?? Object.entries(config.agents?.entries ?? {}).map(([id, agent]) => ({...agent,id}))) {
+      if (!AGENTS.has(agent.id)) continue;
+      if (!agent.model || typeof agent.model !== "object" ||
+          !Array.isArray(agent.model.fallbacks) ||
+          [agent.model.primary, ...agent.model.fallbacks].some(ref =>
+            !/^astro-budget-(?:zai|openai|deepseek|groq|google|openrouter)\//.test(ref))) {
+        throw new Error("Guarded agents must use bounded provider aliases");
+      }
+    }
+    const pluginDir = config.plugins.load.paths.find(value => {
+      try { return JSON.parse(fs.readFileSync(path.join(value, "openclaw.plugin.json"), "utf8")).id === "inference-budget"; }
+      catch { return false; }
+    });
+    if (!pluginDir) throw new Error("Missing inference budget plugin");
+    const sdkManifest = findPackageJSON("@openclaw/ai", pathToFileURL(runtimePackage).href);
+    if (JSON.parse(fs.readFileSync(sdkManifest, "utf8")).version !== runtimeVersion) {
+      throw new Error("Budget transport SDK must match the verified runtime");
+    }
+    const sdk = createRequire(runtimePackage)("@openclaw/ai");
+    if (!sdk.supportsScopedAiTransportHosts()) throw new Error("Missing scoped transport support");
+    const { registerBudgetProviders } = await import(pathToFileURL(path.join(pluginDir, "provider-bridge.mjs")).href);
+    const { createBudgetRuntime } = await import(pathToFileURL(path.join(pluginDir, "runtime.mjs")).href);
+    let sends = 0;
+    const guard = createBudgetRuntime({ fetchImpl: async () => { sends++; return new Response("{}"); } });
+    guard.setDiagnosticReporter(() => {});
+    const providers = [];
+    registerBudgetProviders({ registerProvider: provider => providers.push(provider) }, guard);
+    if (providers.length !== 6) throw new Error("Incomplete budget provider registration");
+    const stream = providers[0].wrapStreamFn({ streamFn: () => {
+      const result = guard.transport.fetch("https://budget-preflight.invalid", {
+        method: "POST", body: JSON.stringify({ messages: [], max_tokens: 10 }),
+      }).then(response => ({ role: "assistant", content: [], stopReason: "error", status: response.status }));
+      return { result: () => result, async *[Symbol.asyncIterator]() {} };
+    } })({ api: "openai-completions" }, {}, {});
+    const result = await stream.result();
+    if (sends || result.status !== 400) throw new Error("Unowned provider request was not blocked");
+    return;
+  }
+  if (runtimeVersion !== "2026.3.28") {
     throw new Error("Inference budget requires the verified OpenClaw runtime");
   }
   installedSdkEntry(runtimePackage, "@mariozechner/pi-ai");
