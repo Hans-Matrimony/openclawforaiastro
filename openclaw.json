@@ -539,7 +539,7 @@
         "name": "WhatsApp Support",
         "workspace": "/app/.openclaw/workspace-astrologer",
         "model": {
-          "primary": "openrouter/qwen/qwen3-next-80b-a3b-instruct",
+          "primary": "deepseek/deepseek-v4-flash",
           "fallbacks": [
             "groq/llama-3.3-70b-versatile",
             "google/gemini-2.5-flash",
