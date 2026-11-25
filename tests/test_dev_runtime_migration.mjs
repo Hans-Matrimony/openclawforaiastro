@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { migrateDevConfig } from '../scripts/configure-dev-runtime.mjs';
 import { configureProviderRender } from '../scripts/configure-provider-render.mjs';
 
@@ -14,12 +16,16 @@ test('latest dev migration refuses production or enabled external delivery', asy
   }
 });
 
-test('full shipped config migrates, preserves agents and models, and survives repeated startup', { skip: !runtime }, async () => {
+async function verifyMigration(input, runtime, env) {
   const original = structuredClone(input);
   const result = await migrateDevConfig(input, runtime, env);
   assert.deepEqual(input, original);
   assert.deepEqual(Object.keys(result.agents.entries).sort(), input.agents.list.map(a => a.id).sort());
   assert.equal(result.agents.defaults.heartbeat, undefined);
+  assert.equal(result.channels.whatsapp.streaming.block.enabled, input.channels.whatsapp.blockStreaming);
+  assert.equal(result.channels.whatsapp.streaming.chunkMode, input.channels.whatsapp.chunkMode);
+  assert.deepEqual(result.channels.whatsapp.heartbeatVisibility, input.channels.whatsapp.heartbeat);
+  assert.deepEqual(result.plugins, input.plugins);
   assert.ok(result.agents.defaults.modelPolicy.allow.includes(result.agents.entries.astrologer.model.primary));
   for (const agent of input.agents.list) {
     const primary = typeof agent.model === 'string' ? agent.model : agent.model?.primary;
@@ -28,6 +34,18 @@ test('full shipped config migrates, preserves agents and models, and survives re
   const repeated = await migrateDevConfig(configureProviderRender(result, {}), runtime, env);
   assert.deepEqual(repeated, result);
   assert.equal(result.bindings.length, input.bindings.length);
+}
+
+test('full shipped config migrates, preserves agents and models, and survives repeated startup', { skip: !runtime }, async () => {
+  // The installed runtime's test loader expects unpublished channel fixtures.
+  // Use an ordinary child process to exercise the shipped channel contracts.
+  const childEnv = { ...process.env };
+  delete childEnv.NODE_TEST_CONTEXT;
+  const code = `import assert from 'node:assert/strict';
+    import {migrateDevConfig} from ${JSON.stringify(new URL('../scripts/configure-dev-runtime.mjs', import.meta.url).href)};
+    import {configureProviderRender} from ${JSON.stringify(new URL('../scripts/configure-provider-render.mjs', import.meta.url).href)};
+    await (${verifyMigration.toString()})(${JSON.stringify(input)},${JSON.stringify(runtime)},${JSON.stringify(env)});`;
+  await promisify(execFile)(process.execPath, ['--input-type=module', '-e', code], { env: childEnv, timeout: 60000, windowsHide: true });
 });
 
 test('production Dockerfile retains its original runtime', () => {

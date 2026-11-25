@@ -23,6 +23,12 @@ export async function migrateDevConfig(input, runtimeRoot, env = process.env) {
   const { t: migrations } = await import(pathToFileURL(path.join(runtimeRoot, 'dist/legacy-config-migrations-D77J4M6_.mjs')));
   const changes = [];
   for (const migration of migrations) migration.apply(config, changes);
+  // Channel schemas are supplied by bundled plugins, separately from core
+  // migrations. Limit this pass to channel data; preserve our custom plugins.
+  const { n: migrateChannels } = await import(pathToFileURL(path.join(runtimeRoot, 'dist/channel-legacy-config-migrate-CS_cFh22.mjs')));
+  const channelInput = structuredClone(config);
+  delete channelInput.plugins;
+  config.channels = migrateChannels(channelInput).next.channels;
   const bounded = configureRuntimeBudget(config);
   const { validateConfigObjectRaw } = await import(pathToFileURL(path.join(runtimeRoot, 'dist/config/config.js')));
   const result = validateConfigObjectRaw(bounded);
