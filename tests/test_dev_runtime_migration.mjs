@@ -20,6 +20,7 @@ test('full shipped config migrates, preserves agents and models, and survives re
   assert.deepEqual(input, original);
   assert.deepEqual(Object.keys(result.agents.entries).sort(), input.agents.list.map(a => a.id).sort());
   assert.equal(result.agents.defaults.heartbeat, undefined);
+  assert.ok(result.agents.defaults.modelPolicy.allow.includes(result.agents.entries.astrologer.model.primary));
   for (const agent of input.agents.list) {
     const primary = typeof agent.model === 'string' ? agent.model : agent.model?.primary;
     if (primary) assert.equal(result.agents.entries[agent.id].model.primary?.replace(/^astro-budget-/, '') ?? result.agents.entries[agent.id].model, primary);

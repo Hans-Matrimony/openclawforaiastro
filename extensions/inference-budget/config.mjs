@@ -14,7 +14,15 @@ export function configureRuntimeBudget(input) {
     const source = config.models?.providers?.[provider];
     if (!source) throw new Error("Missing guarded provider configuration");
     config.models.providers[BUDGET_PREFIX + provider] = structuredClone(source);
-    return BUDGET_PREFIX + provider + ref.slice(split);
+    const original = provider + ref.slice(split);
+    const alias = BUDGET_PREFIX + original;
+    const policy = config.agents?.defaults?.modelPolicy;
+    if (Array.isArray(policy?.allow) && policy.allow.includes(original) && !policy.allow.includes(alias)) {
+      policy.allow.push(alias);
+    }
+    const settings = config.agents?.defaults?.models;
+    if (settings?.[original] && !settings[alias]) settings[alias] = structuredClone(settings[original]);
+    return alias;
   }
   const defaults = config.agents?.defaults?.model;
   const agents = config.agents?.list ?? Object.entries(config.agents?.entries ?? {}).map(([id, agent]) => ({...agent,id}));
