@@ -39,6 +39,17 @@ export const GUARDED_AGENTS = new Set([
 ]);
 const RETENTION_MS = 3600000;
 const CAPACITY = 4096;
+function summaryKind(message) {
+  if (["compactionSummary", "branchSummary"].includes(message.role)) return message.role;
+  // Modern provider hooks receive converted messages. Require the runtime's
+  // synthetic marker as well as its summary envelope, never user wording alone.
+  if (message.role !== "user" || message.synthetic !== true || !Array.isArray(message.content)) return;
+  if (message.content.length !== 1 || message.content[0].type !== "text") return;
+  const text = message.content[0].text;
+  if (typeof text !== "string" || !text.endsWith("</summary>")) return;
+  if (text.startsWith("The conversation history before this point was compacted into the following summary:\n\n<summary>\n")) return "compactionSummary";
+  if (text.startsWith("The following is a summary of a branch that this conversation came back from:\n\n<summary>\n")) return "branchSummary";
+}
 // PWA requests already carry their bounded, server-owned recent conversation.
 // This runs on AgentMessages before Pi converts summaries/custom messages to
 // role=user. Retain recent conversation text and summaries, but only the current
@@ -49,7 +60,7 @@ export function recentPwaContext(context, agentId) {
   }
   const starts = [];
   for (const [index, message] of context.messages.entries()) {
-    if (message.role === "user") {
+    if (message.role === "user" && !summaryKind(message)) {
       starts.push(index);
     }
   }
@@ -82,8 +93,7 @@ export function recentPwaContext(context, agentId) {
   }
   const retainedSummaryRoles = new Set(
     retained
-      .filter((message) => ["compactionSummary", "branchSummary"].includes(message.role))
-      .map((message) => message.role),
+      .map(summaryKind).filter(Boolean),
   );
   const summaries = new Map();
   for (const [index, message] of context.messages.entries()) {
@@ -91,10 +101,10 @@ export function recentPwaContext(context, agentId) {
       break;
     }
     if (
-      ["compactionSummary", "branchSummary"].includes(message.role) &&
-      !retainedSummaryRoles.has(message.role)
+      summaryKind(message) &&
+      !retainedSummaryRoles.has(summaryKind(message))
     ) {
-      summaries.set(message.role, { index, message });
+      summaries.set(summaryKind(message), { index, message });
     }
   }
   return {
@@ -199,6 +209,8 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
   const runs = new Map();
   const sessions = new Map();
   const modelBudgets = new WeakMap();
+  const calls = new Map();
+  const pendingCalls = new Map();
   const registered = new Map();
   const runtimeTag = randomBytes(8).toString("hex");
   let diagnosticReporter;
@@ -286,13 +298,68 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
       modelBudgets.set(model, { budget: selected, sessionId });
     }
   }
+  function bindCall(context) {
+    if (!context.callId || !context.sessionId || !context.runId) return;
+    for (const [id, call] of calls) {
+      if (now() - call.created >= RETENTION_MS) calls.delete(id);
+    }
+    // Compaction has a diagnostic child run ID. Its retries and provider
+    // fallbacks must retain the allowance established by before_compaction.
+    let budget;
+    if (context.runId.includes(":compaction:")) {
+      const owner = forSession(context.sessionId);
+      const root = context.runId.split(":compaction:", 1)[0];
+      const parent = runs.get(root);
+      // Automatic compaction shares its parent turn. Manual compaction gets
+      // one session-scoped allowance, reused across diagnostic fallback IDs.
+      const runId = parent?.sessionIds.has(context.sessionId)
+        ? root : `compaction:${context.sessionId}:${root}`;
+      budget = owner && bind({agentId:owner.agentId, sessionId:context.sessionId, runId});
+    } else {
+      budget = bind(context);
+    }
+    if (!budget || !GUARDED_AGENTS.has(budget.agentId)) return;
+    for (const key of [context.callId]) {
+      const previous = calls.get(key);
+      if (previous && (previous.budget !== budget || previous.sessionId !== context.sessionId)) {
+        calls.set(key, { budget: closed(), sessionId: null, created: now() });
+      } else if (calls.size < CAPACITY || previous) {
+        calls.set(key, { budget, sessionId: context.sessionId, created: now() });
+      }
+      for (const wake of pendingCalls.get(key) ?? []) wake();
+    }
+  }
+  function waitForCall(callId, signal) {
+    if (calls.has(callId) || signal?.aborted || pendingCalls.size >= CAPACITY) return Promise.resolve();
+    return new Promise(resolve => {
+      const waiters = pendingCalls.get(callId) ?? new Set();
+      const finish = () => {
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", finish);
+        waiters.delete(finish);
+        if (!waiters.size) pendingCalls.delete(callId);
+        resolve();
+      };
+      const timer = setTimeout(finish, 1000);
+      waiters.add(finish);
+      pendingCalls.set(callId, waiters);
+      signal?.addEventListener("abort", finish, {once:true});
+    });
+  }
   function wrapStream(inner, strict = false, withTransport = (_scope, run) => run()) {
-    return (model, context, options) => {
+    const execute = (model, context, options) => {
         if (strict && options?.sessionId && forSession(options.sessionId)) {
           bindModel(model, options.sessionId);
         }
         const associated = modelBudgets.get(model);
-        const selected = options?.sessionId
+        const callKey = options?.requestId;
+        const call = strict && callKey ? calls.get(callKey) : undefined;
+        const callBudget = call && call.budget === forSession(call.sessionId) &&
+          (!options?.sessionId || options.sessionId === call.sessionId)
+          ? call.budget : closed();
+        const selected = strict && callKey
+          ? callBudget
+          : options?.sessionId
           ? (forSession(options.sessionId) ??
             (associated?.sessionId === options.sessionId ? closed() : undefined))
           : associated?.sessionId
@@ -309,7 +376,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
           withTransport({ budget, api: model.api }, () =>
             inner(model, strict ? recentPwaContext(context, budget.agentId) : context, options)),
         );
-        const sessionId = options?.sessionId ?? associated?.sessionId;
+        const sessionId = options?.sessionId ?? call?.sessionId ?? associated?.sessionId;
         return wrapResult(
           stream,
           model,
@@ -345,6 +412,17 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
           },
         );
     };
+    return (model, context, options) => {
+      if (!strict || !options?.requestId || calls.has(options.requestId)) return execute(model, context, options);
+      // model_call_started is fire-and-forget in modern OpenClaw. Its trusted
+      // ownership hook may run after stream construction. Never send before
+      // registration; a missing hook times out and stays fail-closed.
+      const ready = waitForCall(options.requestId, options.signal).then(() => execute(model, context, options));
+      return {
+        async result() { return (await ready).result(); },
+        async *[Symbol.asyncIterator]() { yield* await ready; },
+      };
+    };
   }
   function installSdk(sdk) {
     for (const provider of sdk.getApiProviders()) {
@@ -366,6 +444,7 @@ export function createBudgetRuntime({ fetchImpl = globalThis.fetch, now = Date.n
   return {
     transport,
     bind,
+    bindCall,
     bindModel,
     forSession,
     installSdk,

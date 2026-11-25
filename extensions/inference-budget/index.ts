@@ -18,10 +18,11 @@ export default {
       const pluginRequire = createRequire(import.meta.url);
       const sdk = createRequire(pluginRequire.resolve("openclaw/plugin-sdk/core"))("@openclaw/ai");
       registerBudgetProviders(api, runtime, createManagedBudgetScope(sdk));
-      // Modern dispatch emits model_call_started before entering provider streams.
-      // Rebinding the same run preserves its allowance across retries and tools.
+      // Modern dispatch schedules this hook asynchronously. The provider guard
+      // waits for this exact call ID before sending an otherwise unowned stream.
       api.on("model_call_started", (event, context) => {
-        runtime.bind({ ...context, runId: event.runId, sessionId: event.sessionId ?? context.sessionId });
+        runtime.bindCall({ ...context, callId: event.callId, runId: event.runId,
+          sessionId: event.sessionId ?? context.sessionId });
       });
     }
     runtime.setDiagnosticReporter((event: Record<string, string | number | boolean>) => {

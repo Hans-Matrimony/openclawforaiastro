@@ -36,11 +36,21 @@ void test(
     const requests = [];
     let compacting = false;
     const server = http.createServer(async (req, res) => {
+      if (req.method !== "POST" || !req.url?.endsWith("/chat/completions")) {
+        // The runtime may probe auxiliary provider endpoints. This fixture
+        // implements chat completions only; reject other routes like a server,
+        // rather than throwing from the asynchronous request handler.
+        req.resume();
+        res.writeHead(404, {"content-type":"application/json"});
+        res.end(JSON.stringify({error:{message:"Synthetic endpoint not implemented"}}));
+        return;
+      }
       let body = "";
       for await (const chunk of req) {
         body += chunk;
       }
       const data = JSON.parse(body);
+      assert.ok(Array.isArray(data.messages), "Chat requests must contain messages");
       const serialized = JSON.stringify(data.messages);
       const marker = compacting ? "compaction" : [...serialized.matchAll(/AFTEST:([a-z0-9-]+)/g)].at(-1)?.[1] ?? "unknown";
       const currentStart = data.messages.findLastIndex((message) => message.role === "user");
