@@ -1,5 +1,6 @@
 import { createReadingHandler } from "./route.mjs";
 import { directAnswer } from "./direct/agent.mjs";
+import { devModelFailover } from "./direct/model-failover.mjs";
 
 export const directEnabled = (env = process.env) =>
   env.VEDASTRO_DIRECT_DEV_ENABLED === "1" && env.VEDASTRO_DIRECT_ENVIRONMENT === "development";
@@ -49,7 +50,7 @@ export function createDirectHandler(
   calculate = directAnswer,
   { env = process.env, ...options } = {},
 ) {
-  const handler = createReadingHandler((value) => calculate(value, { env }), {
+  const handler = createReadingHandler((value) => calculate(value, devModelFailover(env)), {
     ...options,
     validate: validateDirectInput,
     maxBody: 196608,

@@ -2,6 +2,14 @@ import { SOURCE_CONFIG } from "./source-contract.mjs";
 
 export function generationSettings(env = process.env) {
   const mode = env.VEDASTRO_DIRECT_GENERATION_MODE || "stable";
+  if (mode === "direct-failover") {
+    if (env.ASTROFRIEND_DEV_MODEL_FAILOVER !== "1" || env.VEDASTRO_DIRECT_ENVIRONMENT !== "development") {
+      throw new Error("Direct failover generation is development-only");
+    }
+    // Independent APIs do not share OpenRouter's endpoint/seed contract.
+    // Keep low-temperature generation without promising repeatable outputs.
+    return { temperature: 0, top_p: 1 };
+  }
   if (mode === "source") {
     // Keep the source sampling settings. Pinning is opt-in so both comparison
     // runners can use the same endpoint without changing companion routing.
