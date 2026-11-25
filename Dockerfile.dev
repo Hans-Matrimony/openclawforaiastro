@@ -1,0 +1,138 @@
+FROM node:24.17.0-bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    ffmpeg \
+    python3 \
+    python3-pip \
+    fonts-noto-core \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g pnpm openclaw@2026.11.10
+
+WORKDIR /app
+
+RUN npm init -y
+
+# install openclaw locally
+RUN pnpm add grammy @aws-sdk/client-bedrock
+
+# python deps
+RUN pip3 install uv requests duckduckgo-search jyotishganit geopy python-dotenv qdrant-client Pillow==12.3.0 \
+    pyswisseph==2.10.3.2 timezonefinder==9.0.0 tzdata==2026.4 --break-system-packages
+
+# Fail the build if numerical or timezone dependencies cannot actually load.
+RUN python3 -c "import swisseph; from timezonefinder import TimezoneFinder; from zoneinfo import ZoneInfo; assert TimezoneFinder().timezone_at(lat=28.6139, lng=77.209); ZoneInfo('Asia/Kolkata'); assert len(swisseph.calc_ut(2451545.0, swisseph.MOON)[0]) == 6"
+
+RUN python3 -c "from PIL import Image, ImageFont; Image.new('RGB', (1, 1)); ImageFont.truetype('/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf', 16)"
+
+# âŒ REMOVE UI BUILD (this was breaking everything)
+
+# directories
+RUN mkdir -p /app/.openclaw/agents/main/sessions \
+    /app/.openclaw/credentials \
+    /app/.openclaw/id_keys \
+    /app/.openclaw/workspace \
+    /app/.openclaw/workspace/memories \
+    /app/.openclaw/agents/astrologer/sessions \
+    /app/.openclaw/agents/tarot_reader/sessions \
+    /app/.openclaw/agents/astrologer_preview/sessions \
+    /app/.openclaw/agents/astrologer_preview_fast/sessions \
+    /app/.openclaw/workspace-astrologer \
+    /app/.openclaw/workspace-astrologer/memories \
+    /app/.openclaw/workspace-tarot-reader \
+    /app/.openclaw/workspace-tarot-reader/memories \
+    /app/.openclaw/workspace-astrologer-preview \
+    /app/.openclaw/workspace-astrologer-preview/memories \
+    /app/.openclaw/workspace-classifier \
+    /app/.openclaw/config \
+    /app/.openclaw/skills \
+    /app/.openclaw/.pi \
+    /app/bin \
+    /app/workspace
+
+RUN chmod -R 700 /app/.openclaw
+
+COPY openclaw.json /app/openclaw.json
+COPY openclaw.json /app/.openclaw/
+COPY config/ /app/.openclaw/config/
+COPY config/mcporter.json /app/bootstrap-mcporter.json
+COPY scripts/configure-mcp-runtime.mjs /app/configure-mcp-runtime.mjs
+COPY .pi/ /app/.openclaw/.pi/
+COPY skills/ /app/.openclaw/skills/
+COPY extensions/reviewed-reading/ /app/extensions/reviewed-reading/
+# Pin and compile the source Dev engine's native Swiss Ephemeris dependency.
+RUN cd /app/extensions/reviewed-reading/direct/assets/dev-v2 \
+    && npm ci --omit=dev --no-audit --no-fund \
+    && node --input-type=module -e "import {get_horoscope_predictions as chart} from './engine.mjs'; const r=JSON.parse(chart({birth_date:'01/01/2000',birth_time:'12:00',location_name:'Delhi'}).content[0].text); if(r.engine!=='local-sweph-v2'||r.ashtakavarga.grand_total!==337)process.exit(1)"
+COPY extensions/inference-budget/ /app/extensions/inference-budget/
+COPY extensions/inference-budget/transport.mjs extensions/inference-budget/runtime.mjs \
+    extensions/inference-budget/pi-extension.mjs extensions/inference-budget/provider-envelope.mjs /app/bootstrap/runtime/inference-budget/
+COPY app/whatsapp-support/workspace-astrologer/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer/.pi/extensions/
+COPY app/whatsapp-support/workspace-reply-repair/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-reply-repair/.pi/extensions/
+COPY app/whatsapp-support/workspace-astrologer-preview/.pi/extensions/astrofriend-budget.ts /app/bootstrap/workspace-astrologer-preview/.pi/extensions/
+COPY skills/kundli/prediction_assessment.py skills/kundli/outcome_language.py skills/kundli/render_outcome_reading.py \
+    skills/kundli/period_rules.py skills/kundli/period_rules.json skills/kundli/topic_wording.py \
+    skills/kundli/calculate.py skills/kundli/reading.py skills/kundli/reading_provider.py skills/kundli/reading_language.py \
+    skills/kundli/render_reading.py skills/kundli/timing_context.py skills/kundli/period_ratings.json \
+    skills/kundli/advanced_facts.py skills/kundli/natal_cache.py skills/kundli/vimshottari.py \
+    skills/kundli/draw_kundli_traditional.py \
+    skills/kundli/cities_india.json skills/kundli/SKILL.md skills/kundli/VEDASTRO-MIT.txt \
+    /app/bootstrap/skills/kundli/
+COPY skills/vedastro/vedastro_client.py skills/vedastro/natal_client.py skills/vedastro/engine_profile.py skills/vedastro/summary_client.py skills/vedastro/SKILL.md /app/bootstrap/skills/vedastro/
+COPY skills/horoscope/calculate.py skills/horoscope/scheduler.py skills/horoscope/vedic_rules.json \
+    skills/horoscope/daily_provider.py skills/horoscope/daily_wording.py skills/horoscope/vedha_geometry.py \
+    skills/horoscope/SKILL.md /app/bootstrap/skills/horoscope/
+COPY skills/qdrant/qdrant_client.py /app/bootstrap/skills/qdrant/qdrant_client.py
+COPY skills/mongo_logger/logger_client.py skills/mongo_logger/fetch_history.py \
+    skills/mongo_logger/service_auth.py /app/bootstrap/skills/mongo_logger/
+COPY app/whatsapp-support/workspace-astrologer/KUNDLI_RESPONSE.md \
+    app/whatsapp-support/workspace-astrologer/WORKFLOW.md \
+    app/whatsapp-support/workspace-astrologer/GUARDRAILS.md \
+    app/whatsapp-support/workspace-astrologer/TOOLS.md \
+    app/whatsapp-support/workspace-astrologer/TOOL_REFERENCE.md /app/bootstrap/workspace-astrologer/
+COPY .pi/prompts/astrologer.md /app/bootstrap/.pi/prompts/astrologer.md
+COPY app/whatsapp-support/workspace-astrologer/AGENTS.md \
+    app/whatsapp-support/workspace-astrologer/SOUL.md /app/bootstrap/instruction-source/
+COPY scripts/bootstrap-astrology-assets.mjs /app/bootstrap-astrology-assets.mjs
+COPY scripts/migrate-astrology-instructions.mjs /app/migrate-astrology-instructions.mjs
+COPY scripts/astrology-instruction-manifest.mjs /app/astrology-instruction-manifest.mjs
+COPY scripts/validate-inference-budget.mjs /app/validate-inference-budget.mjs
+COPY scripts/configure-control-ui.mjs /app/configure-control-ui.mjs
+COPY scripts/configure-provider-render.mjs /app/configure-provider-render.mjs
+COPY app/whatsapp-support/workspace-provider-selector/ /app/bootstrap/workspace-provider-selector/
+COPY app/whatsapp-support/workspace-provider-renderer/ /app/bootstrap/workspace-provider-renderer/
+COPY app/whatsapp-support/workspace-astrologer/ /app/.openclaw/workspace-astrologer/
+COPY app/whatsapp-support/workspace-reply-repair/ /app/.openclaw/workspace-reply-repair/
+COPY app/whatsapp-support/workspace-reply-repair/ /app/bootstrap/workspace-reply-repair/
+COPY app/whatsapp-support/workspace-tarot-reader/ /app/.openclaw/workspace-tarot-reader/
+COPY app/whatsapp-support/workspace-tarot-reader/ /app/bootstrap/workspace-tarot-reader/
+COPY app/whatsapp-support/workspace-astrologer-preview/ /app/.openclaw/workspace-astrologer-preview/
+COPY scripts/start-openclaw-gateway.sh /app/start-openclaw-gateway.sh
+COPY scripts/configure-dev-runtime.mjs /app/scripts/configure-dev-runtime.mjs
+ENV ASTROFRIEND_OPENCLAW_RUNTIME=2026.11.10
+COPY scripts/openclaw-docker-wrapper.sh /app/bin/openclaw
+
+RUN chmod 600 /app/openclaw.json /app/.openclaw/openclaw.json \
+    && chmod +x /app/start-openclaw-gateway.sh /app/bin/openclaw \
+    && mkdir -p /app/node_modules/.bin \
+    && ln -sf /app/bin/openclaw /app/node_modules/.bin/openclaw
+
+ENV OPENCLAW_STATE_DIR=/app/.openclaw
+ENV OPENCLAW_CONFIG_PATH=/app/openclaw.json
+ENV OPENCLAW_CONFIG_DIR=/app/.openclaw
+ENV KUNDLI_NATAL_CACHE_PATH=/app/.openclaw/cache/kundli.sqlite3
+ENV HOME=/app
+ENV PATH=/app/bin:$PATH
+
+# Health check to ensure the gateway is responsive
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:8000/ || exit 1
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/start-openclaw-gateway.sh"]
+CMD ["pnpm", "exec", "openclaw", "gateway", "--port", "8000", "--bind", "lan"]

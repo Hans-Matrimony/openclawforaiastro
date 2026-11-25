@@ -7,6 +7,15 @@ const modelId = "google/gemini-3.8-flash";
 
 export function configureProviderRender(input, env = {}) {
   const config = structuredClone(input);
+  const keyed = !Array.isArray(config.agents.list) && !!config.agents.entries;
+  if (keyed) config.agents.list = Object.entries(config.agents.entries).map(([id, agent]) => ({ ...agent, id }));
+  const finish = () => {
+    if (keyed) {
+      config.agents.entries = Object.fromEntries(config.agents.list.map(({ id, ...agent }) => [id, agent]));
+      delete config.agents.list;
+    }
+    return config;
+  };
   const enabled =
     env.VEDASTRO_GROUPED_RENDER_DEV_ENABLED === "1" &&
     env.VEDASTRO_SUMMARY_DEV_ENABLED === "1" &&
@@ -14,7 +23,7 @@ export function configureProviderRender(input, env = {}) {
   // Remove stale stage agents when a previously enabled deployment is disabled.
   config.agents.list = config.agents.list.filter((agent) => !agentIds.includes(agent.id));
   if (!enabled) {
-    return config;
+    return finish();
   }
   const provider = config.models?.providers?.openrouter;
   if (!provider || provider.api !== "openai-completions") {
@@ -44,7 +53,7 @@ export function configureProviderRender(input, env = {}) {
       tools: { deny: ["*"] },
     });
   }
-  return config;
+  return finish();
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

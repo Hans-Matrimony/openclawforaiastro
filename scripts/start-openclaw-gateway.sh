@@ -32,6 +32,9 @@ node "$APP_DIR/configure-provider-render.mjs"
 node "$APP_DIR/bootstrap-astrology-assets.mjs"
 node "$APP_DIR/configure-mcp-runtime.mjs"
 node "$APP_DIR/astrology-instruction-manifest.mjs"
+if [ "${ASTROFRIEND_OPENCLAW_RUNTIME:-}" = "2026.11.10" ]; then
+  node "$APP_DIR/scripts/configure-dev-runtime.mjs" "$(npm root -g)/openclaw"
+fi
 node "$APP_DIR/validate-inference-budget.mjs" "$(npm root -g)/openclaw/package.json"
 
 if [ -f "$CONFIG_SOURCE" ]; then
@@ -52,7 +55,7 @@ node - "$OPENCLAW_CONFIG_PATH" <<'NODE'
 const fs = require("node:fs");
 const configPath = process.argv[2];
 const cfg = JSON.parse(fs.readFileSync(configPath, "utf8"));
-const agents = new Set((cfg.agents?.list ?? []).map((agent) => agent?.id));
+const agents = new Set(cfg.agents?.list?.map((agent) => agent?.id) ?? Object.keys(cfg.agents?.entries ?? {}));
 const tarotBindings = (cfg.bindings ?? []).filter((binding) => {
   const match = binding?.match;
   return binding?.agentId === "tarot_reader"

@@ -78,7 +78,8 @@ function fingerprint(root, relative) {
 }
 
 export function instructionManifest(config, appDir, stateDir) {
-  const agents = config?.agents?.list?.filter((agent) => agent.id === "astrologer_pwa") ?? [];
+  const roster = config?.agents?.list ?? Object.entries(config?.agents?.entries ?? {}).map(([id, agent]) => ({ ...agent, id }));
+  const agents = roster.filter((agent) => agent.id === "astrologer_pwa");
   const workspace = path.resolve(stateDir, "workspace-astrologer");
   const matched =
     agents.length === 1 &&
