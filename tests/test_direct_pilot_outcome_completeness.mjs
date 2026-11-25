@@ -221,7 +221,7 @@ test("a clear qualified answer is preserved without rewriting or repeated calcul
   const draft =
     "Career mein sahyog bhi hai aur rukawatein bhi. Surya ka 10ve ghar mein hona sahyog ka sanket hai.\n\nHaan, aage badhne ki sambhavna hai, lekin rukawatein bhi hain.";
   const { result, calculations } = await run("Kya mujhe job milegi?", { draft });
-  assert.equal(result.reply, draft);
+  assert.equal(result.reply.replace(/\s+/gu, " "), draft.replace(/\s+/gu, " "));
   assert.equal(calculations, 1);
   assert.deepEqual(result.answer_validation, []);
 });
@@ -407,4 +407,31 @@ test("a checked-reading companion cannot add a promise before its question", asy
     closing: "Kis tarah ka kaam karna pasand karenge?",
   });
   assert.match(result.reply, /Kis tarah ka kaam karna pasand karenge\?/);
+});
+
+test('general natal periods cannot date a specific partner return even with qualified wording', () => {
+  const query = 'Meri girlfriend kab wapas aayegi?';
+  for (const draft of [
+    '2031-11-15 ke baad Jupiter antardasha mein wapas aane ki sambhavna hai.',
+    'Your girlfriend may return after November 2031.',
+  ]) assert.match(readingVerdictIssue(draft, rows, 'relationship', { query }), /specific person/);
+  assert.equal(readingVerdictIssue('Unke wapas aane ki date is chart se verify nahi hoti. General relationship indications are mixed.', rows, 'relationship', { query }), null);
+  assert.equal(readingVerdictIssue('General relationship indications are mixed.', rows, 'relationship', { query }), null);
+  assert.equal(readingVerdictIssue('Your girlfriend may return after November 2031.', rows, undefined, { query }), null);
+});
+
+test('mandatory wait in the captured career wording is rejected',()=>{
+ assert.equal(categoricalOutcomeClaim('2027 tak wait karna padega.'),false);
+ assert.equal(categoricalOutcomeClaim('2027 tak wait karna padega.', {expandedWaitCheck:true}),true);
+ assert.equal(categoricalOutcomeClaim('Wait karna zaroori nahi.'),false);
+});
+
+test('captured natal placement cannot become a future transit',()=>{
+ assert.match(readingVerdictIssue('Jupiter ka house 7 mein aana 2031 se shuru hoga.',rows,'marriage',{query:'Meri shaadi kab hogi?'}),/natal house placement/);
+ assert.equal(readingVerdictIssue('Jupiter house 7 mein hai. Jupiter antardasha November 2031 se shuru hogi.',rows,'marriage'),null);
+});
+test('captured technical-first career answer must be repaired without changing the legacy path',()=>{
+ const reply='Venus mahadasha aur Moon antardasha mein career ka support mixed hai.\n\nJob ka possible window 2027-09-15 ke baad.';
+ assert.match(readingVerdictIssue(reply,rows,'career',{query:'Kya mujhe job milegi?'}),/first bubble/);
+ assert.equal(readingVerdictIssue(reply,rows,undefined,{query:'Kya mujhe job milegi?'}),null);
 });

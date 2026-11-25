@@ -64,13 +64,14 @@ export function readingAssessment(trend, language, topic) {
 }
 
 export function readingCompletenessInstruction(topic) {
+  const presentation = "\nPresent the answer in this order: first a short direct assessment addressing the exact requested outcome, then one or two decisive checked reasons, then the supported timing if asked. Supportive evidence means a qualified positive outlook; adverse evidence means a qualified difficult outlook; mixed evidence means explicitly explain the support and obstacle without inventing a yes/no. Do not start with a list of planetary periods or raw scores. Use natural language in the requested language, explain technical terms briefly, and keep both years of a cross-year window. A calculated period is not automatically the date of an event. Do not replace a job-outcome answer with career-field advice. Do not add a compulsory question, repeated conclusion, or instruction to wait until the period before taking action.\n";
   if (topic === "relationship") {
-    return relationshipAssessmentInstruction;
+    return relationshipAssessmentInstruction + presentation + "A person's return, contact, consent or feelings cannot be established by general relationship indications in the user's natal chart. Answer that specific limitation directly, then explain the general relationship outlook separately. Even a qualified 'may return after this date' needs evidence specific to that event; a general dasha window does not supply it.\n";
   }
   if (!readingTopicArea(topic)) {
     return "";
   }
-  return `\nAnswer completeness for ${topic}: answer the user's current question directly using the checked evidence. For an outcome question, state whether indications are supportive, challenging or mixed before the timing, with the relevant checked reasons. Do not force a categorical yes/no from natal indications or turn a period into a guaranteed event. A dasha schedule alone does not answer an outcome question. Preserve supported dates and opposing factors. For a factual chart question, explain the requested facts rather than adding an unsolicited outcome prediction.\n`;
+  return `\nAnswer completeness for ${topic}: answer the user's current question directly using the checked evidence. For an outcome question, state whether indications are supportive, challenging or mixed before the timing, with the relevant checked reasons. Do not force a categorical yes/no from natal indications or turn a period into a guaranteed event. A dasha schedule alone does not answer an outcome question. Preserve supported dates and opposing factors. For a factual chart question, explain the requested facts rather than adding an unsolicited outcome prediction.\n` + presentation;
 }
 
 // An explicitly requested calculation schedule is itself a complete answer.
@@ -152,7 +153,7 @@ export function readingUnavailableIssue(reply, results, topic) {
 
 // Validate each claim independently; a later qualification cannot excuse a
 // categorical event prediction earlier in the answer or in its companion.
-export function categoricalOutcomeClaim(reply) {
+export function categoricalOutcomeClaim(reply, { expandedWaitCheck = false } = {}) {
   return reply.split(/[.!?;।\n]|\b(?:but|lekin|magar|par)\b/iu).some((clause) => {
     // A natal period is not an instruction to stop pursuing the outcome.
     // This also catches relative waits, which contain no calendar year.
@@ -164,7 +165,7 @@ export function categoricalOutcomeClaim(reply) {
       /\b(?:(?:do not|don't)(?:\s+have to)?|no need to|not necessary to)\s+wait\b|\b(?:wait|intezaar|intazaar)\s+(?:karna\s+)?(?:zaroori\s+|zaruri\s+)?(?:nahi|nahin)\b/iu.test(
         clause,
       );
-    if (waiting && !optionalWait) {
+    if ((waiting || (expandedWaitCheck && /\b(?:wait|intezaar|intazaar)\b[^.!?;\n]{0,25}\b(?:padega|padegi)\b/iu.test(clause))) && !optionalWait) {
       return true;
     }
     if (
@@ -188,7 +189,7 @@ export function categoricalOutcomeClaim(reply) {
   });
 }
 
-export function readingVerdictIssue(reply, results, topic, { mixedOnly = false } = {}) {
+export function readingVerdictIssue(reply, results, topic, { mixedOnly = false, query = "" } = {}) {
   const area = readingTopicArea(topic);
   if (!area) {
     return null;
@@ -208,6 +209,28 @@ export function readingVerdictIssue(reply, results, topic, { mixedOnly = false }
   if (!natal.length) {
     return null;
   }
+  // A period beginning in a future year does not move a natal planet to a
+  // house. Keep this check on natal-only results, never verified transit tools.
+  if (hasOnlyNatalRelationshipEvidence(results) &&
+      /\b(?:Jupiter|Saturn|Venus|Mars|Mercury|Moon|Sun|Guru|Shani|Mangal)\b[^.!?\n]{0,55}\b(?:house\s*\d|\d+(?:ve|th)?\s*(?:ghar|house))\b[^.!?\n]{0,35}\b(?:aana|enter|enters|entering|move|moves|moving)\b[^.!?\n]{0,50}\b20\d{2}\b/iu.test(reply)) {
+    return "Do not describe a natal house placement as a planet entering that house in a future year. The checked dates belong to a dasha period, not a calculated future transit. Preserve the supported period and explain the natal placement separately.";
+  }
+  // Reject a technical opening when the user asked an outcome question. This
+  // uses the existing bounded repair and checked fallback, not another model.
+  if (query && /\b(?:kya|will|milegi|milega|hogi|hoga)\b/iu.test(query) &&
+      /^(?:Venus|Moon|Sun|Mars|Mercury|Jupiter|Saturn|Rahu|Ketu|Guru|Shani)\b[^.!?\n]{0,50}\b(?:mahadasha|antardasha|dasha)\b/iu.test(reply.trim())) {
+    return "Start with a direct qualified assessment of the requested outcome in its own first bubble. Put planetary periods and chart reasons in the next bubble. Preserve mixed evidence; do not force yes/no or add timing when the user only asked whether the outcome is supported.";
+  }
+  // A general natal relationship period cannot date another person's return,
+  // even when the draft uses "possible" rather than making a guarantee.
+  const asksReturn = /\b(?:girlfriend|boyfriend|gf|bf|ex|partner)\b/iu.test(query) &&
+    /\b(?:wapas|vaapas|return|come back)\b/iu.test(query);
+  if (topic === "relationship" && asksReturn && reply.split(/[.!?\n]/u).some(part =>
+    /\b(?:wapas|vaapas|return|come back)\b/iu.test(part) &&
+    /\b(?:20\d{2}|antardasha|mahadasha|after|before|baad|mahine|months?|years?)\b/iu.test(part) &&
+    !/\b(?:cannot|can't|unable|nahi|nahin|not|unverified)\b/iu.test(part))) {
+    return "The available natal chart does not establish when this specific person will return. Remove the return-date inference, state that specific limit directly, and discuss checked general relationship indications separately without assigning them to that person's actions.";
+  }
   const signals = natal
     .flatMap((row) => row.verdict_signals ?? [])
     .filter((row) => row?.area === area);
@@ -220,7 +243,7 @@ export function readingVerdictIssue(reply, results, topic, { mixedOnly = false }
           part,
         ),
     );
-  if (!categorical && !categoricalOutcomeClaim(reply)) {
+  if (!categorical && !categoricalOutcomeClaim(reply, { expandedWaitCheck: true })) {
     return null;
   }
   if (

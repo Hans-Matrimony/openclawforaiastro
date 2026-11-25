@@ -19,14 +19,14 @@ import {
   tool,
 } from "./fixtures/relationship-pilot.mjs";
 
-test("a rejected pilot timing draft uses one checked selector without a second free-text edit", async () => {
+test("a rejected pilot timing draft receives one natural repair before the checked selector", async () => {
   let requests = 0,
     structured = 0;
   const result = await directAnswer(input, {
     env,
     now,
     makeMemory: () => ({ read: async () => [] }),
-    makeTools: () => async () => JSON.stringify(chart),
+    makeTools: () => async () => JSON.stringify({...chart,instruction:"LEGACY_FORCE_VERDICT_SENTINEL"}),
     fetchImpl: async (_, options) => {
       const body = JSON.parse(options.body);
       if (!body.tools) {
@@ -37,6 +37,13 @@ test("a rejected pilot timing draft uses one checked selector without a second f
         return tool();
       }
       if (requests === 2) {
+        return prose(Array(5).fill(schedule).join("\n\n"));
+      }
+      if (requests === 3) {
+        assert.match(body.messages[0].content, /Interpret the checked evidence naturally/);
+        assert.doesNotMatch(JSON.stringify(body.messages), /LEGACY_FORCE_VERDICT_SENTINEL/);
+        assert.doesNotMatch(body.messages[1].content, /Rewrite the current draft|Rejected draft/);
+        assert.match(body.messages[1].content, /Write a fresh answer/);
         return prose(Array(5).fill(schedule).join("\n\n"));
       }
       assert.equal(body.tools[0].function.name, "submit_timing_reading");
@@ -64,7 +71,7 @@ test("a rejected pilot timing draft uses one checked selector without a second f
       });
     },
   });
-  assert.equal(requests, 3);
+  assert.equal(requests, 4);
   assert.equal(structured, 1);
   assert.ok(result.answer_validation.includes("relationship_wording_structured_repair"));
   assert.ok(result.answer_validation.includes("topic_timing_repaired"));
@@ -240,7 +247,7 @@ test("semantic reading handoff requires evidence without contradictory ordinary-
     },
   });
   assert.equal(readings, 3);
-  assert.equal(closings, 1);
+  assert.equal(closings, 2);
   assert.deepEqual(result.answer_reading_tools, ["get_horoscope_predictions"]);
   assert.ok(!result.answer_validation.includes("conversation_grounding_rejected"));
   assert.match(result.reply, /sahyog bhi hai aur rukawatein bhi/);
@@ -278,4 +285,21 @@ test("the captured embedded negative verdict cannot bypass mixed-assessment vali
   assert.match(result.reply, /sahyog bhi hai aur rukawatein bhi/);
   assert.doesNotMatch(result.reply, /NAHI|Saturn bhi yahan baitha|20 hai bahut weak/);
   assert.ok(result.answer_model_calls <= 12);
+});
+
+test('verified pilot reading ends naturally without an appended companion question', async () => {
+ const candidate='Rishte ki baat aage badhne ki sambhavna hai, lekin rukawatein bhi hain.\n\nShukra ka 7ve ghar mein hona sahyog deta hai; Shani ki drishti rukawat ka sanket deti hai.';
+ let readingCalls=0, writerCalls=0, companionCalls=0;
+ const result=await directAnswer({...input,query:'Kya relationship aage badh sakta hai?'},{env,now,makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>JSON.stringify(chart),fetchImpl:async(_,options)=>{
+  const body=JSON.parse(options.body);const instruction=body.messages[0].content;
+  if(body.response_format)return prose(JSON.stringify({route:"checked_reading",reply:""}));
+  if(instruction.startsWith('Write a natural astrology reply')){writerCalls++;return prose(candidate);}
+  if(instruction.startsWith('Check the proposed answer'))return prose('PASS');
+  if(!body.tools){companionCalls++;return prose('NONE');}
+  if(++readingCalls===1)return tool();
+  return prose('Rishte mein sahyog bhi hai aur rukawatein bhi.\n\nShukra ka 7ve ghar mein hona sahyog deta hai; Shani ki drishti rukawat ka sanket deti hai.');
+ }});
+ assert.equal(writerCalls,1);assert.equal(companionCalls,0);
+ assert.ok(result.answer_validation.includes('pilot_final_wording_verified'));
+ assert.equal(result.reply,candidate);
 });

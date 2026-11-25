@@ -257,7 +257,7 @@ export function sanitizeBindus(reply) {
 export function formatReadingReply(
   reply,
   hasReading,
-  { friendlyClosing = false, separateCompanion = false } = {},
+  { friendlyClosing = false, separateCompanion = false, flexibleBubbles = false } = {},
 ) {
   if (!hasReading) {
     return reply;
@@ -272,6 +272,7 @@ export function formatReadingReply(
     // Normal prose follows the reading bubble contract below.
   }
   const paragraphs = reply.trim().split(/\r?\n\s*\r?\n/);
+  if (flexibleBubbles && paragraphs.length <= 4) return reply;
   if (separateCompanion && paragraphs.length === 3 && isCompanionParagraph(paragraphs[2])) {
     return reply; // Preserve both reading bubbles; the companion stage owns the third.
   }

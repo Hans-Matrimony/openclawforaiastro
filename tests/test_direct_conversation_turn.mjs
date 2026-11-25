@@ -239,3 +239,14 @@ test('review transport error does not fall through to an unreviewed reply',async
  },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'})),/transport/);
  assert.equal(calls,2);
 });
+
+test('pilot review repairs informal address with agreement while preserving listening intent',async()=>{
+ let calls=0;
+ const corrected='Aapne bahut mehnat ki thi; main bina advice diye sun rahi hoon.';
+ const result=await directAnswer({...value,query:'Bas meri baat suno, advice mat dena.'},deps(async()=>{
+  calls++;
+  return response(JSON.stringify(calls===1 ? {route:'conversation',reply:'Tumne bahut mehnat ki thi; main sun rahi hoon.'} : calls===2 ? {route:'conversation',reply:corrected} : {status:'accept',issues:[]}));
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(result.reply,corrected);
+ assert.equal(calls,3);
+});

@@ -18,7 +18,7 @@ function fit(text, budget) {
 
 // Presentation only: reserve room for the short verdict and final companion.
 // Never send shortened text back into chart calculations or memory retrieval.
-export function limitResponseLength(reply) {
+export function limitResponseLength(reply, { preserveFourBubbles = false } = {}) {
   if (reply.includes("```") || /(?:^|\n)\s*\|[^\n]+\|/.test(reply)) {
     return reply;
   }
@@ -32,7 +32,7 @@ export function limitResponseLength(reply) {
     .trim()
     .split(/\n\s*\n/u)
     .filter(Boolean);
-  if (parts.length <= 3 && words(reply).length <= 100) {
+  if (parts.length <= (preserveFourBubbles ? 4 : 3) && words(reply).length <= 100) {
     return reply;
   }
   if (parts.length > 3) {
