@@ -1,6 +1,6 @@
 import { finalPilotReading } from './pilot-final-reading.mjs';
 import { evidenceOnly, unifiedPilotPrompt } from './pilot-evidence-contract.mjs';
-import { pilotBubbleInstruction, pilotAnswerFirst, specificReturnBoundary } from "./pilot-bubbles.mjs";
+import { pilotBubbleInstruction, pilotAnswerFirst, specificReturnBoundary, isSpecificReturnQuestion } from "./pilot-bubbles.mjs";
 import { interpretTurn } from "./conversation-turn.mjs";
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fitWhatsAppReadingParagraphs } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
@@ -1209,7 +1209,7 @@ export async function directAnswer(
       const checkedDraft = renderedPilotTiming ? publishableReply : formatDisplayReply(evidenceFallback(chartResults,value.language,value.query,now()));
       const rewritten = await finalPilotReading(checkedDraft, {
         question: redactIdentity(readingSubject || value.query,value.user_id),
-        followup: redactIdentity(value.query,value.user_id), language: value.language, timingRequested: timingRequired,
+        followup: redactIdentity(value.query,value.user_id), language: value.language, timingRequested: timingRequired && !isSpecificReturnQuestion(readingSubject || value.query),
         evidence: chartResults.map(text => {
           try {
             const row=JSON.parse(modelEvidence(text));
@@ -1261,13 +1261,13 @@ export async function directAnswer(
       deliveredReply = finishWhatsAppReply(formatDisplayReply(evidenceFallback(chartResults, value.language, value.query, now())), value, {facts: context.memoryFacts});
       validation.push('past_prediction_delivery_rejected');
     }
-    if (completenessPilot && readingOptions?.topic === 'relationship' && hasOnlyNatalRelationshipEvidence(chartResults)) {
+    if (!finalReadingVerified && completenessPilot && readingOptions?.topic === 'relationship' && hasOnlyNatalRelationshipEvidence(chartResults)) {
       deliveredReply = specificReturnBoundary(deliveredReply, readingSubject || value.query, value.language);
     }
     signal.throwIfAborted();
     return {
       schema: "vedastro-direct-reply-v1",
-      reply: spokenReply(completenessPilot ? pilotAnswerFirst(deliveredReply) : deliveredReply, value),
+      reply: spokenReply(completenessPilot ? pilotAnswerFirst(deliveredReply, { timingRequested: timingRequired && !isSpecificReturnQuestion(readingSubject || value.query) }) : deliveredReply, value),
       answer_model_calls: upstreamCalls,
       answer_cache_hits: cacheHits,
       answer_reading_tools: [...readingTools],

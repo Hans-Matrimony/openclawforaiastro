@@ -23,11 +23,20 @@ test('captured career assessment separates from its reasons without changing con
  const reasons='10ve ghar ki majbooti achhi hai, lekin Shani ki sthiti rukawat ka sanket deti hai.';
  assert.equal(pilotAnswerFirst(assessment+' '+reasons+'\n\nKya aap apply kar rahe hain?'),assessment+'\n\n'+reasons+'\n\nKya aap apply kar rahe hain?');
 });
-test('specific partner return gets explicit limitation; general outlook and other topics are retained',()=>{
+test('specific partner return fallback omits unrelated timing while other topics are retained',()=>{
  const reply='November 2031 se July 2034 general relationship window hai.';
  const fixed=specificReturnBoundary(reply,'Meri girlfriend kab wapas aayegi?','hinglish');
- assert.match(fixed,/tay nahi hota/);
- assert.ok(fixed.endsWith(reply));
+ assert.match(fixed,/unka faisla/);
+ assert.doesNotMatch(fixed,/2031|2034|general relationship/);
  assert.equal(specificReturnBoundary(fixed,'Meri girlfriend kab wapas aayegi?','hinglish'),fixed);
  assert.equal(specificReturnBoundary(reply,'Meri shaadi kab hogi?','hinglish'),reply);
+});
+
+test('rejected timing rewrite still delivers the checked window first without changing dates',()=>{
+ const assessment='Shaadi ke liye sahyog bhi hai aur rukawatein bhi.';
+ const reason='Guru ka 7ve ghar mein hona sahyog ka sanket hai.';
+ const timing='Jupiter ki antardasha mein November 2031 se July 2034 ke beech shaadi ka yog dikh raha hai.';
+ const text=[assessment,reason,timing].join('\n\n');
+ assert.equal(pilotAnswerFirst(text,{timingRequested:true}),[timing,assessment,reason].join('\n\n'));
+ assert.equal(pilotAnswerFirst(text),text);
 });

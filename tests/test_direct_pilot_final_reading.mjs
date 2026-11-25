@@ -27,3 +27,15 @@ test('empty and oversized drafts cannot consume an extra review request',async()
  let calls=0;assert.equal(await finalPilotReading(original,{validate:()=>true,generate:async()=>{calls++;return draft;}}),original);assert.equal(calls,1);
  }
 });
+
+test('specific return rewrite cannot smuggle in a general period window',async()=>{
+ let calls=0;
+ const result=await finalPilotReading('Old general schedule',{question:'Meri girlfriend kab wapas aayegi?',fallback:'Return timing unavailable',validate:()=>true,generate:async()=>{calls++;return 'General relationship prospects improve in 2031.';}});
+ assert.equal(result,'Return timing unavailable');assert.equal(calls,1);
+});
+test('natural wording instruction retains uncertainty without stock disclaimers or technical scores',async()=>{
+ const instructions=[];
+ await finalPilotReading('Checked answer',{question:'Kya mujhe job milegi?',validate:()=>true,generate:async(instruction)=>{instructions.push(instruction);return instructions.length===1?'Job milne ki sambhavna hai, lekin deri ho sakti hai.':'PASS';}});
+ assert.match(instructions[0],/not boilerplate/);assert.match(instructions[0],/Do not expose bindu counts/);
+ assert.match(instructions[1],/Plain-language descriptions/);
+});
