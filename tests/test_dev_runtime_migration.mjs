@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 import { migrateDevConfig } from '../scripts/configure-dev-runtime.mjs';
 import { configureProviderRender } from '../scripts/configure-provider-render.mjs';
 
@@ -24,7 +25,8 @@ async function verifyMigration(input, runtime, env) {
   assert.equal(result.agents.defaults.heartbeat, undefined);
   assert.equal(result.channels.whatsapp.streaming.block.enabled, input.channels.whatsapp.blockStreaming);
   assert.equal(result.channels.whatsapp.streaming.chunkMode, input.channels.whatsapp.chunkMode);
-  assert.deepEqual(result.channels.whatsapp.heartbeatVisibility, input.channels.whatsapp.heartbeat);
+  assert.equal(result.channels.whatsapp.heartbeatVisibility, undefined);
+  assert.equal(result.channels.whatsapp.heartbeat, undefined);
   assert.deepEqual(result.plugins, input.plugins);
   assert.ok(result.agents.defaults.modelPolicy.allow.includes(result.agents.entries.astrologer.model.primary));
   for (const agent of input.agents.list) {
@@ -44,7 +46,9 @@ test('full shipped config migrates, preserves agents and models, and survives re
   const code = `import assert from 'node:assert/strict';
     import {migrateDevConfig} from ${JSON.stringify(new URL('../scripts/configure-dev-runtime.mjs', import.meta.url).href)};
     import {configureProviderRender} from ${JSON.stringify(new URL('../scripts/configure-provider-render.mjs', import.meta.url).href)};
-    await (${verifyMigration.toString()})(${JSON.stringify(input)},${JSON.stringify(runtime)},${JSON.stringify(env)});`;
+    const input = ${JSON.stringify(input)};
+    input.plugins.load.paths = input.plugins.load.paths.map(p => p.replace('/app/', ${JSON.stringify(fileURLToPath(new URL('../', import.meta.url)).replaceAll('\\', '/'))}));
+    await (${verifyMigration.toString()})(input,${JSON.stringify(runtime)},${JSON.stringify(env)});`;
   await promisify(execFile)(process.execPath, ['--input-type=module', '-e', code], { env: childEnv, timeout: 60000, windowsHide: true });
 });
 

@@ -29,9 +29,13 @@ export async function migrateDevConfig(input, runtimeRoot, env = process.env) {
   const channelInput = structuredClone(config);
   delete channelInput.plugins;
   config.channels = migrateChannels(channelInput).next.channels;
+  // 2026.11.10's doctor emits heartbeatVisibility, but its WhatsApp schema
+  // rejects that property. Dev has no heartbeat jobs or channel delivery;
+  // keep the original visibility settings in the source backup, not active.
+  delete config.channels?.whatsapp?.heartbeatVisibility;
   const bounded = configureRuntimeBudget(config);
-  const { validateConfigObjectRaw } = await import(pathToFileURL(path.join(runtimeRoot, 'dist/config/config.js')));
-  const result = validateConfigObjectRaw(bounded);
+  const { validateConfigObjectRawWithPlugins } = await import(pathToFileURL(path.join(runtimeRoot, 'dist/config/config.js')));
+  const result = await validateConfigObjectRawWithPlugins(bounded);
   if (!result.ok) throw new Error(JSON.stringify(result.issues));
   return bounded;
 }
