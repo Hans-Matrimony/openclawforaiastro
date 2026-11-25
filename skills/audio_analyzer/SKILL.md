@@ -1,3 +1,8 @@
+---
+name: audio_analyzer
+description: Analyze transcribed audio for emotional tone, language, and astrology-related questions.
+---
+
 # Audio Analyzer Skill
 
 Advanced audio analysis for emotion detection, astrological question extraction, and language detection.

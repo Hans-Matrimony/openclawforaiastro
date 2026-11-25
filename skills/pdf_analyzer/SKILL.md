@@ -1,3 +1,8 @@
+---
+name: pdf_analyzer
+description: Extract and analyze text and images from uploaded PDF documents, including astrological charts.
+---
+
 # PDF Analyzer Skill
 
 Analyzes uploaded PDF documents including astrological charts, horoscopes, and birth charts.

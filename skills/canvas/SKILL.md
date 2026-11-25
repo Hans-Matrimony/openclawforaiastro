@@ -1,3 +1,8 @@
+---
+name: canvas
+description: Display HTML content and interactive visualizations on connected OpenClaw nodes.
+---
+
 # Canvas Skill
 
 Display HTML content on connected OpenClaw nodes (Mac app, iOS, Android).
