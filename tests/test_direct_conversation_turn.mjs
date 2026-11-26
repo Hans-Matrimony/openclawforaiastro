@@ -240,35 +240,75 @@ test('review transport error does not fall through to an unreviewed reply',async
  assert.equal(calls,2);
 });
 
-test('pilot review repairs informal address with agreement while preserving listening intent',async()=>{
+test('pilot review receives respectful address without another generation or new content',async()=>{
  let calls=0;
- const corrected='Aapne bahut mehnat ki thi; main bina advice diye sun rahi hoon.';
+ const corrected='Aapne bahut mehnat ki thi; main sun rahi hoon.';
  const result=await directAnswer({...value,query:'Bas meri baat suno, advice mat dena.'},deps(async()=>{
   calls++;
-  return response(JSON.stringify(calls===1 ? {route:'conversation',reply:'Tumne bahut mehnat ki thi; main sun rahi hoon.'} : calls===2 ? {route:'conversation',reply:corrected} : {status:'accept',issues:[]}));
+  return response(JSON.stringify(calls===1 ? {route:'conversation',reply:'Tumne bahut mehnat ki thi; main sun rahi hoon.'} : {status:'accept',issues:[]}));
  },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
  assert.equal(result.reply,corrected);
- assert.equal(calls,3);
+ assert.equal(calls,2);
 });
 
 test('captured listening reply cannot mix respectful aap with keh sakti ho',async()=>{
  let calls=0;
- const corrected='Main aapki baat dhyaan se sun raha hoon. Jo bhi mann mein hai, aap keh sakti hain.';
+ const corrected='Main aapki baat dhyaan se sun raha hoon. Jo bhi mann mein hai, keh sakti hain.';
  const result=await directAnswer({...value,user_gender:'female',query:'Bas meri baat suno, advice mat dena.'},deps(async()=>{
   calls++;
   return response(JSON.stringify(calls===1?{route:'conversation',reply:'Main aapki baat dhyaan se sun raha hoon. Jo bhi mann mein hai, keh sakti ho.'}:
-   calls===2?{route:'conversation',reply:corrected}:{status:'accept',issues:[]}));
+   {status:'accept',issues:[]}));
  },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
- assert.equal(result.reply,corrected);assert.equal(calls,3);
+ assert.equal(result.reply,corrected);assert.equal(calls,2);
 });
 
 test('listening repair also preserves respectful agreement for keh do',async()=>{
  let calls=0;
- const corrected='Main sun raha hoon; aap aaram se keh dijiye.';
+ const corrected='Main sun raha hoon; aaram se keh dijiye.';
  const result=await directAnswer({...value,user_gender:'female',query:'Bas meri baat suno, advice mat dena.'},deps(async()=>{
   calls++;
   return response(JSON.stringify(calls===1?{route:'conversation',reply:'Main sun raha hoon; aaram se keh do.'}:
-   calls===2?{route:'conversation',reply:corrected}:{status:'accept',issues:[]}));
+   {status:'accept',issues:[]}));
  },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
- assert.equal(result.reply,corrected);assert.equal(calls,3);
+ assert.equal(result.reply,corrected);assert.equal(calls,2);
+});
+
+test('captured listening wording is normalized before review without advice or a chart',async()=>{
+ for(const feeling of ['akela','akeli']) {
+  let calls=0;
+  const original=`Aaj bahut ${feeling} feel ho raha hai—yeh sach mein bhaari lag sakta hai. Main yahin tumhari baat sun raha hoon, bina advice diye. Jo bhi mann mein hai, aaram se keh do; tumhe abhi kuch explain ya fix karne ki zaroorat nahi.`;
+  const expected='Aaj bahut akelapan mehsoos ho raha hai—yeh sach mein bhaari lag sakta hai. Main yahin aapki baat sun raha hoon, bina advice diye. Jo bhi mann mein hai, aaram se keh dijiye; aapko abhi kuch explain ya fix karne ki zaroorat nahi.';
+  const result=await directAnswer({...value,user_gender:'female',query:'Bas meri baat suno, advice mat dena.'},deps(async(_,options)=>{
+   calls++;if(calls===1)return response(JSON.stringify({route:'conversation',reply:original}));
+   const candidate=JSON.parse(JSON.parse(options.body).messages.at(-1).content).candidate;
+   assert.equal(candidate.reply,expected);
+   return response('{"status":"accept","issues":[]}');
+  },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+  assert.equal(result.reply,expected);assert.equal(calls,2);assert.deepEqual(result.answer_reading_tools,[]);
+ }
+});
+
+test('captured two-step advice keeps steps and numbers while using respectful verbs',async()=>{
+ const original='1. Job description dekhkar apne 3 relevant examples yaad kar lo.\n2. Kapde aur zaroori cheezein abhi ready karke, 5 minute common questions bolkar practice karo.';
+ const expected=original.replace('kar lo','kar lijiye').replace('karo','kijiye');let calls=0;
+ const result=await directAnswer({...value,query:'Interview ke liye abhi kya karun? Sirf 2 chhote steps batao.'},deps(async(_,options)=>{
+  if(calls===0)assert.match(JSON.parse(options.body).messages[0].content,/each numbered step gives one small action/);
+  if(++calls===1)return response(JSON.stringify({route:'advice',reply:original}));
+  assert.equal(JSON.parse(JSON.parse(options.body).messages.at(-1).content).candidate.reply,expected);
+  return response('{"status":"accept","issues":[]}');
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(result.reply,expected);assert.equal(calls,2);
+});
+
+test('a semantic listening repair also receives grammar normalization before final review',async()=>{
+ let calls=0;
+ const result=await directAnswer({...value,user_gender:'female',query:'Bas meri baat suno, advice mat dena.'},deps(async(_,options)=>{
+  calls++;
+  if(calls===1)return response(JSON.stringify({route:'conversation',reply:'Aap walk kijiye.'}));
+  if(calls===2)return response('{"status":"reject","issues":["Advice was not requested"]}');
+  if(calls===3)return response(JSON.stringify({route:'conversation',reply:'Aaj bahut akeli feel ho raha hai. Main sun raha hoon, aaram se keh do.'}));
+  assert.equal(JSON.parse(JSON.parse(options.body).messages.at(-1).content).candidate.reply,'Aaj bahut akelapan mehsoos ho raha hai. Main sun raha hoon, aaram se keh dijiye.');
+  return response('{"status":"accept","issues":[]}');
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(calls,4);assert.match(result.reply,/akelapan mehsoos ho raha hai/);
 });

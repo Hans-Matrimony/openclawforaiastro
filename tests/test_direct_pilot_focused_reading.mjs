@@ -157,6 +157,21 @@ test('model approval cannot publish overstated good chances, and the safe answer
  assert.equal(focusedReplyIssue('The tenth house is strong; career progress is possible.',{scope:'natal_outlook'}),null);
 });
 
+test('limited house indicators cannot become a blanket obstacle-free claim even with model approval',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {result,requests}=await run({input:{...value,language:'hinglish',query:'Meri padhai aur exam ke liye chart kya kehta hai?'},
+  draft:'Aapki padhai aur exam ke liye chart ke sanket positive hain; academic progress ke yog dikhte hain.\n\nPadhai, samajh aur higher learning se jude chart ke ghar mazboot hain. Koi khaas rukawat chart mein nahi dikhayi gayi.'});
+ const plan=JSON.parse(requests[1].messages.at(-1).content).reading_plan;
+ assert.equal(plan.assessment_method,'returned-natal-house-strength-summary-v1');
+ assert.doesNotMatch(result.reply,/koi khaas rukawat|no significant obstacles/iu);
+ assert.match(result.reply,/padhai ke yog|ghar ki sthiti mazboot/u);
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ for(const text of ['There are no significant obstacles in your chart.','Your chart is obstacle-free.','Only favorable factors appear.',
+  'Koi khaas rukawat chart mein nahi dikhayi gayi.','कुंडली में कोई खास रुकावट नहीं दिखती।'])assert.ok(focusedReplyIssue(text,plan),text);
+ for(const text of ['The fourth house is strong.','Padhai ke sanket achhe hain.','The twelfth house has mixed indicators.'])assert.equal(focusedReplyIssue(text,plan),null,text);
+ assert.equal(focusedReplyIssue('No significant obstacles.',{...plan,assessment_method:null}),null);
+});
+
 test('topic corrections select the new guide and retain its checked dates',async t=>{
  t.mock.timers.enable({apis:['Date'],now});
  const {result,requests}=await run({input:{...value,query:'Shaadi nahi, main career ke baare mein pooch raha hoon. Job kab milegi?',history:[{role:'user',text:'Meri shaadi kab hogi?'}]}});

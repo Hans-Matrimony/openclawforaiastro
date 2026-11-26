@@ -11,6 +11,9 @@ const month=(date,lang)=>/^20\d{2}-(?:0[1-9]|1[0-2])$/u.test(date??'')?
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
   if(plan.scope==='person_choice')return null;
+  if(plan.assessment_method==='returned-natal-house-strength-summary-v1' &&
+    /\bno\s+(?:(?:significant|major|particular|notable)\s+)?(?:obstacles?|problems?|hurdles?|afflictions?)\b|\b(?:obstacle|problem|hurdle)[- ]free\b|\bonly\s+(?:positive|favorable)\s+(?:factors?|indicators?)\b|\bkoi\b[^.!?\n]{0,35}\b(?:rukawat|badha|dosh|problem)\b[^.!?\n]{0,45}\b(?:nahi|nahin)\b|कोई[^।.!?\n]{0,25}(?:रुकावट|बाधा|दोष|समस्या)[^।.!?\n]{0,35}नहीं/iu.test(reply))
+    return 'Explain the returned house-strength indicators directly. Their limited summary does not establish no significant obstacles, an obstacle-free chart or only favorable factors. Remove that unsupported absence claim without adding a disclaimer.';
   if(/\b(?:good|strong|high|excellent)\s+(?:chances?|probability|likelihood)|\b(?:chances?|sambhavana)\s+(?:bahut\s+)?(?:achh[ai]i?|zyada|high)|(?:संभावना|संभावनाएं)\s+(?:बहुत\s+)?(?:अच्छी|ज्यादा|ज़्यादा)|\b(?:guaranteed|definitely|certainly|100\s*%)\b/iu.test(reply))
     return 'State the chart-based outcome directly, retaining its obstacles. Do not claim good/strong/high chances, a probability or guaranteed results from natal factors.';
   const answer=reply.split(/\n\s*\n/u)[0];
