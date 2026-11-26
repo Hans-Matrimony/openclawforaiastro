@@ -127,9 +127,16 @@ Explain the actual qualifying period links and future Jupiter transit support af
 
 export async function writeCoherentReading({value,subject,packet,facts=[],remedies=[],focused=false,generate,validate,fallback,onEvent=()=>{}}) {
   const plan=focused?buildReadingPlan(value,subject,packet,remedies):null;
+  // Selected house strengths do not need an unrelated period inventory. Keep
+  // the same scoped evidence for writing, review and bounded repair.
+  let displayPacket=packet;
+  if(plan?.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested) {
+    displayPacket={...packet};
+    delete displayPacket.active_period;
+  }
   const payload={question:subject,latest_request:value.query,language:value.language,
     timing_requested:asksForTiming(value.query),max_words:150,
-    dialogue:(value.history??[]).slice(-12),user_context:facts,checked_evidence:packet,remedy_references:remedies,
+    dialogue:(value.history??[]).slice(-12),user_context:facts,checked_evidence:displayPacket,remedy_references:remedies,
     ...(plan?{reading_plan:plan}:{})};
   const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';
   const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);

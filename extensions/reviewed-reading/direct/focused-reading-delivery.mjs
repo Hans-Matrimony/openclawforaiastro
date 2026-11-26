@@ -11,6 +11,9 @@ const month=(date,lang)=>/^20\d{2}-(?:0[1-9]|1[0-2])$/u.test(date??'')?
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
   if(plan.scope==='person_choice')return null;
+  if(plan.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested &&
+    /\b(?:mahadasha|antardasha|dasha|major period|sub-period|planetary period|current period)\b|दशा/iu.test(reply))
+    return 'Explain the selected house-strength indicators for this question. Remove the unrequested active-period inventory; do not replace it with another period claim or a disclaimer.';
   if(plan.assessment_method==='returned-natal-house-strength-summary-v1' &&
     /\bno\s+(?:(?:significant|major|particular|notable)\s+)?(?:obstacles?|problems?|hurdles?|afflictions?)\b|\b(?:obstacle|problem|hurdle)[- ]free\b|\bonly\s+(?:positive|favorable)\s+(?:factors?|indicators?)\b|\bkoi\b[^.!?\n]{0,35}\b(?:rukawat|badha|dosh|problem)\b[^.!?\n]{0,45}\b(?:nahi|nahin)\b|कोई[^।.!?\n]{0,25}(?:रुकावट|बाधा|दोष|समस्या)[^।.!?\n]{0,35}नहीं/iu.test(reply))
     return 'Explain the returned house-strength indicators directly. Their limited summary does not establish no significant obstacles, an obstacle-free chart or only favorable factors. Remove that unsupported absence claim without adding a disclaimer.';
@@ -94,18 +97,24 @@ export function focusedReadingFallback(plan,value) {
   const reasons=[...plan.reasons.supporting.slice(0,2),...plan.reasons.opposing.slice(0,3),...(plan.reasons.neutral??[]).slice(0,1)]
     .map(factor=>factorText(factor,lang)).filter(Boolean);
   if(window) {
+    const supportLabels=[];
     for(const period of plan.reasons.period_roles??[]) {
       if(!period.supports_topic&&!period.pressure&&!period.adverse_natal_condition)continue;
       const p=planet(period.planet,lang),support=period.supports_topic&&!period.pressure&&!period.adverse_natal_condition;
       const role=lang==='english'?(period.role==='major'?'major period':'sub-period'):
         lang==='hindi'?(period.role==='major'?'महादशा':'अंतर्दशा'):(period.role==='major'?'mahadasha':'antardasha');
-      reasons.push(lang==='english'?`${p}'s ${role} indicates ${support?'topic support':'pressure'}.`:
-        lang==='hindi'?`${p} की ${role} ${support?'सहयोग':'दबाव'} दिखाती है।`:
-        `${p} ki ${role} ${support?'sahara':'dabav'} dikhati hai.`);
+      if(support) supportLabels.push(lang==='english'?`${p}'s ${role}`:lang==='hindi'?`${p} की ${role}`:`${p} ki ${role}`);
+      else reasons.push(lang==='english'?`${p}'s ${role} indicates pressure.`:
+        lang==='hindi'?`${p} की ${role} दबाव दिखाती है।`:`${p} ki ${role} dabav dikhati hai.`);
     }
     const transit=plan.reasons.window_basis?.transit;
-    if(transit?.activated_houses?.length)reasons.push(lang==='english'?"Jupiter's transit adds support during that time.":
-      lang==='hindi'?'उस अवधि में गुरु का गोचर भी सहयोग दिखाता है।':'Us daur mein Guru ka gochar bhi sahara dikhata hai.');
+    if(transit?.activated_houses?.length)supportLabels.push(lang==='english'?"Jupiter's transit":lang==='hindi'?'गुरु का गोचर':'Guru ka gochar');
+    if(supportLabels.length) {
+      const joined=supportLabels.length===1?supportLabels[0]:supportLabels.slice(0,-1).join(', ')+(lang==='english'?' and ':lang==='hindi'?' और ':' aur ')+supportLabels.at(-1);
+      reasons.push(lang==='english'?`${joined} ${supportLabels.length===1?'indicates':'indicate'} support during that time.`:
+        lang==='hindi'?`${joined} से उस अवधि में सहयोग मिलता है।`:
+        `${joined} se is daur mein sahara milta hai.`);
+    }
     if(transit?.saturn_pressure_houses?.length)reasons.push(lang==='english'?"Saturn's pressure continues during that time.":
       lang==='hindi'?'उस अवधि में शनि का दबाव भी जारी रहता है।':'Us daur mein Shani ka dabav bhi jaari rehta hai.');
   }

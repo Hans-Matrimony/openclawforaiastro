@@ -7,7 +7,7 @@ const mapped=(word,words)=>word[0]===word[0].toUpperCase()?words[word.toLowerCas
 function respectful(text) {
   return text
     .replace(/\b(?:tum|tumne|tumhe|tumko|tumhara|tumhari|tumhare)\b/giu,word=>mapped(word,pronouns))
-    .replace(/\b(kar|dekh|rakh)\s+lo\b/giu,'$1 lijiye')
+    .replace(/\b(kar|dekh|rakh|le|pi|sun|soch|samajh|likh|padh|bol|kha|pooch|mat|saans)\s+lo\b/giu,'$1 lijiye')
     .replace(/\b(keh|bata|bol)\s+do\b/giu,'$1 dijiye')
     .replace(/\b(?:karo|batao|rakho|dekho|suno)\b/giu,word=>mapped(word,imperatives))
     .replace(/\b(sakte|sakti|chahte|chahti)\s+ho\b/giu,'$1 hain')

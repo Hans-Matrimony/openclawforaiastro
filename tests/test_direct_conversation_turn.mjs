@@ -312,3 +312,25 @@ test('a semantic listening repair also receives grammar normalization before fin
  },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
  assert.equal(calls,4);assert.match(result.reply,/akelapan mehsoos ho raha hai/);
 });
+
+test('captured current correction keeps parso and respectful breathing wording in the reviewed reply',async()=>{
+ const original='Achha, parso hai—correction batane ke liye thanks. Ghabrahat hona bilkul understandable hai; abhi interview se pehle thoda time bhi hai. Aaj bas apna 1-minute introduction ek baar bolkar practice kijiye, phir dheere-dheere saans lo. Aapko sab kuch ek saath perfect karne ki zaroorat nahi.';
+ const expected=original.replace('saans lo','saans lijiye');let calls=0;
+ const result=await directAnswer({...value,user_gender:'female',query:'Interview kal nahi, parso hai. Mujhe abhi bhi ghabrahat ho rahi hai.'},deps(async(_,options)=>{
+  if(++calls===1)return response(JSON.stringify({route:'conversation',reply:original}));
+  assert.equal(JSON.parse(JSON.parse(options.body).messages.at(-1).content).candidate.reply,expected);
+  return response('{"status":"accept","issues":[]}');
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(result.reply,expected);assert.equal(calls,2);
+});
+
+test('fresh correction capture keeps its negation while repairing pressure mat lo before review',async()=>{
+ const original='Haan, samajh raha hoon—interview parso hai, phir bhi ghabrahat hona bilkul normal hai. Abhi 2 minute dheere saans lijiye, phir bas apna intro aur 2 common questions practice kijiye; aaj poori tayari ka pressure mat lo.';
+ const expected=original.replace('mat lo','mat lijiye');let calls=0;
+ const result=await directAnswer({...value,user_gender:'female',query:'Interview kal nahi, parso hai. Mujhe abhi bhi ghabrahat ho rahi hai.'},deps(async(_,options)=>{
+  if(++calls===1)return response(JSON.stringify({route:'conversation',reply:original}));
+  assert.equal(JSON.parse(JSON.parse(options.body).messages.at(-1).content).candidate.reply,expected);
+  return response('{"status":"accept","issues":[]}');
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(result.reply,expected);assert.equal(calls,2);
+});

@@ -6,7 +6,7 @@ import {focusedReadingEnabled,coherentEvidencePacket,writeCoherentReading} from 
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
-import {focusedReplyIssue} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
+import {focusedReplyIssue,focusedReadingFallback} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
  VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
@@ -135,6 +135,7 @@ test('focused education and abroad readings use their own returned house evidenc
   assert.equal(result.reply,draft);assert.equal(requests.length,3);
   const evidence=JSON.parse(requests[1].messages.at(-1).content).checked_evidence;
   assert.equal(evidence.topic,topic);assert.equal(evidence.assessment.method,'returned-natal-house-strength-summary-v1');
+  assert.equal(evidence.active_period,undefined);
   assert.deepEqual([...evidence.assessment.favorable,...evidence.assessment.adverse,...evidence.assessment.neutral].map(f=>f.house).sort((a,b)=>a-b),houses);
   assert.deepEqual(evidence.event_windows,[]);
   assert.doesNotMatch(JSON.stringify(evidence),/career|marriage/u);
@@ -143,6 +144,45 @@ test('focused education and abroad readings use their own returned house evidenc
  assert.equal(coherentEvidencePacket([JSON.stringify(raw)],'education',{focused:true}),null);
  assert.equal(coherentEvidencePacket([chart()],'education'),null);
  assert.equal(coherentEvidencePacket([chart()],'abroad'),null);
+});
+
+test('captured education period inventory is rejected before review and cannot survive as a style-only issue',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const draft='Aapki padhai aur exams ke liye chart mein anukool sanket hain; academic progress ke yog dikhte hain.\n\nPadhai aur buniyadi learning se jude chauthe ghar, buddhi aur exams se jude paanchve ghar, aur uchch shiksha se jude nauve ghar ki sthiti mazboot hai. Venus ki mahadasha aur Moon ki antardasha chal rahi hai.';
+ const {result,requests}=await run({input:{...value,language:'hinglish',query:'Meri padhai aur exam ke liye chart kya kehta hai?'},draft});
+ assert.doesNotMatch(result.reply,/Venus|Moon|dasha|disclaimer/iu);
+ assert.match(result.reply,/padhai ke yog/u);
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ assert.equal(requests.filter(body=>body.messages[0].content.startsWith('Review this astrology reply')).length,0);
+ const packet=coherentEvidencePacket([chart()],'education',{focused:true});
+ const asked=buildReadingPlan({...value,query:'Meri padhai par current dasha ka kya asar hai?'},'Meri padhai',packet);
+ assert.equal(asked.period_context_requested,true);assert.equal(focusedReplyIssue(draft,asked),null);
+ const calls=[];
+ const reply=await writeCoherentReading({value:{...value,query:'Meri padhai par current dasha ka kya asar hai?'},subject:'Meri padhai',packet,focused:true,
+  generate:async(instruction,payload)=>{calls.push(JSON.parse(payload));return instruction.startsWith('Review')?'{"evidence_ok":true,"reason":"","presentation_issue":""}':JSON.stringify({answer:'Your chart indicates potential for studies.',reason:'The fourth house is strong. Venus major period and Moon sub-period are active.',remedy:''});},validate:()=>null,fallback:'unused'});
+ assert.match(reply,/Venus major period/);assert.deepEqual(calls[0].checked_evidence.active_period,packet.active_period);
+ assert.deepEqual(calls[0].checked_evidence,calls[1].checked_evidence);
+});
+
+test('fallback groups period and transit support while preserving dates and pressure in all languages',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {requests}=await run();const plan=JSON.parse(requests[1].messages.at(-1).content).reading_plan;
+ for(const lang of ['hinglish','english','hindi']) {
+  const reply=focusedReadingFallback(plan,{language:lang});
+  assert.equal(focusedReplyIssue(reply,plan),null);
+  if(lang==='hinglish') {
+   assert.match(reply,/September 2027 se November 2027/);
+   assert.match(reply,/Shukra ki mahadasha, Mangal ki antardasha aur Guru ka gochar/);
+   assert.equal((reply.match(/sahara/gu)??[]).length,1);
+   assert.match(reply,/Vakri Shani rukawat/);
+  } else if(lang==='english')assert.match(reply,/Venus's major period, Mars's sub-period and Jupiter's transit/);
+  else assert.match(reply,/शुक्र की महादशा, मंगल की अंतर्दशा और गुरु का गोचर/);
+  const pressured=structuredClone(plan);pressured.reasons.period_roles[1].pressure=true;
+  pressured.reasons.window_basis.transit.saturn_pressure_houses=[10];
+  const adverse=focusedReadingFallback(pressured,{language:lang});
+  assert.match(adverse,lang==='english'?/Mars's sub-period indicates pressure/:lang==='hindi'?/मंगल की अंतर्दशा दबाव/:/Mangal ki antardasha dabav/);
+  assert.match(adverse,lang==='english'?/Saturn's pressure continues/:lang==='hindi'?/शनि का दबाव भी जारी/:/Shani ka dabav bhi jaari/);
+ }
 });
 
 test('model approval cannot publish overstated good chances, and the safe answer retains a direct conclusion',async t=>{
