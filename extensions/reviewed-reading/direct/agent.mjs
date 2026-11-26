@@ -1,6 +1,7 @@
 import { pilotScheduleBubble } from "./pilot-schedule.mjs";
 import { pilotTopicPrompt } from "./pilot-topic-prompts.mjs";
 import {coherentReadingEnabled, coherentCollectionPrompt, coherentEvidencePacket, writeCoherentReading} from './pilot-coherent-reading.mjs';
+import {eventWindowReplyIssue} from './event-window-evidence.mjs';
 import { correctedReadingSubject } from './personal-query.mjs';
 import { pilotBirthClarification, pilotEducationBoundary } from './pilot-response-boundaries.mjs';
 import { finalPilotReading } from './pilot-final-reading.mjs';
@@ -599,14 +600,30 @@ export async function directAnswer(
   };
   const finishCoherentReading = async () => {
     if (!coherentFlow || !readingTools.has('get_horoscope_predictions')) return null;
-    const packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject});
+    let packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject});
     if (!packet) return null; // Specialist/conflicting evidence retains its own checks.
+    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&asksForTiming(activeQuestion)) {
+      try {
+        const {calculateEventTiming}=await import('./assets/dev-v2/event-timing.mjs');
+        const index=chartResults.findIndex(raw=>{try{return Boolean(JSON.parse(raw).birth_chart);}catch{return false;}});
+        if(index>=0) {
+          const row=JSON.parse(chartResults[index]);
+          const timing=calculateEventTiming(row,{topic:readingOptions.topic,asOf:now()});
+          chartResults[index]=JSON.stringify({...row,event_timing:timing,event_windows:timing.windows});
+          packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject});
+          validation.push('pilot_event_timing_'+timing.status);
+        }
+      } catch {validation.push('pilot_event_timing_unavailable');}
+      if(!packet)return null;
+    }
     const fallback=formatDisplayReply(evidenceFallback(chartResults,value.language,coherentSubject,now()));
     const reply=await writeCoherentReading({value,subject:coherentSubject,packet,facts:context.memoryFacts,
       remedies:remedyKnowledge?.status==='available'?remedyKnowledge.sources:[],fallback,
       generate:(instruction,data)=>generateClosing(instruction,redactIdentity(data,value.user_id),1400,true,true),
       onEvent:event=>validation.push('pilot_coherent_'+event),
       validate:candidate=>{
+        const timingIssue=eventWindowReplyIssue(candidate,packet.timing_estimate,{requested:asksForTiming(value.query)});
+        if(timingIssue)return timingIssue;
         if(pastPrediction(candidate,now())) return 'Do not present a past date as a future event.';
         if(chartGroundingConflicts(candidate,chartResults,value).length || chartClaimConflicts(candidate,chartResults).length || houseLordConflicts(candidate,chartResults).length) return 'Preserve the actual returned planets, houses, strengths and period labels without inventing chart facts.';
         if(unsupportedPeriodClaim(candidate,chartResults) || unsupportedTopicOpportunity(candidate,chartResults,coherentSubject) || unsupportedEventTiming(candidate,chartResults,coherentSubject)) return 'Use only explicit event-specific timing evidence. A natal placement or period schedule is not an event forecast.';

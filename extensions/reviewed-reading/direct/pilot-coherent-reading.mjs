@@ -4,6 +4,7 @@ import {responseLanguageInstruction} from './response-language.mjs';
 import {readingTopicArea} from './pilot-relationship-reading.mjs';
 import {isSpecificReturnQuestion} from './pilot-bubbles.mjs';
 import {asksForTiming} from './reading-intent.mjs';
+import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} from './event-window-evidence.mjs';
 
 // Roll out only through the existing exact-account WhatsApp pilot. Specialist
 // calculations and every other surface retain their established flow.
@@ -49,13 +50,23 @@ export function coherentEvidencePacket(results, topic, {question=''}={}) {
   const signal=signals[0];
   if (!['POSITIVE','NEGATIVE','MIXED'].includes(signal.trend) ||
       !Array.isArray(signal.positive) || !Array.isArray(signal.negative)) return null;
-  const eventWindows=rows.flatMap(row=>row.event_windows??[]).filter(window=>window.area===area || window.topic===topic);
+  const calculated=rows.map(row=>projectedTiming(row,topic)).filter(Boolean);
+  if(new Set(calculated.map(value=>JSON.stringify(value))).size>1)return null;
+  const estimate=calculated[0];
+  const eventWindows=estimate ? (estimate.selected?[estimate.selected]:[])
+    : rows.flatMap(row=>row.event_windows??[]).filter(window=>window.area===area || window.topic===topic);
   const personChoice=isSpecificReturnQuestion(question);
+  // The timing calculation also checks aspects. Its current-period evidence
+  // replaces the legacy ownership/occupation-only period-link summary, so
+  // the same unchanged major lord cannot be both linked and unlinked.
+  const factors=values=>[...new Set(values)].map(presentationFactor)
+    .filter(factor=>!(estimate?.selected||estimate?.current_period_basis)||factor?.kind!=='active_period_link');
   return {topic,source:'local-sweph-v2',scope:personChoice?'person_choice':'natal_outlook',assessment:personChoice?null:{trend:signal.trend,
-    favorable:[...new Set(signal.positive)].map(presentationFactor),adverse:[...new Set(signal.negative)].map(presentationFactor)},
-    ...(!personChoice?{active_period:{mahadasha_lord:charts[0].dasha?.current_mahadasha?.lord??null,
+    favorable:factors(signal.positive),adverse:factors(signal.negative)},
+    ...(!personChoice&&!estimate?.selected?{active_period:{mahadasha_lord:charts[0].dasha?.current_mahadasha?.lord??null,
       antardasha_lord:charts[0].dasha?.current_antardasha?.lord??null}}:{}),
     event_windows:personChoice?[]:eventWindows,
+    ...(!personChoice&&estimate?{timing_estimate:estimate}:{}),
     limits:{assessment:'A selected natal outlook, not a calibrated probability or a guarantee.',
       timing:eventWindows.length?'Only explicitly supplied event windows may be interpreted; preserve their scope and bounds.'
         :'No event-specific timing assessment was returned. No event date can be inferred from a period schedule.',
@@ -97,18 +108,23 @@ Check the final displayed text. Feedback must describe the defect without adding
 Use only the supplied max_words limit and actual language measurements; do not invent another WhatsApp word limit or describe Latin letters as Devanagari. A natural qualification already expresses uncertainty; do not demand an extra guarantee disclaimer. Keep timing limitations in the answer only, and only when timing_requested is true. Do not require a timing disclaimer in a yes/no follow-up or a remedy-only request.
 ${assessmentPolicy}`;
 
+const estimateContract=`The supplied timing_estimate is an experimental calculated astrology estimate, not a verified real-world event date. When timing_requested is true and a selected window exists, give both selected MONTH/YEAR boundaries in the direct answer as a potentially more supportive period. Never invent an exact day or promise the event. One natural qualification is enough; do not append a separate "not a fixed date" disclaimer.
+Interpret selected.basis explicitly, for both writing and review: a period's presence does not establish support. major.relevant=false means that major period has no checked topic link; never describe it as supportive just because its minor period and Jupiter transit qualify. minor.relevant=false with aspect_nature=pressure means pressure, not supportive minor-period evidence; the opportunity instead depends on the relevant major period and Jupiter transit. For either period, retain adverse_natal_condition and pressure aspects if discussing its effect. Use only the supplied period evidence: a future timing question needs the selected future periods, not today's period inventory. Current-period evidence, when supplied for a calculation without windows, is contextual; its discussion is optional, not an acceptance requirement. Never demand omitted current-period data or invent it from dialogue.
+Explain the actual qualifying period links and future Jupiter transit support afterward, retaining material natal obstacles, minor-period pressure and any nonempty transit.saturn_pressure_houses. If the same planet's pressure applies natally and in the future window, a concise statement that its pressure continues during that period is enough; do not demand duplicated technical explanations or an inventory of every raw field. The reviewer must reject a supportive claim about a period with relevant=false or an explanation that turns pressure into support. It is fine to omit an unrelated major period entirely. Keep future transit house numbers internal; describe their topic support in everyday words and distinguish that from natal placements. The opportunity window is not the full start/end of its antardasha. If the calculation returned no qualifying interval, say it did not identify a clearer period within the stated horizon; this does not mean the event is impossible. If the latest request did not ask for timing, use this evidence only to explain the outlook without repeating dates.`;
+
 export async function writeCoherentReading({value,subject,packet,facts=[],remedies=[],generate,validate,fallback,onEvent=()=>{}}) {
   const payload={question:subject,latest_request:value.query,language:value.language,
     timing_requested:asksForTiming(value.query),max_words:150,
     dialogue:(value.history??[]).slice(-12),user_context:facts,checked_evidence:packet,remedy_references:remedies};
-  const writer=answerContract+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
+  const estimateInstruction=packet.timing_estimate?'\n'+estimateContract:'';
+  const writer=answerContract+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
   let feedback='';
   let verifiedCandidate=null;
   let previousDraft=null;
   for (let attempt=0;attempt<2;attempt++) {
     try {
       const editing=feedback && verifiedCandidate!==null;
-      const instruction=editing?styleEditContract+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value):writer;
+      const instruction=editing?styleEditContract+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value):writer;
       const raw=await generate(instruction,JSON.stringify({...payload,...(feedback?{
         previous_reply:previousDraft,edit_feedback:feedback,edit_mode:editing?'presentation_only':'correct_rejected_draft',
       }:{})}));
@@ -123,6 +139,8 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
         feedback='Use the required JSON answer/reason/remedy fields; omit a remedy when no relevant references were supplied.';
         onEvent('rejected:structure');continue;
       }
+      parts.answer=removeTimingBoilerplate(parts.answer,packet.timing_estimate);
+      previousDraft=parts;
       const candidate=[parts.answer,parts.reason,parts.remedy].filter(part=>part?.trim())
         .map(part=>{
           let text=part.replace(/\s+/gu,' ').trim();
@@ -144,13 +162,14 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
         const issue=validate(candidate);
         if (issue) feedback=issue;
         else {
-          let review;try {review=JSON.parse(await generate(reviewContract+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),JSON.stringify({...payload,proposed:candidate,
+          let review;try {review=JSON.parse(await generate(reviewContract+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),JSON.stringify({...payload,proposed:candidate,
             presentation_measurements:{word_count:candidate.split(/\s+/u).length,contains_devanagari:/[\u0900-\u097f]/u.test(candidate),contains_latin:/[A-Za-z]/u.test(candidate)},
           })));}catch {review=null;}
           if(review?.evidence_ok===true && review.reason==='' && typeof review.presentation_issue==='string') {
             verifiedCandidate=candidate;
-            if(!review.presentation_issue.trim()) {onEvent('verified');return candidate;}
-            feedback=review.presentation_issue.slice(0,500);
+            const presentation=eventWindowPresentationIssue(candidate,packet.timing_estimate,value)||review.presentation_issue.trim();
+            if(!presentation) {onEvent('verified');return candidate;}
+            feedback=presentation.slice(0,500);
           } else feedback=typeof review?.reason==='string' && review.reason.trim()?review.reason.slice(0,500):'Review did not return a valid evidence decision.';
         }
       }

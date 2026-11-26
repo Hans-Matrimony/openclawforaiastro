@@ -1,0 +1,64 @@
+Pilot event-timing assessment, version 1
+
+Enable only with ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED=1. The caller also
+requires the existing exact-account WhatsApp coherent-reading pilot gates.
+The feature is off by default. The legacy chart engine and other accounts,
+surfaces, matching, horary and explicit planetary schedules are unchanged.
+
+What is calculated
+
+- Use the successful selected natal chart, its verified birth timestamp and
+  precise Swiss Ephemeris Moon longitude. Use the same Lahiri/Moshier basis.
+- Calculate full Vimshottari major/sub-period boundaries using 365.25-day
+  years. The first full period starts before birth when part has elapsed;
+  do not subdivide only the shortened remaining balance.
+- Scan up to 60 months at daily noon-UTC samples. Intersect topic-linked
+  sub-periods with calculated future Jupiter occupation/aspect of the
+  primary topic houses. Retain Saturn transit pressures as contrary evidence.
+- Marriage uses primary house 7; relationship prospects use 5/7; career uses
+  10; money uses 2/11. Secondary house ownership/occupation, supportive aspects
+  of primary houses and significators establish period relevance, not success
+  probabilities. Current and future period links use these same rules in the
+  presentation packet; the legacy ownership/occupation-only period summary is
+  excluded when this richer timing evidence is available. Other natal factors
+  and the legacy chart calculation remain unchanged.
+- A pressure-only minor-period aspect qualifies only with a relevant,
+  non-adverse major lord AND the independent future Jupiter activation.
+- Keep continuous intervals of at least 28 days, and return at most the
+  earliest three. These are selected opportunities, not an exhaustive ranking.
+  The reply receives the earliest interval at MONTH precision only.
+
+Interpretation and limits
+
+This conjunction of rules is an experimental product heuristic inspired by
+traditional astrology. It is not an empirically calibrated event predictor or
+an exact reproduction of a cited author's complete interpretation system.
+Correct ephemeris calculations do not validate the predicted life event.
+The first reply bubble may describe the month range as potentially supportive;
+it must not claim a guaranteed wedding, job, financial outcome or exact day.
+Explain the period/transit basis afterward, retaining adverse natal factors.
+
+No qualifying interval is a valid result; do not substitute a dasha boundary.
+A particular person's feelings, consent, decision or return is outside this
+assessment. General relationship windows must not be presented as that
+person's return dates. Health, death, education and unsupported topics do not
+receive event dates from this module. Marriage windows before age 18 are
+excluded. A request for a precise day cannot increase month-level precision.
+
+The legacy bundled city geocoder has fixed offsets, including in DST cities.
+Version 1 therefore accepts only its bundled Indian-city +05:30 birth basis;
+other historical timezones fail closed. Conflicting natal/period evidence also
+fails closed rather than mixing two calendars. The new calendar preserves
+the full first-period anchor, but does not silently replace a conflicting
+legacy natal assessment; that requires a separately verified migration.
+
+References for general concepts and astronomical API
+
+P.V.R. Narasimha Rao, Vedic Astrology: An Integrated Approach, sections on
+Vimsottari Dasa and Transit Analysis:
+https://www.vedicastrologer.org/articles/vedic_astro_textbook.pdf
+
+Swiss Ephemeris programming reference, sidereal mode and calc_ut:
+https://www.astro.com/swisseph/swephprg.htm
+
+No new dependency, external astrology service or model-selected date is used.
