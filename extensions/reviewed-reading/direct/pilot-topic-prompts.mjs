@@ -1,4 +1,7 @@
 import { conversationProgressEnabled } from "./conversation-progress.mjs";
+import {correctedReadingSubject} from './personal-query.mjs';
+import {resolveReadingTopic} from './topic-period-context.mjs';
+import {isSpecificReturnQuestion} from './pilot-bubbles.mjs';
 // Instructions select evidence and presentation, never a canned prediction.
 export const TOPIC_PROMPTS = Object.freeze({
   marriage_timing: {
@@ -90,10 +93,42 @@ export const TOPIC_PROMPTS = Object.freeze({
 
 
 // Keep this experiment inside the existing WhatsApp pilot; no extra model call.
-export function pilotTopicPrompt(env, value, readingRequired) {
+export function selectedTopicGuides(subject,topic) {
+  const text=correctedReadingSubject(subject??'');
+  const resolved=topic??resolveReadingTopic(text)?.topic??(
+    /शादी|विवाह|जीवनसाथी/iu.test(text)?'marriage':/करियर|नौकरी|पदोन्नति/iu.test(text)?'career':
+    /\b(?:business|startup|self.employ\w*|vyapar|karobar)\b|व्यापार|कारोबार/iu.test(text)?'career':
+    /पैस[ेा]|आर्थिक|वित्त/iu.test(text)?'money':/रिश्त[ाे]|प्रेम/iu.test(text)?'relationship':null);
+  // These select instructions, never the reading route or a prediction.
+  if(/\b(?:guna?|kuta|compatibility|matching|match report|kundali milan)\b|गुण\s*मिलान|कुंडली\s*मिलान/iu.test(text))return ['compatibility'];
+  if(isSpecificReturnQuestion(text))return ['partner_return'];
+  if(/\b(?:property|real estate|ghar\s+(?:kharid|lena)|buy\w*\s+(?:a\s+)?(?:home|house))\b|मकान|घर\s*(?:खरीद|लेना)/iu.test(text))return ['property'];
+  if(/\b(?:abroad|overseas|videsh|foreign (?:travel|settlement|work))\b|विदेश/iu.test(text))return ['abroad'];
+  if(/\b(?:education|studies|study|exams?|admission|padhai|padhaai|padhayi)\b|पढ़ाई|परीक्षा|शिक्षा/iu.test(text))return ['education'];
+  if(resolved==='marriage') {
+    const partner=/\b(?:love (?:or|vs|versus) arranged|arranged|kaisa|kaisi|characteristics|qualities)\b|\babout\b.{0,30}\b(?:spouse|wife|husband)\b|कैस[ाी]|अरेंज/iu.test(text);
+    const obstacle=/\b(?:delay|delayed|obstacles?|rukawat|deri|why|kyun|kyu)\b|देरी|रुकावट|क्यों/iu.test(text);
+    return [partner?'marriage_partner':'marriage_timing',...(obstacle?['marriage_obstacles']:[])];
+  }
+  if(resolved==='career') {
+    if(/\b(?:business|self.employ\w*|startup|vyapar|karobar)\b|व्यापार|कारोबार/iu.test(text))return ['business'];
+    if(/\b(?:switch|change|changing|resign|field|direction|badal\w*)\b|बदल|इस्तीफा/iu.test(text))return ['career_change'];
+    if(/\b(?:promotion|pormotion|salary|pay|growth|recognition|stagnation|tarakki)\b|तरक्की|पदोन्नति|वेतन/iu.test(text))return ['career_growth'];
+    return ['career_job'];
+  }
+  if(resolved==='money')return ['money'];
+  if(/\b(?:family|parenting|children|parents|parivar)\b|परिवार|माता|पिता|बच्चे/iu.test(text))return ['family'];
+  if(resolved==='relationship')return [/\b(?:conflict|breakup|trust|cheat\w*|commitment|jhagda|ladai)\b|झगड़ा|भरोसा|धोखा/iu.test(text)?'relationship_conflict':'love_new'];
+  if(/\b(?:health|wellbeing|well.being|lonely|anxious|akela|udaas)\b|सेहत|स्वास्थ्य|अकेला|उदास/iu.test(text))return ['wellbeing'];
+  return [];
+}
+
+export function pilotTopicPrompt(env, value, readingRequired, {subject=value.query,topic}={}) {
   if (env.ASTROFRIEND_PILOT_TOPIC_PROMPTS !== "1" ||
       env.VEDASTRO_DIRECT_FLOW !== "source" || value.reply_surface !== "whatsapp" ||
       !readingRequired || !conversationProgressEnabled(env, value.user_id)) return "";
+  const focused=env.ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED==='1'&&env.ASTROFRIEND_PILOT_COHERENT_REPLIES==='1'&&env.ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED==='1';
+  const guides=focused?selectedTopicGuides(subject,topic).map(key=>TOPIC_PROMPTS[key]):Object.values(TOPIC_PROMPTS);
   return "\n# Pilot use-case guides\nChoose only the relevant guide(s) from the latest request and ordered conversation. These are instructions, not chart evidence or canned answers. A short follow-up inherits the current subject unless the user changes it. Corrections override earlier topics. Do not print guide names or answer unrelated topics.\nAnswer the actual question first, then explain the checked reasons in a separate bubble. Preserve material opposing evidence. A yes/no question needs the strongest supported assessment, never manufactured certainty. Missing evidence is unknown, not no. Use the user's language throughout. Use only returned chart facts; a period schedule alone does not establish an event or someone's intentions. Future forecasts must refer to future time; past period boundaries may be identified as historical. Request only genuinely missing required details. Never repeat a clarification already answered.\n" +
-    Object.values(TOPIC_PROMPTS).map(entry => "\n## " + entry.description + "\nCheck: " + entry.check + "\nAnswer: " + entry.answer).join("\n");
+    guides.map(entry => "\n## " + entry.description + "\nCheck: " + entry.check + "\nAnswer: " + entry.answer).join("\n");
 }

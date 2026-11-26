@@ -61,11 +61,20 @@ export function eventWindowReplyIssue(reply,timing,{requested=true}={}) {
 // Remove only the redundant standalone suffix the user rejected. Keep the
 // natural qualification in the actual answer, then validate/review that text.
 // A refusal or an absolute prediction must not acquire certainty by cleanup.
-export function removeTimingBoilerplate(answer,timing) {
+export function removeTimingBoilerplate(answer,timing,{focused=false}={}) {
  if(!timing?.selected)return answer;
  const qualified=text=>/\b(?:dikh\w*|sambhavana|anukool|sahayak|supportive|ho sak\w*|may|possible|potentially)\b/iu.test(text);
  const prefix=/^([^.!?;\n]{1,100}?)\s+ki\s+pakki\s+(?:event date|tareekh)\s+nahi,\s*lekin\s+(.+)$/iu.exec(answer);
  if(prefix&&qualified(prefix[2]))answer=prefix[1]+' ke liye '+prefix[2];
+ // Captured focused-trial suffixes add no meaning after a qualified window.
+ // Restrict this extension to the new trial; preserve absolute or quoted claims.
+ if(focused) {
+  const redundant=/(?:[;.!?,—–]\s*)(?:(?:yeh|ye)\s+(?:ek\s+)?(?:estimated(?:\s+opportunity)?\s+window\s+hai|mumkin\s+mauka\s+hai,\s*pakki\s+ghatna\s+ya\s+tareekh\s+nahi)|pakki\s+(?:ghatna\s+ya\s+tareekh|guarantee)\s+nahi)[.!?]?\s*$/iu.exec(answer);
+  if(redundant) {
+   const retained=answer.slice(0,redundant.index).trim();
+   if(qualified(retained)&&! /\b(?:pakka|pakki|guaranteed|certain|zaroor)\b/iu.test(retained))answer=retained+'.';
+  }
+ }
  const suffix=/(?:[;.!?]\s*|,\s*)(?:(?:(?:yeh|ye)\s+(?:andazati samay hai|estimated window hai)|ise sambhavana samjhein)\s*,\s*)?pakki\s+(?:event date|tareekh)\s+nahi[.!?]?\s*$/iu;
  const match=suffix.exec(answer);
  if(!match)return answer;

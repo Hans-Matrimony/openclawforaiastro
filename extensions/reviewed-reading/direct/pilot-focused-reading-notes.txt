@@ -1,0 +1,33 @@
+Focused reading presentation trial
+
+Opt in with ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED=1. Existing source-flow,
+exact-account WhatsApp pilot, conversation V2, topic-guide and coherent-reading
+gates must also be enabled. The new switch is off by default.
+
+The trial adapts general interaction patterns studied in VedAstro's public chat
+scripts: a direct first answer, a concise explanation, selective evidence and
+separate ordinary conversation. It does not copy their model or calculations.
+Public reference: https://vedastro.org/js/VedAstroChat.js
+
+- Select one relevant topic guide, or two related guides, using the resolved
+  active subject. Selection changes instructions only, never the tool route.
+- The dedicated evidence collector receives that guide; the writer/reviewer
+  receive the same shared plan with the checked answer position and any
+  supplied timing window. Short follow-ups retain the subject but do not
+  repeat dates unless the latest request asks for them.
+- Aim for 60-90 words with answer and reason in separate bubbles. Allow up to
+  150 words when evidence or the user's question requires it. Include relevant
+  contrary evidence; no fixed verdict sentence or forced certainty.
+- Remedies require the existing relevant references. Another person's choices
+  remain unknown from general natal evidence.
+- Reuse the existing bounded writer/reviewer/repair sequence. There is no extra
+  classifier, model request, memory write, chart service or dependency.
+- Existing date/fact/period validators still check the displayed text. A failed
+  style edit preserves the previously verified reply.
+- Captured redundant timing suffixes are removed only after an already
+  qualified answer, before the same evidence validation and review. Absolute
+  claims, quotes and the switch-off flow retain their existing checks.
+
+With the switch off, existing prompts stay unchanged. Other accounts, PWA,
+voice, specialized calculations and companionship retain their existing flow.
+Disable the switch to roll back this presentation trial.

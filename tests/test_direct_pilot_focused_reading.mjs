@@ -1,0 +1,198 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {pilotTopicPrompt,selectedTopicGuides,TOPIC_PROMPTS} from '../extensions/reviewed-reading/direct/pilot-topic-prompts.mjs';
+import {buildReadingPlan} from '../extensions/reviewed-reading/direct/pilot-reading-plan.mjs';
+import {focusedReadingEnabled,coherentEvidencePacket,writeCoherentReading} from '../extensions/reviewed-reading/direct/pilot-coherent-reading.mjs';
+import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
+import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
+import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
+
+const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
+ VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
+ ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:'1',ASTROFRIEND_CONVERSATION_PROGRESS_USERS:'919000000001',
+ ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',
+ ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'};
+const value={user_id:'919000000001',reply_surface:'whatsapp',language:'english',user_gender:'male',
+ birth:{date:'2001-01-03',time:'05:00',location_name:'Delhi'},history:[],query:'When will my career settle?'};
+const now=new Date('2026-11-26T06:00:00Z');
+const chart=()=>get_horoscope_predictions({birth_date:'3/1/2001',birth_time:'05:00',location_name:'Delhi'}).content[0].text;
+const candidate='Career progress is possible; September to November 2027 may be a more supportive period.\n\nThe tenth house is strong, but retrograde Saturn indicates obstacles. The Venus major period supports career through its aspect; the Mars sub-period and Jupiter transit add support during that time.';
+const response=message=>new Response(JSON.stringify({choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
+
+test('focused flow needs explicit opt-in and every existing pilot gate',()=>{
+ assert.equal(focusedReadingEnabled(env,value),true);
+ for(const key of ['ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED','ASTROFRIEND_PILOT_TOPIC_PROMPTS','ASTROFRIEND_PILOT_COHERENT_REPLIES','ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED','ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED'])
+  assert.equal(focusedReadingEnabled({...env,[key]:'0'},value),false,key);
+ for(const patch of [{user_id:'919000000002'},{user_id:'0001'},{reply_surface:'pwa'},{reply_surface:'voice'}])
+  assert.equal(focusedReadingEnabled(env,{...value,...patch}),false);
+ assert.equal(focusedReadingEnabled({...env,ASTROFRIEND_CONVERSATION_PROGRESS_USERS:'*'},value),false);
+});
+
+test('guide selection covers the use cases without injecting unrelated guides',()=>{
+ const cases=[
+  ['When will I get married?','marriage','marriage_timing'],['Meri wife kaisi hogi?','marriage','marriage_partner'],
+  ['Meri shaadi mein deri kyun hai?','marriage','marriage_obstacles'],['Guna Milan score?',null,'compatibility'],
+  ['Meri job kab lagegi?','career','career_job'],['मेरी पदोन्नति कब होगी?',null,'career_growth'],
+  ['Should I switch my career?','career','career_change'],['Mera business kab chalega?',null,'business'],
+  ['Meri financial situation kab improve hogi?','money','money'],['Should I buy a house?',null,'property'],
+  ['Mere abroad jaane ke chances?',null,'abroad'],['Meri crush se baat kab hogi?','relationship','love_new'],
+  ['Meri girlfriend kab wapas aayegi?','relationship','partner_return'],['My relationship has trust problems','relationship','relationship_conflict'],
+  ['Meri padhai kaisi rahegi?',null,'education'],['My family relationships',null,'family'],['My health worries',null,'wellbeing'],
+ ];
+ for(const [question,topic,key] of cases) {
+  const selected=selectedTopicGuides(question,topic??undefined);assert.ok(selected.includes(key),question);
+  assert.ok(selected.length<=2,question);
+ }
+ assert.deepEqual(selectedTopicGuides('Shaadi nahi, main career ke baare mein pooch raha hoon. Job kab milegi?'),['career_job']);
+ assert.deepEqual(selectedTopicGuides('Tell me something completely unrelated'),[]);
+ const focused=pilotTopicPrompt(env,value,true,{subject:value.query,topic:'career'});
+ const previous=pilotTopicPrompt({...env,ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'0'},value,true);
+ assert.match(focused,/Getting a job or establishing a career/);
+ assert.doesNotMatch(focused,/Whether and when marriage|Foreign travel|Compatibility or matching/);
+ assert.ok(focused.length<previous.length/3);
+ assert.equal(Object.keys(TOPIC_PROMPTS).length,17);
+});
+
+test('shared answer position distinguishes possibility, difficulty, unknown and another person choice',()=>{
+ for(const [trend,favorable,expected]of [['POSITIVE',['support'],'affirm_possibility'],['MIXED',['support'],'affirm_possibility'],
+  ['MIXED',[],'unclear'],['POSITIVE',[],'unclear'],['NEGATIVE',['support'],'unfavorable_now'],['UNKNOWN',[],'unclear']]) {
+  const packet={topic:'career',assessment:{trend,favorable,adverse:['obstacle']},event_windows:[]};
+  const plan=buildReadingPlan(value,value.query,packet);assert.equal(plan.outcome,expected);
+  assert.deepEqual(plan.reasons.opposing,['obstacle']);assert.equal(plan.timing.status,'unavailable');
+ }
+ const person=buildReadingPlan(value,'When will my girlfriend return?',{topic:'relationship',scope:'person_choice',assessment:null,event_windows:[]});
+ assert.equal(person.outcome,'person_choice_unknown');assert.equal(person.timing.status,'person_choice_unknown');
+ assert.deepEqual(person.reasons,{supporting:[],opposing:[]});
+});
+
+test('short follow-ups retain the subject without reintroducing dates or a repeated verdict',()=>{
+ const packet={topic:'career',assessment:{trend:'MIXED',favorable:['career support'],adverse:['obstacle']},event_windows:[{from:'2027-09',to:'2027-11'}]};
+ const yesNo=buildReadingPlan({...value,query:'Matlab haan ya naa?'},value.query,packet);
+ assert.equal(yesNo.topic,'career');assert.equal(yesNo.answer_intent,'assessment');assert.equal(yesNo.timing.status,'not_requested');
+ assert.equal(yesNo.guides[0].key,'career_job');
+ const why=buildReadingPlan({...value,query:'Aisa kyun keh rahe ho?'},value.query,packet);
+ assert.equal(why.answer_intent,'explain_previous_assessment');assert.equal(why.delivery.answer_first,false);
+ const timed=buildReadingPlan(value,value.query,packet,[{text:'Synthetic optional prayer'}]);
+ assert.deepEqual(timed.timing.windows,packet.event_windows);assert.equal(timed.remedy,'optional_from_supplied_references');
+ assert.equal(yesNo.remedy,'omit');
+});
+
+async function run({input=value,config=env,draft=candidate}={}) {
+ const requests=[];
+ const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),
+  makeTools:()=>async()=>chart(),fetchImpl:async(_url,options)=>{
+   const body=JSON.parse(options.body);requests.push(body);const instruction=body.messages[0].content;
+   if(instruction.startsWith('Collect checked evidence'))return response({tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]});
+   if(instruction.startsWith('Write the complete astrology reply')) {const [answer,reason='Checked explanation.']=draft.split('\n\n');return response({content:JSON.stringify({answer,reason,remedy:''})});}
+   if(instruction.startsWith('Review this astrology reply'))return response({content:'{"evidence_ok":true,"reason":"","presentation_issue":""}'});
+   return response({content:'Please share your birth date, exact time and birthplace.'});
+  }});
+ return {result,requests};
+}
+
+test('focused end-to-end flow shares the same checked plan and guide with no additional model stage',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {result,requests}=await run();assert.equal(result.reply,candidate);assert.equal(requests.length,3);
+ assert.match(requests[0].messages[0].content,/Getting a job or establishing a career/);
+ assert.doesNotMatch(requests[0].messages[0].content,/Whether and when marriage/);
+ const writer=JSON.parse(requests[1].messages.at(-1).content),reviewer=JSON.parse(requests[2].messages.at(-1).content);
+ assert.deepEqual(reviewer.reading_plan,writer.reading_plan);assert.deepEqual(reviewer.checked_evidence,writer.checked_evidence);
+ assert.equal(writer.reading_plan.outcome,'affirm_possibility');
+ assert.equal(writer.reading_plan.timing.windows[0].from,'2027-09');assert.equal(writer.reading_plan.timing.windows[0].to,'2027-11');
+ assert.equal(writer.reading_plan.guides[0].key,'career_job');assert.equal(reviewer.proposed,result.reply);
+ assert.match(requests[2].messages[0].content,/do not independently choose another verdict/iu);
+ assert.equal(result.reply.split('\n\n').length,2);
+});
+
+test('topic corrections select the new guide and retain its checked dates',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {result,requests}=await run({input:{...value,query:'Shaadi nahi, main career ke baare mein pooch raha hoon. Job kab milegi?',history:[{role:'user',text:'Meri shaadi kab hogi?'}]}});
+ assert.equal(result.reply,candidate);
+ for(const body of requests.slice(1))assert.deepEqual(JSON.parse(body.messages.at(-1).content).reading_plan.guides.map(g=>g.key),['career_job']);
+ assert.doesNotMatch(requests[0].messages[0].content,/Whether and when marriage/);
+});
+
+test('new plan does not bypass existing checks for fabricated dates',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {result,requests}=await run({draft:candidate.replaceAll('2027','2029')});
+ assert.notEqual(result.reply,candidate.replaceAll('2027','2029'));
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ assert.equal(requests.filter(body=>body.messages[0].content.startsWith('Review this astrology reply')).length,0);
+});
+
+test('switch-off and non-pilot surfaces keep their existing model inputs',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const off=await run({config:{...env,ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'0'}});
+ assert.equal(JSON.parse(off.requests[1].messages.at(-1).content).reading_plan,undefined);
+ assert.doesNotMatch(off.requests[0].messages[0].content,/# Pilot use-case guides/);
+ for(const patch of [{user_id:'919000000002'},{reply_surface:'pwa'},{reply_surface:'voice'}]) {
+  const input={...value,...patch,birth:{}};
+  async function capture(flag) {
+   let request;
+   await assert.rejects(()=>directAnswer(input,{env:{...env,ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:flag},now:()=>now,
+    makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>assert.fail('No tool before capture'),
+    fetchImpl:async(_url,options)=>{request=JSON.parse(options.body);throw Error('synthetic capture only');}}),/synthetic capture only/u);
+   assert.ok(request);return request;
+  }
+  assert.deepEqual(await capture('1'),await capture('0'));
+ }
+});
+
+test('focused plan and confirmed memories stay unchanged through a failed style repair',async()=>{
+ const packet=coherentEvidencePacket([chart()],'career');
+ const first={answer:'Career progress is possible.',reason:'The tenth house offers support, but Saturn indicates obstacles.',remedy:''};
+ const outputs=[JSON.stringify(first),'{"evidence_ok":true,"reason":"","presentation_issue":"Use less repetitive wording."}',JSON.stringify({answer:'A guaranteed job tomorrow.',reason:'Unsupported.'})];
+ const calls=[];
+ const reply=await writeCoherentReading({value,subject:value.query,packet,focused:true,facts:['[personal] Synthetic user has an interview.'],
+  generate:async(instruction,payload)=>{calls.push({instruction,data:JSON.parse(payload)});return outputs.shift();},
+  validate:text=>text.includes('tomorrow')?'Unsupported date':null,fallback:'Must not replace verified answer'});
+ assert.equal(reply,first.answer+'\n\n'+first.reason);assert.equal(calls.length,3);
+ for(const call of calls){assert.deepEqual(call.data.reading_plan,calls[0].data.reading_plan);assert.deepEqual(call.data.user_context,calls[0].data.user_context);}
+ assert.equal(calls[2].data.edit_mode,'presentation_only');
+});
+
+test('history-based listening keeps its companion route and persona with the focused reading switch on or off',async()=>{
+ const reply='Interview se pehle akele aur nervous feel karna thaka deta hai. Main sun raha hoon, aap aaram se bataiye.';
+ async function conversation(flag) {
+  const requests=[];
+  const result=await directAnswer({...value,user_gender:'female',language:'hinglish',
+   query:'Aaj bahut akela feel ho raha hai. Bas meri baat suno, advice mat dena.',
+   history:[{role:'user',text:'Kal mera interview hai aur main nervous hoon.'}]},
+   {env:{...env,ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:flag,ASTROFRIEND_CONVERSATION_MEMORY_ENABLED:'1'},now:()=>now,
+    makeMemory:()=>({read:async()=>['[personal] User has an interview tomorrow and feels nervous.'],write:async()=>assert.fail('No write requested')}),
+    makeTools:()=>async()=>assert.fail('No chart for listening'),fetchImpl:async(_url,options)=>{
+     const body=JSON.parse(options.body);requests.push(body);
+     if(body.messages[0].content.startsWith('Review a conversational draft'))return response({content:'{"status":"accept","issues":[]}'});
+     const context=JSON.parse(body.messages.at(-1).content);assert.equal(context.assistant_context.name,'Aarav');
+     assert.equal(context.saved_context.length,1);assert.equal(context.reading_plan,undefined);
+     return response({content:JSON.stringify({route:'conversation',reply})});
+    }});
+  return {requests,result};
+ }
+ const on=await conversation('1'),off=await conversation('0');
+ assert.deepEqual(on,off);assert.equal(on.result.reply,reply);assert.deepEqual(on.result.answer_reading_tools,[]);
+});
+
+test('captured live timing suffixes are cleaned before review only in the focused trial',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const captures=[
+  ['Career ke settle hone ke liye September 2027 se November 2027 tak ka samay zyada supportive dikh raha hai',
+   '—yeh ek estimated opportunity window hai.',value.query],
+  ['Meri reading mein shaadi ke liye November 2027 se February 2028 tak ka daur zyada sahara dene wala dikh raha hai',
+   '; yeh ek mumkin mauka hai, pakki ghatna ya tareekh nahi.','When might I get married?'],
+ ];
+ for(const [answer,suffix,query] of captures) {
+  const reason=candidate.split('\n\n')[1];
+  const {result,requests}=await run({input:{...value,query,language:'hinglish'},draft:answer+suffix+'\n\n'+reason});
+  assert.equal(result.reply,answer+'.\n\n'+reason);
+  assert.equal(requests.length,3);
+  assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
+  const timing=JSON.parse(requests[1].messages.at(-1).content).checked_evidence.timing_estimate;
+  assert.equal(removeTimingBoilerplate(answer+suffix,timing),answer+suffix);
+  assert.equal(removeTimingBoilerplate(answer+suffix,null,{focused:true}),answer+suffix);
+  for(const retained of ['Shaadi zaroor hogi aur November 2027 mein dikh rahi hai','Career November 2027 mein pakka set ho sakta hai','Shaadi November 2027 mein hogi'])
+   assert.equal(removeTimingBoilerplate(retained+suffix,timing,{focused:true}),retained+suffix);
+  const quote='Aapne kaha tha "'+answer+suffix+'"';
+  assert.equal(removeTimingBoilerplate(quote,timing,{focused:true}),quote);
+ }
+});

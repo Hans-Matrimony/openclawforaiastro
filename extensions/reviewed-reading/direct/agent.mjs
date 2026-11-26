@@ -1,6 +1,6 @@
 import { pilotScheduleBubble } from "./pilot-schedule.mjs";
 import { pilotTopicPrompt } from "./pilot-topic-prompts.mjs";
-import {coherentReadingEnabled, coherentCollectionPrompt, coherentEvidencePacket, writeCoherentReading} from './pilot-coherent-reading.mjs';
+import {coherentReadingEnabled, focusedReadingEnabled, coherentCollectionPrompt, coherentEvidencePacket, writeCoherentReading} from './pilot-coherent-reading.mjs';
 import {eventWindowReplyIssue} from './event-window-evidence.mjs';
 import { correctedReadingSubject } from './personal-query.mjs';
 import { pilotBirthClarification, pilotEducationBoundary } from './pilot-response-boundaries.mjs';
@@ -234,6 +234,7 @@ export async function directAnswer(
     env.ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED === '1';
   const topicGuidesEnabled = Boolean(pilotTopicPrompt(env, value, true));
   const coherentPilot = coherentReadingEnabled(env,value);
+  const focusedPilot = focusedReadingEnabled(env,value);
   const acceptsCompleteness = query => !isChartClarification(query) && !isForeignTravelQuestion(query) && !asksGunaScore(query) &&
     (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveReadingTopic(correctedReadingSubject(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
@@ -492,13 +493,14 @@ export async function directAnswer(
   }
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
-  const topicGuide = pilotTopicPrompt(env, value, readingRequired && acceptsCompleteness(value.query));
+  const topicGuide = pilotTopicPrompt(env, value, readingRequired && acceptsCompleteness(value.query),{subject:correctedReadingSubject(readingSubject||activeQuestion),topic:readingOptions?.topic});
   context.prompt += topicGuide;
   context.prompt += whatsappStyleInstruction(value, {pilotReading: topicExperiment && readingRequired});
   if (!(semanticReading && readingRequired)) {context.prompt += conversationGroundingInstruction(value, context.profile);}
   const messages = [
     { role: "system", content: coherentFlow
-      ? coherentCollectionPrompt(value,{subject:coherentSubject,topic:readingOptions.topic,profile:context.profile,facts:context.memoryFacts,asOf:now()})
+      ? coherentCollectionPrompt(value,{subject:coherentSubject,topic:readingOptions.topic,profile:context.profile,facts:context.memoryFacts,asOf:now(),
+          guide:focusedPilot?pilotTopicPrompt(env,value,true,{subject:coherentSubject,topic:readingOptions.topic}):''})
       : context.prompt + (progressPilot && !readingRequired ? conversationProgressInstruction : "") + (sourceFlow && (progressPilot ? readingRequired : !emotionalFriendship && !ordinaryConcern && !practicalFollowup) ? readingPresentationInstruction : "") },
     ...(progressPilot ? conversationalHistory(value.history, ordinaryConcern || practicalFollowup) : value.history.filter(turn => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user"))
       .map((turn) => ({
@@ -617,7 +619,7 @@ export async function directAnswer(
       if(!packet)return null;
     }
     const fallback=formatDisplayReply(evidenceFallback(chartResults,value.language,coherentSubject,now()));
-    const reply=await writeCoherentReading({value,subject:coherentSubject,packet,facts:context.memoryFacts,
+    const reply=await writeCoherentReading({value,subject:coherentSubject,packet,facts:context.memoryFacts,focused:focusedPilot,
       remedies:remedyKnowledge?.status==='available'?remedyKnowledge.sources:[],fallback,
       generate:(instruction,data)=>generateClosing(instruction,redactIdentity(data,value.user_id),1400,true,true),
       onEvent:event=>validation.push('pilot_coherent_'+event),
