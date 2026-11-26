@@ -153,8 +153,20 @@ export function readingUnavailableIssue(reply, results, topic) {
 
 // Validate each claim independently; a later qualification cannot excuse a
 // categorical event prediction earlier in the answer or in its companion.
-export function categoricalOutcomeClaim(reply, { expandedWaitCheck = false } = {}) {
+export function categoricalOutcomeClaim(reply, { expandedWaitCheck = false, allowTimingUncertainty = false } = {}) {
   return reply.split(/[.!?;।\n]|\b(?:but|lekin|magar|par)\b/iu).some((clause) => {
+    if (allowTimingUncertainty) {
+      clause = clause.replace(/\b((?:kehna|batana)\s+(?:theek|sahi)\s+nahi)\s+hoga\b/giu, '$1');
+    }
+    // A reported WHEN question plus an explicit timing limit is not a promise.
+    if (allowTimingUncertainty && !/\b20\d{2}\b/u.test(clause) &&
+        /\b(?:kab|when)\b/iu.test(clause) &&
+        /\b(?:samay|waqt|timing|date|time)\b/iu.test(clause) &&
+        /\b(?:nahi|nahin)\s+(?:nikal\w*|pata|tay|bata\w*)\b|\b(?:tay|pata|clear|determine\w*)\s+(?:nahi|nahin)\b|\b(?:cannot|can't|does not|unable to)\s+(?:be\s+)?(?:establish|determine|tell|predict)\b/iu.test(clause)) {
+      // Remove only the reported question's future verb, not an entire clause:
+      // another assertion in the same sentence must still be validated.
+      clause = clause.replace(/\b(?:kab|when)\b[^,;.!?\n]{0,80}?\b(?:hoga|hogi|honge|hongi|will)\b/giu, '');
+    }
     // A natal period is not an instruction to stop pursuing the outcome.
     // This also catches relative waits, which contain no calendar year.
     const waiting =
@@ -189,7 +201,7 @@ export function categoricalOutcomeClaim(reply, { expandedWaitCheck = false } = {
   });
 }
 
-export function readingVerdictIssue(reply, results, topic, { mixedOnly = false, query = "" } = {}) {
+export function readingVerdictIssue(reply, results, topic, { mixedOnly = false, query = "", allowTimingUncertainty = false } = {}) {
   const area = readingTopicArea(topic);
   if (!area) {
     return null;
@@ -243,7 +255,7 @@ export function readingVerdictIssue(reply, results, topic, { mixedOnly = false, 
           part,
         ),
     );
-  if (!categorical && !categoricalOutcomeClaim(reply, { expandedWaitCheck: true })) {
+  if (!categorical && !categoricalOutcomeClaim(reply, { expandedWaitCheck: true, allowTimingUncertainty })) {
     return null;
   }
   if (

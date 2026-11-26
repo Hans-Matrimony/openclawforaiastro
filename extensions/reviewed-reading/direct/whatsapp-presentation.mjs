@@ -50,17 +50,17 @@ export function needsWhatsAppCorrection(reply, value) {
   return windows.size > 1;
 }
 
-export function whatsappStyleInstruction(value) {
+export function whatsappStyleInstruction(value, { pilotReading = false } = {}) {
   if (value.reply_surface !== 'whatsapp') return '';
   if (isBriefWhatsAppGreeting(value)) return '\n# WhatsApp final wording\nThis turn is only a social greeting. Reply warmly in 1-2 short sentences, at most 20 words TOTAL in one bubble, including the name and any question. Use the requested language and respectful aap wording in Hindi/Hinglish. You may ask how they are, respecting no-question preferences. Do not recap earlier readings, predict anything, ask for birth details, offer a service menu, advice or an app link. Use a saved name only when allowed by their preferences and not just used.\n';
   return '\n# WhatsApp final wording\nUse the same PWA calculation and conversation rules. ' +
     (detail.test(value.query) ? 'The user requested detail; preserve the requested explanation. ' :
-      'Use 20-30 words of explanation and a short verdict, at most 50 words before the companion. Put the exact timing window once; retain both month-year boundaries, opposing factors and uncertainty. Remove repeated explanations rather than cutting facts. ') +
+      (pilotReading ? 'Answer first, then explain the checked reasons in separate short paragraphs, at most 100 words total. Keep material opposing factors. Include timing only when established by the evidence; period schedules are not event predictions. ' : 'Use 20-30 words of explanation and a short verdict, at most 50 words before the companion. Put the exact timing window once; retain both month-year boundaries, opposing factors and uncertainty. Remove repeated explanations rather than cutting facts. ')) +
     'Write complete conversational sentences, without orphaned point scores. Use the verified saved name naturally for a meaningful personal answer when it was not just used; never use it on every brief follow-up or after a request not to. ' +
     'History records your earlier answers. Never deny saying a date that appears there or invent a different profile as an excuse. When earlier same-topic answers conflict, acknowledge the inconsistency briefly and give only the currently checked result; do not copy unsupported old dates. The companion stage owns the one relevant follow-up.\n';
 }
 
-export function whatsappWordingIssue(reply, value) {
+export function whatsappWordingIssue(reply, value, { pilotReading = false } = {}) {
   if (value.reply_surface !== 'whatsapp' || !prose(reply)) return null;
   if (/\b(?:tool[ -]based|chart tool|tool call|model draft|upstream provider)\b/iu.test(reply)) {
     return 'Remove internal tool/provider wording. Give the requested answer from the checked evidence in everyday language. A missing calculation is not a negative prediction: if verification failed, say you could not check the answer, never that the career has no support. Do not replace the answer with a question.';
@@ -70,7 +70,10 @@ export function whatsappWordingIssue(reply, value) {
   if (/\bpoints?\s+(?:sirf\s+)?kamzor\b|\bki points?\b/iu.test(reply)) {
     return 'Replace the awkward orphaned point-score phrase with a complete natural sentence about the checked strength or limitation. Keep its adverse meaning and the supported dates.';
   }
-  if (reply.trim().split(/\s+/u).length > 50 || parts.some(p => p.trim().split(/\s+/u).length > 35)) {
+  const totalLimit = pilotReading ? 100 : 50;
+  const paragraphLimit = pilotReading ? 60 : 35;
+  if (reply.trim().split(/\s+/u).length > totalLimit || parts.some(p => p.trim().split(/\s+/u).length > paragraphLimit)) {
+    if (pilotReading) return "Keep the checked answer under 100 words in short answer-first paragraphs. Preserve material evidence; remove only repetition.";
     return 'Reduce repeated wording: at most 35 words per paragraph and 50 words for the reading. Keep exact supported month-year boundaries, adverse factors and qualifications. Do not truncate a sentence or omit a needed caveat.';
   }
   return null;
