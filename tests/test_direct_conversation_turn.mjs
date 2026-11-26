@@ -250,3 +250,25 @@ test('pilot review repairs informal address with agreement while preserving list
  assert.equal(result.reply,corrected);
  assert.equal(calls,3);
 });
+
+test('captured listening reply cannot mix respectful aap with keh sakti ho',async()=>{
+ let calls=0;
+ const corrected='Main aapki baat dhyaan se sun raha hoon. Jo bhi mann mein hai, aap keh sakti hain.';
+ const result=await directAnswer({...value,user_gender:'female',query:'Bas meri baat suno, advice mat dena.'},deps(async()=>{
+  calls++;
+  return response(JSON.stringify(calls===1?{route:'conversation',reply:'Main aapki baat dhyaan se sun raha hoon. Jo bhi mann mein hai, keh sakti ho.'}:
+   calls===2?{route:'conversation',reply:corrected}:{status:'accept',issues:[]}));
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(result.reply,corrected);assert.equal(calls,3);
+});
+
+test('listening repair also preserves respectful agreement for keh do',async()=>{
+ let calls=0;
+ const corrected='Main sun raha hoon; aap aaram se keh dijiye.';
+ const result=await directAnswer({...value,user_gender:'female',query:'Bas meri baat suno, advice mat dena.'},deps(async()=>{
+  calls++;
+  return response(JSON.stringify(calls===1?{route:'conversation',reply:'Main sun raha hoon; aaram se keh do.'}:
+   calls===2?{route:'conversation',reply:corrected}:{status:'accept',issues:[]}));
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1'}));
+ assert.equal(result.reply,corrected);assert.equal(calls,3);
+});

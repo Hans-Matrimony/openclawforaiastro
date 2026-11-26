@@ -6,6 +6,7 @@ import {focusedReadingEnabled,coherentEvidencePacket,writeCoherentReading} from 
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
+import {focusedReplyIssue} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
  VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
@@ -77,14 +78,14 @@ test('short follow-ups retain the subject without reintroducing dates or a repea
  assert.equal(yesNo.remedy,'omit');
 });
 
-async function run({input=value,config=env,draft=candidate}={}) {
+async function run({input=value,config=env,draft=candidate,review='{"evidence_ok":true,"reason":"","presentation_issue":""}'}={}) {
  const requests=[];
  const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),
   makeTools:()=>async()=>chart(),fetchImpl:async(_url,options)=>{
    const body=JSON.parse(options.body);requests.push(body);const instruction=body.messages[0].content;
    if(instruction.startsWith('Collect checked evidence'))return response({tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]});
    if(instruction.startsWith('Write the complete astrology reply')) {const [answer,reason='Checked explanation.']=draft.split('\n\n');return response({content:JSON.stringify({answer,reason,remedy:''})});}
-   if(instruction.startsWith('Review this astrology reply'))return response({content:'{"evidence_ok":true,"reason":"","presentation_issue":""}'});
+   if(instruction.startsWith('Review this astrology reply'))return response({content:typeof review==='function'?review(body):review});
    return response({content:'Please share your birth date, exact time and birthplace.'});
   }});
  return {result,requests};
@@ -102,6 +103,58 @@ test('focused end-to-end flow shares the same checked plan and guide with no add
  assert.equal(writer.reading_plan.guides[0].key,'career_job');assert.equal(reviewer.proposed,result.reply);
  assert.match(requests[2].messages[0].content,/do not independently choose another verdict/iu);
  assert.equal(result.reply.split('\n\n').length,2);
+});
+
+test('conflicting live reviewer feedback cannot discard the checked career dates after a topic correction',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ let reviews=0;
+ const {result,requests}=await run({input:{...value,language:'hinglish',
+  query:'Shaadi nahi, main career ke baare mein pooch raha hoon. Job kab milegi?',history:[{role:'user',text:'Meri shaadi kab hogi?'}]},
+  review:body=>{
+   const plan=JSON.parse(body.messages.at(-1).content).reading_plan;
+   assert.equal(plan.reasons.period_roles.find(period=>period.planet==='Mars').supports_topic,true);
+   assert.deepEqual(plan.reasons.period_roles.find(period=>period.planet==='Mars').owns_houses,[6]);
+   return JSON.stringify({evidence_ok:false,reason:++reviews===1?'Mangal support is missing from evidence.':'Mars and its sixth-house link were omitted.',presentation_issue:''});
+  }});
+ assert.equal(reviews,2);assert.equal(requests.length,5);
+ assert.match(result.reply,/September 2027 se November 2027/u);
+ assert.doesNotMatch(result.reply,/samay tay nahi|pakki tareekh|shaadi|marriage/iu);
+ assert.match(result.reply,/Mangal ki antardasha/u);
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+});
+
+test('focused education and abroad readings use their own returned house evidence and no unrelated assessment',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ for(const [topic,query,houses,draft]of [
+  ['education','What does my chart indicate for my studies and exams?',[4,5,9],
+   'Your chart indicates potential for progress in studies.\n\nThe fourth, fifth and ninth houses have strong natal strength indicators.'],
+  ['abroad','Does my chart indicate overseas travel?',[9,12],
+   'Your chart indicates potential for overseas travel.\n\nHouse 9 is strong, while house 12 has mixed natal strength indicators.'],
+ ]) {
+  const {result,requests}=await run({input:{...value,query},draft});
+  assert.equal(result.reply,draft);assert.equal(requests.length,3);
+  const evidence=JSON.parse(requests[1].messages.at(-1).content).checked_evidence;
+  assert.equal(evidence.topic,topic);assert.equal(evidence.assessment.method,'returned-natal-house-strength-summary-v1');
+  assert.deepEqual([...evidence.assessment.favorable,...evidence.assessment.adverse,...evidence.assessment.neutral].map(f=>f.house).sort((a,b)=>a-b),houses);
+  assert.deepEqual(evidence.event_windows,[]);
+  assert.doesNotMatch(JSON.stringify(evidence),/career|marriage/u);
+ }
+ const raw=JSON.parse(chart());delete raw.birth_chart.ashtakavarga_house_bindus.house_5;
+ assert.equal(coherentEvidencePacket([JSON.stringify(raw)],'education',{focused:true}),null);
+ assert.equal(coherentEvidencePacket([chart()],'education'),null);
+ assert.equal(coherentEvidencePacket([chart()],'abroad'),null);
+});
+
+test('model approval cannot publish overstated good chances, and the safe answer retains a direct conclusion',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {result,requests}=await run({input:{...value,query:'Kya meri job lagne ke chances achhe hain? Seedha batao.',language:'hinglish'},
+  draft:'Haan, job lagne ki sambhavana achhi hai.\n\nCareer ka ghar mazboot hai, lekin vakri Shani rukawat dikhata hai.'});
+ assert.doesNotMatch(result.reply,/sambhavana achhi|good chances|high chance/iu);
+ assert.match(result.reply,/career mein pragati ke yog/u);
+ assert.equal(requests.filter(body=>body.messages[0].content.startsWith('Review this astrology reply')).length,0);
+ for(const text of ['High chances of a job.','Job lagne ki sambhavana achhi hai.','नौकरी मिलने की संभावना अच्छी है।'])
+  assert.ok(focusedReplyIssue(text,{scope:'natal_outlook'}),text);
+ assert.equal(focusedReplyIssue('The tenth house is strong; career progress is possible.',{scope:'natal_outlook'}),null);
 });
 
 test('topic corrections select the new guide and retain its checked dates',async t=>{
@@ -183,11 +236,13 @@ test('captured live timing suffixes are cleaned before review only in the focuse
  ];
  for(const [answer,suffix,query] of captures) {
   const reason=candidate.split('\n\n')[1];
-  const {result,requests}=await run({input:{...value,query,language:'hinglish'},draft:answer+suffix+'\n\n'+reason});
-  assert.equal(result.reply,answer+'.\n\n'+reason);
+  const conclusion='Kundli mein pragati ke yog dikhte hain. ';
+  const {result,requests}=await run({input:{...value,query,language:'hinglish'},draft:conclusion+answer+suffix+'\n\n'+reason});
+  assert.equal(result.reply,conclusion+answer+'.\n\n'+reason);
   assert.equal(requests.length,3);
   assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
   const timing=JSON.parse(requests[1].messages.at(-1).content).checked_evidence.timing_estimate;
+  assert.equal(removeTimingBoilerplate(answer+suffix,timing,{focused:true}),answer+'.');
   assert.equal(removeTimingBoilerplate(answer+suffix,timing),answer+suffix);
   assert.equal(removeTimingBoilerplate(answer+suffix,null,{focused:true}),answer+suffix);
   for(const retained of ['Shaadi zaroor hogi aur November 2027 mein dikh rahi hai','Career November 2027 mein pakka set ho sakta hai','Shaadi November 2027 mein hogi'])
@@ -195,4 +250,32 @@ test('captured live timing suffixes are cleaned before review only in the focuse
   const quote='Aapne kaha tha "'+answer+suffix+'"';
   assert.equal(removeTimingBoilerplate(quote,timing,{focused:true}),quote);
  }
+});
+
+test('a supportive-time label alone cannot replace the requested outcome, even with model approval',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const {result}=await run({input:{...value,language:'hinglish'},
+  draft:'Career ke liye September 2027 se November 2027 tak ka samay sahayak ho sakta hai.\n\nCareer ka ghar mazboot hai, lekin vakri Shani rukawat dikhata hai.'});
+ assert.match(result.reply,/career mein pragati ke yog/u);
+ assert.match(result.reply,/September 2027 se November 2027/u);
+ assert.doesNotMatch(result.reply,/samay tay nahi|pakki tareekh/iu);
+});
+
+test('captured exact-date caveat is removed before review without changing the attributed outlook',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const answer='Shaadi ke yog dikhte hain; chart ke hisaab se November 2027 se February 2028 ke beech shaadi ka avsar ban sakta hai';
+ const reason='Saatve ghar mein Guru hai, lekin ghar kamzor hai aur Shani bhi wahan hai. Shukra ka daur shaadi se juda hai; Mangal aur Shani ka dabav is daur mein bhi hai.';
+ const {result,requests}=await run({input:{...value,query:'Meri shaadi kab hogi?',language:'hinglish'},
+  draft:answer+', lekin exact date tay nahi hai.\n\n'+reason});
+ assert.equal(result.reply,answer+'.\n\n'+reason);assert.equal(requests.length,3);
+ assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
+});
+
+test('unrequested travel and exam caveats are caught without blocking the same distinction when asked',()=>{
+ const abroad='Abroad jaane ke yog hain.\n\nThe twelfth house is mixed, so permanent settlement cannot be confirmed.';
+ assert.ok(focusedReplyIssue(abroad,{topic:'abroad',subject:'Kya mere abroad jaane ke chances hain?'}));
+ assert.equal(focusedReplyIssue(abroad,{topic:'abroad',subject:'Can I settle abroad permanently?'}),null);
+ const education='Padhai ke yog hain.\n\nExam ke natije aapki taiyari aur actual performance par nirbhar rahenge.';
+ assert.ok(focusedReplyIssue(education,{topic:'education',subject:'Meri padhai ke liye chart kya kehta hai?'}));
+ assert.equal(focusedReplyIssue(education,{topic:'education',subject:'Meri taiyari aur chart dono ka kya role hai?'}),null);
 });

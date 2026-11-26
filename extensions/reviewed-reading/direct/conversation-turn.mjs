@@ -84,7 +84,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   if (decision && decision.route !== 'checked_reading' && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== '0') {
     const writerMessages=structuredClone(body.messages);
     async function review(candidate) {
-      if (/^(?:hinglish|hindi|hi)$/iu.test(value.language ?? '') && /\b(?:tum|tumne|tumhe|tumhara|tumhari|tera|teri|tujhe)\b/iu.test(candidate.reply)) {
+      if (/^(?:hinglish|hindi|hi)$/iu.test(value.language ?? '') && /\b(?:tum|tumne|tumhe|tumhara|tumhari|tera|teri|tujhe)\b|\b(?:sakte|sakti|chahte|chahti)\s+ho\b|\b(?:keh|bata|bol)\s+do\b/iu.test(candidate.reply)) {
         return {status:'reject',issues:['Use respectful aap address with matching verb agreement throughout. Preserve the current warmth, facts and listening-only intent; do not add advice or questions.']};
       }
       if (repeatsClarification(candidate.reply,value.history ?? [])) {

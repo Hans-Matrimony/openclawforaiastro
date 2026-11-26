@@ -15,7 +15,7 @@ Public reference: https://vedastro.org/js/VedAstroChat.js
   receive the same shared plan with the checked answer position and any
   supplied timing window. Short follow-ups retain the subject but do not
   repeat dates unless the latest request asks for them.
-- Aim for 60-90 words with answer and reason in separate bubbles. Allow up to
+- Prefer at most 90 words with answer and reason in separate bubbles. Allow up to
   150 words when evidence or the user's question requires it. Include relevant
   contrary evidence; no fixed verdict sentence or forced certainty.
 - Remedies require the existing relevant references. Another person's choices
@@ -31,3 +31,16 @@ Public reference: https://vedastro.org/js/VedAstroChat.js
 With the switch off, existing prompts stay unchanged. Other accounts, PWA,
 voice, specialized calculations and companionship retain their existing flow.
 Disable the switch to roll back this presentation trial.
+
+Clarity repair after the fifteen-question live check:
+- Lead with a conclusion about the requested outcome, attributed to the chart;
+  a generic supportive-time label alone is incomplete. No minimum word count,
+  stacked qualifiers, measured likelihood or event guarantees.
+- Period support is represented explicitly, including relevant job houses;
+  named-planet inventories are optional. A rejected draft falls back to the
+  same checked plan and its dates, never an unrelated no-timing message.
+- Education uses the existing 4/5/9 house group, abroad uses 9/12. Their natal
+  strength summaries use only labels actually returned by the chart. They do
+  not calculate exam results, travel probabilities, visa decisions or dates.
+- The independent display check rejects good/high-chance or guarantee wording.
+  Ordinary conversation also repairs informal verb agreement after aap.

@@ -74,6 +74,11 @@ export function removeTimingBoilerplate(answer,timing,{focused=false}={}) {
    const retained=answer.slice(0,redundant.index).trim();
    if(qualified(retained)&&! /\b(?:pakka|pakki|guaranteed|certain|zaroor)\b/iu.test(retained))answer=retained+'.';
   }
+  const fixedDate=/(?:[,;.!?—–]\s*)(?:(?:lekin|par|but|however)\s+)?(?:(?:exact|fixed|pakki)\s+(?:event\s+)?(?:date|tareekh)\s+(?:tay\s+|confirm\s+|fixed\s+)?nahi(?:\s+hai)?|(?:this|it)\s+is\s+not\s+(?:an?\s+)?(?:exact|fixed|guaranteed)\s+(?:event\s+)?date)[.!?]?\s*$/iu.exec(answer);
+  if(fixedDate) {
+   const retained=answer.slice(0,fixedDate.index).trim();
+   if(qualified(retained)&&! /\b(?:pakka|pakki|guaranteed|certain|zaroor)\b/iu.test(retained))answer=retained+'.';
+  }
  }
  const suffix=/(?:[;.!?]\s*|,\s*)(?:(?:(?:yeh|ye)\s+(?:andazati samay hai|estimated window hai)|ise sambhavana samjhein)\s*,\s*)?pakki\s+(?:event date|tareekh)\s+nahi[.!?]?\s*$/iu;
  const match=suffix.exec(answer);

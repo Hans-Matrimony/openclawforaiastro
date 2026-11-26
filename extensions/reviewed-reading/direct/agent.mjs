@@ -235,12 +235,12 @@ export async function directAnswer(
   const topicGuidesEnabled = Boolean(pilotTopicPrompt(env, value, true));
   const coherentPilot = coherentReadingEnabled(env,value);
   const focusedPilot = focusedReadingEnabled(env,value);
-  const acceptsCompleteness = query => !isChartClarification(query) && !isForeignTravelQuestion(query) && !asksGunaScore(query) &&
+  const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
     (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveReadingTopic(correctedReadingSubject(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
     const subject = topicGuidesEnabled ? correctedReadingSubject(query) : query;
-    const topic=resolveReadingTopic(subject)?.topic;
-    return acceptsCompleteness(subject) && readingTopicArea(topic) ? topic : null;
+    const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveReadingTopic(subject)?.topic;
+    return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad'].includes(topic))) ? topic : null;
   };
   const initialTopic = conversationV2Pilot ? supportedTopic(value.query) : null;
   let completenessPilot = Boolean(initialTopic);
@@ -602,7 +602,7 @@ export async function directAnswer(
   };
   const finishCoherentReading = async () => {
     if (!coherentFlow || !readingTools.has('get_horoscope_predictions')) return null;
-    let packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject});
+    let packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
     if (!packet) return null; // Specialist/conflicting evidence retains its own checks.
     if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&asksForTiming(activeQuestion)) {
       try {
@@ -612,7 +612,7 @@ export async function directAnswer(
           const row=JSON.parse(chartResults[index]);
           const timing=calculateEventTiming(row,{topic:readingOptions.topic,asOf:now()});
           chartResults[index]=JSON.stringify({...row,event_timing:timing,event_windows:timing.windows});
-          packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject});
+          packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
           validation.push('pilot_event_timing_'+timing.status);
         }
       } catch {validation.push('pilot_event_timing_unavailable');}
@@ -844,7 +844,8 @@ export async function directAnswer(
           hasOnlyNatalRelationshipEvidence(chartResults)) {
         messages.push({role:'user',content:'A supplementary calculation failed, but the successful natal chart results above remain available. Use their checked topic indications and reasons for a qualified answer. Distinguish the unavailable calculation from the available evidence; do not say all tools failed, discard the natal result, or keep retrying the same failed tool.'});
       }
-      if (topicGuidesEnabled && readingRequired && resolveReadingTopic(activeQuestion)?.topic === 'education') {
+      if (topicGuidesEnabled && readingRequired && resolveReadingTopic(activeQuestion)?.topic === 'education' &&
+          !(focusedPilot&&coherentEvidencePacket(chartResults,'education',{focused:true}))) {
         const boundary=pilotEducationBoundary(chartResults,value.language);
         if (boundary) return {
           schema:'vedastro-direct-reply-v1',reply:finishWhatsAppReply(boundary,value,{facts:context.memoryFacts}),

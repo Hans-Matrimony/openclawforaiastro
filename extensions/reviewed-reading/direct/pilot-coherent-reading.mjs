@@ -5,7 +5,9 @@ import {readingTopicArea} from './pilot-relationship-reading.mjs';
 import {isSpecificReturnQuestion} from './pilot-bubbles.mjs';
 import {asksForTiming} from './reading-intent.mjs';
 import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} from './event-window-evidence.mjs';
-import {buildReadingPlan,focusedAnswerContract,focusedReviewContract} from './pilot-reading-plan.mjs';
+import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract} from './pilot-reading-plan.mjs';
+import {focusedTopicSignal} from './focused-topic-evidence.mjs';
+import {focusedReadingFallback,focusedReplyIssue} from './focused-reading-delivery.mjs';
 
 // Roll out only through the existing exact-account WhatsApp pilot. Specialist
 // calculations and every other surface retain their established flow.
@@ -40,8 +42,8 @@ function presentationFactor(text) {
 
 // This is a presentation packet, not a new astrology calculation. A natal
 // assessment cannot acquire an event date by being passed to another model.
-export function coherentEvidencePacket(results, topic, {question=''}={}) {
-  const area=readingTopicArea(topic);
+export function coherentEvidencePacket(results, topic, {question='',focused=false}={}) {
+  const area=readingTopicArea(topic)??(focused&&['education','abroad'].includes(topic)?topic:null);
   if (!area) return null;
   const rows=[];
   for (const raw of results) {
@@ -51,7 +53,11 @@ export function coherentEvidencePacket(results, topic, {question=''}={}) {
   }
   const charts=rows.filter(row=>row.birth_chart);
   if (!charts.length || new Set(charts.map(row=>JSON.stringify(row.birth_chart))).size!==1) return null;
-  const signals=rows.flatMap(row=>row.verdict_signals??[]).filter(signal=>signal.area===area);
+  let signals=rows.flatMap(row=>row.verdict_signals??[]).filter(signal=>signal.area===area);
+  if(!signals.length&&focused) {
+    const derived=focusedTopicSignal(charts[0].birth_chart,topic);
+    if(derived)signals=[derived];
+  }
   if (!signals.length || new Set(signals.map(signal=>JSON.stringify(signal))).size!==1) return null;
   const signal=signals[0];
   if (!['POSITIVE','NEGATIVE','MIXED'].includes(signal.trend) ||
@@ -68,7 +74,8 @@ export function coherentEvidencePacket(results, topic, {question=''}={}) {
   const factors=values=>[...new Set(values)].map(presentationFactor)
     .filter(factor=>!(estimate?.selected||estimate?.current_period_basis)||factor?.kind!=='active_period_link');
   return {topic,source:'local-sweph-v2',scope:personChoice?'person_choice':'natal_outlook',assessment:personChoice?null:{trend:signal.trend,
-    favorable:factors(signal.positive),adverse:factors(signal.negative)},
+    favorable:factors(signal.positive),adverse:factors(signal.negative),
+    ...(signal.neutral?{neutral:signal.neutral}:{}),...(signal.method?{method:signal.method}:{})},
     ...(!personChoice&&!estimate?.selected?{active_period:{mahadasha_lord:charts[0].dasha?.current_mahadasha?.lord??null,
       antardasha_lord:charts[0].dasha?.current_antardasha?.lord??null}}:{}),
     event_windows:personChoice?[]:eventWindows,
@@ -124,7 +131,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
     timing_requested:asksForTiming(value.query),max_words:150,
     dialogue:(value.history??[]).slice(-12),user_context:facts,checked_evidence:packet,remedy_references:remedies,
     ...(plan?{reading_plan:plan}:{})};
-  const estimateInstruction=packet.timing_estimate?'\n'+estimateContract:'';
+  const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';
   const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
   let feedback='';
   let verifiedCandidate=null;
@@ -167,7 +174,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
       if (!candidate || candidate==='NONE' || candidate.length>2400 || candidate.split(/\s+/u).length>150 || wrongScript) {
         feedback=wrongScript?'Use the requested language and script.':'Return a concise complete reply within 150 words.';
       } else {
-        const issue=validate(candidate);
+        const issue=(focused?focusedReplyIssue(candidate,plan):null)||validate(candidate);
         if (issue) feedback=issue;
         else {
           let review;try {review=JSON.parse(await generate((focused?focusedReviewContract:reviewContract)+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),JSON.stringify({...payload,proposed:candidate,
@@ -190,5 +197,9 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   // generic fallback. No unreviewed candidate receives this protection.
   if(verifiedCandidate!==null) {onEvent('verified_with_style_issue');return verifiedCandidate;}
   onEvent('fallback');
+  if(focused) {
+    const checked=focusedReadingFallback(plan,value);
+    if(checked&&!focusedReplyIssue(checked,plan)&&!validate(checked))return checked;
+  }
   return fallback;
 }
