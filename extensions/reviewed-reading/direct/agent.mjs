@@ -8,6 +8,7 @@ import {pairedPropertyTimingRequest,pairedPropertyTimingReply} from './paired-pr
 import {focusedReadingDialogue} from './reading-dialogue.mjs';
 import { correctedReadingSubject } from './personal-query.mjs';
 import { pilotBirthClarification, pilotEducationBoundary } from './pilot-response-boundaries.mjs';
+import {partialBirthCollectionReply} from './birth-collection.mjs';
 import { finalPilotReading } from './pilot-final-reading.mjs';
 import { evidenceOnly, unifiedPilotPrompt } from './pilot-evidence-contract.mjs';
 import { pilotBubbleInstruction, pilotAnswerFirst, specificReturnBoundary, isSpecificReturnQuestion, specificReturnSubject } from "./pilot-bubbles.mjs";
@@ -347,6 +348,10 @@ export async function directAnswer(
       if (error.code === "conversation_review_failed" ||
           (pilotCalls > 1 && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== "0")) {throw error;}
       pilotTurn = {decision:null,usage:[]};
+    }
+    if(focusedPilot&&pilotTurn?.decision?.route==='checked_reading'){
+      const collectionReply=partialBirthCollectionReply(value);
+      if(collectionReply)pilotTurn.decision={route:'clarification',reply:collectionReply};
     }
     const decision = pilotTurn?.decision;
     if (decision && decision.route !== "checked_reading" &&
@@ -1044,6 +1049,7 @@ export async function directAnswer(
       schema:'vedastro-direct-reply-v1',reply:finishWhatsAppReply(birthClarification,value,{facts:context.memoryFacts}),
       answer_model_calls:upstreamCalls,answer_cache_hits:cacheHits,answer_reading_tools:[],
       answer_usage:answerUsage,answer_validation:[...validation,'pilot_birth_clarification'],
+      ...(focusedPilot?{answer_conversation_route:'clarification'}:{}),
     };
     let clarification =
       reply.trim().length <= 320 &&
