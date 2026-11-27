@@ -120,7 +120,8 @@ void test("pilot failure diagnostics never log private upstream data", async (t)
     const { request, response } = exchange(JSON.stringify({user_id:"synthetic-a", query:"Hello", history:[], language:"english"}));
     await handler(request, response);
     assert.equal(response.status, 503);
-    assert.deepEqual(response.body, {error:"direct_answer_unavailable"});
+    assert.deepEqual(response.body, {error:"direct_answer_unavailable",
+      category:code==='model_http_404'?'model_http_404':'generation_failed'});
   }
   assert.deepEqual(log.mock.calls.map(c => c.arguments[0]), ["[direct-answer] model_http_404", "[direct-answer] generation_failed", "[direct-answer] generation_failed"]);
 });

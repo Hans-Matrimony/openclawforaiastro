@@ -120,6 +120,7 @@ export function createDirectHandler(
     maxBody: 196608,
     failureStatus: 503,
     failureCode: "direct_answer_unavailable",
+    failureCategory: directFailureCategory,
   });
   return (req, res) => {
     if (!directEnabled(env)) {

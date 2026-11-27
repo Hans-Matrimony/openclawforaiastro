@@ -8,6 +8,7 @@ export function createReadingHandler(
     concurrency = { active: 0 },
     failureStatus = 422,
     failureCode = "birth_details_unresolved",
+    failureCategory,
   } = {},
 ) {
   return async (req, res) => {
@@ -67,9 +68,10 @@ export function createReadingHandler(
       try {
         controller.signal.throwIfAborted();
         send(200, await calculate(value, { signal: controller.signal }, contractVersion));
-      } catch {
+      } catch (error) {
         // Never expose child output, birth details or filesystem information.
-        send(failureStatus, { error: failureCode });
+        send(failureStatus, { error: failureCode,
+          ...(failureCategory ? { category: failureCategory(error) } : {}) });
       }
     } catch {
       send(400, { error: "invalid_reading_request" });

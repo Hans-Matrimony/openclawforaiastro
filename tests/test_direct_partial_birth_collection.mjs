@@ -31,3 +31,10 @@ test('complete or missing profiles and other-person requests cannot use partial 
   {...value,query:'Mera janam kab hua tha?'}, {...value,query:'Meri shaadi kab hogi?'},
   {...value,reply_to:{role:'assistant',text:'Tell me about your brother.'}}])assert.equal(partialBirthCollectionReply(input),null);
 });
+
+test('validated saved updates in other formats can clarify missing fields without matching a prefix',()=>{
+ const changed={...value,profile_update_status:'saved',query:'18 October 1998, Jaipur. What about marriage?',birth:{date:'18 October 1998',location_name:'Jaipur'}};
+ assert.match(partialBirthCollectionReply(changed),/samay/u);
+ assert.equal(partialBirthCollectionReply({...changed,profile_update_status:undefined}),null);
+ assert.equal(partialBirthCollectionReply({...changed,query:'My sister was born in Jaipur. What about marriage?'}),null);
+});
