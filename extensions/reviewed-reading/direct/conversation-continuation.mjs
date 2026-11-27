@@ -7,6 +7,8 @@ export function continuationPolicy(value) {
   const query=value.query.replace(protectedText,'');
   const current={...value,query};
   if(!canAskFollowup('Normal prose.',current,true))return {mode:'quiet',reason:'no_questions'};
+  if(/(?:दोन|तीन|चार|[२३४])\s+(?:छोट्या\s+)?(?:ओळी|वाक्ये)\s+(?:लिहा|द्या)/u.test(query))
+    return {mode:'format',reason:'requested_artifact_or_length'};
   if(/\b(?:advice|salah|salaah)\s+(?:mat\s+dena|nahi\s+chahiye)|\bno\s+more\s+advice\b/iu.test(query))
     return {mode:'quiet',reason:'no_more_advice'};
   const previous=value.reply_to?.role==='assistant'?value.reply_to.text:
