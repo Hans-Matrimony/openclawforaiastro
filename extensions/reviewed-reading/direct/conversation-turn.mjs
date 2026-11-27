@@ -8,6 +8,7 @@ import {continuationPolicy,continuationInstruction,continuationReviewInstruction
 import {createModelRequest} from './model-request.mjs';
 import {companionBoundaryInstruction,companionBoundaryIssue,companionAddressText,blockedContactFallback} from './companion-boundaries.mjs';
 import {pilotMarathiStyle,marathiReviewInstruction} from './pilot-language-style.mjs';
+import {firstContactPolicy,firstContactIssue} from './first-contact.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -53,6 +54,7 @@ const naturalListeningInstruction = `For listening-only turns, respond to the sp
 export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,savedContext = [],onRequest = () => {},naturalListening = false,continueConversation = false,capabilityBoundary=null}) {
   const envelope=JSON.parse(redact(JSON.stringify(turnEnvelope(value,savedContext))));
   const languageStyle=naturalListening?pilotMarathiStyle(value):'';
+  const firstContact=naturalListening?firstContactPolicy(value,savedContext):null;
   if(continueConversation)envelope.continuation_policy=continuationPolicy(value);
   if(capabilityBoundary)envelope.capability_boundary={kind:capabilityBoundary.kind,supported_event:capabilityBoundary.supported_event};
   const boundaryClarification=capabilityBoundary&&['clarify','person_profile'].includes(capabilityBoundary.kind);
@@ -67,7 +69,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     : generationSettings(env);
   const body={model:conversationModel || env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
     messages:[{role:'system',content:contract+conversationProgressInstruction+personaInstruction(value)+responseLanguageInstruction(value)+
-      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(languageStyle?'\n'+languageStyle:'')+(continueConversation?'\n'+continuationInstruction+'\nWhen continuation_policy.reason is emotion_assumption_correction, acknowledge only that you introduced the emotion without support. Do not re-ask whether the user is sad or assign another intent such as just sharing.':'')+
+      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(firstContact?'\n'+firstContact.instruction:'')+(languageStyle?'\n'+languageStyle:'')+(continueConversation?'\n'+continuationInstruction+'\nWhen continuation_policy.reason is emotion_assumption_correction, acknowledge only that you introduced the emotion without support. Do not re-ask whether the user is sad or assign another intent such as just sharing.':'')+
       (capabilityBoundary?'\nThis request has a verified calculation-capability boundary. For kind person_profile, return clarification asking for that other person\'s own birth date, exact birth time and birthplace. The selected account profile belongs to the user and cannot be used for them. For kind clarify, ask whether buying, selling or building. Otherwise return conversation: explain the specific unknown date/decision naturally, once, without chart claims, a prediction or a checked_reading handoff. Only purchase timing is calculated; it cannot time a sale, construction or a bank decision. Do not borrow earlier dates or promise a further calculation. Only person_profile needs birth details.':'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
     response_format:{type:'json_object'},max_tokens:conversationModel?1200:700,stream:false,...settings};
   const usage=[];
@@ -125,7 +127,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       if (repeatsClarification(candidate.reply,value.history ?? [])) {
         return {status:'reject',issues:['The reply repeats an earlier clarification. Answer what is possible from the dialogue without asking that question again.']};
       }
-      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(languageStyle?'\n'+languageStyle+'\n'+marathiReviewInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
+      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(firstContact?'\n'+firstContact.instruction:'')+(languageStyle?'\n'+languageStyle+'\n'+marathiReviewInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
         {role:'user',content:JSON.stringify({conversation:envelope,candidate})}];
       return request(parseConversationReview);
     }
@@ -133,7 +135,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     // Keep an approved answer while attempting a bounded presentation repair.
     // A missing optional question must not become an HTTP 503/busy fallback.
     const approved=verdict?.status==='accept'?decision:null;
-    const styleIssue=approved&&((languageStyle&&verdict.presentation_issue)||
+    const styleIssue=approved&&(firstContactIssue(decision.reply,firstContact)||(languageStyle&&verdict.presentation_issue)||
       (continueConversation&&continuationIssue(decision.reply,value,envelope.continuation_policy)));
     if (verdict?.status === 'reject'||styleIssue) {
       body.messages=[...writerMessages,{role:'assistant',content:JSON.stringify(decision)},
