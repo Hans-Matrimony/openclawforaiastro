@@ -9,6 +9,7 @@ import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimi
 import {focusedTopicSignal} from './focused-topic-evidence.mjs';
 import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedReadingLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
 import {continuationPolicy,continuationInstruction,continuationIssue} from './conversation-continuation.mjs';
+import {focusedReadingDialogue} from './reading-dialogue.mjs';
 
 // Roll out only through the existing exact-account WhatsApp pilot. Specialist
 // calculations and every other surface retain their established flow.
@@ -141,7 +142,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   }
   const payload={question:subject,latest_request:value.query,language:value.language,
     timing_requested:asksForTiming(value.query,{exactDateRequests:focused}),max_words:150,
-    dialogue:(value.history??[]).slice(-12),user_context:facts,checked_evidence:displayPacket,remedy_references:remedies,
+    dialogue:focused?focusedReadingDialogue(value,packet.topic):(value.history??[]).slice(-12),user_context:facts,checked_evidence:displayPacket,remedy_references:remedies,
     ...(plan?{reading_plan:plan}:{}),...(continuity?{continuation_policy:policy}:{})};
   const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';
   const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+continuation+followupFields+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);

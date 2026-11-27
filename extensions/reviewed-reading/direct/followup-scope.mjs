@@ -57,13 +57,14 @@ export function borrowsCompanionTopic(query,{allowDiscoursePrefix=false}={}) {
 export const newCompanionQuestion = query => !borrowsCompanionTopic(query) && !isPersonalChartQuestion(query) &&
   /^(?:why|how|when|which|kaise|kyun|kab)\b/iu.test(query.trim());
 
-export function activeReadingQuestion(value,{allowDismissal=false}={}) {
+export function activeReadingQuestion(value,{allowDismissal=false,focused=false}={}) {
+  const abbreviated=text=>abbreviatedReading(focused?text.replace(/^(?:matlab|mtlb|mtlab|toh|to|so)\s+/iu,''):text);
   const correctedSubject=correctedReadingSubject(value.query,{allowDismissal});
   if (correctedSubject !== value.query) return correctedSubject;
   // Resolve a short quoted follow-up only from the selected quote's own
   // subject. Never substitute a different subject from unquoted history.
   if (value.reply_to) {
-    const subject = (abbreviatedReading(value.query) || answerRetry(value.query)) && quotedSelfReading(value);
+    const subject = (abbreviated(value.query) || answerRetry(value.query)) && quotedSelfReading(value);
     if (subject) return `${subject}\nFollow-up: ${value.query}`;
     // Our generic rejection has no subject of its own. Only that exact notice
     // may fall through to the latest user question; other quotes keep priority.
@@ -71,16 +72,16 @@ export function activeReadingQuestion(value,{allowDismissal=false}={}) {
   }
   if (isPersonalChartQuestion(value.query) || asksGunaScore(value.query)) return value.query;
   const retry = answerRetry(value.query);
-  if (!abbreviatedReading(value.query) && !retry) return value.query;
+  if (!abbreviated(value.query) && !retry) return value.query;
   // Only the latest user subject can resolve an abbreviated follow-up. Never
   // skip a changed topic to resurrect an older assistant prediction.
-  const previous = [...(value.history ?? [])].reverse().filter(t => t.role === 'user').slice(0, 4);
+  const previous = [...(value.history ?? [])].reverse().filter(t => t.role === 'user').slice(0, focused?20:4);
   for (const turn of previous) {
-    if (selectedSelfBirth(turn.text, value.birth) ||
+    if (selectedSelfBirth(turn.text, value.birth,{propertyReading:focused,relationshipReading:focused}) ||
         (birthKey(value.birth) && isForeignTravelQuestion(turn.text) && isPersonalChartQuestion(turn.text))) {
       return `${turn.text}\nFollow-up: ${value.query}`;
     }
-    if (!abbreviatedReading(turn.text) && !answerRetry(turn.text)) break;
+    if (!abbreviated(turn.text) && !answerRetry(turn.text)) break;
   }
   return value.query;
 }

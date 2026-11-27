@@ -1,8 +1,9 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import {isPropertyQuestion} from './property-intent.mjs';
+import {isLoveLifeQuestion} from './relationship-subject.mjs';
 
 // One existing topic definition is shared by the pilot repair and presentation.
-export function resolveReadingTopic(query,{multilingual=false}={}) {
+export function readingTopics(query,{multilingual=false}={}) {
   const topics = [
     ["marriage", /sha+di|vivah|marri|wedding/i, [7]],
     ["relationship", /girlfriend|boyfriend|\bgf\b|\bbf\b|crush|relationship|rishta/i, [5, 7]],
@@ -17,9 +18,14 @@ export function resolveReadingTopic(query,{multilingual=false}={}) {
     career:/करियर|नौकरी|पदोन्नति/u,money:/पैसा|पैसे|आर्थिक|वित्त|आय(?![\p{L}\p{M}])|बचत|वेतन/u,
     education:/पढ़ाई|पढाई|परीक्षा|शिक्षा/u};
   const selected=topics.filter(([topic,pattern])=>pattern.test(query)||
-    (multilingual&&hindi[topic].test(query)));
+    (multilingual&&(hindi[topic].test(query)||(topic==='relationship'&&isLoveLifeQuestion(query)))));
   if(multilingual&&isPropertyQuestion(query))selected.push(['property',null,[4]]);
-  return selected.length === 1 ? {topic:selected[0][0],houses:selected[0][2]} : null;
+  return selected.map(([topic,,houses])=>({topic,houses}));
+}
+
+export function resolveReadingTopic(query,options) {
+  const selected=readingTopics(query,options);
+  return selected.length===1?selected[0]:null;
 }
 
 // Expose natal relationships for comparison, not invented event scores or dates.

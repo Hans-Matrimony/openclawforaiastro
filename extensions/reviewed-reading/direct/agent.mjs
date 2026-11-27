@@ -5,6 +5,7 @@ import {eventWindowReplyIssue} from './event-window-evidence.mjs';
 import {propertyEventKind} from './property-intent.mjs';
 import {propertyCapabilityBoundary} from './property-boundary.mjs';
 import {pairedPropertyTimingRequest,pairedPropertyTimingReply} from './paired-property-timing.mjs';
+import {focusedReadingDialogue} from './reading-dialogue.mjs';
 import { correctedReadingSubject } from './personal-query.mjs';
 import { pilotBirthClarification, pilotEducationBoundary } from './pilot-response-boundaries.mjs';
 import { finalPilotReading } from './pilot-final-reading.mjs';
@@ -262,9 +263,11 @@ export async function directAnswer(
     const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveTopic(subject)?.topic;
     return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad','property'].includes(topic))) ? topic : null;
   };
-  const initialTopic = conversationV2Pilot ? supportedTopic(value.query) : null;
+  const activeQuestion = activeReadingQuestion(value,{allowDismissal:focusedPilot,focused:focusedPilot});
+  const initialSubject=focusedPilot?activeQuestion:value.query;
+  const initialTopic = conversationV2Pilot ? supportedTopic(initialSubject) : null;
   let completenessPilot = Boolean(initialTopic);
-  let readingSubject = completenessPilot ? value.query : null;
+  let readingSubject = completenessPilot ? initialSubject : null;
   let readingOptions = completenessPilot ? {topic:initialTopic} : undefined;
   const completenessInstruction = () => readingCompletenessInstruction(readingOptions?.topic) + (completenessPilot ? pilotBubbleInstruction : "");
   const modelEvidence = content => completenessPilot ? evidenceOnly(content) : content;
@@ -295,7 +298,6 @@ export async function directAnswer(
   const voiceReply = value.reply_surface === 'voice';
   const originalQuery = value.query;
   const matchingLimitations = quotedMatchingLimitations(value);
-  const activeQuestion = activeReadingQuestion(value,{allowDismissal:focusedPilot});
   // The pilot keeps the actual utterance: history supplies its referent without
   // silently turning a request for guidance into the prior prediction question.
   if (!progressPilot && activeQuestion !== value.query) {value = {...value, query: activeQuestion};}
@@ -374,7 +376,7 @@ export async function directAnswer(
   const memory = pilotMemory ?? makeMemory(value.user_id, { env, fetchImpl, signal });
   const execute = makeTools({ memory, birth: value.birth, query: activeQuestion, history: value.history,
     selectedSelfQuery: activeQuestion !== originalQuery ? activeQuestion.split('\nFollow-up:')[0] : undefined,
-    gender: value.user_gender, propertyReading:focusedPilot, profileUpdateStatus: value.profile_update_status, env, fetchImpl, signal, now });
+    gender: value.user_gender, propertyReading:focusedPilot, relationshipReading:focusedPilot, profileUpdateStatus: value.profile_update_status, env, fetchImpl, signal, now });
   // The checked self-chart depends on the selected birth profile, not memory
   // retrieval. Overlap these independent reads for voice without skipping either.
   const prepareChart = sourceFlow && !matchingLimitations &&
@@ -527,7 +529,7 @@ export async function directAnswer(
       ? coherentCollectionPrompt(value,{subject:coherentSubject,topic:readingOptions.topic,profile:context.profile,facts:context.memoryFacts,asOf:now(),
           guide:focusedPilot?pilotTopicPrompt(env,value,true,{subject:coherentSubject,topic:readingOptions.topic}):''})
       : context.prompt + (progressPilot && !readingRequired ? conversationProgressInstruction : "") + (sourceFlow && (progressPilot ? readingRequired : !emotionalFriendship && !ordinaryConcern && !practicalFollowup) ? readingPresentationInstruction : "") },
-    ...(progressPilot ? conversationalHistory(value.history, ordinaryConcern || practicalFollowup) : value.history.filter(turn => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user"))
+    ...(focusedPilot&&coherentFlow?focusedReadingDialogue(value,readingOptions.topic):progressPilot ? conversationalHistory(value.history, ordinaryConcern || practicalFollowup) : value.history.filter(turn => emotionalFriendship || !(ordinaryConcern || practicalFollowup) || turn.role === "user"))
       .map((turn) => ({
         role: turn.role,
         content: redactIdentity(turn.text, value.user_id),

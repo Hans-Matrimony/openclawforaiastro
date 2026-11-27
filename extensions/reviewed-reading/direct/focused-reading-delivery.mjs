@@ -1,3 +1,5 @@
+import {unrelatedReadingTopic} from './reading-topic-guard.mjs';
+
 const names={Sun:['Surya','सूर्य'],Moon:['Chandra','चंद्र'],Mars:['Mangal','मंगल'],Mercury:['Budh','बुध'],
   Jupiter:['Guru','गुरु'],Venus:['Shukra','शुक्र'],Saturn:['Shani','शनि'],Rahu:['Rahu','राहु'],Ketu:['Ketu','केतु']};
 const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -56,6 +58,8 @@ export function removeRepeatedChoiceLimit(answer,reason) {
 // Check the degree of certainty independently of the model reviewer. Never
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
+  const topicIssue=unrelatedReadingTopic(reply,plan);
+  if(topicIssue)return topicIssue;
   const propertyCareerClaim=plan.topic==='property'&&reply.replace(/"[^"\n]*"|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(clause=>
     /\b(?:career|job|naukri|promotion)\b|करियर|नौकरी|पदोन्नति/iu.test(clause)&&
     !/\bcareer\b[^.!?\n]{0,80}(?:\blagu\s+nahi\b|\b(?:does not|doesn't) apply\b|\bnot applicable\b)/iu.test(clause));

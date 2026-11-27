@@ -1,5 +1,6 @@
 import {normalizePersonalQuery} from './personal-query.mjs';
 import {isPropertyQuestion} from './property-intent.mjs';
+import {isLoveLifeQuestion} from './relationship-subject.mjs';
 
 export const CHART_TOOL_NAMES = new Set([
   "get_horoscope_predictions",
@@ -111,8 +112,10 @@ export function isPersonalChartQuestion(query,{exactDateRequests=false,respectDe
   const propertyPrediction=respectDeclinedChart&&isPropertyQuestion(subjectText)&&
     (asksForTiming(text,{exactDateRequests})||/\b(?:chart|kundli|horoscope|astrology|yog)\b|कुंडली|कुण्डली/u.test(text))&&
     (!/\b(?:tax|documents?|registration|paperwork|process|fees?|costs?)\b/iu.test(text)||/\b(?:chart|kundli|horoscope|astrology)\b/u.test(text));
+  const lovePrediction=respectDeclinedChart&&isLoveLifeQuestion(subjectText)&&
+    (!/\b(?:advice|tips|practical|listen|just sharing)\b/iu.test(text)||/\b(?:chart|kundli|horoscope|astrology|predict\w*)\b/iu.test(text));
   return (
-    (topic.test(subjectText) || isForeignTravelQuestion(subjectText) || propertyPrediction) &&
+    (topic.test(subjectText) || isForeignTravelQuestion(subjectText) || propertyPrediction || lovePrediction) &&
     (request.test(text) || (isForeignTravelQuestion(text) && /\b(?:chances?|yog|jaane|jane|jaa|settle|jaunga|jaungi)\b/iu.test(text))) &&
     (personal.test(text) || asksForTiming(text,{exactDateRequests}) || /\b(?:hogi|hoga|lagegi)\b/u.test(text))
   );

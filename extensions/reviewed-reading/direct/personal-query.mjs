@@ -8,8 +8,13 @@ export function normalizePersonalQuery(query) {
 // explicit correction prefix, never a report such as "shaadi nahi hui".
 export function correctedReadingSubject(query,{allowDismissal=false}={}) {
   const topic='(?:sha+di|vivah|marriage|wedding|career|job|naukri|promotion|education|padhai|money|finances?|शादी|विवाह|करियर|पढ़ाई'+
-    (allowDismissal?'|property|home|house|ghar|makaan|makan|घर|मकान':'')+')';
+    (allowDismissal?'|property|home|house|ghar|makaan|makan|घर|मकान|love(?:[ -]+life)?|romance|dating|pya+ar|pya+r|mohabbat|relationship|rishta|प्रेम(?:\\s*जीवन)?|प्यार|लव\\s*लाइफ':'')+')';
   if(allowDismissal) {
+    // A report of an earlier question is context, not a second request. Only
+    // an explicit now/instead clause after a past asking verb selects this path.
+    const shifted=/^(.{1,220}?)[,;.!?]\s*(?:ab|now|instead)\s+(.+)$/iu.exec(query.trim());
+    if(shifted&&/\b(?:asked|discussed|pooch\w*|puch\w*)\b|पूछा|पूछी/iu.test(shifted[1])&&
+      new RegExp(topic,'iu').test(shifted[1])&&new RegExp(topic,'iu').test(shifted[2]))query=shifted[2].trim();
     const replacement=new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+ki\\s+jagah\\s+(?:ab\\s+)?(.+)$`,'iu').exec(query.trim());
     if(replacement&&new RegExp(topic+'|income|savings','iu').test(replacement[1]))query=replacement[1].trim();
     // Drop only a whole, explicitly declined request, never a negative outcome

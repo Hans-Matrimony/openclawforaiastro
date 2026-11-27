@@ -62,6 +62,7 @@ export function createTools({
   history = [],
   gender = 'unknown',
   propertyReading = false,
+  relationshipReading = false,
   profileUpdateStatus,
   selectedSelfQuery,
   env = process.env,
@@ -74,7 +75,7 @@ export function createTools({
   // Request-scoped state replaces the source app's shared single-user store.
   const store = { birth: birth ? { ...birth } : null, selectedPerson: null };
   const selfBirth = ['saved', 'needs_confirmation', 'unavailable'].includes(profileUpdateStatus)
-    ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth, {propertyReading});
+    ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth, {propertyReading,relationshipReading});
   const otherPropertyPerson=propertyReading&&propertyOtherPerson(selectedSelfQuery??query);
   const otherPropertyBirth=otherPropertyPerson?propertyOtherBirth(selectedSelfQuery??query):null;
   let initialized = false;

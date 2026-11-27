@@ -514,7 +514,7 @@ test('captured live timing suffixes are cleaned before review only in the focuse
    '; yeh ek mumkin mauka hai, pakki ghatna ya tareekh nahi.','When might I get married?'],
  ];
  for(const [answer,suffix,query] of captures) {
-  const reason=candidate.split('\n\n')[1];
+  const reason=query.includes('married')?'Saathve ghar mein Guru sahara dete hain, lekin Shani aur Mangal ka dabav bhi hai.':candidate.split('\n\n')[1];
   const conclusion='Kundli mein pragati ke yog dikhte hain. ';
   const {result,requests}=await run({input:{...value,query,language:'hinglish'},draft:conclusion+answer+suffix+'\n\n'+reason});
   assert.equal(result.reply,conclusion+answer+'.\n\n'+reason);

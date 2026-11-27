@@ -1,9 +1,10 @@
 import {normalizePersonalQuery} from './personal-query.mjs';
 import {isPropertyQuestion} from './property-intent.mjs';
+import {isLoveLifeQuestion} from './relationship-subject.mjs';
 
 // Bind only unambiguous self questions. Corrections, other people and ambiguous
 // continuations retain the existing conversational birth-detail workflow.
-export function selectedSelfBirth(query, birth, {propertyReading=false}={}) {
+export function selectedSelfBirth(query, birth, {propertyReading=false,relationshipReading=false}={}) {
   const ready = [birth?.date, birth?.time, birth?.location_name || birth?.place]
     .every((field) => typeof field === "string" && field.trim() && field.trim().toLowerCase() !== "unknown");
   if (!ready || typeof query !== "string") return null;
@@ -28,7 +29,8 @@ export function selectedSelfBirth(query, birth, {propertyReading=false}={}) {
   const bareCareer = /^(?:career|job|naukri)\s+(?:kab|kb)(?:\s+(?:tak|tk))?(?:\s+(?:set|settle))?\s+(?:hoga|hogaa|hogi|milegi|milega|lagegi)[?!.\s]*$/iu.test(text);
   const ownTravel = /\b(?:meri|mera|mere|my)\s+(?:abroad|overseas|videsh|foreign\s+(?:travel|settlement|residence))\b|\b(?:can|will|when\s+will)\s+i\s+(?:go|move|travel|settle)\s+(?:abroad|overseas)\b/u.test(text);
   const ownProperty=propertyReading&&isPropertyQuestion(text)&&/\b(?:my|mera|meri|mere|main|mai|mein|i|apna|apni)\b|मेरा|मेरी|मेरे|मैं|अपना|अपनी/iu.test(text);
-  return own || bareCareer || ownTravel || ownProperty ? { ...birth } : null;
+  const ownLove=relationshipReading&&(isLoveLifeQuestion(text)||/\b(?:relationship|rishta|rishte)\b|रिश्ता|रिश्ते/iu.test(text))&&/\b(?:my|mera|meri|mere|main|mai|mein|i|mujhe)\b|मेरा|मेरी|मेरे|मैं|मुझे/iu.test(text);
+  return own || bareCareer || ownTravel || ownProperty || ownLove ? { ...birth } : null;
 }
 
 export function selectedSelfArguments(name, args, birth) {
