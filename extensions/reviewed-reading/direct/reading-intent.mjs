@@ -13,6 +13,12 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query,{exactDateRequests=false}={}) {
+  // Pilot wording such as "shaadi ka samay batao" asks when, even without
+  // kab/when. Keep concepts, quotes and ordinary scheduling outside this rule.
+  if(exactDateRequests && !/["“”`]/u.test(query) &&
+    !/\b(?:define|definition|meaning|matlab)\b|मतलब|अर्थ/iu.test(query) &&
+    /\b(?:shaadi|shadi|vivah|marriage|career|naukri|job|promotion|rishta|relationship|ghar|property)\b|शादी|विवाह|करियर|नौकरी|रिश्ता|घर/iu.test(query) &&
+    /\b(?:ka|ke|ki)\s+(?:samay|waqt)\s*(?:batao|bataiye|batayein|bata\s+do|[?？])|(?:का|के|की)\s*(?:समय|वक्त|वक़्त)\s*(?:बताओ|बताइए|बताएं|बता\s*दो|[?？])/iu.test(query))return true;
   if(exactDateRequests && /\b(?:exact|precise)\s+(?:date|day|tareekh|taareekh)\b/iu.test(query) &&
     !/\b(?:define|definition|meaning|matlab)\b/iu.test(query))return true;
   // In a timing follow-up, leading "matlab" means "so, when", rather

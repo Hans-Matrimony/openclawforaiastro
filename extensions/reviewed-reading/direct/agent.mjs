@@ -41,6 +41,7 @@ import { createModelRequest } from "./model-request.mjs";
 import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
+import {explicitPreferenceMemory} from './preference-memory.mjs';
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalRepairPrompt, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { currentResponseLanguage, englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction, unreadableTextReply } from "./response-language.mjs";
@@ -326,6 +327,7 @@ export async function directAnswer(
     pilotCalls = 0;
     try {
       let savedContext = [];
+      let memoryUpdateStatus = null;
       if (env.ASTROFRIEND_CONVERSATION_MEMORY_ENABLED === "1" && !ignoresMemory(value.query)) {
         try {
           pilotMemory = makeMemory(value.user_id, {env, fetchImpl, signal});
@@ -336,11 +338,24 @@ export async function directAnswer(
           savedContext = [];
         }
       }
+      const preference=focusedPilot?explicitPreferenceMemory(value):null;
+      if(preference) {
+        memoryUpdateStatus='unavailable';
+        if(env.ASTROFRIEND_CONVERSATION_MEMORY_ENABLED==='1') {
+          try {
+            pilotMemory ??= makeMemory(value.user_id,{env,fetchImpl,signal});
+            await pilotMemory.write(preference);
+            savedContext=[...savedContext,preference];
+            memoryUpdateStatus='saved';
+          } catch {signal.throwIfAborted();}
+        }
+      }
       pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
         naturalListening:focusedPilot,
         continueConversation,
         capabilityBoundary,
         savedContext,
+        memoryUpdateStatus,
         onRequest: () => { pilotCalls++; },
         redact: text => redactIdentity(text, value.user_id)});
     } catch (error) {
@@ -473,7 +488,7 @@ export async function directAnswer(
         "\\u003c",
       );
   }
-  const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(progressPilot && !asksForTiming(originalQuery) ? originalQuery : activeQuestion) || asksGunaScore(value.query) || pilotTurn?.decision?.route === 'checked_reading');
+  const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(progressPilot && !asksForTiming(originalQuery,{exactDateRequests:focusedPilot}) ? originalQuery : activeQuestion) || asksGunaScore(value.query) || pilotTurn?.decision?.route === 'checked_reading');
   const coherentFlow = coherentPilot && topicExperiment && readingRequired && (focusedPersonChoice||!/\b(?:horary|prashna)\b/iu.test(value.query));
   const coherentSubject = coherentFlow ? readingSubjectFor(readingSubject || value.query) : null;
   // Scope the imported astrology-only prohibition instead of layering a
@@ -502,7 +517,7 @@ export async function directAnswer(
     sourceFlow &&
     readingRequired &&
     !isDeathTimingQuestion(value.query) &&
-    asksForTiming(activeQuestion);
+    asksForTiming(activeQuestion,{exactDateRequests:focusedPilot});
   if (sourceFlow && readingRequired) {
     // Missing birth details retain the existing clarification request. The
     // output checks below still apply if a current tool supplies the evidence.
@@ -643,7 +658,7 @@ export async function directAnswer(
     if (!coherentFlow || !readingTools.has('get_horoscope_predictions')) return null;
     let packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
     if (!packet) return null; // Specialist/conflicting evidence retains its own checks.
-    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&(asksForTiming(activeQuestion)||pairedPropertyTiming)) {
+    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&(asksForTiming(activeQuestion,{exactDateRequests:focusedPilot})||pairedPropertyTiming)) {
       try {
         const {calculateEventTiming}=await import('./assets/dev-v2/event-timing.mjs');
         const index=chartResults.findIndex(raw=>{try{return Boolean(JSON.parse(raw).birth_chart);}catch{return false;}});
@@ -671,7 +686,7 @@ export async function directAnswer(
       generate:(instruction,data)=>generateClosing(instruction,redactIdentity(data,value.user_id),1400,true,true),
       onEvent:event=>validation.push('pilot_coherent_'+event),
       validate:candidate=>{
-        const timingIssue=eventWindowReplyIssue(candidate,packet.timing_estimate,{requested:asksForTiming(value.query)});
+        const timingIssue=eventWindowReplyIssue(candidate,packet.timing_estimate,{requested:asksForTiming(value.query,{exactDateRequests:focusedPilot})});
         if(timingIssue)return timingIssue;
         if(pastPrediction(candidate,now())) return 'Do not present a past date as a future event.';
         if(focusedPilot&&futureAsPast(candidate,now()))return 'A future year cannot be described as a completed event. Preserve the checked timing and use future or conditional wording.';
