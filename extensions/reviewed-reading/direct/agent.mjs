@@ -41,7 +41,7 @@ import { createModelRequest } from "./model-request.mjs";
 import { generationSettings } from "./generation.mjs";
 import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
-import {explicitPreferenceMemory} from './preference-memory.mjs';
+import {explicitPreferenceMemory,preferenceMemoryReceipt} from './preference-memory.mjs';
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalRepairPrompt, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
 import { currentResponseLanguage, englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction, unreadableTextReply } from "./response-language.mjs";
@@ -325,6 +325,7 @@ export async function directAnswer(
       (capabilityBoundary||!isPersonalChartQuestion(value.query)) && !asksGunaScore(value.query) &&
       !asksForRemedy(value.query, value.history)) {
     pilotCalls = 0;
+    let preferenceOutcome=null;
     try {
       let savedContext = [];
       let memoryUpdateStatus = null;
@@ -349,6 +350,7 @@ export async function directAnswer(
             memoryUpdateStatus='saved';
           } catch {signal.throwIfAborted();}
         }
+        preferenceOutcome=memoryUpdateStatus;
       }
       pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
         naturalListening:focusedPilot,
@@ -360,9 +362,17 @@ export async function directAnswer(
         redact: text => redactIdentity(text, value.user_id)});
     } catch (error) {
       signal.throwIfAborted();
-      if (error.code === "conversation_review_failed" ||
+      if (preferenceOutcome&&pilotCalls>0) {
+        pilotTurn={decision:null,usage:error.answer_usage??[]};
+      } else if (error.code === "conversation_review_failed" ||
           (pilotCalls > 1 && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== "0")) {throw error;}
-      pilotTurn = {decision:null,usage:[]};
+      else pilotTurn = {decision:null,usage:[]};
+    }
+    // An explicit preference-save request is an action, not a personal chart
+    // question. A semantic handoff must not reinterpret the preference as
+    // astrology merely because it mentions work or relationships.
+    if(preferenceOutcome&&pilotCalls>0&&(!pilotTurn?.decision||pilotTurn.decision.route==='checked_reading')) {
+      pilotTurn={...pilotTurn,decision:{route:'conversation',reply:preferenceMemoryReceipt(value,preferenceOutcome)}};
     }
     if(focusedPilot&&pilotTurn?.decision?.route==='checked_reading'){
       const collectionReply=partialBirthCollectionReply(value);
