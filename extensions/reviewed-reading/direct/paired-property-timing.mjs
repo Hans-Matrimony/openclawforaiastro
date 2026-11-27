@@ -6,10 +6,14 @@ import {projectedTiming} from './event-window-evidence.mjs';
 // Keep this limited to two independently supported self topics; another
 // person's details or a declined topic must not inherit the selected profile.
 export function pairedPropertyTimingRequest(query) {
- if(!isPropertyQuestion(query)||propertyEventKind(query)!=='purchase'||
+ const comparison=/\b(?:same|similar|overlap\w*|dono|both|alag|separate\w*|independent\w*|ek\s+(?:hi|jaise)|ek\s+jais[aei])\b|एक ही|एक जैसे|दोनों/iu.test(query);
+ const shorthand=comparison&&/\b(?:ghar|makaan|makan|home|house)\b/iu.test(query)&&
+  /\b(?:time|timing|dates?|samay|window|calculate\w*|ganana)\b/iu.test(query)&&
+  !/\b(?:sell\w*|bech\w*|build\w*|banwa\w*|loan|bank|mortgage)\b/iu.test(query);
+ if(!(shorthand||(isPropertyQuestion(query)&&propertyEventKind(query)==='purchase'))||
   !/\b(?:career|job|naukri|promotion)\b|करियर|नौकरी/iu.test(query)||
   /\b(?:sister|brother|mother|father|friend|girlfriend|boyfriend|behen|bhai|dost)\b/iu.test(query))return false;
- return /\b(?:same|similar|overlap\w*|dono|both|ek\s+(?:hi|jaise)|ek\s+jais[aei])\b|एक ही|एक जैसे|दोनों/iu.test(query)||
+ return comparison||
   (asksForTiming(query)&&((query.match(/\b(?:kab|when)\b|कब/giu)??[]).length>1));
 }
 

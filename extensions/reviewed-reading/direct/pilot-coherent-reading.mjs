@@ -8,6 +8,7 @@ import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} fr
 import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract} from './pilot-reading-plan.mjs';
 import {focusedTopicSignal} from './focused-topic-evidence.mjs';
 import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedReadingLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
+import {studyWorkComparison} from './study-work-comparison.mjs';
 import {continuationPolicy,continuationInstruction,continuationIssue} from './conversation-continuation.mjs';
 import {focusedReadingDialogue} from './reading-dialogue.mjs';
 
@@ -75,12 +76,19 @@ export function coherentEvidencePacket(results, topic, {question='',focused=fals
   // the same unchanged major lord cannot be both linked and unlinked.
   const factors=values=>[...new Set(values)].map(presentationFactor)
     .filter(factor=>!(estimate?.selected||estimate?.current_period_basis)||factor?.kind!=='active_period_link');
+  const comparison=focused&&studyWorkComparison(question)?['education','abroad','career'].map(option=>{
+    const entries=rows.flatMap(row=>row.verdict_signals??[]).filter(row=>row.area===option);
+    const derived=entries.length&&new Set(entries.map(row=>JSON.stringify(row))).size===1?entries[0]:
+      !entries.length?focusedTopicSignal(charts[0].birth_chart,option):null;
+    return derived?{topic:option,favorable:factors(derived.positive??[]),adverse:factors(derived.negative??[]),neutral:derived.neutral??[]}:null;
+  }).filter(Boolean):null;
   return {topic,source:'local-sweph-v2',scope:personChoice?'person_choice':'natal_outlook',assessment:personChoice?null:{trend:signal.trend,
     favorable:factors(signal.positive),adverse:factors(signal.negative),
     ...(signal.neutral?{neutral:signal.neutral}:{}),...(signal.method?{method:signal.method}:{})},
     ...(!personChoice&&!estimate?.selected?{active_period:{mahadasha_lord:charts[0].dasha?.current_mahadasha?.lord??null,
       antardasha_lord:charts[0].dasha?.current_antardasha?.lord??null}}:{}),
     event_windows:personChoice?[]:eventWindows,
+    ...(comparison?{comparison_outlooks:comparison}:{}),
     ...(!personChoice&&estimate?{timing_estimate:estimate}:{}),
     limits:{assessment:'A selected natal outlook, not a calibrated probability or a guarantee.',
       timing:eventWindows.length?'Only explicitly supplied event windows may be interpreted; preserve their scope and bounds.'

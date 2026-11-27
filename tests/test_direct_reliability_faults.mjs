@@ -41,10 +41,12 @@ test('transient chart-selector failures still deliver checked self readings when
 
 test('recovery never substitutes the selected profile for another person or uses a failed chart as evidence',async()=>{
  let calculations=0;
- await assert.rejects(directAnswer({...value,query:'When will my brother get a job?'},{env,now:()=>now,makeMemory:memory,
+ const missingPerson=await directAnswer({...value,query:'When will my brother get a job?'},{env,now:()=>now,makeMemory:memory,
   makeTools:()=>async()=>{calculations++;assert.fail('No selected-self chart for brother');},
   fetchImpl:async(_,options)=>JSON.parse(options.body).messages[0].content.startsWith('You interpret the latest utterance')?
-   response({route:'checked_reading',reply:''}):new Response('',{status:503})}),/Direct answer unavailable/);
+   response({route:'checked_reading',reply:''}):new Response('',{status:503})});
+ assert.equal(missingPerson.answer_conversation_route,'clarification');
+ assert.deepEqual(missingPerson.answer_reading_tools,[]);
  assert.equal(calculations,0);
  await assert.rejects(directAnswer({...value,query:'Mera career kab set hoga?'},{env,now:()=>now,makeMemory:memory,
   makeTools:()=>async()=>JSON.stringify({isError:true,error:'No verified chart'}),

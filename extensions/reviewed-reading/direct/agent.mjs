@@ -25,7 +25,7 @@ import { chartGroundingConflicts, chartClarificationFallback, isChartClarificati
 import { readingContext, savedBirthContext, ignoresMemory } from "./context.mjs";
 import { contextualClosing } from "./contextual-closing.mjs";
 import { unsupportedEventTiming as legacyUnsupportedEventTiming } from "./event-timing.mjs";
-import { pastPrediction, futureDateInstruction } from './past-prediction.mjs';
+import { pastPrediction, futureDateInstruction, futureAsPast } from './past-prediction.mjs';
 import { spokenReply } from './voice-presentation.mjs';
 import { prepareVoiceChart } from './voice-chart.mjs';
 import { preparedVoiceTiming } from './voice-timing.mjs';
@@ -87,6 +87,7 @@ import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-
 import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion, borrowsCompanionTopic } from './followup-scope.mjs';
 import { invalidGunaScore } from './birth-evidence.mjs';
 import {selectedSelfBirth} from './selected-self-birth.mjs';
+import {readingPersonBoundary} from './reading-person.mjs';
 import { invalidGunaPresentation, verifiedGunaFallback, requestedGunaPoints } from './guna-presentation.mjs';
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
 import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
@@ -243,9 +244,9 @@ export async function directAnswer(
   const focusedPilot = focusedReadingEnabled(env,value);
   const continueConversation = focusedPilot && env.ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED === '1';
   if(focusedPilot)value={...value,language:currentResponseLanguage(value)};
-  const capabilityBoundary=focusedPilot?propertyCapabilityBoundary(value):null;
+  const capabilityBoundary=focusedPilot?(readingPersonBoundary(value)||propertyCapabilityBoundary(value)):null;
   const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
-  const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
+  const isPersonalChartQuestion=query=>(focusedPilot&&pairedPropertyTimingRequest(query))||baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
   const readingSubjectFor=query=>{
     const subject=correctedReadingSubject(query,{allowDismissal:focusedPilot});
     return focusedPilot?specificReturnSubject(subject,value.history,{multilingual:true}):subject;
@@ -257,7 +258,7 @@ export async function directAnswer(
   const resolveTopic=query=>focusedPilot&&isSpecificReturnQuestion(query)
     ? {topic:'relationship',houses:[5,7]} : focusedPilot&&pairedPropertyTimingRequest(query)?{topic:'property',houses:[4]}:
       resolveReadingTopic(query,{multilingual:focusedPilot});
-  const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
+  const acceptsCompleteness = query => (!isChartClarification(query)||(focusedPilot&&pairedPropertyTimingRequest(query))) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
     (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
     const subject = topicGuidesEnabled ? readingSubjectFor(query) : query;
@@ -641,7 +642,7 @@ export async function directAnswer(
         const index=chartResults.findIndex(raw=>{try{return Boolean(JSON.parse(raw).birth_chart);}catch{return false;}});
         if(index>=0) {
           const row=JSON.parse(chartResults[index]);
-          const timing=calculateEventTiming(row,{topic:readingOptions.topic,propertyEvent:propertyEventKind(coherentSubject),asOf:now()});
+          const timing=calculateEventTiming(row,{topic:readingOptions.topic,propertyEvent:pairedPropertyTiming?'purchase':propertyEventKind(coherentSubject),asOf:now()});
           chartResults[index]=JSON.stringify({...row,event_timing:timing,event_windows:timing.windows});
           packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
           validation.push('pilot_event_timing_'+timing.status);
@@ -666,6 +667,7 @@ export async function directAnswer(
         const timingIssue=eventWindowReplyIssue(candidate,packet.timing_estimate,{requested:asksForTiming(value.query)});
         if(timingIssue)return timingIssue;
         if(pastPrediction(candidate,now())) return 'Do not present a past date as a future event.';
+        if(focusedPilot&&futureAsPast(candidate,now()))return 'A future year cannot be described as a completed event. Preserve the checked timing and use future or conditional wording.';
         if(chartGroundingConflicts(candidate,chartResults,value).length || chartClaimConflicts(candidate,chartResults).length || houseLordConflicts(candidate,chartResults).length) return 'Preserve the actual returned planets, houses, strengths and period labels without inventing chart facts.';
         if(unsupportedPeriodClaim(candidate,chartResults) || unsupportedTopicOpportunity(candidate,chartResults,coherentSubject) || unsupportedEventTiming(candidate,chartResults,coherentSubject)) return 'Use only explicit event-specific timing evidence. A natal placement or period schedule is not an event forecast.';
         if(packet.scope!=='person_choice' && readingVerdictIssue(candidate,chartResults)) return 'Preserve the checked qualified outlook and material opposing evidence. Do not force a categorical outcome from a natal trend.';

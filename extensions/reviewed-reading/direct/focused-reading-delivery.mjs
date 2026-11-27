@@ -1,4 +1,5 @@
 import {unrelatedReadingTopic} from './reading-topic-guard.mjs';
+import {studyWorkComparisonIssue,studyWorkComparisonFallback} from './study-work-comparison.mjs';
 
 const names={Sun:['Surya','सूर्य'],Moon:['Chandra','चंद्र'],Mars:['Mangal','मंगल'],Mercury:['Budh','बुध'],
   Jupiter:['Guru','गुरु'],Venus:['Shukra','शुक्र'],Saturn:['Shani','शनि'],Rahu:['Rahu','राहु'],Ketu:['Ketu','केतु']};
@@ -10,6 +11,7 @@ const month=(date,lang)=>/^20\d{2}-(?:0[1-9]|1[0-2])$/u.test(date??'')?
   (lang==='hindi'?hindiMonths:months)[Number(date.slice(5))-1]+' '+date.slice(0,4):null;
 
 function inventsDifficultyFromNeutral(reply,plan) {
+  if(plan.comparison_outlooks?.some(row=>row.adverse?.length))return false;
   if(plan.assessment_method!=='returned-natal-house-strength-summary-v1' ||
     !plan.reasons?.neutral?.length || plan.reasons.opposing?.length)return false;
   // Ignore quoted wording; a correction of the inference is allowed. Check
@@ -58,6 +60,8 @@ export function removeRepeatedChoiceLimit(answer,reason) {
 // Check the degree of certainty independently of the model reviewer. Never
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
+  const comparisonIssue=studyWorkComparisonIssue(reply,plan);
+  if(comparisonIssue)return comparisonIssue;
   const topicIssue=unrelatedReadingTopic(reply,plan);
   if(topicIssue)return topicIssue;
   const propertyCareerClaim=plan.topic==='property'&&reply.replace(/"[^"\n]*"|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(clause=>
@@ -161,6 +165,7 @@ function outcome(plan,lang) {
 // Code-owned fallback from the SAME typed plan: a rejected writer/reviewer
 // must not replace a real supplied window with a false "no timing" claim.
 export function focusedReadingFallback(plan,value) {
+  if(plan.comparison_outlooks)return studyWorkComparisonFallback(plan,value);
   if(plan.scope==='person_choice') {
     const lang=language(value);
     const answer=lang==='english'?"A chart cannot tell us their decision or when they will return.":lang==='hindi'?'कुंडली से उनके लौटने का फैसला या समय नहीं बताया जा सकता।':'Kundli se unke lautne ka faisla ya samay nahi bataya ja sakta.';

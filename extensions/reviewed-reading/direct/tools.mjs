@@ -6,6 +6,7 @@ import { sourceReading } from "./source-engine.mjs";
 import { selectedSelfBirth, selectedSelfArguments } from "./selected-self-birth.mjs";
 import { confirmedMatchingArguments, matchingEvidence, sameBirth, suppliedBirth } from "./birth-evidence.mjs";
 import {propertyOtherPerson,propertyOtherBirth} from './property-subject.mjs';
+import {otherReadingPerson,otherReadingBirth} from './reading-person.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "assets");
 const PREFIX = "mcp__VedAstro__";
@@ -76,8 +77,9 @@ export function createTools({
   const store = { birth: birth ? { ...birth } : null, selectedPerson: null };
   const selfBirth = ['saved', 'needs_confirmation', 'unavailable'].includes(profileUpdateStatus)
     ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth, {propertyReading,relationshipReading});
-  const otherPropertyPerson=propertyReading&&propertyOtherPerson(selectedSelfQuery??query);
-  const otherPropertyBirth=otherPropertyPerson?propertyOtherBirth(selectedSelfQuery??query):null;
+  const subject=selectedSelfQuery??query;
+  const otherPropertyPerson=propertyReading&&(propertyOtherPerson(subject)||otherReadingPerson(subject));
+  const otherPropertyBirth=otherPropertyPerson?(propertyOtherBirth(subject)||otherReadingBirth(subject)):null;
   let initialized = false;
   async function rpc(payload) {
     const response = await fetchImpl("https://mcp-subagent.vedastro.org/api/mcp/public", {

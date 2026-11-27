@@ -12,6 +12,10 @@ export function generalMatchingQuestion(query) {
 
 export const asksGunaScore = query => !generalMatchingQuestion(query) && /\b(?:guna?|gun|ashtakoota)\b.*\b(?:milan|match|score|kitne|bata|puch|puchha)|\b(?:guna?|gun)\s*(?:batao|bataiye|kitne)\b/iu.test(query);
 
+function timingReasonFollowup(query) {
+  return /^(?:us|iss?|that|this)\s+(?:time|samay|period|window)\s+(?:ko\s+)?(?:strong|supportive|achha|favourable|favorable)\s+(?:kyu[n]?|why)\b[^.!?\n]*(?:[.!?]\s*(?:seedhe|simple|plain)\s+words?\s+mein\s+samjhao)?[.!?\s]*$/iu.test(query.trim());
+}
+
 function singleAbbreviatedReading(query) {
   const text = query.trim().replace(/[?!.।]+$/gu, '').replace(/\s+/gu, ' ');
   if (text.split(/\s+/u).length > 16 ||
@@ -58,7 +62,8 @@ export const newCompanionQuestion = query => !borrowsCompanionTopic(query) && !i
   /^(?:why|how|when|which|kaise|kyun|kab)\b/iu.test(query.trim());
 
 export function activeReadingQuestion(value,{allowDismissal=false,focused=false}={}) {
-  const abbreviated=text=>abbreviatedReading(focused?text.replace(/^(?:matlab|mtlb|mtlab|toh|to|so)\s+/iu,''):text);
+  // New reason-follow-up handling belongs only to the focused pilot.
+  const abbreviated=text=>(focused&&timingReasonFollowup(text))||abbreviatedReading(focused?text.replace(/^(?:matlab|mtlb|mtlab|toh|to|so)\s+/iu,''):text);
   const correctedSubject=correctedReadingSubject(value.query,{allowDismissal});
   if (correctedSubject !== value.query) return correctedSubject;
   // Resolve a short quoted follow-up only from the selected quote's own

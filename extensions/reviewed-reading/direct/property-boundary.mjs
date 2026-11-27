@@ -8,10 +8,10 @@ import {correctedReadingSubject} from './personal-query.mjs';
 // keyword. Practical questions still use the ordinary conversation route.
 export function propertyCapabilityBoundary(value) {
  value={...value,query:correctedReadingSubject(value.query,{allowDismissal:true})};
- if(!isPropertyQuestion(value.query)||!asksForTiming(value.query,{exactDateRequests:true}))return null;
+ if(!isPropertyQuestion(value.query,{lenderDecision:true})||!asksForTiming(value.query,{exactDateRequests:true}))return null;
  if(/\b(?:tax|documents?|registration|paperwork|process|fees?|stamp duty|appointment)\b/iu.test(value.query)&&
   !/\b(?:chart|kundli|astrology|predict\w*)\b/iu.test(value.query))return null;
- const event=propertyEventKind(value.query);
+ const event=propertyEventKind(value.query,{lenderDecision:true});
  if(event==='purchase')return propertySubjectBoundary(value);
  const lang=value.language;
  const replies={

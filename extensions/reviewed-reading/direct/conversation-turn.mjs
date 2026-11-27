@@ -6,6 +6,7 @@ import { conversationProgressInstruction, repeatsClarification } from './convers
 import { normalizeCompanionLanguage, companionInstructionEcho } from './companion-language.mjs';
 import {continuationPolicy,continuationInstruction,continuationReviewInstruction,continuationIssue,groundedContinuationReply} from './conversation-continuation.mjs';
 import {createModelRequest} from './model-request.mjs';
+import {companionBoundaryInstruction,companionBoundaryIssue,companionAddressText,blockedContactFallback} from './companion-boundaries.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -64,7 +65,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     : generationSettings(env);
   const body={model:conversationModel || env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
     messages:[{role:'system',content:contract+conversationProgressInstruction+personaInstruction(value)+responseLanguageInstruction(value)+
-      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\nWhen continuation_policy.reason is emotion_assumption_correction, acknowledge only that you introduced the emotion without support. Do not re-ask whether the user is sad or assign another intent such as just sharing.':'')+
+      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\nWhen continuation_policy.reason is emotion_assumption_correction, acknowledge only that you introduced the emotion without support. Do not re-ask whether the user is sad or assign another intent such as just sharing.':'')+
       (capabilityBoundary?'\nThis request has a verified calculation-capability boundary. For kind person_profile, return clarification asking for that other person\'s own birth date, exact birth time and birthplace. The selected account profile belongs to the user and cannot be used for them. For kind clarify, ask whether buying, selling or building. Otherwise return conversation: explain the specific unknown date/decision naturally, once, without chart claims, a prediction or a checked_reading handoff. Only purchase timing is calculated; it cannot time a sale, construction or a bank decision. Do not borrow earlier dates or promise a further calculation. Only person_profile needs birth details.':'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
     response_format:{type:'json_object'},max_tokens:conversationModel?1200:700,stream:false,...settings};
   const usage=[];
@@ -105,6 +106,8 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   if (decision && decision.route !== 'checked_reading' && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== '0') {
     const writerMessages=structuredClone(body.messages);
     async function review(candidate) {
+      const boundaryIssue=naturalListening&&companionBoundaryIssue(candidate.reply,value);
+      if(boundaryIssue)return {status:'reject',issues:[boundaryIssue]};
       if(capabilityBoundary&&/\d|[०-९]|\b(?:dasha|antardasha|mahadasha|Jupiter|Venus|Saturn|Shukra|Guru|Shani|Rahu|Ketu)\b|दशा|गोचर/iu.test(candidate.reply))
         return {status:'reject',issues:['The capability boundary does not supply an event date, chart calculation or period evidence. Answer the current unsupported event or necessary clarification without a prediction.']};
       const continuity=continueConversation&&envelope.continuation_policy.mode==='quiet'&&continuationIssue(candidate.reply,value,envelope.continuation_policy);
@@ -112,13 +115,13 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       if(naturalListening&&companionInstructionEcho(candidate.reply,value)) {
         return {status:'reject',issues:['The reply mechanically repeats the no-advice/no-questions instruction. Remove that instruction echo and acknowledge the specific experience naturally. Preserve the listening request without adding advice, a question, invented motives or a generic reassurance.']};
       }
-      if (/^(?:hinglish|hindi|hi)$/iu.test(value.language ?? '') && /\b(?:tum|tumne|tumhe|tumhara|tumhari|tera|teri|tujhe)\b|\b(?:sakte|sakti|chahte|chahti)\s+ho\b|\b(?:keh|bata|bol)\s+do\b/iu.test(candidate.reply)) {
+      if (/^(?:hinglish|hindi|hi)$/iu.test(value.language ?? '') && /\b(?:tum|tumne|tumhe|tumhara|tumhari|tera|teri|tujhe)\b|\b(?:sakte|sakti|chahte|chahti)\s+ho\b|\b(?:keh|bata|bol)\s+do\b/iu.test(naturalListening?companionAddressText(candidate.reply,value):candidate.reply)) {
         return {status:'reject',issues:['Use respectful aap address with matching verb agreement throughout. Preserve the current warmth, facts and listening-only intent; do not add advice or questions.']};
       }
       if (repeatsClarification(candidate.reply,value.history ?? [])) {
         return {status:'reject',issues:['The reply repeats an earlier clarification. Answer what is possible from the dialogue without asking that question again.']};
       }
-      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
+      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
         {role:'user',content:JSON.stringify({conversation:envelope,candidate})}];
       return request(parseConversationReview);
     }
@@ -149,6 +152,8 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     }
     if (verdict?.status !== 'accept') {
       if(capabilityBoundary)return {decision:{route:boundaryClarification?'clarification':'conversation',reply:capabilityBoundary.reply},usage};
+      const contactReply=naturalListening&&blockedContactFallback(value);
+      if(contactReply)return {decision:{route:'advice',reply:contactReply},usage};
       const acknowledgment=continueConversation&&groundedContinuationReply(value,envelope.continuation_policy);
       if(acknowledgment)return {decision:{route:'conversation',reply:acknowledgment},usage};
       const error=new Error('Conversation review did not approve delivery');

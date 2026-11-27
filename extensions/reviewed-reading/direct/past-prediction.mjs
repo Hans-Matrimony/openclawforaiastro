@@ -8,6 +8,17 @@ export function futureDateInstruction(asOf) {
   return `Today in India is ${indiaToday(asOf)}. For future-event questions, never present an expired date or ended window as upcoming. Select only a supported ongoing or future window from the actual tool evidence. For an ongoing period, explicitly say it is already running; future opportunities start from today, without changing its calculated boundaries. Never shift a past date to a new year or invent a replacement date. Birth dates and explicitly historical dates remain unchanged. Earlier assistant predictions are not current evidence.`;
 }
 
+// A common repair failure is to narrate a still-future year in past tense.
+// Restrict this to event prose; quoted/historical wording is not a forecast.
+export function futureAsPast(reply,asOf=new Date()) {
+  const year=Number(indiaToday(asOf).slice(0,4));
+  return reply.replace(/"[^"\n]*"|“[^”\n]*”|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(sentence=>
+    [...sentence.matchAll(/\b(20\d{2})\b/gu)].some(match=>Number(match[1])>year)&&
+    /\b(?:job|career|sha+di|marriage|ghar|property|naukri)\b/iu.test(sentence)&&
+    /\b(?:rahi|raha|rahe|hua|hui|was|were|happened)\b/iu.test(sentence)&&
+    !/\b(?:rahi|raha|rahe)\s+(?:hai|hain|ho|hoga|hogi|honge)\b|\b(?:you|aapne)\s+(?:said|kaha)\b|\b(?:wrong|incorrect|galat|quoted)\b/iu.test(sentence));
+}
+
 // Compare the end of each dated forecast clause, not birth dates or the start
 // of an ongoing range. Month/year precision lasts through that month/year.
 export function pastPrediction(reply, asOf = new Date()) {

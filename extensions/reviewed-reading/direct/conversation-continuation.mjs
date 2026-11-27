@@ -7,18 +7,20 @@ export function continuationPolicy(value) {
   const query=value.query.replace(protectedText,'');
   const current={...value,query};
   if(!canAskFollowup('Normal prose.',current,true))return {mode:'quiet',reason:'no_questions'};
+  if(/\b(?:advice|salah|salaah)\s+(?:mat\s+dena|nahi\s+chahiye)|\bno\s+more\s+advice\b/iu.test(query))
+    return {mode:'quiet',reason:'no_more_advice'};
   const previous=value.reply_to?.role==='assistant'?value.reply_to.text:
     [...(value.history??[])].reverse().find(turn=>turn.role==='assistant')?.text??'';
   if(/\b(?:uda+s+i|sad|sadness)\b|उदासी|उदास/iu.test(previous)&&
     (/^\s*uda+s+i\s+kyu\w*\b|^\s*उदासी\s+क्यों/iu.test(query)||/\bwhy (?:would|should) i (?:be|feel) (?:sad|upset)\b/iu.test(query)))
     return {mode:'quiet',reason:'emotion_assumption_correction'};
-  if(/\b(?:main|mai|mein|i)\s+(?:(?:toh?|was|am)\s+)?(?:bas+|sirf|just|only)\s+(?:bata|share|sharing|telling|mention)\w*\b/iu.test(query))
+  if(/\b(?:main|mai|mein|i)\s+(?:(?:toh?|was|am)\s+)?(?:bas+|sirf|just|only)\s+(?:(?:yeh?|this|that)\s+)?(?:bata|share|sharing|telling|mention)\w*\b|\b(?:bas|sirf)\s+yeh?\s+bata\s+raha\s+tha\b/iu.test(query))
     return {mode:'quiet',reason:'just_sharing'};
   if(/\b(?:just listen|only listen|listen only|bas (?:meri baat )?sun\w*|sirf (?:meri baat )?sun\w*)\b|बस\s+(?:मेरी\s+बात\s+)?सुन|सिर्फ\s+(?:मेरी\s+बात\s+)?सुन/iu.test(query))
     return {mode:'quiet',reason:'listening_only'};
   if(/^\s*(?:thank(?:s| you)(?: so much)?|bye|goodbye|good night|bas abhi itna hi|shukriya|dhanyavaad|धन्यवाद|शुक्रिया|शुभ रात्रि)[.!।\s]*$/iu.test(query))
     return {mode:'quiet',reason:'user_closure'};
-  if(/\b(?:translate|draft|write (?:a|an|the|this)|repeat exactly|json|csv|exactly\s+\w+\s+(?:short\s+)?(?:lines|sentences|words|steps)|(?:bas|sirf|only|just)\s+.{0,25}(?:lines|sentences|steps)|(?:do|teen|char|three|two|four)\s+(?:chhoti\s+|short\s+)?lines?\s+mein)\b|अनुवाद|मसौदा|(?:दो|तीन|चार)\s+(?:छोटी\s+)?(?:पंक्ति|लाइन|वाक्य)/iu.test(query))
+  if(/\b(?:copy\s+kar|message\s+likh|translate|draft|write (?:a|an|the|this)|repeat exactly|json|csv|exactly\s+\w+\s+(?:short\s+)?(?:lines|sentences|words|steps)|(?:bas|sirf|only|just)\s+.{0,25}(?:lines|sentences|steps)|(?:do|teen|char|three|two|four)\s+(?:chhoti\s+|short\s+)?lines?\s+mein)\b|अनुवाद|मसौदा|(?:दो|तीन|चार)\s+(?:छोटी\s+)?(?:पंक्ति|लाइन|वाक्य)/iu.test(query))
     return {mode:'format',reason:'requested_artifact_or_length'};
   return {mode:'continue',reason:'open_conversation'};
 }

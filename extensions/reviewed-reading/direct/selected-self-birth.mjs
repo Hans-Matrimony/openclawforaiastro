@@ -1,6 +1,7 @@
 import {normalizePersonalQuery} from './personal-query.mjs';
 import {isPropertyQuestion} from './property-intent.mjs';
 import {isLoveLifeQuestion} from './relationship-subject.mjs';
+import {pairedPropertyTimingRequest} from './paired-property-timing.mjs';
 
 // Bind only unambiguous self questions. Corrections, other people and ambiguous
 // continuations retain the existing conversational birth-detail workflow.
@@ -11,7 +12,7 @@ export function selectedSelfBirth(query, birth, {propertyReading=false,relations
   // In a self-chart clarification, "7ve ghar ... uski strength" refers to
   // that house, not a second person's birth profile. Keep all other-person
   // and explicit birth-correction exclusions below intact.
-  const text = normalizePersonalQuery(query).toLowerCase()
+  let text = normalizePersonalQuery(query).toLowerCase()
     .replace(/\b(?:my|meri|mera|mere)\s+(?:saved|existing|stored)\s+birth\s+details\b/gu, 'my chart')
     // A request not to guess new details is not a birth correction. Preserve
     // every explicit date/time and other-person exclusion below.
@@ -20,6 +21,8 @@ export function selectedSelfBirth(query, birth, {propertyReading=false,relations
     /(\b(?:house\s+\d{1,2}|\d{1,2}(?:ve|ven|va|wa|we|th|st|nd|rd)?\s+(?:ghar|house))\b[^.!?\n]{0,80}?)\buski\s+(strength|majbooti|mazbooti)\b/gu,
     '$1is ghar ki $2',
   );
+  // A job switch is not a request to switch the selected birth profile.
+  if(propertyReading)text=text.replace(/\b(?:job|career)\s+(?:switch|change)\b|\b(?:switch|change)\s+(?:my\s+)?(?:job|career)\b/gu,'career');
   if (/\b(?:correct|change|update|save|select|switch|replace)\b/iu.test(text)) return null;
   if (/\b(?:friend|girlfriend|boyfriend|gf|bf|wife|husband|partner|spouse|sister|brother|mother|father|daughter|son|dost|behen|bhai|mummy|papa|uski|uska|unki|unka|his|her|their)\b|(?:उसकी|उसका|उनकी|उनका|दोस्त|पत्नी|पति|बहन|भाई|माँ|पिता|बेटी|बेटा)/u.test(text) ||
       /\b\d{1,4}[/-]\d{1,2}[/-]\d{1,4}\b|\b\d{1,2}:\d{2}\b|\b\d{4}\b|\b\d{1,2}\s*(?:am|pm)\b|\b(?:born|dob|tob|birthplace|janam|janm|correction|corrected|actually|instead|galat)\b|\bbirth\s+(?:date|time|place|details)\b|\b(?:birth|date|time|place)\s+(?:is|was|actually|galat|sahi|of birth)\b|\b[a-z]+['’]s\b|\b(?:for|about)\s+[a-z]+|जन्म|सुधार/u.test(text)) return null;
@@ -30,7 +33,7 @@ export function selectedSelfBirth(query, birth, {propertyReading=false,relations
   const ownTravel = /\b(?:meri|mera|mere|my)\s+(?:abroad|overseas|videsh|foreign\s+(?:travel|settlement|residence))\b|\b(?:can|will|when\s+will)\s+i\s+(?:go|move|travel|settle)\s+(?:abroad|overseas)\b/u.test(text);
   const ownProperty=propertyReading&&isPropertyQuestion(text)&&/\b(?:my|mera|meri|mere|main|mai|mein|i|apna|apni)\b|मेरा|मेरी|मेरे|मैं|अपना|अपनी/iu.test(text);
   const ownLove=relationshipReading&&(isLoveLifeQuestion(text)||/\b(?:relationship|rishta|rishte)\b|रिश्ता|रिश्ते/iu.test(text))&&/\b(?:my|mera|meri|mere|main|mai|mein|i|mujhe)\b|मेरा|मेरी|मेरे|मैं|मुझे/iu.test(text);
-  return own || bareCareer || ownTravel || ownProperty || ownLove ? { ...birth } : null;
+  return own || bareCareer || ownTravel || ownProperty || ownLove || (propertyReading&&pairedPropertyTimingRequest(text)) ? { ...birth } : null;
 }
 
 export function selectedSelfArguments(name, args, birth) {

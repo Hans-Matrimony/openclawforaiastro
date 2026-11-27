@@ -11,6 +11,7 @@ export function unrelatedReadingTopic(reply,plan) {
    const topics=readingTopics(clause,{multilingual:true});
    const unrelated=topics.filter(({topic})=>topic!==plan.topic);
    for(const {topic} of unrelated) {
+    if(plan.comparison_outlooks?.some(outlook=>outlook.topic===topic))continue;
     // Pay growth belongs to a career assessment as well as finances. Naming
     // salary must not itself force a valid promotion answer into a fallback.
     if(plan.topic==='career'&&topic==='money'&&/\bsalary\b|वेतन/iu.test(clause)&&
