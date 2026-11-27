@@ -1,15 +1,23 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
 
 // One existing topic definition is shared by the pilot repair and presentation.
-export function resolveReadingTopic(query) {
+export function resolveReadingTopic(query,{multilingual=false}={}) {
   const topics = [
     ["marriage", /sha+di|vivah|marri|wedding/i, [7]],
     ["relationship", /girlfriend|boyfriend|\bgf\b|\bbf\b|crush|relationship|rishta/i, [5, 7]],
     ["career", /career|job|naukri|promotion/i, [10]],
     ["money", /financ|money|pais|income|salary/i, [2, 11]],
     ["education", /education|stud|exam|padh|parhai/i, [4, 5, 9]],
-  ].filter(([, pattern]) => pattern.test(query));
-  return topics.length === 1 ? {topic:topics[0][0],houses:topics[0][2]} : null;
+  ];
+  // Hindi utterances must select the same evidence packet as their Hinglish
+  // equivalents. Keep this opt-in until the focused pilot is rolled out.
+  const hindi={marriage:/शादी|विवाह|जीवनसाथी/u,
+    relationship:/गर्लफ्रेंड|बॉयफ्रेंड|रिश्ता|रिश्ते|प्रेम/u,
+    career:/करियर|नौकरी|पदोन्नति/u,money:/पैसा|पैसे|आर्थिक|वित्त|आय(?![\p{L}\p{M}])|बचत|वेतन/u,
+    education:/पढ़ाई|पढाई|परीक्षा|शिक्षा/u};
+  const selected=topics.filter(([topic,pattern])=>pattern.test(query)||
+    (multilingual&&hindi[topic].test(query)));
+  return selected.length === 1 ? {topic:selected[0][0],houses:selected[0][2]} : null;
 }
 
 // Expose natal relationships for comparison, not invented event scores or dates.

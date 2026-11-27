@@ -58,7 +58,12 @@ export function requiresChartReading(query, profile) {
   return profile.status === "READY" && isPersonalChartQuestion(query);
 }
 
-export function isPersonalChartQuestion(query,{exactDateRequests=false}={}) {
+export function isPersonalChartQuestion(query,{exactDateRequests=false,respectDeclinedChart=false}={}) {
+  // These clauses decline a calculation; their chart keywords must not bypass
+  // semantic routing. Keep the rest, so a mixed personal prediction still wins.
+  if(respectDeclinedChart)query=query
+    .replace(/\bwithout\s+(?:reading|calculating|using)\s+(?:my\s+)?(?:personal\s+)?(?:birth\s+)?chart\b/giu,'')
+    .replace(/\b(?:kundli|chart)\s+nahi\s+(?:dekhni|dekhna|chahiye)\b/giu,'');
   const text = normalizePersonalQuery(query).toLowerCase().trim();
   if (isPracticalFollowup(query)) return false;
   // Foreign-travel predictions need the same current chart evidence as other
@@ -69,7 +74,8 @@ export function isPersonalChartQuestion(query,{exactDateRequests=false}={}) {
   // Keep general explanations, ordinary chat and another person's profile on auto routing.
   if (
     /^(?:what (?:is|are|does)|how does|explain|define|tell me what)\b/.test(text) &&
-    !/\b(?:my|meri|mera|mere)\b/.test(text)
+    !/\b(?:my|meri|mera|mere)\b/.test(text) &&
+    !(respectDeclinedChart && /\b(?:will|can|should)\s+i\b/u.test(text))
   ) {
     return false;
   }

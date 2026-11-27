@@ -237,17 +237,18 @@ export async function directAnswer(
   const coherentPilot = coherentReadingEnabled(env,value);
   const focusedPilot = focusedReadingEnabled(env,value);
   const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
-  const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot});
+  const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
   const readingSubjectFor=query=>{
     const subject=correctedReadingSubject(query,{allowDismissal:focusedPilot});
     return focusedPilot?specificReturnSubject(subject,value.history):subject;
   };
   const focusedPersonChoice=focusedPilot&&isSpecificReturnQuestion(readingSubjectFor(value.query));
+  const resolveTopic=query=>resolveReadingTopic(query,{multilingual:focusedPilot});
   const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
-    (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveReadingTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
+    (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
     const subject = topicGuidesEnabled ? readingSubjectFor(query) : query;
-    const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveReadingTopic(subject)?.topic;
+    const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveTopic(subject)?.topic;
     return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad'].includes(topic))) ? topic : null;
   };
   const initialTopic = conversationV2Pilot ? supportedTopic(value.query) : null;
@@ -337,7 +338,7 @@ export async function directAnswer(
     }
   }
   if (conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading' &&
-      !resolveReadingTopic(value.query) && !value.reply_to && acceptsCompleteness(value.query)) {
+      !resolveTopic(readingSubjectFor(value.query)) && !value.reply_to && acceptsCompleteness(value.query)) {
     // A semantic reading follow-up may have no topic words. Resolve it only
     // from the immediately preceding user subject, never past a topic change.
     const previousUser = [...(value.history ?? [])].toReversed().find(turn=>turn.role==='user');

@@ -6,6 +6,7 @@ import {questionScope,mismatchedQuestionReply} from '../extensions/reviewed-read
 import {selectedSelfBirth} from '../extensions/reviewed-reading/direct/selected-self-birth.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {asksForTiming} from '../extensions/reviewed-reading/direct/reading-intent.mjs';
+import {resolveReadingTopic} from '../extensions/reviewed-reading/direct/topic-period-context.mjs';
 
 const birth={date:'1991-04-11',time:'08:00',location_name:'Pune'};
 const value={user_id:'synthetic-explicit-topic-correction',query:'Meri shaadi nahi, mera career kab set hoga?',
@@ -84,4 +85,28 @@ test('actual dispatch requests career evidence after an explicit rejection of ma
   },
  }),/Personal reading requires a successful chart tool/);
  assert.ok(requests.some(r=>r.tool_choice==='required'));
+});
+
+test('focused replacements and declined timing requests retain only the new evidence subject',()=>{
+ const query='Padhai ki jagah ab meri income aur savings ke yog samjhaiye. Job ki date nahi chahiye.';
+ const subject=correctedReadingSubject(query,{allowDismissal:true});
+ assert.equal(subject,'meri income aur savings ke yog samjhaiye.');
+ assert.equal(resolveReadingTopic(subject).topic,'money');
+ assert.equal(correctedReadingSubject(query),query);
+ for(const preserved of ['Job ki date nahi chahiye.','Meri job nahi mili. Padhai bhi bataiye.',
+  'Padhai ki jagah ka naam kya hai?','She said: Job ki date nahi chahiye. Mera career batao.',
+  'Meri shaadi aur job dono ke yog samjhaiye.'])
+  assert.equal(correctedReadingSubject(preserved,{allowDismissal:true}),preserved);
+});
+
+test('Hindi focused topics select the correct houses and preserve genuine ambiguity',()=>{
+ for(const [query,topic,houses]of [
+  ['मेरी नौकरी कब लगेगी?','career',[10]],['मेरी शादी कब होगी?','marriage',[7]],
+  ['मेरी पढ़ाई कैसी रहेगी?','education',[4,5,9]],['मेरी बचत और आर्थिक स्थिति कैसी रहेगी?','money',[2,11]],
+  ['मेरे प्रेम के रिश्ते कैसे रहेंगे?','relationship',[5,7]],
+ ]) {
+  assert.deepEqual(resolveReadingTopic(query,{multilingual:true}),{topic,houses});
+  assert.equal(resolveReadingTopic(query),null);
+ }
+ assert.equal(resolveReadingTopic('मेरी नौकरी और शादी कब होगी?',{multilingual:true}),null);
 });

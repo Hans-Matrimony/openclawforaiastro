@@ -7,7 +7,7 @@ import {asksForTiming} from './reading-intent.mjs';
 import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} from './event-window-evidence.mjs';
 import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract} from './pilot-reading-plan.mjs';
 import {focusedTopicSignal} from './focused-topic-evidence.mjs';
-import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedHouseLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
+import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedReadingLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
 
 // Roll out only through the existing exact-account WhatsApp pilot. Specialist
 // calculations and every other surface retain their established flow.
@@ -170,7 +170,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
           // Normalize only numeric house ordinals; never transliterate prose
           // or alter a chart claim. The same displayed text is then reviewed.
           if(value.language==='hinglish') text=text.replace(/(\d{1,2})(?:वें|वे)/gu,'$1ve').replace(/(\d{1,2})(?:वां|वाँ|वा)/gu,'$1va');
-          if(focused)text=normalizeFocusedHouseLanguage(text,value);
+          if(focused)text=normalizeFocusedReadingLanguage(text,value);
           // The typed packet already excludes display scores. Legacy cleanup
           // removes terms such as retrograde/combust and prose separators,
           // which would change the evidence and grammar before review.

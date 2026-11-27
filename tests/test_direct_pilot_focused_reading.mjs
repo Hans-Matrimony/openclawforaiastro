@@ -6,7 +6,7 @@ import {focusedReadingEnabled,coherentEvidencePacket,writeCoherentReading} from 
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
-import {focusedReplyIssue,focusedReadingFallback,normalizeFocusedHouseLanguage} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
+import {focusedReplyIssue,focusedReadingFallback,normalizeFocusedReadingLanguage} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 import {specificReturnSubject} from '../extensions/reviewed-reading/direct/pilot-bubbles.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
@@ -84,6 +84,7 @@ async function run({input=value,config=env,draft=candidate,review='{"evidence_ok
  const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),
   makeTools:()=>async()=>chart(),fetchImpl:async(_url,options)=>{
    const body=JSON.parse(options.body);requests.push(body);const instruction=body.messages[0].content;
+   if(instruction.startsWith('You interpret the latest utterance'))return response({content:'{"route":"checked_reading","reply":""}'});
    if(instruction.startsWith('Collect checked evidence'))return response({tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]});
    if(instruction.startsWith('Write the complete astrology reply')) {const [answer,reason='Checked explanation.']=draft.split('\n\n');return response({content:JSON.stringify({answer,reason,remedy:''})});}
    if(instruction.startsWith('Review this astrology reply'))return response({content:typeof review==='function'?review(body):review});
@@ -104,6 +105,50 @@ test('focused end-to-end flow shares the same checked plan and guide with no add
  assert.equal(writer.reading_plan.guides[0].key,'career_job');assert.equal(reviewer.proposed,result.reply);
  assert.match(requests[2].messages[0].content,/do not independently choose another verdict/iu);
  assert.equal(result.reply.split('\n\n').length,2);
+});
+
+test('a Devanagari career request reaches its focused checked dates rather than an unscoped legacy reading',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const draft='आपकी नौकरी लगने के योग सितंबर 2027 से नवंबर 2027 के बीच बनते हैं।\n\nकरियर का दसवाँ भाव मजबूत है। शुक्र और मंगल की अवधि तथा गुरु का गोचर सहारा देते हैं। वक्री शनि से नतीजों में अटकाव दिखता है।';
+ const {result,requests}=await run({input:{...value,language:'hindi',query:'मेरी नौकरी कब लगेगी? कारण भी सरल हिंदी में बताइए।'},draft});
+ assert.equal(result.answer_response_flow,'pilot_coherent_reading');
+ const writer=requests.find(body=>body.messages[0].content.startsWith('Write the complete astrology reply'));
+ const payload=JSON.parse(writer.messages.at(-1).content);
+ assert.equal(payload.reading_plan.topic,'career');
+ assert.equal(payload.reading_plan.timing.status,'supplied_window');
+ assert.equal(payload.reading_plan.guides[0].key,'career_job');
+ assert.equal(result.reply,draft);
+ assert.doesNotMatch(result.reply,/शादी|marriage|birth details/iu);
+});
+
+test('captured finance vocabulary is translated before review without losing condition, negation or quoted words',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const draft='Aapki income aur savings ke yog dikhte hain, lekin kuch atkaav bhi hain.\n\nDoosra aur gyarahva ghar mazboot hain. Ketu, combust Budh aur retrograde Guru rukawat dikhate hain.';
+ const {result,requests}=await run({input:{...value,language:'hinglish',query:'Meri income aur savings ke yog samjhaiye.'},draft});
+ assert.match(result.reply,/ast Budh aur vakri Guru/);
+ assert.doesNotMatch(result.reply,/combust|retrograde/iu);
+ const review=requests.find(body=>body.messages[0].content.startsWith('Review this astrology reply'));
+ assert.equal(JSON.parse(review.messages.at(-1).content).proposed,result.reply);
+ const text='Budh combust nahi hai. "combust" `retrograde` https://example.test/combust';
+ assert.equal(normalizeFocusedReadingLanguage(text,{language:'hinglish'}),
+  'Budh ast nahi hai. "combust" `retrograde` https://example.test/combust');
+ assert.equal(normalizeFocusedReadingLanguage(text,{language:'english'}),text);
+});
+
+test('a live finance style repair cannot introduce uncalculated fluctuations even when a reviewer would accept it',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const draft='Aapki income aur savings ke yog dikhte hain, lekin utar-chadhav reh sakta hai.\n\nDoosra aur gyarahva ghar mazboot hain. Ketu, ast Budh aur vakri Guru rukawat dikhate hain.';
+ const {result,requests}=await run({input:{...value,language:'hinglish',query:'Meri income aur savings ke yog samjhaiye.'},draft});
+ assert.doesNotMatch(result.reply,/utar.chadhav|fluctuat/iu);
+ assert.match(result.reply,/Budh|Guru/);
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ assert.equal(requests.filter(body=>body.messages[0].content.startsWith('Review this astrology reply')).length,0);
+ const plan={topic:'money',reasons:{supporting:['strong house'],opposing:['obstacles']}};
+ for(const correction of ['These factors do not establish income fluctuations.',
+  'This does not mean fluctuations.','Income ke utar-chadhav ka sanket nahi mila.',
+  'The user asked about "income fluctuations"; the supplied factors indicate obstacles.'])
+  assert.equal(focusedReplyIssue(correction,plan),null);
+ assert.ok(focusedReplyIssue('There is no supplied evidence for fluctuations, but your income will fluctuate.',plan));
 });
 
 test('conflicting live reviewer feedback cannot discard the checked career dates after a topic correction',async t=>{
@@ -242,9 +287,9 @@ test('live neutral correction is translated naturally before review without chan
  const {result,requests}=await run({input:{...value,language:'hinglish',query:'Kya mere abroad jaane ke yog hain?'},draft});
  assert.equal(result.reply,draft.replace('sanket mixed hain','sanket mile-jule hain'));
  assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
- assert.equal(normalizeFocusedHouseLanguage('"12th house mixed hai" 12th house mixed hai.',{language:'hinglish'}),'"12th house mixed hai" 12ve ghar ke sanket mile-jule hain.');
- assert.equal(normalizeFocusedHouseLanguage('12va ghar mixed hai.',{language:'hinglish'}),'12ve ghar ke sanket mile-jule hain.');
- assert.equal(normalizeFocusedHouseLanguage('12th house mixed hai.',{language:'english'}),'12th house mixed hai.');
+ assert.equal(normalizeFocusedReadingLanguage('"12th house mixed hai" 12th house mixed hai.',{language:'hinglish'}),'"12th house mixed hai" 12ve ghar ke sanket mile-jule hain.');
+ assert.equal(normalizeFocusedReadingLanguage('12va ghar mixed hai.',{language:'hinglish'}),'12ve ghar ke sanket mile-jule hain.');
+ assert.equal(normalizeFocusedReadingLanguage('12th house mixed hai.',{language:'english'}),'12th house mixed hai.');
 });
 
 test('hard dismissal and exact-date request use career evidence and its calculated range',async t=>{

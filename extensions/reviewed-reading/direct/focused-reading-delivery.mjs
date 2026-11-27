@@ -20,11 +20,15 @@ function inventsDifficultyFromNeutral(reply,plan) {
   });
 }
 
-// Translate only the returned house-strength description, before review.
+// Translate only chart vocabulary, before review.
 // Preserve quoted wording and every factual condition or negation.
-export function normalizeFocusedHouseLanguage(text,value) {
+export function normalizeFocusedReadingLanguage(text,value) {
   if(value.language!=='hinglish')return text;
-  return text.split(/("[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`)/gu).map((part,index)=>index%2?part:part
+  return text.split(/("[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`|https?:\/\/\S+)/gu).map((part,index)=>index%2?part:part
+    .replace(/\b(combust|retrograde)\s+(Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)\b/giu,
+      (_,condition,name)=>`${condition.toLowerCase()==='combust'?'ast':'vakri'} ${name}`)
+    .replace(/\b(Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)\s+(combust|retrograde)\b/giu,
+      (_,name,condition)=>`${name} ${condition.toLowerCase()==='combust'?'ast':'vakri'}`)
     .replace(/\bsanket\s+mixed\s+(?:hain|hai)\b/giu,'sanket mile-jule hain')
     .replace(/\b(\d{1,2})(?:st|nd|rd|th|ve|va)\s+(?:house|ghar)\s+mixed\s+hai\b/giu,'$1ve ghar ke sanket mile-jule hain')).join('');
 }
@@ -40,6 +44,16 @@ export function removeRepeatedChoiceLimit(answer,reason) {
 // Check the degree of certainty independently of the model reviewer. Never
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
+  // A weak/pressured indicator is not a calculated pattern of alternating
+  // income or savings. Check this separately from the model's style review.
+  const volatility=/\butar[ -]chadh(?:av|aav)\b|\bfluctuat\w*\b|उतार[ -]चढ़ाव/iu;
+  const volatilityClaim=reply.replace(/"[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`/gu,'')
+    .split(/[.!?\n।]+|\b(?:but|however|lekin|magar)\b|लेकिन/iu)
+    .some(clause=>volatility.test(clause)&&
+      !/\b(?:do not|don't|does not|doesn't|cannot|can't)\s+(?:by itself\s+)?(?:mean|imply|establish|show)\b|\bno\s+(?:supplied\s+)?evidence\b|\butar[ -]chadh(?:av|aav)\b[^.!?\n]{0,30}\bnahi\b|उतार[ -]चढ़ाव[^।.!?\n]{0,30}नहीं/iu.test(clause));
+  if(plan.topic==='money'&&volatilityClaim&&
+    !volatility.test(JSON.stringify(plan.reasons??{})))
+    return 'The supplied money factors establish support and obstacles, not fluctuations in income or savings. Remove the inferred utar-chadhav/fluctuation claim and explain the actual limiting factors instead.';
   if(plan.scope==='person_choice') {
     const unrelated=/\b(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Shukra|Chandra|Mangal|Shani|Guru|dasha|antardasha|20\d{2})\b/iu.test(reply);
     const promise=/\b(?:woh|wo|she|he|they)\s+(?:(?:will(?:\s+not)?|won't|definitely|certainly|zaroor|pakka)\s+)?(?:wapas\s+(?:nahi\s+)?aa\w*|return|come back)|\b(?:haan|yes)\b[^.!?\n]{0,30}\b(?:wapas|return)\b/iu;

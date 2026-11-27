@@ -2,12 +2,34 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {turnEnvelope,parseTurnDecision} from '../extensions/reviewed-reading/direct/conversation-turn.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
+import {isPersonalChartQuestion} from '../extensions/reviewed-reading/direct/reading-intent.mjs';
 const value={user_id:'919000000001',reply_surface:'whatsapp',query:'Tum batao naa',language:'hinglish',birth:{},history:[{role:'user',text:'Ghar kaha kharidna chahiye?'},{role:'assistant',text:'Which city are you considering?'}]};
 const env={ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'0',OPENROUTER_API_KEY:'test',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:'1',ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED:'1',ASTROFRIEND_CONVERSATION_PROGRESS_USERS:value.user_id};
 const reply='Rehne ke liye ghar le rahe hain toh kaam ke paas aur budget mein aane wali jagah se shuru kijiye.';
 test('saved conversation context is bounded and excludes non-text rows',()=>{
  const result=turnEnvelope(value,[null,{text:'not trusted'},'a'.repeat(2000),...Array(30).fill('fact')]);
  assert.equal(result.saved_context.length,20);assert.equal(result.saved_context[0].length,1000);
+});
+
+test('focused explicit no-chart requests reach the reviewed conversation path without personal calculations',async()=>{
+ const config={ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
+  ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'};
+ for(const query of [
+  'What is the difference between dasha and a transit? Explain simply, without reading my personal chart.',
+  'Meri partner ne kaha use space chahiye. Kundli nahi dekhni. Ek chhota respectful message draft kijiye.',
+ ]) {
+  let calls=0;
+  const result=await directAnswer({...value,query,history:[]},deps(async(_url,options)=>{
+   const body=JSON.parse(options.body);assert.equal(body.tools,undefined);
+   assert.equal(body.response_format.type,'json_object');
+   return response(JSON.stringify(++calls===1?{route:'conversation',reply:'The requested explanation or draft.'}:{status:'accept',issues:[]}));
+  },config));
+  assert.equal(calls,2);assert.deepEqual(result.answer_reading_tools,[]);
+  assert.equal(result.answer_conversation_route,'conversation');
+ }
+ // Declining a chart does not suppress a separate personal prediction.
+ assert.equal(isPersonalChartQuestion('What is dasha? Without reading my chart, when will I get married?',{respectDeclinedChart:true}),true);
+ assert.equal(isPersonalChartQuestion('Meri job kab lagegi? Kundli nahi dekhni.',{respectDeclinedChart:true}),true);
 });
 test('conversation model override does not inherit astrology provider pins',async()=>{
  const config={ASTROFRIEND_CONVERSATION_MODEL:'test/conversation',ASTROFRIEND_CONVERSATION_REASONING_EFFORT:'low',VEDASTRO_DIRECT_PROVIDER:'parasail/fp8'};
