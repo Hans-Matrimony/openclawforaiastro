@@ -47,7 +47,8 @@ function answerRetry(query) {
   return text.length <= 180 && /^(?:(?:please |plz )?(?:response|reply|answer|jawab|jawaab)(?: toh| to)?(?: do| de| dijiye| dijiye na| karo| kar do| please)?(?: na+)?|(?:i |mai |main )?(?:did not understand|didn't understand|dont understand|don't understand)|(?:matlab|mtlb|mtlb)?\s*(?:samajh|samjh|samjha|smjha|samjha? nahi|smjh)(?: nahi| nhi| nahin)(?: aaya| aya)?(?: mai| main| mujhe)?)(?:\s+(?:response|reply|answer|jawab)(?: toh| to)?(?: do| de| dijiye)(?: na+)?)?$/iu.test(text);
 }
 
-export function borrowsCompanionTopic(query) {
+export function borrowsCompanionTopic(query,{allowDiscoursePrefix=false}={}) {
+  if(allowDiscoursePrefix)query=query.replace(/^(?:matlab|mtlb|mtlab|toh|to|so)\s+/iu,'');
   return abbreviatedReading(query) || answerRetry(query) ||
     /^(?:by )?20\d{2}(?: tak)?[?!.\s]*$/iu.test(query.trim()) ||
     /^(?:matlab|samjhao|explain|thik se|aur(?: batao)?|or batao|haan|yes|nahi|no|then|what next|what should i do|ab kya(?: karu[n]?)?|kya karu[n]?|tak|summarize)[?!.\s]*$/iu.test(query.trim());

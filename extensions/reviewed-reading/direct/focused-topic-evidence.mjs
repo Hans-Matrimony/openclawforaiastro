@@ -1,7 +1,10 @@
 // These house groups already belong to the app's education/travel context.
 // Summarize returned natal strength labels only; never borrow another area's
 // verdict or turn this summary into a scored probability or an event date.
-const housesByTopic={education:[4,5,9],abroad:[9,12]};
+// Property uses the fourth-house indicator only, not career/money verdicts.
+// Traditional subject mapping: https://vedastro.org/blog/How-to-Judge-Horoscope-Part-4-Fourth-House.html
+// This limited summary does not calculate purchase timing or a D4 assessment.
+const housesByTopic={education:[4,5,9],abroad:[9,12],property:[4]};
 
 export function focusedTopicSignal(chart,topic) {
   const houses=housesByTopic[topic];

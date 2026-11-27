@@ -55,6 +55,11 @@ export function removeRepeatedChoiceLimit(answer,reason) {
 // Check the degree of certainty independently of the model reviewer. Never
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
+  const propertyCareerClaim=plan.topic==='property'&&reply.replace(/"[^"\n]*"|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(clause=>
+    /\b(?:career|job|naukri|promotion)\b|करियर|नौकरी|पदोन्नति/iu.test(clause)&&
+    !/\bcareer\b[^.!?\n]{0,80}(?:\blagu\s+nahi\b|\b(?:does not|doesn't) apply\b|\bnot applicable\b)/iu.test(clause));
+  if(propertyCareerClaim)
+    return 'Answer the current home/property question from its supplied property evidence. Do not substitute a career assessment, its tenth-house reasons or its timing window.';
   // A weak/pressured indicator is not a calculated pattern of alternating
   // income or savings. Check this separately from the model's style review.
   const volatility=/\butar[ -]chadh(?:av|aav)\b|\bfluctuat\w*\b|उतार[ -]चढ़ाव/iu;
@@ -133,7 +138,7 @@ function outcome(plan,lang) {
   const subject={career:['career progress','career mein pragati','करियर में प्रगति'],promotion:['promotion','promotion','पदोन्नति'],
     marriage:['marriage','shaadi','शादी'],relationship:['a relationship','rishta banne','रिश्ता बनने'],
     money:['financial improvement','aarthik sudhar','आर्थिक सुधार'],education:['studies','padhai','पढ़ाई'],
-    abroad:['overseas travel','videsh jaane','विदेश जाने']}[topic];
+    abroad:['overseas travel','videsh jaane','विदेश जाने'],property:['home ownership','ghar kharidne','घर खरीदने']}[topic];
   if(!subject)return null;
   const s=subject[lang==='english'?0:lang==='hindi'?2:1];
   const unfavorable=plan.outcome==='unfavorable_now',unclear=plan.outcome==='unclear';
@@ -163,7 +168,9 @@ export function focusedReadingFallback(plan,value) {
       lang==='hindi'?`गणना में ${from} से ${to} तक अवसर के संकेत हैं।`:
       `Ganana mein ${from} se ${to} tak mauke ke sanket hain.`);
   } else if(plan.timing.status==='unavailable') {
-    parts.push(lang==='english'?'The available calculation does not identify a timing range.':
+    parts.push(plan.topic==='property'?(lang==='english'?'This reading does not establish a month or year for buying your home.':
+      lang==='hindi'?'इस रीडिंग से घर खरीदने का महीना या साल नहीं निकलता।':'Is reading se ghar kharidne ka mahina ya saal nahi nikalta.'):
+      lang==='english'?'The available calculation does not identify a timing range.':
       lang==='hindi'?'उपलब्ध गणना में समय की अवधि नहीं मिली है।':'Maujooda ganana mein samay ki avadhi nahi mili hai.');
   }
   const reasons=[...plan.reasons.supporting.slice(0,2),...plan.reasons.opposing.slice(0,3),...(plan.reasons.neutral??[]).slice(0,1)]

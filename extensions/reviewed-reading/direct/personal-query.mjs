@@ -7,7 +7,8 @@ export function normalizePersonalQuery(query) {
 // A rejected topic is not a second requested reading. Strip only a short,
 // explicit correction prefix, never a report such as "shaadi nahi hui".
 export function correctedReadingSubject(query,{allowDismissal=false}={}) {
-  const topic='(?:sha+di|vivah|marriage|wedding|career|job|naukri|promotion|education|padhai|money|finances?|शादी|विवाह|करियर|पढ़ाई)';
+  const topic='(?:sha+di|vivah|marriage|wedding|career|job|naukri|promotion|education|padhai|money|finances?|शादी|विवाह|करियर|पढ़ाई'+
+    (allowDismissal?'|property|home|house|ghar|makaan|makan|घर|मकान':'')+')';
   if(allowDismissal) {
     const replacement=new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+ki\\s+jagah\\s+(?:ab\\s+)?(.+)$`,'iu').exec(query.trim());
     if(replacement&&new RegExp(topic+'|income|savings','iu').test(replacement[1]))query=replacement[1].trim();

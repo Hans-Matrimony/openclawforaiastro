@@ -2,6 +2,7 @@ import { conversationProgressEnabled } from "./conversation-progress.mjs";
 import {correctedReadingSubject} from './personal-query.mjs';
 import {resolveReadingTopic} from './topic-period-context.mjs';
 import {isSpecificReturnQuestion} from './pilot-bubbles.mjs';
+import {isPropertyQuestion} from './property-intent.mjs';
 // Instructions select evidence and presentation, never a canned prediction.
 export const TOPIC_PROMPTS = Object.freeze({
   marriage_timing: {
@@ -52,7 +53,7 @@ export const TOPIC_PROMPTS = Object.freeze({
   property: {
     description: "Buying a home, property timing or location choices",
     check: "Distinguish prediction about ownership/timing from practical location advice. Check property-relevant tool evidence only for a requested reading. Use known budget, commute and priorities for practical comparisons; do not infer a specific city from a generic chart factor.",
-    answer: "Answer the ownership/timing question if supported. For location advice give useful selection criteria or compare supplied options, rather than repeatedly asking the user to choose first. Never invent local prices, returns or an exact future address.",
+    answer: "Answer the ownership/timing question if supported. If no property purchase window was calculated, state that month/year cannot be established here once in natural language, in the answer; the reason explains the property factors without repeating that limit. Never reuse a career window or expose internal phrases such as checked timing. Once an earlier mistake has been acknowledged, move to the current home question instead of repeating that apology or the career comparison unless the user asks about it again. For location advice give useful selection criteria or compare supplied options, rather than repeatedly asking the user to choose first. Never invent local prices, returns or an exact future address.",
   },
   abroad: {
     description: "Foreign travel, migration, overseas work or settlement",
@@ -102,7 +103,7 @@ export function selectedTopicGuides(subject,topic) {
   // These select instructions, never the reading route or a prediction.
   if(/\b(?:guna?|kuta|compatibility|matching|match report|kundali milan)\b|गुण\s*मिलान|कुंडली\s*मिलान/iu.test(text))return ['compatibility'];
   if(isSpecificReturnQuestion(text))return ['partner_return'];
-  if(/\b(?:property|real estate|ghar\s+(?:kharid|lena)|buy\w*\s+(?:a\s+)?(?:home|house))\b|मकान|घर\s*(?:खरीद|लेना)/iu.test(text))return ['property'];
+  if(isPropertyQuestion(text))return ['property'];
   if(/\b(?:abroad|overseas|videsh|foreign (?:travel|settlement|work))\b|विदेश/iu.test(text))return ['abroad'];
   if(/\b(?:education|studies|study|exams?|admission|padhai|padhaai|padhayi)\b|पढ़ाई|परीक्षा|शिक्षा/iu.test(text))return ['education'];
   if(resolved==='marriage') {

@@ -80,7 +80,7 @@ import {
 } from "./timing-repair.mjs";
 import { createTools, TOOLS } from "./tools.mjs";
 import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-context.mjs";
-import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion } from './followup-scope.mjs';
+import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion, borrowsCompanionTopic } from './followup-scope.mjs';
 import { invalidGunaScore } from './birth-evidence.mjs';
 import { invalidGunaPresentation, verifiedGunaFallback, requestedGunaPoints } from './guna-presentation.mjs';
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
@@ -254,7 +254,7 @@ export async function directAnswer(
   const supportedTopic = query => {
     const subject = topicGuidesEnabled ? readingSubjectFor(query) : query;
     const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveTopic(subject)?.topic;
-    return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad'].includes(topic))) ? topic : null;
+    return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad','property'].includes(topic))) ? topic : null;
   };
   const initialTopic = conversationV2Pilot ? supportedTopic(value.query) : null;
   let completenessPilot = Boolean(initialTopic);
@@ -345,6 +345,7 @@ export async function directAnswer(
     }
   }
   if (conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading' &&
+      (!focusedPilot || borrowsCompanionTopic(value.query,{allowDiscoursePrefix:true})) &&
       !resolveTopic(readingSubjectFor(value.query)) && !value.reply_to && acceptsCompleteness(value.query)) {
     // A semantic reading follow-up may have no topic words. Resolve it only
     // from the immediately preceding user subject, never past a topic change.
@@ -366,7 +367,7 @@ export async function directAnswer(
   const memory = pilotMemory ?? makeMemory(value.user_id, { env, fetchImpl, signal });
   const execute = makeTools({ memory, birth: value.birth, query: activeQuestion, history: value.history,
     selectedSelfQuery: activeQuestion !== originalQuery ? activeQuestion.split('\nFollow-up:')[0] : undefined,
-    gender: value.user_gender, profileUpdateStatus: value.profile_update_status, env, fetchImpl, signal, now });
+    gender: value.user_gender, propertyReading:focusedPilot, profileUpdateStatus: value.profile_update_status, env, fetchImpl, signal, now });
   // The checked self-chart depends on the selected birth profile, not memory
   // retrieval. Overlap these independent reads for voice without skipping either.
   const prepareChart = sourceFlow && !matchingLimitations &&

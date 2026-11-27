@@ -44,7 +44,7 @@ function presentationFactor(text) {
 // This is a presentation packet, not a new astrology calculation. A natal
 // assessment cannot acquire an event date by being passed to another model.
 export function coherentEvidencePacket(results, topic, {question='',focused=false}={}) {
-  const area=readingTopicArea(topic)??(focused&&['education','abroad'].includes(topic)?topic:null);
+  const area=readingTopicArea(topic)??(focused&&['education','abroad','property'].includes(topic)?topic:null);
   if (!area) return null;
   const rows=[];
   for (const raw of results) {

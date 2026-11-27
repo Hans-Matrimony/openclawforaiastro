@@ -1,4 +1,5 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
+import {isPropertyQuestion} from './property-intent.mjs';
 
 // One existing topic definition is shared by the pilot repair and presentation.
 export function resolveReadingTopic(query,{multilingual=false}={}) {
@@ -17,6 +18,7 @@ export function resolveReadingTopic(query,{multilingual=false}={}) {
     education:/पढ़ाई|पढाई|परीक्षा|शिक्षा/u};
   const selected=topics.filter(([topic,pattern])=>pattern.test(query)||
     (multilingual&&hindi[topic].test(query)));
+  if(multilingual&&isPropertyQuestion(query))selected.push(['property',null,[4]]);
   return selected.length === 1 ? {topic:selected[0][0],houses:selected[0][2]} : null;
 }
 
