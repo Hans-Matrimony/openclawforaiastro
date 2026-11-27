@@ -34,7 +34,7 @@ export function normalizeFocusedReadingLanguage(text,value) {
 }
 
 export function removeRepeatedChoiceLimit(answer,reason) {
-  const reference=/\b(?:kundli|chart|assessment|evidence)\b|कुंडली|कुण्डली|सामान्य\s+संबंध[ -]संकेत/iu;
+  const reference=/\b(?:kundli|chart|assessment|evidence)\b|कुंडली|कुण्डली|सामान्य\s+संबंध[ -]संकेत|इससे|इस\s+(?:बात|स्थिति)\s+से/iu;
   const limit=text=>reference.test(text)&&
     /\b(?:nahi|cannot|can't|not)\b|नहीं/iu.test(text)&&
     /\b(?:faisla|decision|return|laut\w*|feelings|timing|choice|wapas)\b|फैसला|निर्णय|लौट|वापस|भावना|सहमति|कदम|चुनाव/iu.test(text);
@@ -43,7 +43,7 @@ export function removeRepeatedChoiceLimit(answer,reason) {
     if(!limit(sentence))return sentence;
     // Retain a reported circumstance joined to a repeated boundary rather
     // than deleting the whole sentence and losing useful listening context.
-    const joined=/^(.*?)(?:,\s*|\s+)(?:और|and)\s+(.+)$/iu.exec(sentence);
+    const joined=/^(.*?)(?:,\s*|\s+)(?:और|लेकिन|मगर|and|but)\s+(.+)$/iu.exec(sentence);
     if(joined&&!limit(joined[1])&&limit(joined[2])) {
       const context=joined[1].trim();
       return /[.!?।]$/u.test(context)?context:context+(/[\u0900-\u097f]/u.test(context)?'।':'.');
@@ -66,9 +66,9 @@ export function focusedReplyIssue(reply,plan) {
     !volatility.test(JSON.stringify(plan.reasons??{})))
     return 'The supplied money factors establish support and obstacles, not fluctuations in income or savings. Remove the inferred utar-chadhav/fluctuation claim and explain the actual limiting factors instead.';
   if(plan.scope==='person_choice') {
-    const unrelated=/\b(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Shukra|Chandra|Mangal|Shani|Guru|dasha|antardasha|20\d{2})\b|(?<![\p{L}\p{M}])(?:सूर्य|चंद्र(?:मा)?|मंगल|बुध|गुरु|शुक्र|शनि|राहु|केतु|दशा|महादशा|अंतर्दशा|अंतरदशा)(?![\p{L}\p{M}])/iu.test(reply);
+    const unrelated=/\b(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Shukra|Chandra|Mangal|Shani|Guru|dasha|antardasha|20\d{2})\b|(?<![\p{L}\p{M}])(?:सूर्य|चंद्र(?:मा)?|मंगल|बुध|गुरु|बृहस्पति|शुक्र|शनि|राहु|केतु|दशा|महादशा|अंतर्दशा|अंतरदशा)(?![\p{L}\p{M}])/iu.test(reply);
     const promise=/\b(?:woh|wo|she|he|they)\s+(?:(?:will(?:\s+not)?|won't|definitely|certainly|zaroor|pakka)\s+)?(?:wapas\s+(?:nahi\s+)?aa\w*|return|come back)|\b(?:haan|yes)\b[^.!?\n]{0,30}\b(?:wapas|return)\b/iu;
-    const hindiPromise=/लौटेंगे|लौटेंगी|लौटेगा|लौटेगी|वापस\s+(?:नहीं\s+)?(?:आएंगे|आएंगी|आएगा|आएगी)|लौटने\s+(?:की\s+संभावना|के\s+योग)|वापस\s+आने\s+(?:की\s+संभावना|के\s+योग)/u;
+    const hindiPromise=/लौटेंगे|लौटेंगी|लौटेगा|लौटेगी|(?:वापस|लौट)\s+(?:नहीं\s+)?(?:आएंगे|आएंगी|आएगा|आएगी)|लौटने\s+(?:की\s+संभावना|के\s+योग)|वापस\s+आने\s+(?:की\s+संभावना|के\s+योग)|संपर्क\s+(?:बनने|होने|जुड़ने)[^।.!?\n]{0,25}(?:संकेत|योग|संभावना)/u;
     const claims=reply.split(/[.!?\n।]+|\b(?:but|however|lekin|magar)\b|लेकिन|मगर/iu);
     const asserted=claims.some(clause=>(promise.test(clause)||hindiPromise.test(clause))&&!
       /\b(?:nahi|nahin)\s+(?:bataya\s+ja\s+sakta|bata\s+sakte|keh\s+sakte|kaha\s+ja\s+sakta)\b|\b(?:cannot|can't|does not|doesn't)\s+(?:tell|know|establish|determine|confirm|show)\b|नहीं\s+(?:बताया\s+जा\s+सकता|कहा\s+जा\s+सकता|बता\s+सक(?:ता|ती|ते)|कह\s+सक(?:ता|ती|ते)|बताती|बताता|बताते|जान\s+सकते|जानती|जानता)|(?:फैसला|निर्णय|चुनाव)[^।.!?\n]{0,25}(?:तय|ज्ञात)\s+नहीं/u.test(clause));

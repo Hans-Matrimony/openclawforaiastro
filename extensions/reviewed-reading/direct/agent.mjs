@@ -244,7 +244,10 @@ export async function directAnswer(
     return focusedPilot?specificReturnSubject(subject,value.history,{multilingual:true}):subject;
   };
   const focusedPersonChoice=focusedPilot&&isSpecificReturnQuestion(readingSubjectFor(value.query));
-  const resolveTopic=query=>resolveReadingTopic(query,{multilingual:focusedPilot});
+  // Once a return question resolves to a person, incidental topic words must
+  // not replace that scope with the preceding generic relationship reading.
+  const resolveTopic=query=>focusedPilot&&isSpecificReturnQuestion(query)
+    ? {topic:'relationship',houses:[5,7]} : resolveReadingTopic(query,{multilingual:focusedPilot});
   const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
     (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {

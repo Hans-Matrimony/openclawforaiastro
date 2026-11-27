@@ -6,7 +6,7 @@ import {focusedReadingEnabled,coherentEvidencePacket,writeCoherentReading} from 
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
-import {focusedReplyIssue,focusedReadingFallback,normalizeFocusedReadingLanguage} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
+import {focusedReplyIssue,focusedReadingFallback,normalizeFocusedReadingLanguage,removeRepeatedChoiceLimit} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 import {specificReturnSubject} from '../extensions/reviewed-reading/direct/pilot-bubbles.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
@@ -366,6 +366,34 @@ test('captured Hindi possibility claim cannot publish a return prediction from g
  assert.equal(duplicated.result.reply,qualified+'\n\nअभी आप दोनों की बात नहीं हो रही है।');
  const onlyLimit=await run({input,draft:qualified+'\n\nसामान्य संबंध-संकेत किसी खास व्यक्ति की भावनाओं, सहमति या आगे के कदम तय नहीं कर सकते।'});
  assert.equal(onlyLimit.result.reply,qualified);
+});
+
+test('Hindi return follow-up keeps person-choice scope when it explicitly rejects generic marriage discussion',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hindi',
+  query:'तो क्या कुंडली के हिसाब से वह अगले महीने लौट आएगी? साफ बताइए, और शादी की सामान्य बातें मत जोड़िए।',
+  history:[{role:'user',text:'मेरी गर्लफ्रेंड से तीन हफ्ते से बात नहीं हुई है।'}]};
+ const bad='कुंडली से यह नहीं कहा जा सकता कि वह अगले महीने लौट आएगी। दोबारा संपर्क बनने के संकेत हैं, लेकिन उसका फैसला और समय अनिश्चित है।\n\nसातवें भाव में बृहस्पति और सक्रिय अवधि का संबंध रिश्ते को सहारा देता है।';
+ const {result,requests}=await run({input,draft:bad});
+ const writers=requests.filter(body=>body.messages[0].content.startsWith('Write the complete astrology reply'));
+ assert.ok(writers.length);
+ for(const request of writers) {
+  const payload=JSON.parse(request.messages.at(-1).content);
+  assert.equal(payload.checked_evidence.scope,'person_choice');
+  assert.equal(payload.checked_evidence.assessment,null);
+  assert.deepEqual(payload.checked_evidence.event_windows,[]);
+ }
+ assert.doesNotMatch(result.reply,/संपर्क बनने के संकेत|सातवें|बृहस्पति|शनि|मंगल/u);
+ assert.match(result.reply,/फैसला|समय/u);
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ for(const claim of ['दोबारा संपर्क बनने के संकेत हैं।','वह अगले महीने लौट आएगी।','बृहस्पति रिश्ते को सहारा देता है।'])
+  assert.ok(focusedReplyIssue(claim,{scope:'person_choice'}),claim);
+ assert.equal(focusedReplyIssue('कुंडली से यह नहीं कहा जा सकता कि वह अगले महीने लौट आएगी।',{scope:'person_choice'}),null);
+ const answer='साफ़ कहूँ तो कुंडली से यह नहीं बताया जा सकता कि वह अगले महीने लौट आएगी या नहीं।';
+ const context='आपने बताया कि तीन हफ्ते से बात नहीं हुई है; यह परिस्थिति समझ में आती है';
+ const repeated=await run({input,draft:answer+'\n\n'+context+', लेकिन इससे उसके लौटने का निर्णय तय नहीं होता।'});
+ assert.equal(repeated.result.reply,answer+'\n\n'+context+'।');
+ assert.equal(removeRepeatedChoiceLimit(answer,'आपने बताया कि तीन हफ्ते से बात नहीं हुई है।'),'आपने बताया कि तीन हफ्ते से बात नहीं हुई है।');
 });
 
 test('hard person-choice pressure cannot select horary or publish a return promise',async t=>{
