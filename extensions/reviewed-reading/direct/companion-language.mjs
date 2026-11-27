@@ -19,3 +19,16 @@ export function normalizeCompanionLanguage(reply,value) {
   if(!/^(?:hinglish|hindi|hi)$/iu.test(value.language??''))return reply;
   return reply.split(protectedText).map((part,index)=>index%2?part:respectful(part)).join('');
 }
+
+// Catch a conversational footer, not quoted speech or the user's requested
+// draft. Keep the text intact so the bounded writer can repair it in context.
+export function companionInstructionEcho(reply,value) {
+  if(/\b(?:repeat|quote|translate|draft|write|confirm|promise)\b|दोहराइए|अनुवाद|लिखिए|पुष्टि|वादा/iu.test(value.query))return false;
+  const prose=reply.split(protectedText).filter((_,index)=>index%2===0).join(' ');
+  return prose.split(/[.!?।\n]+/u).some(sentence=>
+    /\b(?:advice|salah|salaah)\b|सलाह/iu.test(sentence)&&
+    /\b(?:questions?|sawaal|sawal)\b|सवाल|सवालों|प्रश्न/iu.test(sentence)&&
+    /\b(?:no|not|won't|wont|without|nahi|nahin)\b|नहीं|(?:^|\s)न(?:\s|$)/iu.test(sentence)&&
+    (/\b(?:I|I'm|I'll|Main|mein)\b|मैं/iu.test(sentence)||
+      /(?:^|[;—–:])\s*(?:koi\s+)?(?:no\s+)?(?:advice|salah|salaah|सलाह)\b/iu.test(sentence)));
+}

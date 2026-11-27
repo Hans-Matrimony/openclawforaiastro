@@ -1,7 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeCompanionLanguage} from '../extensions/reviewed-reading/direct/companion-language.mjs';
+import {normalizeCompanionLanguage,companionInstructionEcho} from '../extensions/reviewed-reading/direct/companion-language.mjs';
 const value={language:'hinglish'};
+
+test('listening footer detection preserves quoted wording, requested drafts and ordinary acknowledgment',()=>{
+ const input={query:'Bas meri baat suniye, advice ya sawal mat dijiye.'};
+ for(const reply of [
+  'Main sun raha hoon; uski taraf se koi reason nahi banaunga, aur abhi advice ya sawaal bhi nahi dunga.',
+  'Main aapki disappointment samajh raha hoon—koi advice ya sawaal nahi.',
+  'I will not give advice or ask questions.',
+  'मैं न सलाह दूँगा और न सवाल पूछूँगा।',
+ ])assert.equal(companionInstructionEcho(reply,input),true,reply);
+ for(const reply of [
+  'Bina bataye plan cancel hone se bura laga. Main sun raha hoon.',
+  'Your friend gave no advice and asked no questions.',
+  '"I will not give advice or ask questions."',
+  '`No advice or questions`',
+ ])assert.equal(companionInstructionEcho(reply,input),false,reply);
+ assert.equal(companionInstructionEcho('I will not give advice or ask questions.',{query:'Confirm that you will not give advice or ask questions.'}),false);
+ assert.equal(companionInstructionEcho('मैं न सलाह दूँगा और न सवाल पूछूँगा।',{query:'इसका हिंदी अनुवाद कीजिए।'}),false);
+});
 test('companion presentation preserves quotations, code, URLs, facts and self grammar',()=>{
  const protectedParts=['"tumhari baat keh do"','“practice karo”',"'kar lo'",'`karo`','```\ntum\n```','https://example.test/karo'];
  const original=protectedParts.join(' ')+' Main sun raha hoon. Main karungi. Rohan ka interview 28 November 2026 ko hai. Aap ho sakte hain.';

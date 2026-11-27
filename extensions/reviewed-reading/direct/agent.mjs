@@ -323,6 +323,7 @@ export async function directAnswer(
         }
       }
       pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
+        naturalListening:focusedPilot,
         savedContext,
         onRequest: () => { pilotCalls++; },
         redact: text => redactIdentity(text, value.user_id)});

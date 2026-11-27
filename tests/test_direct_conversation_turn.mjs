@@ -90,6 +90,30 @@ test('aborting a conversation memory read cannot start model generation',async()
 });
 function deps(fetchImpl,overrides={}) {return {env:{...env,...overrides},fetchImpl,makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>{throw Error('Unexpected tool');}};}
 function response(content,finish_reason='stop'){return new Response(JSON.stringify({choices:[{finish_reason,message:{content}}],usage:{cost:0.001}}));}
+
+test('focused companion repairs the captured listening footer before review without adding advice or tools',async()=>{
+ const captured='Yeh sach mein bura lag sakta hai—khaaskar jab best friend bina bataye plan cancel kar de. Aapka hurt hona bilkul samajh aata hai. Main sun raha hoon; uski taraf se koi reason nahi banaunga, aur abhi advice ya sawaal bhi nahi dunga.';
+ const corrected='Best friend ka bina bataye plan cancel karna chubh sakta hai. Aapko bura laga, yeh samajh aata hai.';
+ const input={...value,history:[],user_gender:'female',query:'Meri best friend ne bina bataye plan cancel kar diya. Mujhe bura lag raha hai. Bas meri baat suniye, advice ya sawal mat dijiye.'};
+ let calls=0;
+ const result=await directAnswer(input,deps(async(_,options)=>{
+  const body=JSON.parse(options.body);assert.equal(body.tools,undefined);calls++;
+  if(calls===1){assert.match(body.messages[0].content,/Follow requests for no advice or questions silently/);return response(JSON.stringify({route:'conversation',reply:captured}));}
+  if(calls===2){assert.match(body.messages.at(-1).content,/mechanically repeats/);return response(JSON.stringify({route:'conversation',reply:corrected}));}
+  const reviewed=JSON.parse(body.messages[1].content);assert.equal(reviewed.candidate.reply,corrected);
+  return response(JSON.stringify({status:'accept',issues:[]}));
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'}));
+ assert.equal(result.reply,corrected);assert.equal(calls,3);assert.deepEqual(result.answer_reading_tools,[]);
+});
+
+test('focused listening wording leaves the switch-off conversation unchanged',async()=>{
+ let calls=0;const reply='Main sun raha hoon; advice ya sawaal nahi dunga.';
+ const result=await directAnswer({...value,history:[],query:'Bas meri baat suniye.'},deps(async(_,options)=>{
+  const body=JSON.parse(options.body);assert.doesNotMatch(body.messages[0].content,/Follow requests for no advice or questions silently/);
+  return response(JSON.stringify(++calls===1?{route:'conversation',reply}:{status:'accept',issues:[]}));
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'0'}));
+ assert.equal(result.reply,reply);assert.equal(calls,2);
+});
 test('envelope preserves quote and dialogue separately without account ID',()=>{
  const result=turnEnvelope({...value,reply_to:'old prediction in 2027'});
  assert.equal(result.quoted_message,'old prediction in 2027');assert.deepEqual(result.dialogue,value.history);

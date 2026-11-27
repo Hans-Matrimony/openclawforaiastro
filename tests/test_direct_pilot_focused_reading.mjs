@@ -499,7 +499,10 @@ test('history-based listening keeps its companion route and persona with the foc
   return {requests,result};
  }
  const on=await conversation('1'),off=await conversation('0');
- assert.deepEqual(on,off);assert.equal(on.result.reply,reply);assert.deepEqual(on.result.answer_reading_tools,[]);
+ assert.deepEqual(on.result,off.result);assert.equal(on.result.reply,reply);assert.deepEqual(on.result.answer_reading_tools,[]);
+ assert.deepEqual(on.requests.map(body=>body.messages[1]),off.requests.map(body=>body.messages[1]));
+ for(const body of on.requests)assert.match(body.messages[0].content,/Follow requests for no advice or questions silently/);
+ for(const body of off.requests)assert.doesNotMatch(body.messages[0].content,/Follow requests for no advice or questions silently/);
 });
 
 test('captured live timing suffixes are cleaned before review only in the focused trial',async t=>{
