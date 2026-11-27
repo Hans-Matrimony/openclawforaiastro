@@ -42,7 +42,7 @@ import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalRepairPrompt, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
-import { currentResponseLanguage, englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction } from "./response-language.mjs";
+import { currentResponseLanguage, englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction, unreadableTextReply } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
 import { practicalInstruction, repeatsPrediction, practicalFallback } from "./practical-followup.mjs";
@@ -303,7 +303,9 @@ export async function directAnswer(
   // The pilot keeps the actual utterance: history supplies its referent without
   // silently turning a request for guidance into the prior prediction question.
   if (!progressPilot && activeQuestion !== value.query) {value = {...value, query: activeQuestion};}
-  const acknowledgement = groundedConversationReply(value, savedBirthContext(value.birth));
+  const unreadableReply=focusedPilot&&unreadableTextReply(value);
+  const acknowledgement = unreadableReply?{reply:unreadableReply,kind:'unreadable_input'}:
+    groundedConversationReply(value, savedBirthContext(value.birth));
   if (acknowledgement) {
     return {
       schema:'vedastro-direct-reply-v1',

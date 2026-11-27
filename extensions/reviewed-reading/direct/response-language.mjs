@@ -11,6 +11,17 @@ export function currentResponseLanguage(value) {
   return language;
 }
 
+// Repeated UTF-8/ANSI damage is not an interpretable astrology request. Do not
+// guess a topic from old history or silently reconstruct the user's message.
+export function unreadableTextReply(value) {
+  const text=String(value.query??'').replace(/```[^]*?```|`[^`\n]*`|"[^"\n]*"|https?:\/\/\S+/gu,'');
+  const damage=text.match(/\u00e0[\u00a4-\u00a9]|\u00c3[\u0080-\u00bf]|\ufffd/gu)??[];
+  if(damage.length<6||damage.join('').length/text.length<0.04)return null;
+  return value.language==='hindi'?'आपका संदेश टूटे हुए अक्षरों में दिख रहा है। कृपया इसे फिर से भेजिए।':
+    value.language==='english'?'Your message arrived with broken characters. Please resend it.':
+    'Aapka message toote hue aksharon mein dikh raha hai. Please ise dobara bhejiye.';
+}
+
 export function responseLanguageInstruction(value) {
   const preference = JSON.stringify(value.language || "english")
     .replace(/</g, "\\u003c").replace(/>/g, "\\u003e");

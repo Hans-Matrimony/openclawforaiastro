@@ -64,6 +64,11 @@ export function focusedReplyIssue(reply,plan) {
   if(comparisonIssue)return comparisonIssue;
   const topicIssue=unrelatedReadingTopic(reply,plan);
   if(topicIssue)return topicIssue;
+  if((plan.reasons?.window_basis||plan.timing?.status==='supplied_window')&&
+    !/\b(?:exact|guarantee\w*|pakki|pakka|confirmed)\b|पक्की|पक्का|निश्चित तारीख/iu.test(plan.subject??'')&&
+    /\b(?:opportunit\w*|indicat\w*|yog|sanket)\b|योग|संकेत/iu.test(reply)&&
+    /\b(?:rather than a (?:confirmed|guaranteed) event|not (?:a |an )?(?:confirmed|guaranteed|fixed) (?:event|date)|(?:yeh?\s+)?(?:anda[az]*ati\s+samay|estimated\s+window)[^.!?\n]{0,30}pakki)\b|यह अनुमानित[^।\n]{0,40}पक्की/iu.test(reply))
+    return 'The reply already attributes the timing to chart opportunities or indications. Remove the repeated estimated-window/not-a-confirmed-event disclaimer. Keep that qualified interpretation, both supplied boundaries and material obstacles; never upgrade it into a guaranteed event. A WHY follow-up should lead with the checked period explanation.';
   const propertyCareerClaim=plan.topic==='property'&&reply.replace(/"[^"\n]*"|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(clause=>
     /\b(?:career|job|naukri|promotion)\b|करियर|नौकरी|पदोन्नति/iu.test(clause)&&
     !/\bcareer\b[^.!?\n]{0,80}(?:\blagu\s+nahi\b|\b(?:does not|doesn't) apply\b|\bnot applicable\b)/iu.test(clause));
@@ -96,6 +101,7 @@ export function focusedReplyIssue(reply,plan) {
   if(inventsDifficultyFromNeutral(reply,plan))
     return 'The returned mixed house-strength indicator is neutral. Describe it as mixed without inferring difficulty, delays, obstacles or circumstances not being straightforward. Retain the actual favorable factors; do not replace this with a no-obstacles claim or a disclaimer.';
   if(plan.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested&&plan.timing?.status!=='supplied_window' &&
+    !(plan.answer_intent==='explain_previous_assessment'&&plan.reasons?.window_basis)&&
     /\b(?:mahadasha|antardasha|dasha|major period|sub-period|planetary period|current period)\b|दशा/iu.test(reply))
     return 'Explain the selected house-strength indicators for this question. Remove the unrequested active-period inventory; do not replace it with another period claim or a disclaimer.';
   if(plan.assessment_method==='returned-natal-house-strength-summary-v1' &&

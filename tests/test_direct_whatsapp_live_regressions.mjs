@@ -13,7 +13,7 @@ import {buildReadingPlan} from '../extensions/reviewed-reading/direct/pilot-read
 import {focusedReplyIssue,focusedReadingFallback} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {correctedReadingSubject} from '../extensions/reviewed-reading/direct/personal-query.mjs';
-import {currentResponseLanguage} from '../extensions/reviewed-reading/direct/response-language.mjs';
+import {currentResponseLanguage,unreadableTextReply} from '../extensions/reviewed-reading/direct/response-language.mjs';
 import {normalizeCompanionLanguage} from '../extensions/reviewed-reading/direct/companion-language.mjs';
 
 const asOf=new Date('2026-11-27T06:00:00Z');
@@ -28,6 +28,18 @@ const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_D
 const memory=()=>({read:async()=>[],write:async()=>assert.fail('No memory writes')});
 const response=content=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(content)}}]});
 const chart=()=>JSON.parse(get_horoscope_predictions({birth_date:'15/06/1998',birth_time:birth.time,location_name:birth.location_name}).content[0].text);
+
+test('corrupted text asks for a resend instead of guessing a reading from history; real scripts and quoted examples survive',async()=>{
+ const query='à¤˜à¤° à¤•à¥€ à¤¬à¤¾à¤¤ à¤›à¥‹à¤¡à¤¼à¥‹';
+ const result=await directAnswer({...value,query,history:[{role:'user',text:'Meri shaadi kab hogi?'}]},
+  {env,makeMemory:()=>assert.fail('No memory for damaged input'),makeTools:()=>assert.fail('No chart'),fetchImpl:()=>assert.fail('No model')});
+ assert.match(result.reply,/dobara bhejiye/);assert.equal(result.answer_model_calls,0);
+ assert.equal(result.answer_conversation_rule,'unreadable_input');
+ for(const query of ['घर की बात छोड़ो। मेरी लव लाइफ कैसी रहेगी?',
+  'বাংলায় বলুন। আমি দুঃখিত নই।','मराठीत उत्तर द्या. निर्णय कसा घ्यावा?',
+  'Explain this encoding error: "à¤˜à¤° à¤•à¥€ à¤¬à¤¾à¤¤ à¤›à¥‹à¤¡à¤¼à¥‹"'])
+  assert.equal(unreadableTextReply({...value,query}),null);
+});
 
 test('explicit dismissed topics select the whole new request in natural self and translated forms',()=>{
  for(const [query,wanted] of [
@@ -76,6 +88,8 @@ test('WHY fallback explains checked period/transit support even when no new date
  const reply=focusedReadingFallback(plan,value);
  assert.match(reply,/Shukra ki mahadasha/);assert.match(reply,/Mangal ki antardasha/);
  assert.match(reply,/Guru ka gochar/);assert.match(reply,/Shani ka dabav/);assert.doesNotMatch(reply,/20\d\d/);
+ assert.match(focusedReplyIssue('Your chart shows career opportunities, as a chart-based opportunity window rather than a confirmed event.',plan),/repeated/);
+ assert.equal(focusedReplyIssue(reply,plan),null);
 });
 
 test('another person with missing birth details gets clarification, never the selected self chart',async()=>{
