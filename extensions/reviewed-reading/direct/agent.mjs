@@ -241,7 +241,7 @@ export async function directAnswer(
   const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
   const readingSubjectFor=query=>{
     const subject=correctedReadingSubject(query,{allowDismissal:focusedPilot});
-    return focusedPilot?specificReturnSubject(subject,value.history):subject;
+    return focusedPilot?specificReturnSubject(subject,value.history,{multilingual:true}):subject;
   };
   const focusedPersonChoice=focusedPilot&&isSpecificReturnQuestion(readingSubjectFor(value.query));
   const resolveTopic=query=>resolveReadingTopic(query,{multilingual:focusedPilot});

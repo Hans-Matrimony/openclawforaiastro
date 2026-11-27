@@ -29,7 +29,19 @@ export function isSpecificReturnQuestion(query = '') {
 
 // Resolve a pronoun only from the latest user topic, never an assistant claim
 // or an older relationship topic across a subsequent subject change.
-export function specificReturnSubject(query,history=[]) {
+export function specificReturnSubject(query,history=[],{multilingual=false}={}) {
+  if(multilingual&&!isSpecificReturnQuestion(query)) {
+    const person=/\b(?:girlfriend|boyfriend|gf|bf|ex|partner)\b|गर्लफ्रेंड|बॉयफ्रेंड|प्रेमिका|प्रेमी|पार्टनर|पूर्व\s+साथी/iu;
+    const returning=/\b(?:wapas|vaapas|return|come back)\b|लौट|वापस\s+(?:आए|आय|आना|आने)/iu;
+    if(returning.test(query)&&!(/\b(?:refund|money|payment|loan|order)\b|पैसे|पैसा|रिफंड|भुगतान|ऑर्डर|कर्ज|उधार/iu.test(query))) {
+      const direct=person.test(query);
+      const pronoun=/\b(?:woh|wo|usne|they|she|he)\b|(?:^|\s)(?:वह|वो|वे|उसने|उन्होंने)(?:\s|$)/iu.test(query);
+      const previous=[...history].reverse().find(turn=>turn.role==='user')?.text??'';
+      // Canonical routing marker only; preserve the original utterance and
+      // never borrow an assistant claim or an older, superseded user topic.
+      if(direct||(pronoun&&person.test(previous)))return `relationship partner return: ${query}`;
+    }
+  }
   if(isSpecificReturnQuestion(query)||!/\b(?:woh|wo|usne|they|she|he)\b/iu.test(query)||
     !/\b(?:wapas|vaapas|return|come back)\b/iu.test(query))return query;
   const previous=[...history].reverse().find(turn=>turn.role==='user')?.text??'';

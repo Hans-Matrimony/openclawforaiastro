@@ -331,6 +331,43 @@ test('pronoun return question inherits only the latest user relationship subject
  assert.equal(specificReturnSubject('Mera refund wapas kab aayega?',history),'Mera refund wapas kab aayega?');
 });
 
+test('focused Hindi return subjects preserve person-choice scope without borrowing across topics or refunds',()=>{
+ const query='मेरी गर्लफ्रेंड लौटेगी या नहीं? कुंडली से स्पष्ट हाँ या ना बताइए।';
+ assert.equal(specificReturnSubject(query),query);
+ assert.equal(specificReturnSubject(query,[],{multilingual:true}),'relationship partner return: '+query);
+ const pronoun='वह कब वापस आएगी?';
+ const history=[{role:'user',text:'मेरी गर्लफ्रेंड से बात नहीं हो रही है।'}];
+ assert.match(specificReturnSubject(pronoun,history,{multilingual:true}),/^relationship partner return:/);
+ assert.equal(specificReturnSubject(pronoun,[...history,{role:'user',text:'मेरा करियर बताइए।'}],{multilingual:true}),pronoun);
+ assert.equal(specificReturnSubject(pronoun,[{role:'assistant',text:'मेरी गर्लफ्रेंड लौटेगी।'}],{multilingual:true}),pronoun);
+ for(const refund of ['मेरे पैसे कब वापस आएंगे?','वो पैसे वापस आएंगे?','Mera refund wapas kab aayega?'])
+  assert.equal(specificReturnSubject(refund,history,{multilingual:true}),refund);
+});
+
+test('captured Hindi possibility claim cannot publish a return prediction from generic marriage factors',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hindi',query:'मेरी गर्लफ्रेंड लौटेगी या नहीं? कुंडली से स्पष्ट हाँ या ना बताइए। अभी हम दोनों की बात नहीं हो रही है।'};
+ const bad='कुंडली में आपकी गर्लफ्रेंड के लौटने की संभावना के संकेत हैं, लेकिन उनका लौटना उनकी अपनी पसंद है।\n\nसातवें भाव में शुभ गुरु और सक्रिय अवधि का संबंध रिश्ते को सहारा देता है।';
+ const {result,requests}=await run({input,draft:bad});
+ const writer=requests.find(body=>body.messages[0].content.startsWith('Write the complete astrology reply'));
+ const evidence=JSON.parse(writer.messages.at(-1).content).checked_evidence;
+ assert.equal(evidence.scope,'person_choice');assert.equal(evidence.assessment,null);assert.deepEqual(evidence.event_windows,[]);
+ assert.deepEqual(requests.find(body=>body.messages[0].content.startsWith('Collect checked evidence')).tools.map(tool=>tool.function.name),['mcp__VedAstro__get_horoscope_predictions']);
+ assert.doesNotMatch(result.reply,/लौटने की संभावना|सातवें|गुरु|दशा|20\d{2}/u);
+ assert.match(result.reply,/फैसला|समय/u);assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ for(const promise of ['हाँ, वह लौटेगी।','वो वापस नहीं आएगा।','उनके लौटने के योग हैं।','लौटने की संभावना है।'])
+  assert.ok(focusedReplyIssue(promise,{scope:'person_choice'}),promise);
+ const qualified='कुंडली से नहीं बता सकते कि वह लौटेगी या नहीं।';
+ assert.equal(focusedReplyIssue(qualified,{scope:'person_choice'}),null);
+ assert.ok(focusedReplyIssue(qualified+' लेकिन वह ज़रूर लौटेगी।',{scope:'person_choice'}));
+ const accepted=await run({input,draft:qualified+'\n\nअभी आप दोनों की बात नहीं हो रही है।'});
+ assert.equal(accepted.result.reply,qualified+'\n\nअभी आप दोनों की बात नहीं हो रही है।');
+ const duplicated=await run({input,draft:qualified+'\n\nअभी आप दोनों की बात नहीं हो रही है, और कुंडली किसी खास व्यक्ति की भावनाओं की पुष्टि नहीं करती।'});
+ assert.equal(duplicated.result.reply,qualified+'\n\nअभी आप दोनों की बात नहीं हो रही है।');
+ const onlyLimit=await run({input,draft:qualified+'\n\nसामान्य संबंध-संकेत किसी खास व्यक्ति की भावनाओं, सहमति या आगे के कदम तय नहीं कर सकते।'});
+ assert.equal(onlyLimit.result.reply,qualified);
+});
+
 test('hard person-choice pressure cannot select horary or publish a return promise',async t=>{
  t.mock.timers.enable({apis:['Date'],now});
  const input={...value,language:'hinglish',query:'Usne abhi baat karne se mana kiya hai. Kya kundli se pakka haan ya naa bata sakte ho ki woh wapas aayegi? Main baar-baar message karun?',
