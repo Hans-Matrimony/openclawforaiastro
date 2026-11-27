@@ -4,6 +4,7 @@ import { personaInstruction } from './persona.mjs';
 import { responseLanguageInstruction } from './response-language.mjs';
 import { conversationProgressInstruction, repeatsClarification } from './conversation-progress.mjs';
 import { normalizeCompanionLanguage, companionInstructionEcho } from './companion-language.mjs';
+import {continuationPolicy,continuationInstruction,continuationIssue} from './conversation-continuation.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -46,8 +47,9 @@ export const familiarCompanionInstruction = `Conversation-only style: be a warm,
 
 const naturalListeningInstruction = `For listening-only turns, respond to the specific experience in one or two natural sentences. Follow requests for no advice or questions silently: do not announce "no advice or questions", "I won't give advice or ask questions", or echo the user's instructions as a closing line. A brief "I'm listening" is fine when it adds warmth. Do not replace specific acknowledgment with a generic reassurance, invented motive, question, action plan or claim to human feelings. If the user explicitly requests a quotation, translation, draft or confirmation, fulfill that task instead of suppressing its wording.`;
 
-export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,savedContext = [],onRequest = () => {},naturalListening = false}) {
+export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,savedContext = [],onRequest = () => {},naturalListening = false,continueConversation = false}) {
   const envelope=JSON.parse(redact(JSON.stringify(turnEnvelope(value,savedContext))));
+  if(continueConversation)envelope.continuation_policy=continuationPolicy(value);
   const conversationModel=env.ASTROFRIEND_CONVERSATION_MODEL?.trim();
   const reasoningEffort=env.ASTROFRIEND_CONVERSATION_REASONING_EFFORT;
   if (conversationModel && reasoningEffort && !['none','minimal','low','medium','high'].includes(reasoningEffort)) {
@@ -59,7 +61,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     : generationSettings(env);
   const body={model:conversationModel || env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
     messages:[{role:'system',content:contract+conversationProgressInstruction+personaInstruction(value)+responseLanguageInstruction(value)+
-      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction:'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
+      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction:'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
     response_format:{type:'json_object'},max_tokens:conversationModel?1200:700,stream:false,...settings};
   const usage=[];
   async function request(parser = content => parseTurnDecision(content,value,{allowRepeatedClarification:true})) {
@@ -95,6 +97,8 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   if (decision && decision.route !== 'checked_reading' && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== '0') {
     const writerMessages=structuredClone(body.messages);
     async function review(candidate) {
+      const continuity=continueConversation&&continuationIssue(candidate.reply,value,envelope.continuation_policy);
+      if(continuity)return {status:'reject',issues:[continuity]};
       if(naturalListening&&companionInstructionEcho(candidate.reply,value)) {
         return {status:'reject',issues:['The reply mechanically repeats the no-advice/no-questions instruction. Remove that instruction echo and acknowledge the specific experience naturally. Preserve the listening request without adding advice, a question, invented motives or a generic reassurance.']};
       }
@@ -104,7 +108,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       if (repeatsClarification(candidate.reply,value.history ?? [])) {
         return {status:'reject',issues:['The reply repeats an earlier clarification. Answer what is possible from the dialogue without asking that question again.']};
       }
-      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction:'')},
+      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction:'')},
         {role:'user',content:JSON.stringify({conversation:envelope,candidate})}];
       return request(parseConversationReview);
     }

@@ -8,6 +8,7 @@ import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} fr
 import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract} from './pilot-reading-plan.mjs';
 import {focusedTopicSignal} from './focused-topic-evidence.mjs';
 import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedReadingLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
+import {continuationPolicy,continuationInstruction,continuationIssue} from './conversation-continuation.mjs';
 
 // Roll out only through the existing exact-account WhatsApp pilot. Specialist
 // calculations and every other surface retain their established flow.
@@ -125,8 +126,12 @@ const estimateContract=`The supplied timing_estimate is an experimental calculat
 Interpret selected.basis explicitly, for both writing and review: a period's presence does not establish support. major.relevant=false means that major period has no checked topic link; never describe it as supportive just because its minor period and Jupiter transit qualify. minor.relevant=false with aspect_nature=pressure means pressure, not supportive minor-period evidence; the opportunity instead depends on the relevant major period and Jupiter transit. For either period, retain adverse_natal_condition and pressure aspects if discussing its effect. Use only the supplied period evidence: a future timing question needs the selected future periods, not today's period inventory. Current-period evidence, when supplied for a calculation without windows, is contextual; its discussion is optional, not an acceptance requirement. Never demand omitted current-period data or invent it from dialogue.
 Explain the actual qualifying period links and future Jupiter transit support afterward, retaining material natal obstacles, minor-period pressure and any nonempty transit.saturn_pressure_houses. If the same planet's pressure applies natally and in the future window, a concise statement that its pressure continues during that period is enough; do not demand duplicated technical explanations or an inventory of every raw field. The reviewer must reject a supportive claim about a period with relevant=false or an explanation that turns pressure into support. It is fine to omit an unrelated major period entirely. Keep future transit house numbers internal; describe their topic support in everyday words and distinguish that from natal placements. The opportunity window is not the full start/end of its antardasha. If the calculation returned no qualifying interval, say it did not identify a clearer period within the stated horizon; this does not mean the event is impossible. If the latest request did not ask for timing, use this evidence only to explain the outlook without repeating dates.`;
 
-export async function writeCoherentReading({value,subject,packet,facts=[],remedies=[],focused=false,generate,validate,fallback,onEvent=()=>{}}) {
+export async function writeCoherentReading({value,subject,packet,facts=[],remedies=[],focused=false,continueConversation=false,generate,validate,fallback,onEvent=()=>{}}) {
   const plan=focused?buildReadingPlan(value,subject,packet,remedies):null;
+  const continuity=focused&&continueConversation;
+  const policy=continuity?continuationPolicy(value):null;
+  const continuation=continuity?'\n'+continuationInstruction+'\nFor this reading, follow_up is a final conversational question, never another prediction or a claim about feelings, chart facts or outcomes. Do not ask for birth details or other facts already supplied. Review the entire displayed reply, including that question.':'';
+  const followupFields=continuity?'\nExtend the writing JSON with a follow_up string field; this is the only additional permitted key. Put the final question ONLY in follow_up, after the complete answer, explanation and optional remedy. In quiet/format mode leave follow_up empty. Preserve all existing material facts.':'';
   // Selected house strengths do not need an unrelated period inventory. Keep
   // the same scoped evidence for writing, review and bounded repair.
   let displayPacket=packet;
@@ -137,16 +142,17 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   const payload={question:subject,latest_request:value.query,language:value.language,
     timing_requested:asksForTiming(value.query,{exactDateRequests:focused}),max_words:150,
     dialogue:(value.history??[]).slice(-12),user_context:facts,checked_evidence:displayPacket,remedy_references:remedies,
-    ...(plan?{reading_plan:plan}:{})};
+    ...(plan?{reading_plan:plan}:{}),...(continuity?{continuation_policy:policy}:{})};
   const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';
-  const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
+  const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+continuation+followupFields+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
   let feedback='';
   let verifiedCandidate=null;
   let previousDraft=null;
   for (let attempt=0;attempt<2;attempt++) {
     try {
       const editing=feedback && verifiedCandidate!==null;
-      const instruction=editing?styleEditContract+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value):writer;
+      const editContract=continuity?styleEditContract.replace('Do not add a question or new advice.','Keep only the contextual final question allowed by continuation_policy; do not add advice.'):styleEditContract;
+      const instruction=editing?editContract+estimateInstruction+continuation+followupFields+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value):writer;
       const raw=await generate(instruction,JSON.stringify({...payload,...(feedback?{
         previous_reply:previousDraft,edit_feedback:feedback,edit_mode:editing?'presentation_only':'correct_rejected_draft',
       }:{})}));
@@ -156,7 +162,8 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
       if (!parts || Array.isArray(parts) || typeof parts.answer!=='string' || !parts.answer.trim() ||
           typeof parts.reason!=='string' || (!parts.reason.trim() && packet.scope!=='person_choice') ||
           (parts.remedy!==undefined && typeof parts.remedy!=='string') ||
-          Object.keys(parts).some(key=>!['answer','reason','remedy'].includes(key)) ||
+          (continuity&&parts.follow_up!==undefined&&typeof parts.follow_up!=='string') ||
+          Object.keys(parts).some(key=>![ 'answer','reason','remedy',...(continuity?['follow_up']:[])].includes(key)) ||
           (parts.remedy?.trim() && !remedies.length)) {
         feedback='Use the required JSON answer/reason/remedy fields; omit a remedy when no relevant references were supplied.';
         onEvent('rejected:structure');continue;
@@ -164,7 +171,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
       parts.answer=removeTimingBoilerplate(parts.answer,packet.timing_estimate,{focused});
       if(focused&&plan.scope==='person_choice')parts.reason=removeRepeatedChoiceLimit(parts.answer,parts.reason);
       previousDraft=parts;
-      const candidate=[parts.answer,parts.reason,parts.remedy].filter(part=>part?.trim())
+      const candidate=[parts.answer,parts.reason,parts.remedy,...(continuity?[parts.follow_up]:[])].filter(part=>part?.trim())
         .map(part=>{
           let text=part.replace(/\s+/gu,' ').trim();
           // Normalize only numeric house ordinals; never transliterate prose
@@ -183,10 +190,11 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
       if (!candidate || candidate==='NONE' || candidate.length>2400 || candidate.split(/\s+/u).length>150 || wrongScript) {
         feedback=wrongScript?'Use the requested language and script.':'Return a concise complete reply within 150 words.';
       } else {
-        const issue=(focused?focusedReplyIssue(candidate,plan):null)||validate(candidate);
+        const issue=(focused?focusedReplyIssue(candidate,plan):null)||validate(candidate)||
+          (continuity?continuationIssue(candidate,value,policy):null);
         if (issue) feedback=issue;
         else {
-          let review;try {review=JSON.parse(await generate((focused?focusedReviewContract:reviewContract)+estimateInstruction+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),JSON.stringify({...payload,proposed:candidate,
+          let review;try {review=JSON.parse(await generate((focused?focusedReviewContract:reviewContract)+estimateInstruction+continuation+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),JSON.stringify({...payload,proposed:candidate,
             presentation_measurements:{word_count:candidate.split(/\s+/u).length,contains_devanagari:/[\u0900-\u097f]/u.test(candidate),contains_latin:/[A-Za-z]/u.test(candidate)},
           })));}catch {review=null;}
           if(review?.evidence_ok===true && review.reason==='' && typeof review.presentation_issue==='string') {

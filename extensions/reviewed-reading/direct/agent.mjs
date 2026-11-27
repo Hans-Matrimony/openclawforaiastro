@@ -236,6 +236,7 @@ export async function directAnswer(
   const topicGuidesEnabled = Boolean(pilotTopicPrompt(env, value, true));
   const coherentPilot = coherentReadingEnabled(env,value);
   const focusedPilot = focusedReadingEnabled(env,value);
+  const continueConversation = focusedPilot && env.ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED === '1';
   if(focusedPilot)value={...value,language:currentResponseLanguage(value)};
   const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
   const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
@@ -324,6 +325,7 @@ export async function directAnswer(
       }
       pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
         naturalListening:focusedPilot,
+        continueConversation,
         savedContext,
         onRequest: () => { pilotCalls++; },
         redact: text => redactIdentity(text, value.user_id)});
@@ -634,7 +636,7 @@ export async function directAnswer(
       if(!packet)return null;
     }
     const fallback=formatDisplayReply(evidenceFallback(chartResults,value.language,coherentSubject,now()));
-    const reply=await writeCoherentReading({value,subject:coherentSubject,packet,facts:context.memoryFacts,focused:focusedPilot,
+    const reply=await writeCoherentReading({value,subject:coherentSubject,packet,facts:context.memoryFacts,focused:focusedPilot,continueConversation,
       remedies:remedyKnowledge?.status==='available'?remedyKnowledge.sources:[],fallback,
       generate:(instruction,data)=>generateClosing(instruction,redactIdentity(data,value.user_id),1400,true,true),
       onEvent:event=>validation.push('pilot_coherent_'+event),
