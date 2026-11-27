@@ -241,7 +241,8 @@ test('live neutral correction is translated naturally before review without chan
  const {result,requests}=await run({input:{...value,language:'hinglish',query:'Kya mere abroad jaane ke yog hain?'},draft});
  assert.equal(result.reply,draft.replace('sanket mixed hain','sanket mile-jule hain'));
  assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
- assert.equal(normalizeFocusedHouseLanguage('"12th house mixed hai" 12th house mixed hai.',{language:'hinglish'}),'"12th house mixed hai" 12th house ke sanket mile-jule hain.');
+ assert.equal(normalizeFocusedHouseLanguage('"12th house mixed hai" 12th house mixed hai.',{language:'hinglish'}),'"12th house mixed hai" 12ve ghar ke sanket mile-jule hain.');
+ assert.equal(normalizeFocusedHouseLanguage('12va ghar mixed hai.',{language:'hinglish'}),'12ve ghar ke sanket mile-jule hain.');
  assert.equal(normalizeFocusedHouseLanguage('12th house mixed hai.',{language:'english'}),'12th house mixed hai.');
 });
 

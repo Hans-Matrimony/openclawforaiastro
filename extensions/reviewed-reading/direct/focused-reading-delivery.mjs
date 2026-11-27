@@ -26,7 +26,7 @@ export function normalizeFocusedHouseLanguage(text,value) {
   if(value.language!=='hinglish')return text;
   return text.split(/("[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`)/gu).map((part,index)=>index%2?part:part
     .replace(/\bsanket\s+mixed\s+(?:hain|hai)\b/giu,'sanket mile-jule hain')
-    .replace(/\b(\d{1,2}(?:st|nd|rd|th|ve|va)\s+(?:house|ghar))\s+mixed\s+hai\b/giu,'$1 ke sanket mile-jule hain')).join('');
+    .replace(/\b(\d{1,2})(?:st|nd|rd|th|ve|va)\s+(?:house|ghar)\s+mixed\s+hai\b/giu,'$1ve ghar ke sanket mile-jule hain')).join('');
 }
 
 // Check the degree of certainty independently of the model reviewer. Never
