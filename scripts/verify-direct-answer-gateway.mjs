@@ -50,6 +50,9 @@ const env = {
   VEDASTRO_DIRECT_FLOW: "source",
   VEDASTRO_DIRECT_CONTEXTUAL_CLOSING: "1",
   VEDASTRO_DIRECT_REPLY_CACHE: "0",
+  ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED: "1",
+  ASTROFRIEND_CONVERSATION_PROGRESS_USERS: "919000000001",
+  ASTROFRIEND_CONVERSATION_MODEL: "synthetic/extractor",
 };
 // Intercept only the two synthetic external dependencies inside the test child.
 const fixture = path.join(directory, "fixture.mjs");
@@ -60,6 +63,10 @@ fs.writeFileSync(
  if (address.startsWith('https://memory.invalid/')) return new Response(JSON.stringify({memories:[]}));
  if (address === 'https://openrouter.ai/api/v1/chat/completions') {
   const body = JSON.parse(options.body);
+  if (body.messages.some(m => m.role === 'system' && m.content.startsWith('Extract profile updates,'))) {
+   if (body.tools || body.user || body.messages.some(m => m.content.includes('919000000001'))) throw new Error('Profile extraction leaked tools or identity');
+   return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({intent:'other',reading_requested:false,profiles:[],uncertain:[]})}}]});
+  }
   if (!body.messages.some(m => m.role === 'system' && m.content.includes('Finish the allowed question without promising another free reading.'))) throw new Error('Missing quota guidance');
   const content = body.tools ? 'Hello, tell me what is on your mind.' : 'Aaj ka din kaisa raha?';
   return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:{content}}]}));
@@ -155,6 +162,24 @@ try {
   assert.equal(result.schema, "vedastro-direct-reply-v1");
   assert.ok(result.reply.includes("Hello"));
   assert.ok(result.answer_model_calls >= 1);
+  const postProfile = (body, token = "synthetic-release-token") =>
+    fetch(`http://127.0.0.1:${port}/astrofriend/profile-extract`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: "Bearer " + token } : {}),
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000),
+    });
+  const profilePayload = {
+    user_id: "919000000001", message: "Hello", history: [], awaiting_birth_details: false,
+  };
+  assert.equal((await postProfile(profilePayload, "")).status, 401);
+  assert.equal((await postProfile({ ...profilePayload, user_id: "919000000003" })).status, 400);
+  const profileResponse = await postProfile(profilePayload);
+  assert.equal(profileResponse.status, 200, "Packaged profile route failed: " + logs.slice(-4000));
+  assert.equal((await profileResponse.json()).schema, "profile-extraction-v1");
   if (process.env.PWA_DIRECT_ADAPTER) {
     execFileSync(
       "python3",

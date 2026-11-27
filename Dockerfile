@@ -86,7 +86,7 @@ RUN node /app/verify-reading-guard-gateway.mjs /app/extensions/astrologer-readin
 COPY extensions/astrology-response/ /app/extensions/astrology-response/
 COPY extensions/reviewed-reading/route.mjs /app/extensions/reviewed-reading/route.mjs
 COPY extensions/reviewed-reading/direct/ /app/extensions/reviewed-reading/direct/
-COPY extensions/reviewed-reading/direct-route.mjs extensions/reviewed-reading/direct-http.mjs /app/extensions/reviewed-reading/
+COPY extensions/reviewed-reading/direct-route.mjs extensions/reviewed-reading/direct-http.mjs extensions/reviewed-reading/profile-extraction.mjs /app/extensions/reviewed-reading/
 COPY extensions/direct-answer/ /app/extensions/direct-answer/
 COPY scripts/configure-direct-answer.mjs /app/scripts/configure-direct-answer.mjs
 RUN npm ci --omit=dev --prefix /app/extensions/reviewed-reading/direct/assets/dev-v2
