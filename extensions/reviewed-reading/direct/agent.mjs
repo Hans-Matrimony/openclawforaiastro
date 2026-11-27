@@ -86,6 +86,7 @@ import { createTools, TOOLS } from "./tools.mjs";
 import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-context.mjs";
 import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion, borrowsCompanionTopic } from './followup-scope.mjs';
 import { invalidGunaScore } from './birth-evidence.mjs';
+import {selectedSelfBirth} from './selected-self-birth.mjs';
 import { invalidGunaPresentation, verifiedGunaFallback, requestedGunaPoints } from './guna-presentation.mjs';
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
 import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
@@ -371,7 +372,10 @@ export async function directAnswer(
   // Follow-ups can acquire their subject during semantic routing. Specialist
   // calculations retain their own renderer and must never get a natal fallback.
   topicExperiment = topicGuidesEnabled && completenessPilot;
-  const maxCalls = readingMaxCalls + pilotCalls;
+  // The WhatsApp transport accepts at most eight total model attempts. A
+  // focused repair must share that budget with interpretation and review,
+  // otherwise a valid answer is rejected by the adapter as an outage.
+  const maxCalls = focusedPilot ? readingMaxCalls : readingMaxCalls + pilotCalls;
   const semanticReading = conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading';
   const memory = pilotMemory ?? makeMemory(value.user_id, { env, fetchImpl, signal });
   const execute = makeTools({ memory, birth: value.birth, query: activeQuestion, history: value.history,
@@ -675,6 +679,23 @@ export async function directAnswer(
       answer_response_flow:'pilot_coherent_reading',
       ...(remedyKnowledge?{answer_remedy_status:remedyKnowledge.status,answer_remedy_sources:remedyKnowledge.sources.length}:{})};
   };
+  const recoverConfirmedChart=async status=>{
+    if(!focusedPilot||!coherentFlow||readingTools.size||env.VEDASTRO_DIRECT_USE_LOCAL_ENGINE==='0')return null;
+    const confirmed=selectedSelfBirth(activeQuestion,value.birth,{propertyReading:true,relationshipReading:true});
+    if(!confirmed)return null;
+    signal.throwIfAborted();
+    try {
+      // A known natal tool and confirmed self inputs need no model selection.
+      // This is a read-only calculation, never a replay of a model tool write.
+      const result=await execute('mcp__VedAstro__get_horoscope_predictions',{
+        birth_date:confirmed.date,birth_time:confirmed.time,location_name:confirmed.location_name??confirmed.place});
+      const content=typeof result==='string'?result:JSON.stringify(result);
+      if(!coherentEvidencePacket([content],readingOptions.topic,{question:coherentSubject,focused:true}))return null;
+      chartResults.push(content);readingTools.add('get_horoscope_predictions');
+      validation.push('pilot_confirmed_chart_after_http_'+status);
+      return await finishCoherentReading();
+    } catch {signal.throwIfAborted();return null;}
+  };
   if (sourceFlow && readingRequired && !emotionalFriendship && !matchingLimitations) {
     if (voiceReply) {validation.push(timingRequired ? 'voice_timing_question' : 'voice_general_question');}
     const prepared = preparedVoiceChart;
@@ -771,6 +792,11 @@ export async function directAnswer(
         body: JSON.stringify(body),
       });
       if (!response.ok) {
+        if(requireCoherentChart&&[429,502,503,504].includes(response.status)) {
+          await response.body?.cancel();
+          const recovered=await recoverConfirmedChart(response.status);
+          if(recovered)return recovered;
+        }
         const failure = new Error("Direct answer unavailable");
         failure.code = "model_http_" + response.status;
         throw failure;

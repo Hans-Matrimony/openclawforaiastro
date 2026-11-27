@@ -5,6 +5,7 @@ import { responseLanguageInstruction } from './response-language.mjs';
 import { conversationProgressInstruction, repeatsClarification } from './conversation-progress.mjs';
 import { normalizeCompanionLanguage, companionInstructionEcho } from './companion-language.mjs';
 import {continuationPolicy,continuationInstruction,continuationReviewInstruction,continuationIssue,groundedContinuationReply} from './conversation-continuation.mjs';
+import {createModelRequest} from './model-request.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -67,10 +68,12 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       (capabilityBoundary?'\nThis request has a verified calculation-capability boundary. For kind person_profile, return clarification asking for that other person\'s own birth date, exact birth time and birthplace. The selected account profile belongs to the user and cannot be used for them. For kind clarify, ask whether buying, selling or building. Otherwise return conversation: explain the specific unknown date/decision naturally, once, without chart claims, a prediction or a checked_reading handoff. Only purchase timing is calculated; it cannot time a sale, construction or a bank decision. Do not borrow earlier dates or promise a further calculation. Only person_profile needs birth details.':'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
     response_format:{type:'json_object'},max_tokens:conversationModel?1200:700,stream:false,...settings};
   const usage=[];
+  let requests=0;
+  const fetchModel=createModelRequest({fetchImpl,enabled:naturalListening,
+    canCall:()=>requests<5,takeCall:()=>{if(requests>=5)throw Error('Conversation call budget exhausted');requests++;onRequest();}});
   async function request(parser = content => parseTurnDecision(content,value,{allowRepeatedClarification:true})) {
     signal.throwIfAborted();
-    onRequest();
-    const response=await fetchImpl('https://openrouter.ai/api/v1/chat/completions',{
+    const response=await fetchModel('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',redirect:'error',headers:{Authorization:`Bearer ${env.OPENROUTER_API_KEY}`,'Content-Type':'application/json'},
       body:JSON.stringify(body),signal});
     if (!response.ok) { await response.body?.cancel(); return null; }
