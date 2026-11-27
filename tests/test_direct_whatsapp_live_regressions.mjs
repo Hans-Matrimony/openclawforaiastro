@@ -12,6 +12,9 @@ import {coherentEvidencePacket} from '../extensions/reviewed-reading/direct/pilo
 import {buildReadingPlan} from '../extensions/reviewed-reading/direct/pilot-reading-plan.mjs';
 import {focusedReplyIssue,focusedReadingFallback} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
+import {correctedReadingSubject} from '../extensions/reviewed-reading/direct/personal-query.mjs';
+import {currentResponseLanguage} from '../extensions/reviewed-reading/direct/response-language.mjs';
+import {normalizeCompanionLanguage} from '../extensions/reviewed-reading/direct/companion-language.mjs';
 
 const asOf=new Date('2026-11-27T06:00:00Z');
 const birth={date:'1998-06-15',time:'10:30',location_name:'Mumbai'};
@@ -25,6 +28,55 @@ const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_D
 const memory=()=>({read:async()=>[],write:async()=>assert.fail('No memory writes')});
 const response=content=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(content)}}]});
 const chart=()=>JSON.parse(get_horoscope_predictions({birth_date:'15/06/1998',birth_time:birth.time,location_name:birth.location_name}).content[0].text);
+
+test('explicit dismissed topics select the whole new request in natural self and translated forms',()=>{
+ for(const [query,wanted] of [
+  ['Career ki baat chhodo. Main apna pehla ghar kab kharid paunga?','Main apna pehla ghar kab kharid paunga?'],
+  ['Leave my career aside. When can I buy my first house?','When can I buy my first house?'],
+  ['करियर की बात छोड़ो। मेरा घर खरीदने का समय कब है?','मेरा घर खरीदने का समय कब है?'],
+  ['Ghar ki baat chhodo, meri love life kaisi rahegi?','meri love life kaisi rahegi?']]) {
+  assert.equal(correctedReadingSubject(query,{allowDismissal:true}),wanted);
+  assert.equal(correctedReadingSubject(query),query,'non-pilot behavior stays unchanged');
+ }
+ for(const query of ['Job nahi mili, kya career mein delay hai?','Shaadi nahi hui, ab kab hogi?',
+  'Career aur ghar dono ki timing batao.'])assert.equal(correctedReadingSubject(query,{allowDismissal:true}),query);
+});
+
+test('Roman Hindi overrides English for this turn without treating quoted or negated requests as instructions',()=>{
+ const query='Ab Roman Hindi mein sirf do chhoti lines mein manager ko bolne layak message likh do. End mein sawal mat jodna.';
+ assert.equal(currentResponseLanguage({language:'english',query}),'hinglish');
+ for(const query of ['Roman Hindi mein mat likhna.','"Ab Roman Hindi mein likho."','I study Roman Hindi.'])
+  assert.equal(currentResponseLanguage({language:'english',query}),'english');
+});
+
+test('two-line copyable drafts preserve recipient register and get a final reviewed repair, not an unreviewed fallback',async()=>{
+ const query='Ab Roman Hindi mein sirf do chhoti lines mein manager ko bolne layak message likh do. End mein sawal mat jodna.';
+ let calls=0;
+ const reply='Family ke liye waqt nikalna meri priority hai.\nMain fixed hours wale role par baat karna chahta hoon.';
+ const result=await directAnswer({...value,language:'english',query,history:[
+  {role:'user',text:'Reply in English. Family time is more important than a salary jump.'},
+  {role:'assistant',text:'Prioritize the fixed-hours role if its pay covers your needs.'}]},
+ {env,now:()=>asOf,makeMemory:memory,makeTools:()=>assert.fail('No chart for a draft'),fetchImpl:async(_,options)=>{
+  calls++;const body=JSON.parse(options.body);
+  if(calls%2===0)return response({status:calls===6?'accept':'reject',issues:calls===6?[]:['Keep the exact requested two-line artifact and recipient.']});
+  assert.match(body.messages[0].content,/Hinglish|hinglish/);
+  return response({route:'conversation',reply});
+ }});
+ assert.equal(calls,6);assert.equal(result.reply,reply);
+ const informal='Yaar, main tumhari baat sun raha tha.\nMeri baat bhi poori sun lena.';
+ assert.equal(normalizeCompanionLanguage(informal,{...value,query:'Message likh do.',preserve_requested_draft:true}),informal);
+ assert.match(normalizeCompanionLanguage('Tum kya chahte ho?',value),/Aap kya chahte hain/);
+});
+
+test('WHY fallback explains checked period/transit support even when no new date was requested',()=>{
+ const packet=coherentEvidencePacket([JSON.stringify(chart())],'career',{question:'Mera career kab set hoga?',focused:true});
+ packet.timing_estimate={selected:{basis:{major:{lord:'Venus',relevant:true},minor:{lord:'Mars',relevant:true},transit:{activated_houses:[10],saturn_pressure_houses:[10]}}}};
+ const plan=buildReadingPlan({...value,query:'Us time ko strong kyun bol rahe ho?'},'Mera career kab set hoga?',packet);
+ assert.equal(plan.timing.status,'not_requested');
+ const reply=focusedReadingFallback(plan,value);
+ assert.match(reply,/Shukra ki mahadasha/);assert.match(reply,/Mangal ki antardasha/);
+ assert.match(reply,/Guru ka gochar/);assert.match(reply,/Shani ka dabav/);assert.doesNotMatch(reply,/20\d\d/);
+});
 
 test('another person with missing birth details gets clarification, never the selected self chart',async()=>{
  for(const query of ['Mere dost ki shaadi kab hogi? Uski birth details mere paas nahi hain.',

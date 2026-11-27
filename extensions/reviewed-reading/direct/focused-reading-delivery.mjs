@@ -174,7 +174,8 @@ export function focusedReadingFallback(plan,value) {
   }
   const lang=language(value),answer=outcome(plan,lang);
   if(!answer)return null;
-  const parts=[answer],window=plan.timing.status==='supplied_window'?plan.timing.windows?.[0]:null;
+  const explainWindow=plan.answer_intent==='explain_previous_assessment'&&plan.reasons.window_basis;
+  const parts=explainWindow?[]:[answer],window=plan.timing.status==='supplied_window'?plan.timing.windows?.[0]:null;
   if(window) {
     const from=month(window.from,lang),to=month(window.to,lang);if(!from||!to)return null;
     parts.push(lang==='english'?`The calculation points to opportunities from ${from} to ${to}.`:
@@ -195,7 +196,8 @@ export function focusedReadingFallback(plan,value) {
       lang==='hindi'?`चौथे घर के स्वामी ${lord} की प्रतिकूल स्थिति संपत्ति के मामले में रुकावट के संकेत देती है।`:
       `Chauthe ghar ke swami ${lord} ki pratikool sthiti property ke mamle mein rukawat ke sanket deti hai.`);
   }
-  if(window) {
+  if(window || (plan.answer_intent==='explain_previous_assessment' && plan.reasons.window_basis)) {
+    const natalCount=reasons.length;
     const supportLabels=[];
     for(const period of plan.reasons.period_roles??[]) {
       if(!period.supports_topic&&!period.pressure&&!period.adverse_natal_condition)continue;
@@ -216,8 +218,9 @@ export function focusedReadingFallback(plan,value) {
     }
     if(transit?.saturn_pressure_houses?.length)reasons.push(lang==='english'?"Saturn's pressure continues during that time.":
       lang==='hindi'?'उस अवधि में शनि का दबाव भी जारी रहता है।':'Us daur mein Shani ka dabav bhi jaari rehta hai.');
+    if(explainWindow)reasons.unshift(...reasons.splice(natalCount));
   }
   if(!reasons.length)return null;
-  const reply=parts.join(' ')+'\n\n'+[...new Set(reasons)].join(' ');
+  const reply=[parts.join(' '),[...new Set(reasons)].join(' ')].filter(Boolean).join('\n\n');
   return reply.split(/\s+/u).length<=150?reply:null;
 }

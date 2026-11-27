@@ -4,6 +4,12 @@ const protectedText=/(```[\s\S]*?```|`[^`\n]*`|"[^"\n]*"|“[^”\n]*”|‘[^�
 const pronouns={tum:'aap',tumne:'aapne',tumhe:'aapko',tumko:'aapko',tumhara:'aapka',tumhari:'aapki',tumhare:'aapke'};
 const imperatives={karo:'kijiye',batao:'bataiye',rakho:'rakhiye',dekho:'dekhiye',suno:'suniye'};
 const mapped=(word,words)=>word[0]===word[0].toUpperCase()?words[word.toLowerCase()].replace(/^./u,c=>c.toUpperCase()):words[word.toLowerCase()];
+export function requestedMessageDraft(value) {
+  return /\b(?:draft|copy\s+kar|message\s+likh|write\s+(?:a\s+)?message)\b/iu.test(value.query??'') ||
+    (/\b(?:chh?ota|shorter|shorten|normal|formal)\b/iu.test(value.query??'') &&
+      /\b(?:draft|copy\s+kar|message\s+likh|write\s+(?:a\s+)?message)\b/iu.test((value.history??[]).filter(t=>t.role==='user').at(-1)?.text??''));
+}
+
 function respectful(text) {
   return text
     .replace(/\b(?:tum|tumne|tumhe|tumko|tumhara|tumhari|tumhare)\b/giu,word=>mapped(word,pronouns))
@@ -17,6 +23,9 @@ function respectful(text) {
 }
 export function normalizeCompanionLanguage(reply,value) {
   if(!/^(?:hinglish|hindi|hi)$/iu.test(value.language??''))return reply;
+  // Copyable messages use the recipient's register, even without quotation
+  // marks. Semantic review, not mechanical pronoun replacement, checks them.
+  if(value.preserve_requested_draft&&requestedMessageDraft(value))return reply;
   return reply.split(protectedText).map((part,index)=>index%2?part:respectful(part)).join('');
 }
 

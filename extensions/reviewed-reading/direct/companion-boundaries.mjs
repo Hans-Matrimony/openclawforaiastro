@@ -2,6 +2,8 @@ const quoted=/```[\s\S]*?```|`[^`\n]*`|"[^"\n]*"|“[^”\n]*”|‘[^’\n]*’
 
 export const companionBoundaryInstruction=`Do not infer another person's thoughts or motives from an interruption, silence or a block, even with "it seems". Describe the reported action and ask only about a genuinely missing detail. Do not promise another person will return, initiate contact or become ready. If someone has blocked the user, advise against bypassing the block with another number or an uninvited workplace visit; leave their future choice unknown. Use respectful aap outside a requested draft or quotation. For a copyable message, give the message itself in the requested tone, without interpreting the recipient's mind, an accusatory preface or extra advice. A follow-up must be a complete natural question and must not ask for information already stated in the current message. For a comparison, address both options and distinguish what is supported for each; a single-option observation is not an answer to the comparison.`;
 
+import {requestedMessageDraft} from './companion-language.mjs';
+
 export function blockedContactQuestion(value) {
   return /\bblock\w*\b|ब्लॉक/iu.test(value.query)&&
     /\b(?:number|office|workplace|contact|message|milne|jaun|jaaoon)\b|नंबर|नम्बर|ऑफिस|दफ्तर/iu.test(value.query);
@@ -10,7 +12,7 @@ export function blockedContactQuestion(value) {
 export function companionAddressText(reply,value) {
   // A requested message speaks to its recipient, not to the user. Its informal
   // register is allowed; the semantic reviewer still checks any surrounding prose.
-  if(/\b(?:draft|copy\s+kar|message\s+likh|write\s+(?:a\s+)?message)\b/iu.test(value.query??''))return '';
+  if(requestedMessageDraft(value))return '';
   return reply.replace(quoted,'');
 }
 

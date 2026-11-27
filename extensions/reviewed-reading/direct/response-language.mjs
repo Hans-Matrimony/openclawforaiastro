@@ -6,6 +6,8 @@ export function currentResponseLanguage(value) {
   // negated requests must never change the language of a checked fallback.
   const text=String(value.query??'').replace(/```[^]*?```|"[^"]*"|“[^”]*”|‘[^’]*’|`[^`\n]*`|https?:\/\/\S+/gu,'');
   for(const match of text.matchAll(/(?:^|[.!?\n])\s*(?:please\s+)?(?:reply|answer|respond|write|explain)(?:\s+(?:it|this|that))?\s+(?:only\s+)?in\s+(english|hindi|hinglish)\b/giu))language=match[1].toLowerCase();
+  for(const match of text.matchAll(/(?:^|[.!?\n])\s*(?:ab\s+|please\s+)?(Roman Hindi|Hinglish|Hindi|English)\s+mein\b(?!\s+(?:mat|nahi|nahin)\b)/giu))
+    language=/roman|hinglish/iu.test(match[1])?'hinglish':match[1].toLowerCase();
   return language;
 }
 
