@@ -7,6 +7,13 @@ export function continuationPolicy(value) {
   const query=value.query.replace(protectedText,'');
   const current={...value,query};
   if(!canAskFollowup('Normal prose.',current,true))return {mode:'quiet',reason:'no_questions'};
+  const previous=value.reply_to?.role==='assistant'?value.reply_to.text:
+    [...(value.history??[])].reverse().find(turn=>turn.role==='assistant')?.text??'';
+  if(/\b(?:uda+s+i|sad|sadness)\b|उदासी|उदास/iu.test(previous)&&
+    (/^\s*uda+s+i\s+kyu\w*\b|^\s*उदासी\s+क्यों/iu.test(query)||/\bwhy (?:would|should) i (?:be|feel) (?:sad|upset)\b/iu.test(query)))
+    return {mode:'quiet',reason:'emotion_assumption_correction'};
+  if(/\b(?:main|mai|mein|i)\s+(?:(?:toh?|was|am)\s+)?(?:bas+|sirf|just|only)\s+(?:bata|share|sharing|telling|mention)\w*\b/iu.test(query))
+    return {mode:'quiet',reason:'just_sharing'};
   if(/\b(?:just listen|only listen|listen only|bas (?:meri baat )?sun\w*|sirf (?:meri baat )?sun\w*)\b|बस\s+(?:मेरी\s+बात\s+)?सुन|सिर्फ\s+(?:मेरी\s+बात\s+)?सुन/iu.test(query))
     return {mode:'quiet',reason:'listening_only'};
   if(/^\s*(?:thank(?:s| you)(?: so much)?|bye|goodbye|good night|bas abhi itna hi|shukriya|dhanyavaad|धन्यवाद|शुक्रिया|शुभ रात्रि)[.!।\s]*$/iu.test(query))
@@ -17,6 +24,17 @@ export function continuationPolicy(value) {
 }
 
 export const continuationInstruction=`Keep the conversation open naturally after answering the current request completely. Use continuation_policy, not a generic closing script. In continue mode, finish with ONE short, relevant question that moves this particular exchange forward. Ask about one useful detail not already supplied, the user's present experience, or their priority. Respond to a short answer using your own last question; do not restart the topic or ask the same thing again. Preserve who did what: first-person statements in a user message belong to the user. When a user continues a workplace or family story with "they weren't listening", keep that complaint about the people in the reported event; do not turn it into criticism of the assistant or apologize as though you interrupted them. Only treat it as a correction of you when the dialogue actually supports that. A changed actor is an unsupported fact and must be rejected in review, not treated as style. Stay with the user's present concern rather than switching to project details or advice merely because they mentioned a project. Do not substitute a question for the answer, invent circumstances, turn a question into an unsupported prediction, or offer a menu of services. Avoid "anything else", "hope that helps", "let me know", "would you like more", a repeated verdict, farewell or forced summary. Do not keep users talking after they want to pause or leave. In quiet mode, ask NO questions, including rhetorical questions in an outline; express any template as statements. In format mode, deliver the requested artifact or exact length without appending a question; questions belonging to a requested quotation or draft may remain. Honor these exceptions silently, without repeating the user's no-question instruction. A conversation need not end with a question when the user explicitly wants quiet, a finished artifact or a goodbye. Acknowledge feelings without inventing human experiences, motives or future outcomes.`;
+
+export const continuationReviewInstruction=`For evidence and intent review, a missing, awkward or misplaced optional closing question is a STYLE issue, not a reason to reject an otherwise complete, grounded reply. Do not reject a brief acknowledgment or correction merely for having no follow-up. Reject false facts, changed actors, invented emotions, unsupported outcomes, ignored current corrections and violations of an explicit no-question request. If a user says they were just sharing, accept that without assuming sadness or asking them to explain an emotion they deny.`;
+
+// The prior assistant actually introduced sadness and the user challenges it.
+// This acknowledgment adds no user intent, emotion, prediction or biography.
+export function groundedContinuationReply(value,policy=continuationPolicy(value)) {
+  if(policy.reason!=='emotion_assumption_correction')return null;
+  return value.language==='english'?"I introduced sadness without a basis in what you said. I shouldn't have assumed how you felt.":
+    value.language==='hindi'?'मैंने उदासी का सवाल बिना आधार जोड़ दिया था। आपकी भावनाओं के बारे में मान लेना सही नहीं था।':
+    'Maine udaasi ka sawal bina aadhar jod diya tha. Aapki feelings ke baare mein maan lena sahi nahi tha.';
+}
 
 export function continuationIssue(reply,value,policy=continuationPolicy(value)) {
   const prose=reply.replace(protectedText,'');

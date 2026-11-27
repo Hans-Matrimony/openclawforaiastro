@@ -14,7 +14,7 @@ const deps=fetchImpl=>({env,fetchImpl,now:()=>new Date('2026-11-27T06:00:00Z'),
  makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),makeTools:()=>async()=>assert.fail('No tool for conversation')});
 
 test('continuation respects quiet requests, finished artifacts, exact formats and user goodbyes',()=>{
- for(const query of ['No follow-up questions.','Bas meri baat suniye, advice mat dijiye.','बस मेरी बात सुनिए।','Thanks!','Good night.'])
+ for(const query of ['No follow-up questions.','Bas meri baat suniye, advice mat dijiye.','बस मेरी बात सुनिए।','Thanks!','Good night.','Mai Toh Bass Bata Rha tha','I was just sharing.'])
   assert.equal(continuationPolicy({...value,query}).mode,'quiet',query);
  for(const query of ['Give exactly three short lines.','Bas format teen chhoti lines mein bataiye.','Translate "What happened?" into Hindi.','Draft a message for my brother.'])
   assert.equal(continuationPolicy({...value,query}).mode,'format',query);
@@ -44,10 +44,48 @@ test('missing companion follow-up gets one contextual repair and the full repair
  const result=await directAnswer(input,deps(async(_,options)=>{
   const body=JSON.parse(options.body);calls++;
   if(calls===1){assert.equal(JSON.parse(body.messages[1].content).continuation_policy.mode,'continue');return response({route:'conversation',reply:original});}
-  if(calls===2){assert.match(body.messages.at(-1).content,/stops without continuing/);return response({route:'conversation',reply:revised});}
+  if(calls===2)return response({status:'accept',issues:[]});
+  if(calls===3){assert.match(body.messages.at(-1).content,/stops without continuing/);return response({route:'conversation',reply:revised});}
   assert.equal(JSON.parse(body.messages[1].content).candidate.reply,revised);return response({status:'accept',issues:[]});
  }));
- assert.equal(calls,3);assert.equal(result.reply,revised);assert.deepEqual(result.answer_reading_tools,[]);
+ assert.equal(calls,4);assert.equal(result.reply,revised);assert.deepEqual(result.answer_reading_tools,[]);
+});
+
+test('a failed follow-up style repair preserves the approved acknowledgment instead of a busy error',async()=>{
+ for(const failure of ['another_short_reply','unsupported_repair','transport']) {
+  const input={...value,query:'Udassi kyu hogi waise',history:[{role:'assistant',text:'Aapko is baat se zyada udaasi ho rahi hai ya bas bata rahe the?'}]};
+  const good='Aap sahi keh rahe hain, maine udaasi maan li thi. Aapne aisa nahi kaha tha.';
+  let calls=0;
+  const result=await directAnswer(input,deps(async()=>{
+   calls++;
+   if(calls===1)return response({route:'conversation',reply:good});
+   if(calls===2)return response({status:'accept',issues:[]});
+   if(calls===3&&failure==='transport')throw Error('Style service unavailable');
+   if(calls===3)return response({route:'conversation',reply:failure==='unsupported_repair'?'Kal aapki shaadi hogi. Aap khush hain?':good});
+   return response(failure==='unsupported_repair'?{status:'reject',issues:['Invented prediction']}:{status:'accept',issues:[]});
+  }));
+  assert.equal(result.reply,good,failure);assert.deepEqual(result.answer_reading_tools,[]);
+ }
+});
+
+test('captured just-sharing correction needs neither a forced question nor a chart',async()=>{
+ let calls=0;const input={...value,query:'Mai Toh Bass Bata Rha tha',history:[{role:'assistant',text:'Aapko udaasi ho rahi hai?'}]};
+ const good='Achha, aap bas bata rahe the. Maine udaasi assume kar li thi.';
+ const result=await directAnswer(input,deps(async(_,options)=>{
+  const body=JSON.parse(options.body);calls++;
+  if(calls===1){assert.equal(JSON.parse(body.messages[1].content).continuation_policy.reason,'just_sharing');return response({route:'conversation',reply:good});}
+  return response({status:'accept',issues:[]});
+ }));
+ assert.equal(result.reply,good);assert.equal(calls,2);
+});
+
+test('a rejected correction cannot assign new feelings or become a busy error',async()=>{
+ let calls=0;const input={...value,query:'Udassi kyu hogi waise',history:[{role:'assistant',text:'Aapko is baat se udaasi ho rahi hai ya bas bata rahe the?'}]};
+ const result=await directAnswer(input,deps(async()=>{
+  calls++;return response(calls%2?{route:'conversation',reply:'Aap bas bata rahe the.'}:{status:'reject',issues:['Invented user intent']});
+ }));
+ assert.equal(calls,4);assert.match(result.reply,/Maine udaasi ka sawal/);assert.doesNotMatch(result.reply,/bas bata|udaas hain|\?/u);
+ assert.deepEqual(result.answer_reading_tools,[]);
 });
 
 test('no-question template is repaired as statements instead of a compliance footer',async()=>{

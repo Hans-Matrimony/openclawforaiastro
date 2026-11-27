@@ -4,7 +4,7 @@ import { personaInstruction } from './persona.mjs';
 import { responseLanguageInstruction } from './response-language.mjs';
 import { conversationProgressInstruction, repeatsClarification } from './conversation-progress.mjs';
 import { normalizeCompanionLanguage, companionInstructionEcho } from './companion-language.mjs';
-import {continuationPolicy,continuationInstruction,continuationIssue} from './conversation-continuation.mjs';
+import {continuationPolicy,continuationInstruction,continuationReviewInstruction,continuationIssue,groundedContinuationReply} from './conversation-continuation.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -61,7 +61,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     : generationSettings(env);
   const body={model:conversationModel || env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
     messages:[{role:'system',content:contract+conversationProgressInstruction+personaInstruction(value)+responseLanguageInstruction(value)+
-      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction:'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
+      familiarCompanionInstruction+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\nWhen continuation_policy.reason is emotion_assumption_correction, acknowledge only that you introduced the emotion without support. Do not re-ask whether the user is sad or assign another intent such as just sharing.':'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
     response_format:{type:'json_object'},max_tokens:conversationModel?1200:700,stream:false,...settings};
   const usage=[];
   async function request(parser = content => parseTurnDecision(content,value,{allowRepeatedClarification:true})) {
@@ -97,7 +97,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   if (decision && decision.route !== 'checked_reading' && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== '0') {
     const writerMessages=structuredClone(body.messages);
     async function review(candidate) {
-      const continuity=continueConversation&&continuationIssue(candidate.reply,value,envelope.continuation_policy);
+      const continuity=continueConversation&&envelope.continuation_policy.mode==='quiet'&&continuationIssue(candidate.reply,value,envelope.continuation_policy);
       if(continuity)return {status:'reject',issues:[continuity]};
       if(naturalListening&&companionInstructionEcho(candidate.reply,value)) {
         return {status:'reject',issues:['The reply mechanically repeats the no-advice/no-questions instruction. Remove that instruction echo and acknowledge the specific experience naturally. Preserve the listening request without adding advice, a question, invented motives or a generic reassurance.']};
@@ -108,19 +108,37 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       if (repeatsClarification(candidate.reply,value.history ?? [])) {
         return {status:'reject',issues:['The reply repeats an earlier clarification. Answer what is possible from the dialogue without asking that question again.']};
       }
-      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction:'')},
+      body.messages=[{role:'system',content:reviewContract+(naturalListening?'\n'+naturalListeningInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
         {role:'user',content:JSON.stringify({conversation:envelope,candidate})}];
       return request(parseConversationReview);
     }
     let verdict=await review(decision);
-    if (verdict?.status === 'reject') {
+    // Keep an approved answer while attempting a bounded presentation repair.
+    // A missing optional question must not become an HTTP 503/busy fallback.
+    const approved=verdict?.status==='accept'?decision:null;
+    const styleIssue=approved&&continueConversation&&continuationIssue(decision.reply,value,envelope.continuation_policy);
+    if (verdict?.status === 'reject'||styleIssue) {
       body.messages=[...writerMessages,{role:'assistant',content:JSON.stringify(decision)},
-        {role:'system',content:'Revise only the defects identified by this review while preserving the current intent, language, persona, warmth and supported facts. For a listening request, listen without adding advice; for an affectionate or celebratory turn, respond naturally; for practical advice, give useful conditional guidance. Do not invent facts or repeat a clarification to fill a gap. Return the same routing JSON. Review: '+JSON.stringify(verdict)}];
-      decision=await draft();
-      if (decision?.route==='checked_reading') return {decision,usage};
-      verdict=decision ? await review(decision) : null;
+        {role:'system',content:'Revise only the defects identified by this review while preserving the current intent, language, persona, warmth and supported facts. For a listening request, listen without adding advice; for an affectionate or celebratory turn, respond naturally; for practical advice, give useful conditional guidance. Do not invent facts or repeat a clarification to fill a gap. Return the same routing JSON. Review: '+JSON.stringify(styleIssue?{status:'style',issues:[styleIssue]}:verdict)}];
+      try {
+        decision=await draft();
+        if (decision?.route==='checked_reading') {
+          if(approved)return {decision:approved,usage};
+          return {decision,usage};
+        }
+        verdict=decision ? await review(decision) : null;
+      } catch(error) {
+        signal.throwIfAborted();
+        if(!approved)throw error;
+        decision=approved;verdict={status:'accept',issues:[]};
+      }
+      if(approved&&(verdict?.status!=='accept'||continuationIssue(decision.reply,value,envelope.continuation_policy))) {
+        decision=approved;verdict={status:'accept',issues:[]};
+      }
     }
     if (verdict?.status !== 'accept') {
+      const acknowledgment=continueConversation&&groundedContinuationReply(value,envelope.continuation_policy);
+      if(acknowledgment)return {decision:{route:'conversation',reply:acknowledgment},usage};
       const error=new Error('Conversation review did not approve delivery');
       error.code='conversation_review_failed';
       error.answer_usage=usage;

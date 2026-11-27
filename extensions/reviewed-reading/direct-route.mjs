@@ -8,6 +8,7 @@ export const directEnabled = directReleaseEnabled;
 // Fixed internal categories only. Never log arbitrary exception text, tool
 // arguments, provider bodies, request contents or personal identifiers.
 export function directFailureCategory(error) {
+  if(error?.code==='conversation_review_failed')return 'conversation_review_failed';
   if (/^model_http_[45][0-9]{2}$/.test(error?.code ?? "")) return error.code;
   if (["AbortError", "TimeoutError"].includes(error?.name)) return "generation_timeout";
   const category = ({

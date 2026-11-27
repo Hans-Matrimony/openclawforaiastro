@@ -12,6 +12,7 @@ test('operational categories distinguish incomplete output, context and loop lim
   ]) assert.equal(directFailureCategory(new Error(message)),category);
   assert.equal(directFailureCategory({name:'TimeoutError'}),'generation_timeout');
   assert.equal(directFailureCategory({code:'model_http_429'}),'model_http_429');
+  assert.equal(directFailureCategory({code:'conversation_review_failed'}),'conversation_review_failed');
 });
 test('unknown messages and codes cannot leak prompts or upstream payloads', () => {
   assert.equal(directFailureCategory({message:'private prompt and provider secret',code:'model_http_503 private secret'}),'generation_failed');
