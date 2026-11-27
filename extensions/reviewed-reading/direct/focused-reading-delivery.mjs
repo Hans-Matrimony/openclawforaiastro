@@ -25,6 +25,7 @@ function inventsDifficultyFromNeutral(reply,plan) {
 export function normalizeFocusedReadingLanguage(text,value) {
   if(value.language!=='hinglish')return text;
   return text.split(/("[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`|https?:\/\/\S+)/gu).map((part,index)=>index%2?part:part
+    .replace(/\bmaterial\s+saav?dhani\b/giu,'rukawat ka sanket')
     .replace(/\b(combust|retrograde)\s+(Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)\b/giu,
       (_,condition,name)=>`${condition.toLowerCase()==='combust'?'ast':'vakri'} ${name}`)
     .replace(/\b(Surya|Chandra|Mangal|Budh|Guru|Shukra|Shani)\s+(combust|retrograde)\b/giu,
@@ -60,6 +61,9 @@ export function focusedReplyIssue(reply,plan) {
     !/\bcareer\b[^.!?\n]{0,80}(?:\blagu\s+nahi\b|\b(?:does not|doesn't) apply\b|\bnot applicable\b)/iu.test(clause));
   if(propertyCareerClaim)
     return 'Answer the current home/property question from its supplied property evidence. Do not substitute a career assessment, its tenth-house reasons or its timing window.';
+  if(plan.topic==='property'&&plan.reasons?.property_basis?.rasi_fourth_lord?.adverse_natal_condition&&
+    !/\b(?:rukawat\w*|atkaav|badha\w*|dabav|obstacles?|pressure|delay\w*|difficult\w*|adverse|caution)\b|रुकावट|अटकाव|बाधा|दबाव|सावधानी/iu.test(reply))
+    return 'Retain the checked adverse condition of the property fourth lord as a material caution alongside the supplied purchase opportunity. Do not promise an obstacle-free purchase or invent loan, price or registration outcomes.';
   // A weak/pressured indicator is not a calculated pattern of alternating
   // income or savings. Check this separately from the model's style review.
   const volatility=/\butar[ -]chadh(?:av|aav)\b|\bfluctuat\w*\b|उतार[ -]चढ़ाव/iu;
@@ -83,7 +87,7 @@ export function focusedReplyIssue(reply,plan) {
   }
   if(inventsDifficultyFromNeutral(reply,plan))
     return 'The returned mixed house-strength indicator is neutral. Describe it as mixed without inferring difficulty, delays, obstacles or circumstances not being straightforward. Retain the actual favorable factors; do not replace this with a no-obstacles claim or a disclaimer.';
-  if(plan.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested &&
+  if(plan.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested&&plan.timing?.status!=='supplied_window' &&
     /\b(?:mahadasha|antardasha|dasha|major period|sub-period|planetary period|current period)\b|दशा/iu.test(reply))
     return 'Explain the selected house-strength indicators for this question. Remove the unrequested active-period inventory; do not replace it with another period claim or a disclaimer.';
   if(plan.assessment_method==='returned-natal-house-strength-summary-v1' &&
@@ -175,6 +179,13 @@ export function focusedReadingFallback(plan,value) {
   }
   const reasons=[...plan.reasons.supporting.slice(0,2),...plan.reasons.opposing.slice(0,3),...(plan.reasons.neutral??[]).slice(0,1)]
     .map(factor=>factorText(factor,lang)).filter(Boolean);
+  const property=plan.reasons.property_basis;
+  if(property?.rasi_fourth_lord?.adverse_natal_condition) {
+    const lord=planet(property.rasi_fourth_lord.lord,lang);
+    reasons.push(lang==='english'?`The adverse condition of ${lord}, the fourth-house lord, indicates property-related obstacles.`:
+      lang==='hindi'?`चौथे घर के स्वामी ${lord} की प्रतिकूल स्थिति संपत्ति के मामले में रुकावट के संकेत देती है।`:
+      `Chauthe ghar ke swami ${lord} ki pratikool sthiti property ke mamle mein rukawat ke sanket deti hai.`);
+  }
   if(window) {
     const supportLabels=[];
     for(const period of plan.reasons.period_roles??[]) {

@@ -50,7 +50,7 @@ export function matchingForms({birth, gender, query = '', history = []}) {
   return forms.slice(-(['male', 'female'].includes(gender) && birthKey(birth) ? 1 : 2));
 }
 
-function confirmedFormBirth(text) {
+export function confirmedFormBirth(text) {
   const dates = [...text.matchAll(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[/.-]\d{1,2}[/.-]\d{4})\b/g)];
   const times = [...text.matchAll(/\b\d{1,2}:\d{2}(?:\s*(?:am|pm))?\b/gi)];
   if (dates.length !== 1 || times.length !== 1) return null;

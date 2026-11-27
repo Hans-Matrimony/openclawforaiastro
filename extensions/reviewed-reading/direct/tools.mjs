@@ -5,6 +5,7 @@ import { SOURCE_TOOLS } from "./source-contract.mjs";
 import { sourceReading } from "./source-engine.mjs";
 import { selectedSelfBirth, selectedSelfArguments } from "./selected-self-birth.mjs";
 import { confirmedMatchingArguments, matchingEvidence, sameBirth, suppliedBirth } from "./birth-evidence.mjs";
+import {propertyOtherPerson,propertyOtherBirth} from './property-subject.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "assets");
 const PREFIX = "mcp__VedAstro__";
@@ -74,6 +75,8 @@ export function createTools({
   const store = { birth: birth ? { ...birth } : null, selectedPerson: null };
   const selfBirth = ['saved', 'needs_confirmation', 'unavailable'].includes(profileUpdateStatus)
     ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth, {propertyReading});
+  const otherPropertyPerson=propertyReading&&propertyOtherPerson(selectedSelfQuery??query);
+  const otherPropertyBirth=otherPropertyPerson?propertyOtherBirth(selectedSelfQuery??query):null;
   let initialized = false;
   async function rpc(payload) {
     const response = await fetchImpl("https://mcp-subagent.vedastro.org/api/mcp/public", {
@@ -160,6 +163,13 @@ export function createTools({
     // The app's selected self profile outranks stale model-supplied memory
     // arguments. Keep the boundary outside the unchanged calculation engine.
     args = selectedSelfArguments(name, args, selfBirth);
+    if(otherPropertyPerson&&['get_horoscope_predictions','get_current_transits'].includes(name)) {
+      if(!otherPropertyBirth) {
+        const error=new Error('This person needs their own confirmed birth date, exact time and birthplace');
+        error.code='birth_details_required';throw error;
+      }
+      args=selectedSelfArguments(name,args,otherPropertyBirth);
+    }
     if (name === 'get_match_report') args = confirmedMatchingArguments(args, {birth, gender, query, history});
     if (name === 'get_match_report' && !matchingEvidence(args, {birth, gender, query, history})) {
       console.info(JSON.stringify({event:'matching_birth_validation',status:'unconfirmed_inputs'}));

@@ -12,7 +12,12 @@ export function projectedTiming(row,topic) {
    !validDate(timing.as_of)||!validDate(timing.horizon?.to))return null;
  const windows=(timing.windows??[]).filter(window=>window.topic===topic&&window.estimated===true&&window.precision==='month'&&
   validDate(window.from)&&validDate(window.to)&&window.from>=timing.as_of&&window.to>=window.from&&window.to<=timing.horizon.to&&
-  Array.isArray(window.basis?.transit?.activated_houses)&&window.basis.transit.activated_houses.length>0&&window.basis?.minor?.lord);
+  Array.isArray(window.basis?.transit?.activated_houses)&&window.basis.transit.activated_houses.length>0&&window.basis?.minor?.lord&&
+  (topic!=='property'||(window.basis.transit.activated_houses.includes(4)&&window.basis.property?.method==='rasi-fourth-d4-v1'&&
+   window.basis.property.event==='property_purchase'&&
+   (window.basis.property.rasi_fourth_link?.major===true||window.basis.property.rasi_fourth_link?.minor===true)&&
+   window.basis.property.d4?.method==='parasara-chaturthamsa-v1'&&
+   (window.basis.property.d4.fourth_link?.major===true||window.basis.property.d4.fourth_link?.minor===true))));
  // Earliest qualifying window, not a model-selected or probability-ranked date.
  const selected=windows.sort((a,b)=>a.from.localeCompare(b.from))[0];
  return {method:timing.method,status:timing.status,as_of:timing.as_of,precision:'month',

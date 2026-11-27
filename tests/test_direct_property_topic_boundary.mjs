@@ -96,13 +96,15 @@ test('actual property dispatch after career rejects the captured career answer e
     if(instruction.startsWith('Write the complete astrology reply')) {
      const payload=JSON.parse(body.messages.at(-1).content);
      assert.equal(payload.reading_plan.topic,'property');assert.equal(payload.reading_plan.subject,query);
-     assert.equal(payload.reading_plan.timing.status,'unavailable');
+     assert.equal(payload.reading_plan.timing.status,'supplied_window');
+     assert.equal(payload.reading_plan.reasons.property_basis.event,'property_purchase');
      return response({answer:'Kundli mein career mein pragati ke yog dikhte hain. September 2027 se November 2027 tak mauke hain.',reason:'Dasva ghar mazboot hai.',remedy:''});
     }
     return response({evidence_ok:true,reason:'',presentation_issue:''});
    }});
   assert.equal(result.answer_response_flow,'pilot_coherent_reading');
-  assert.match(result.reply,/ghar kharidne/u);assert.doesNotMatch(result.reply,/career|2027|September|November|dasva|10ve/iu);
+  assert.match(result.reply,/ghar kharidne/u);assert.doesNotMatch(result.reply,/career|dasva|10ve/iu);
+  assert.match(result.reply,/September 2027 se November 2027/u);
   assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
  }
 });

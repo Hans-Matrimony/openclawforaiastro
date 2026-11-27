@@ -2,6 +2,9 @@ import { pilotScheduleBubble } from "./pilot-schedule.mjs";
 import { pilotTopicPrompt } from "./pilot-topic-prompts.mjs";
 import {coherentReadingEnabled, focusedReadingEnabled, coherentCollectionPrompt, coherentEvidencePacket, writeCoherentReading} from './pilot-coherent-reading.mjs';
 import {eventWindowReplyIssue} from './event-window-evidence.mjs';
+import {propertyEventKind} from './property-intent.mjs';
+import {propertyCapabilityBoundary} from './property-boundary.mjs';
+import {pairedPropertyTimingRequest,pairedPropertyTimingReply} from './paired-property-timing.mjs';
 import { correctedReadingSubject } from './personal-query.mjs';
 import { pilotBirthClarification, pilotEducationBoundary } from './pilot-response-boundaries.mjs';
 import { finalPilotReading } from './pilot-final-reading.mjs';
@@ -238,6 +241,7 @@ export async function directAnswer(
   const focusedPilot = focusedReadingEnabled(env,value);
   const continueConversation = focusedPilot && env.ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED === '1';
   if(focusedPilot)value={...value,language:currentResponseLanguage(value)};
+  const capabilityBoundary=focusedPilot?propertyCapabilityBoundary(value):null;
   const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
   const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
   const readingSubjectFor=query=>{
@@ -245,10 +249,12 @@ export async function directAnswer(
     return focusedPilot?specificReturnSubject(subject,value.history,{multilingual:true}):subject;
   };
   const focusedPersonChoice=focusedPilot&&isSpecificReturnQuestion(readingSubjectFor(value.query));
+  const pairedPropertyTiming=focusedPilot&&pairedPropertyTimingRequest(readingSubjectFor(value.query));
   // Once a return question resolves to a person, incidental topic words must
   // not replace that scope with the preceding generic relationship reading.
   const resolveTopic=query=>focusedPilot&&isSpecificReturnQuestion(query)
-    ? {topic:'relationship',houses:[5,7]} : resolveReadingTopic(query,{multilingual:focusedPilot});
+    ? {topic:'relationship',houses:[5,7]} : focusedPilot&&pairedPropertyTimingRequest(query)?{topic:'property',houses:[4]}:
+      resolveReadingTopic(query,{multilingual:focusedPilot});
   const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
     (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
@@ -308,7 +314,7 @@ export async function directAnswer(
   let pilotMemory = null;
   if (progressPilot && sourceFlow && value.reply_surface === "whatsapp" &&
       env.ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED === "1" &&
-      !isPersonalChartQuestion(value.query) && !asksGunaScore(value.query) &&
+      (capabilityBoundary||!isPersonalChartQuestion(value.query)) && !asksGunaScore(value.query) &&
       !asksForRemedy(value.query, value.history)) {
     pilotCalls = 0;
     try {
@@ -326,6 +332,7 @@ export async function directAnswer(
       pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
         naturalListening:focusedPilot,
         continueConversation,
+        capabilityBoundary,
         savedContext,
         onRequest: () => { pilotCalls++; },
         redact: text => redactIdentity(text, value.user_id)});
@@ -622,16 +629,24 @@ export async function directAnswer(
     if (!coherentFlow || !readingTools.has('get_horoscope_predictions')) return null;
     let packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
     if (!packet) return null; // Specialist/conflicting evidence retains its own checks.
-    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&asksForTiming(activeQuestion)) {
+    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&(asksForTiming(activeQuestion)||pairedPropertyTiming)) {
       try {
         const {calculateEventTiming}=await import('./assets/dev-v2/event-timing.mjs');
         const index=chartResults.findIndex(raw=>{try{return Boolean(JSON.parse(raw).birth_chart);}catch{return false;}});
         if(index>=0) {
           const row=JSON.parse(chartResults[index]);
-          const timing=calculateEventTiming(row,{topic:readingOptions.topic,asOf:now()});
+          const timing=calculateEventTiming(row,{topic:readingOptions.topic,propertyEvent:propertyEventKind(coherentSubject),asOf:now()});
           chartResults[index]=JSON.stringify({...row,event_timing:timing,event_windows:timing.windows});
           packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
           validation.push('pilot_event_timing_'+timing.status);
+          if(pairedPropertyTiming) {
+            const career=calculateEventTiming(row,{topic:'career',asOf:now()});
+            const reply=pairedPropertyTimingReply(row,career,timing,value);
+            validation.push('pilot_independent_property_career_comparison');
+            return {schema:'vedastro-direct-reply-v1',reply,answer_model_calls:upstreamCalls,answer_cache_hits:cacheHits,
+              answer_reading_tools:[...readingTools],answer_usage:answerUsage,answer_validation:validation,
+              answer_response_flow:'pilot_paired_timing'};
+          }
         }
       } catch {validation.push('pilot_event_timing_unavailable');}
       if(!packet)return null;

@@ -1,6 +1,7 @@
 import sweph from 'sweph';
 import {DAY_MS,timingPeriods,monthHorizon} from '../../timing-periods.mjs';
 import {indiaToday} from '../../past-prediction.mjs';
+import {propertyDivisionalChart,propertyPeriodBasis} from './property-timing.mjs';
 
 export const EVENT_TIMING_METHOD='pilot-dasha-jupiter-transit-v1';
 const SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
@@ -17,6 +18,7 @@ const TOPICS={
  relationship:{primary:[5,7],relevant:[5,7],karakas:['Venus']},
  career:{primary:[10],relevant:[6,10,11],karakas:['Saturn','Sun']},
  money:{primary:[2,11],relevant:[2,11],karakas:['Jupiter']},
+ property:{primary:[4],relevant:[2,4,11],karakas:['Mars']},
 };
 const C=sweph.constants;
 const FLAGS=C.SEFLG_MOSEPH|C.SEFLG_SPEED|C.SEFLG_SIDEREAL;
@@ -72,13 +74,14 @@ function dailyTransit(date,natal,rule) {
  return {jupiter_house:jupiter,activated_houses:activated,saturn_house:saturn,saturn_pressure_houses:pressured};
 }
 
-export function calculateEventTiming(row,{topic,asOf=new Date(),horizonMonths=60,transits=dailyTransit}={}) {
+export function calculateEventTiming(row,{topic,propertyEvent='purchase',asOf=new Date(),horizonMonths=60,transits=dailyTransit}={}) {
  const checked=new Date(asOf);
  const result={schema:'astrology-timing-estimate-v1',method:EVENT_TIMING_METHOD,topic,
   classification:'experimental_astrological_estimate',precision:'month',as_of:Number.isFinite(+checked)?indiaToday(checked):null,
   status:'unavailable',windows:[],limits:'Estimated astrological periods, not guaranteed event dates or calibrated probabilities.'};
  const rule=TOPICS[topic];
  if(!rule)return {...result,status:'unsupported_topic'};
+ if(topic==='property'&&propertyEvent!=='purchase')return {...result,status:'unsupported_event'};
  try {
   if(!Number.isFinite(+checked))throw Error('Invalid timing clock');
   const natal=natalData(row,checked);
@@ -88,6 +91,10 @@ export function calculateEventTiming(row,{topic,asOf=new Date(),horizonMonths=60
   const moon=longitude(natal.birth,C.SE_MOON);
   if(Math.abs(((moon-natal.planets.get('Moon').longitude+540)%360)-180)>0.011)throw Error('Natal Moon conflicts with birth timestamp');
   const periods=timingPeriods(moon,natal.birth,new Date(start),new Date(end));
+  const propertyChart=topic==='property'?propertyDivisionalChart(natal,name=>{
+   const ids={Sun:C.SE_SUN,Moon:C.SE_MOON,Mercury:C.SE_MERCURY,Venus:C.SE_VENUS,Mars:C.SE_MARS,Jupiter:C.SE_JUPITER,Saturn:C.SE_SATURN,Rahu:C.SE_TRUE_NODE};
+   return name==='Ketu'?(longitude(natal.birth,C.SE_TRUE_NODE)+180)%360:longitude(natal.birth,ids[name]);
+  }):null;
   const current=periods.find(period=>period.start<=+checked&&period.end>+checked);
   if(!current)throw Error('Current timing period unavailable');
   // Do not mix a corrected timing calendar with conflicting legacy period
@@ -103,24 +110,25 @@ export function calculateEventTiming(row,{topic,asOf=new Date(),horizonMonths=60
    const period=periods.find(p=>p.start<=day+DAY_MS/2&&p.end>day+DAY_MS/2);
    const minor=period&&relevance(period.minor,natal,rule);
    const major=period&&relevance(period.major,natal,rule);
+   const property=propertyChart&&period?propertyPeriodBasis(natal,propertyChart,period.major,period.minor,relevance,rule):null;
    // A pressure-only minor lord does not become favorable by starting. A
    // relevant major lord AND a calculated Jupiter activation are required
    // before treating that combination as a mixed opportunity window.
    const linked=minor&&(minor.relevant||(minor.aspects_houses.length>0&&major.relevant&&!major.adverse_natal_condition));
    const marriageAge=topic==='marriage'&&day<+new Date(Date.UTC(natal.birth.getUTCFullYear()+18,natal.birth.getUTCMonth(),natal.birth.getUTCDate()));
-   if(!period||!linked||marriageAge){close();continue;}
+   if(!period||!linked||marriageAge||(property&&!property.eligible)){close();continue;}
    const transit=transits(new Date(day+DAY_MS/2),natal,rule);
    if(!transit.activated_houses.length){close();continue;}
    const signature=JSON.stringify([period.major,period.minor,transit.jupiter_house,transit.activated_houses,transit.saturn_pressure_houses]);
    if(open?.signature!==signature) {
     close();const {saturn_house,...stableTransit}=transit;
-    open={start:day,end:day+DAY_MS,signature,major,minor,transit:{...stableTransit,saturn_houses:[saturn_house]}};
+    open={start:day,end:day+DAY_MS,signature,major,minor,...(property?{property:property.basis}:{}),transit:{...stableTransit,saturn_houses:[saturn_house]}};
    } else {open.end=day+DAY_MS;if(!open.transit.saturn_houses.includes(transit.saturn_house))open.transit.saturn_houses.push(transit.saturn_house);}
   }
   close();
   result.windows=windows.slice(0,3).map(window=>({
    topic,from:iso(window.start),to:iso(window.end-DAY_MS),precision:'month',estimated:true,
-   basis:{major:window.major,minor:window.minor,transit:window.transit},
+   basis:{major:window.major,minor:window.minor,transit:window.transit,...(window.property?{property:window.property}:{})},
    qualification:'An astrologically supportive opportunity period; the event and its exact date are not established.',
   }));
   result.status=result.windows.length?'estimated_windows':'no_qualifying_window';
