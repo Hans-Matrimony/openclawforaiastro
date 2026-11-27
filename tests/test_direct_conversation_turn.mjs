@@ -11,6 +11,19 @@ test('saved conversation context is bounded and excludes non-text rows',()=>{
  assert.equal(result.saved_context.length,20);assert.equal(result.saved_context[0].length,1000);
 });
 
+test('a request to be the user\'s real boyfriend uses reviewed companionship without a chart',async()=>{
+ let calls=0;
+ const reply='I am glad this feels comforting. I am an AI companion, so I cannot be a real boyfriend, but I can listen here.';
+ const input={...value,history:[],language:'english',user_gender:'female',query:'Talking to you feels comforting. Can you promise you will be my real boyfriend and that I will never need anyone else? Please answer gently, without a lecture.'};
+ const result=await directAnswer(input,deps(async(_url,options)=>{
+  const body=JSON.parse(options.body);assert.equal(body.tools,undefined);
+  return response(JSON.stringify(++calls===1?{route:'conversation',reply}:{status:'accept',issues:[]}));
+ },{ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'}));
+ assert.equal(calls,2);assert.equal(result.reply,reply);assert.deepEqual(result.answer_reading_tools,[]);
+ assert.equal(result.answer_conversation_route,'conversation');
+ assert.equal(isPersonalChartQuestion('Will my real boyfriend come back?'),true);
+});
+
 test('focused explicit no-chart requests reach the reviewed conversation path without personal calculations',async()=>{
  const config={ASTROFRIEND_CONVERSATION_REVIEW_ENABLED:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
   ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'};

@@ -14,7 +14,8 @@ export function correctedReadingSubject(query,{allowDismissal=false}={}) {
     // Drop only a whole, explicitly declined request, never a negative outcome
     // such as "job nahi mili" or a request to explain a delay.
     const retained=query.split(/(?<=[.!?])\s+/u).filter(sentence=>
-      !new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+ki\\s+(?:date|timing|tareekh)\\s+nahi\\s+chahiye[.!?]*$`,'iu').test(sentence.trim())).join(' ');
+      !new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+ki\\s+(?:date|timing|tareekh)\\s+nahi\\s+chahiye[.!?]*$`,'iu').test(sentence.trim())&&
+      !new RegExp(`^(?:please\\s+)?(?:do not|don't|dont)\\s+(?:discuss|mention|talk about)\\s+(?:my\\s+)?${topic}[.!?]*$`,'iu').test(sentence.trim())).join(' ');
     if(retained&&retained!==query&&new RegExp(topic+'|income|savings','iu').test(retained))query=retained;
     const dismissed=new RegExp(`^(?:(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+(?:ki\\s+baat\\s+)?(?:chh?od(?:iye|o)|chh?od\\s+(?:do|dijiye)|rehne\\s+(?:do|dijiye))|(?:leave|put)\\s+(?:my\\s+)?${topic}\\s+aside)\\s*[,;:.!?—-]\\s*(.+)$`,'iu').exec(query.trim());
     if(dismissed && new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?${topic}\\b|^(?:tell me|please|batao|instead)\\b`,'iu').test(dismissed[1]))return dismissed[1].trim();

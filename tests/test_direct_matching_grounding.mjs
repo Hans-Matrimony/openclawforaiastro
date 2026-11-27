@@ -68,6 +68,16 @@ test("matching preserves qualified limits, optional practical steps and checked 
   );
 });
 
+test('focused matching does not invent offsets between independent factor scores',()=>{
+ for(const claim of ['Nadi perfect hai, jo is balance ko thoda kam kar deta hai.',
+  'The full Nadi score offsets the zero Bhakoot score.','Bhakoot dosha is cancelled by Nadi.'])
+  assert.ok(matchingGroundingIssues(claim,results,{strictFactors:true}).includes('unsupported_factor_cancellation'));
+ for(const statement of ['Nadi: 8/8. Bhakoot: 0/7.','Nadi does not cancel Bhakoot dosha.',
+  'These scores do not establish a dosha cancellation.'])
+  assert.deepEqual(matchingGroundingIssues(statement,results,{strictFactors:true}),[]);
+ assert.deepEqual(matchingGroundingIssues('Nadi offsets Bhakoot.',results),[]);
+});
+
 test("grounded fallback uses only verified scores, requested factors and current intent", () => {
   const reply = groundedMatchingFallback(results, value);
   assert.match(reply, /26\.5\/36/);

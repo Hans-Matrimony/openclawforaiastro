@@ -14,6 +14,25 @@ export function verifiedGuna(results) {
   return g.factors.reduce((sum, f) => sum + f.score, 0) === g.score_points ? g : null;
 }
 
+// An exact-points request needs no model interpretation. Render only checked
+// numbers so a prose edit cannot invent cross-factor cancellations or repeat
+// the total as a second verdict. Broader interpretation keeps its normal path.
+export function requestedGunaPoints(results,value) {
+  const query=value.query??'';
+  if(!/\bexact\s+(?:points?|scores?)\b/iu.test(query)||
+    /\b(?:mean\w*|interpret\w*|explain|samjha\w*|how|why|when|whether|will|can|kaise|kyun|kab|matlab|cancel\w*|should|wait|feelings?|prove\w*)\b|\b(?:all|eight|aath|8)\b[^.!?\n]{0,15}\bfactors?\b|\b(?:do not|don't)\s+(?:give|show|list)\b|\bexact\s+(?:points?|scores?)\s+nahi\b/iu.test(query))return null;
+  const g=verifiedGuna(results);if(!g)return null;
+  const wanted=g.factors.map(f=>({factor:f,index:query.search(new RegExp('\\b'+f.name.replaceAll(' ','\\s+')+'\\b','iu'))}))
+    .filter(row=>row.index>=0).sort((a,b)=>a.index-b.index).map(row=>row.factor);
+  if(!wanted.length)return null;
+  const total=/\b(?:total|overall)\b/iu.test(query);
+  const labels=['वर्ण','वश्य','तारा','योनि','ग्रह मैत्री','गण','भकूट','नाड़ी'];
+  const scores=wanted.map(f=>`${value.language==='hindi'?labels[names.indexOf(f.name)]:f.name}: ${f.score}/${f.max_score}`).join('; ')+'.';
+  const lead=value.language==='hindi'?`गुण मिलान का कुल अंक ${g.score_points}/36 है।`:
+    value.language==='hinglish'?`Guna Milan ka total ${g.score_points}/36 hai.`:`The Guna Milan total is ${g.score_points}/36.`;
+  return total?lead+'\n\n'+scores:scores;
+}
+
 export function invalidGunaPresentation(reply, results, query = '') {
   const g = verifiedGuna(results);
   if (!g) return false;

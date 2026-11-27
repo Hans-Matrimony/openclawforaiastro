@@ -38,7 +38,7 @@ import { houseLordConflicts } from "./house-evidence.mjs";
 import { createMemory } from "./memory.mjs";
 import { ordinaryReply } from "./ordinary-reply.mjs";
 import { emotionalFriendshipPrompt, emotionalConversationContext, emotionalTurnInstruction, emotionalRepairPrompt, emotionalReplyIssue, emotionalIssueCategories, emotionalReplyFallback, friendshipListeningOnly, isEmotionalFriendship } from "./emotional-friendship.mjs";
-import { englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction } from "./response-language.mjs";
+import { currentResponseLanguage, englishOnlyPracticalReply, explicitEnglishReplyMismatch, responseLanguageInstruction } from "./response-language.mjs";
 import { continuityFallback } from "./companion-continuity.mjs";
 import { listeningConcern, listeningInstruction, unwantedListeningAdvice, stalePracticalReply } from "./current-turn.mjs";
 import { practicalInstruction, repeatsPrediction, practicalFallback } from "./practical-followup.mjs";
@@ -82,7 +82,7 @@ import { createTools, TOOLS } from "./tools.mjs";
 import { topicPeriodContext, unsupportedTopicOpportunity } from "./topic-period-context.mjs";
 import { activeReadingQuestion, asksGunaScore, generalMatchingQuestion } from './followup-scope.mjs';
 import { invalidGunaScore } from './birth-evidence.mjs';
-import { invalidGunaPresentation, verifiedGunaFallback } from './guna-presentation.mjs';
+import { invalidGunaPresentation, verifiedGunaFallback, requestedGunaPoints } from './guna-presentation.mjs';
 import { quotedMatchingLimitations } from './matching-clarification.mjs';
 import { matchingGroundingIssues, matchingDecisionQuestion, groundedMatchingFallback } from './matching-grounding.mjs';
 import { naturalCompanionReply } from './companion-style.mjs';
@@ -236,6 +236,7 @@ export async function directAnswer(
   const topicGuidesEnabled = Boolean(pilotTopicPrompt(env, value, true));
   const coherentPilot = coherentReadingEnabled(env,value);
   const focusedPilot = focusedReadingEnabled(env,value);
+  if(focusedPilot)value={...value,language:currentResponseLanguage(value)};
   const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
   const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
   const readingSubjectFor=query=>{
@@ -947,7 +948,7 @@ export async function directAnswer(
         ? 'Please confirm both people\'s birth dates, exact birth times and birthplaces so I can verify the Guna Milan score?'
         : 'Kya aap dono logon ki janam tithi, exact samay aur janam sthan confirm kar sakte hain, taaki Guna Milan score verify ho sake?');
     }
-    if (readingTools.has('get_match_report') && matchingGroundingIssues(reply, chartResults).length) {
+    if (readingTools.has('get_match_report') && matchingGroundingIssues(reply, chartResults,{strictFactors:focusedPilot}).length) {
       validation.push('matching_grounding_rejected');
       reply = groundedMatchingFallback(chartResults, value) ?? reply;
     }
@@ -1311,7 +1312,7 @@ export async function directAnswer(
     // Matching cannot decide a real person's intentions or the user's choice.
     // Run after shortening and every fallback, including cached completions.
     if (readingTools.has('get_match_report') &&
-        (matchingGroundingIssues(publishableReply, chartResults).length || matchingDecisionQuestion(value) ||
+        (matchingGroundingIssues(publishableReply, chartResults,{strictFactors:focusedPilot}).length || matchingDecisionQuestion(value) ||
          validation.includes('matching_grounding_rejected'))) {
       const grounded = groundedMatchingFallback(chartResults, value);
       if (grounded) {
@@ -1390,6 +1391,10 @@ export async function directAnswer(
     if (topicExperiment && timingRequired && readingTools.size > 0) {
       const schedule = pilotScheduleBubble(chartResults,value.language,readingSubject || value.query,now());
       if (schedule) deliveredReply += '\n\n' + schedule;
+    }
+    if(focusedPilot&&readingTools.has('get_match_report')) {
+      const exactPoints=requestedGunaPoints(chartResults,value);
+      if(exactPoints) {deliveredReply=exactPoints;validation.push('pilot_requested_guna_points');}
     }
     signal.throwIfAborted();
     return {

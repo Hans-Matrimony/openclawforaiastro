@@ -65,6 +65,8 @@ export function isPersonalChartQuestion(query,{exactDateRequests=false,respectDe
     .replace(/\bwithout\s+(?:reading|calculating|using)\s+(?:my\s+)?(?:personal\s+)?(?:birth\s+)?chart\b/giu,'')
     .replace(/\b(?:kundli|chart)\s+nahi\s+(?:dekhni|dekhna|chahiye)\b/giu,'');
   const text = normalizePersonalQuery(query).toLowerCase().trim();
+  if(respectDeclinedChart&&/\byou\b[^.!?\n]{0,60}\bbe\s+my\s+(?:real\s+)?(?:boyfriend|girlfriend|partner)\b/iu.test(text)&&
+    !/\b(?:kundli|horoscope|chart|dasha|transit|astrology)\b/iu.test(text))return false;
   if (isPracticalFollowup(query)) return false;
   // Foreign-travel predictions need the same current chart evidence as other
   // personal readings. Practical travel/visa information stays conversational.

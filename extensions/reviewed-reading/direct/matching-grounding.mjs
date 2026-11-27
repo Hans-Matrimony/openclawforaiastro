@@ -5,7 +5,7 @@ export const matchingGroundingInstruction =
 
 // Sentence-local checks: a disclaimer elsewhere cannot excuse another claim.
 // This applies only to a complete, validated matching result, never ordinary chat.
-export function matchingGroundingIssues(reply, results) {
+export function matchingGroundingIssues(reply, results,{strictFactors=false}={}) {
   if (!verifiedGuna(results)) {
     return [];
   }
@@ -22,6 +22,10 @@ export function matchingGroundingIssues(reply, results) {
       /\b(?:cannot|can't|does not|doesn't|do not|don't)\s+(?:tell|establish|determine|prove|reveal|show|predict|know|mean)\b|\b(?:nahi|nahin)\s+(?:bata|jaan|tay)|नहीं (?:बता|जान)|सांगता येत नाही|ठरवत नाही/iu.test(
         text,
       );
+    if(strictFactors&&!qualified&&/\b(?:nadi|bhakoot|dosha?|dosh)\b/iu.test(reply)&&
+      /\b(?:cancel\w*|offset\w*|compensat\w*|neutraliz\w*|mitigat\w*)\b|\bbalanc\w*\b[^.!?\n]{0,35}\bkam\s+kar/iu.test(text)&&
+      !/\b(?:not|no)\s+(?:calculated|supplied|included)|\b(?:cannot|can't|do not|don't|does not|doesn't)\s+(?:cancel|offset|compensate|neutralize|mitigate)\b|\bcancellation\w*\s+(?:nahi|not)\b/iu.test(text))
+      issues.add('unsupported_factor_cancellation');
     if (
       !qualified &&
       (/\b(?:he|she|they|your partner|this person)\s+(?:(?:is|are)\s+(?:stuck|emotionally|unavailable|blocked|not interested)|(?:doesn't|does not|don't|do not)\s+(?:love|want|care)|(?:(?:may|might|could)\s+)?(?:loves?|wants?|feels?|thinks?|intends?)\b|will\s+(?:not\s+|never\s+)?(?:return|come back|arrive|leave|choose|marry|love))|\b(?:not coming back|struggle to meet each other's core needs|holding space for something|emotional alignment is (?:deeply )?(?:blocked|challenged)|stuck in (?:his|her|their) (?:own )?head)\b/iu.test(

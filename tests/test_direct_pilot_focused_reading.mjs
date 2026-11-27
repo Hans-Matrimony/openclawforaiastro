@@ -121,6 +121,20 @@ test('a Devanagari career request reaches its focused checked dates rather than 
  assert.doesNotMatch(result.reply,/शादी|marriage|birth details/iu);
 });
 
+test('a declined old topic cannot replace promotion and a failed writer still honors current English',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hinglish',query:'Meri promotion ka agla samay kab dikh raha hai? Please answer in English this time, with the dates first and the reasons next. Do not discuss marriage.',
+  history:[{role:'user',text:'Meri shaadi ke yog kaise hain?'}]};
+ const before=structuredClone(input);
+ const {result,requests}=await run({input,review:'{"evidence_ok":false,"reason":"Synthetic review rejection","presentation_issue":""}'});
+ assert.match(result.reply,/September 2027 to November 2027/);
+ assert.doesNotMatch(result.reply,/shaadi|marriage|2031|2034|\bhai\b|\bmein\b|[\u0900-\u097f]/iu);
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ const payload=JSON.parse(requests.find(body=>body.messages[0].content.startsWith('Write the complete astrology reply')).messages.at(-1).content);
+ assert.equal(payload.reading_plan.topic,'career');
+ assert.deepEqual(input,before);
+});
+
 test('captured finance vocabulary is translated before review without losing condition, negation or quoted words',async t=>{
  t.mock.timers.enable({apis:['Date'],now});
  const draft='Aapki income aur savings ke yog dikhte hain, lekin kuch atkaav bhi hain.\n\nDoosra aur gyarahva ghar mazboot hain. Ketu, combust Budh aur retrograde Guru rukawat dikhate hain.';

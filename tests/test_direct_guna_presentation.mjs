@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {invalidGunaPresentation, verifiedGunaFallback} from '../extensions/reviewed-reading/direct/guna-presentation.mjs';
+import {invalidGunaPresentation, verifiedGunaFallback,requestedGunaPoints} from '../extensions/reviewed-reading/direct/guna-presentation.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 
 const names=['Varna','Vashya','Tara','Yoni','Graha Maitri','Gana','Bhakoot','Nadi'];
@@ -48,4 +48,29 @@ test('repeated incorrect factor grading uses the verified breakdown rather than 
   assert.equal(calls,3);assert.equal(calculations,1);assert.equal(invalidGunaPresentation(result.reply,results,query),false);
   assert.match(result.reply,/27\/36/);assert.doesNotMatch(result.reply,/confirm|1\/1 \(kam\)/i);
   assert.ok(result.answer_validation.includes('guna_score_rejected'));
+});
+
+test('focused exact factor requests preserve only requested checked points and cannot invent a cancellation',async()=>{
+ const data=structuredClone(report);data.guna_milan.factors[6].score=0;data.guna_milan.score_points=20;
+ const evidence=[JSON.stringify(data)],question='Our Guna Milan ka total aur Nadi, Bhakoot ke exact points bataiye.';
+ const expected='Guna Milan ka total 20/36 hai.\n\nNadi: 8/8; Bhakoot: 0/7.';
+ assert.equal(requestedGunaPoints(evidence,{query:question,language:'hinglish'}),expected);
+ assert.equal(requestedGunaPoints([...evidence,...evidence],{query:question,language:'english'}),null);
+ assert.equal(requestedGunaPoints(evidence,{query:question+' What is their meaning?',language:'english'}),null);
+ for(const extra of ['When will we marry?','Can you explain Bhakoot dosha?','Give all eight factors.'])
+  assert.equal(requestedGunaPoints(evidence,{query:question+' '+extra,language:'english'}),null);
+ assert.equal(requestedGunaPoints(evidence,{query:'Nadi ke exact points nahi chahiye.',language:'hinglish'}),null);
+ assert.equal(requestedGunaPoints(results,{query:'Tara exact points',language:'english'}),'Tara: 1.5/3.');
+ let calls=0;
+ const result=await directAnswer({user_id:'919000000001',query:question,language:'hinglish',history:[],reply_surface:'whatsapp',user_gender:'male',birth:{date:'2000-01-01',time:'05:00',location_name:'Delhi'}},{
+  env:{OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',VEDASTRO_DIRECT_REPLY_CACHE:'0',
+   ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:'1',ASTROFRIEND_CONVERSATION_PROGRESS_USERS:'919000000001',ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED:'1',
+   ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'},
+  makeMemory:()=>({read:async()=>[]}),makeTools:()=>async()=>evidence[0],
+  fetchImpl:async()=>{const message=++calls===1?{tool_calls:[{id:'matching',type:'function',function:{name:'mcp__VedAstro__get_match_report',arguments:'{}'}}]}:
+   {content:'Guna Milan 20/36 hai. Nadi perfect hai, jo Bhakoot dosh ke balance ko thoda kam kar deta hai.\n\n20/36'};
+   return new Response(JSON.stringify({choices:[{finish_reason:calls===1?'tool_calls':'stop',message}]}));},
+ });
+ assert.equal(result.reply,expected);assert.ok(result.answer_validation.includes('pilot_requested_guna_points'));
+ assert.ok(result.answer_validation.includes('matching_grounding_rejected'));
 });

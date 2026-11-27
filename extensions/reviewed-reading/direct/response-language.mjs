@@ -1,6 +1,14 @@
-// The caller supplies the current app preference. Resolve current-message
-// overrides in the writer, rather than guessing languages from short text or
-// interpreting a mention/quotation of a language as a preference change.
+// The caller supplies the app preference. A scoped explicit override also
+// reaches checked renderers; writers handle other current-message phrasing.
+export function currentResponseLanguage(value) {
+  let language=value.language;
+  // Resolve explicit standalone imperatives only. Quoted examples, code and
+  // negated requests must never change the language of a checked fallback.
+  const text=String(value.query??'').replace(/```[^]*?```|"[^"]*"|“[^”]*”|‘[^’]*’|`[^`\n]*`|https?:\/\/\S+/gu,'');
+  for(const match of text.matchAll(/(?:^|[.!?\n])\s*(?:please\s+)?(?:reply|answer|respond|write|explain)(?:\s+(?:it|this|that))?\s+(?:only\s+)?in\s+(english|hindi|hinglish)\b/giu))language=match[1].toLowerCase();
+  return language;
+}
+
 export function responseLanguageInstruction(value) {
   const preference = JSON.stringify(value.language || "english")
     .replace(/</g, "\\u003c").replace(/>/g, "\\u003e");

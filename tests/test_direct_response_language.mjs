@@ -3,7 +3,17 @@ import test from "node:test";
 import { readingContext } from "../extensions/reviewed-reading/direct/context.mjs";
 import { contextualClosing } from "../extensions/reviewed-reading/direct/contextual-closing.mjs";
 import { directAnswer } from "../extensions/reviewed-reading/direct/agent.mjs";
-import { englishOnlyPracticalReply } from "../extensions/reviewed-reading/direct/response-language.mjs";
+import { currentResponseLanguage, englishOnlyPracticalReply } from "../extensions/reviewed-reading/direct/response-language.mjs";
+
+test('current explicit language applies to deterministic delivery without treating quotations or negations as overrides',()=>{
+ const value={language:'hinglish',query:'Promotion kab hogi? Please answer in English this time, with dates first.'};
+ assert.equal(currentResponseLanguage(value),'english');assert.equal(value.language,'hinglish');
+ for(const query of ['Please do not answer in English.','Explain the phrase "Reply in English".',
+  'She said: Reply in English.','`Reply in English`','```text\nReply in English\n```',
+  'The quoted example is "Hello.\nReply in English."','I have an English interview.'])
+  assert.equal(currentResponseLanguage({language:'hinglish',query}),'hinglish');
+ assert.equal(currentResponseLanguage({language:'english',query:'Please reply in Hindi.'}),'hindi');
+});
 
 const history = [
   { role: "user", text: "Please give one practical job-search step briefly in English." },
