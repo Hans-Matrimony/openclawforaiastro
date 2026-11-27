@@ -94,7 +94,7 @@ export const TOPIC_PROMPTS = Object.freeze({
 
 // Keep this experiment inside the existing WhatsApp pilot; no extra model call.
 export function selectedTopicGuides(subject,topic) {
-  const text=correctedReadingSubject(subject??'');
+  const text=correctedReadingSubject(subject??'',{allowDismissal:true});
   const resolved=topic??resolveReadingTopic(text)?.topic??(
     /शादी|विवाह|जीवनसाथी/iu.test(text)?'marriage':/करियर|नौकरी|पदोन्नति/iu.test(text)?'career':
     /\b(?:business|startup|self.employ\w*|vyapar|karobar)\b|व्यापार|कारोबार/iu.test(text)?'career':

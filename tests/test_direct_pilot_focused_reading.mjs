@@ -6,7 +6,7 @@ import {focusedReadingEnabled,coherentEvidencePacket,writeCoherentReading} from 
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
-import {focusedReplyIssue,focusedReadingFallback} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
+import {focusedReplyIssue,focusedReadingFallback,normalizeFocusedHouseLanguage} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
  VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
@@ -210,6 +210,55 @@ test('limited house indicators cannot become a blanket obstacle-free claim even 
   'Koi khaas rukawat chart mein nahi dikhayi gayi.','कुंडली में कोई खास रुकावट नहीं दिखती।'])assert.ok(focusedReplyIssue(text,plan),text);
  for(const text of ['The fourth house is strong.','Padhai ke sanket achhe hain.','The twelfth house has mixed indicators.'])assert.equal(focusedReplyIssue(text,plan),null,text);
  assert.equal(focusedReplyIssue('No significant obstacles.',{...plan,assessment_method:null}),null);
+});
+
+test('captured mixed abroad indicator cannot acquire an unsupported difficulty even with model approval',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hinglish',query:'Kya mere abroad jaane ke chances hain?'};
+ const draft='Haan, kundli mein abroad jaane ke yog dikhte hain.\n\n9th house mazboot hai, jo door ke safar aur videsh se judey maukon ko sahara deta hai. 12th house mixed hai, isliye videsh se judi sthitiyan poori tarah seedhi nahi dikh rahi hain.';
+ const {result,requests}=await run({input,draft});
+ const plan=JSON.parse(requests[1].messages.at(-1).content).reading_plan;
+ assert.deepEqual(plan.reasons.opposing,[]);assert.equal(plan.reasons.neutral[0].strength,'mixed');
+ assert.ok(result.answer_validation.includes('pilot_coherent_fallback'));
+ assert.doesNotMatch(result.reply,/seedhi nahi|rukawat|badha|difficult|delay/iu);
+ assert.match(result.reply,/12ve ghar ki sthiti mili-juli hai/);
+ assert.equal(requests.filter(body=>body.messages[0].content.startsWith('Review this astrology reply')).length,0);
+ for(const text of [draft,'The twelfth house is mixed, so overseas circumstances will not be entirely straightforward.',
+  'Mixed indicators mean delays abroad.','12ve ghar ke karan rukawat aa sakti hai.','बारहवें घर के मिले-जुले संकेत विदेश जाने में देरी दिखाते हैं।'])
+  assert.ok(focusedReplyIssue(text,plan),text);
+ for(const text of ['The ninth house is strong; the twelfth has mixed indicators.',
+  'A mixed indicator does not by itself imply obstacles.','Mixed ka matlab rukawat nahi hai.',
+  '12va ghar mixed hai—yeh apne aap mein rukawat ka sanket nahi hai.',
+  'मिले-जुले संकेत का मतलब रुकावट नहीं है।','You asked about “delays”; the twelfth house has mixed indicators.'])
+  assert.equal(focusedReplyIssue(text,plan),null,text);
+ assert.ok(focusedReplyIssue('Mixed does not imply obstacles, but overseas circumstances will not be straightforward.',plan));
+ assert.equal(focusedReplyIssue('A weak twelfth house indicates difficulty.',{...plan,reasons:{...plan.reasons,opposing:[{kind:'house_strength',house:12,strength:'weak'}]}}),null);
+});
+
+test('live neutral correction is translated naturally before review without changing its negation',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const draft='Haan, aapke videsh jaane ke yog dikhte hain.\n\n9va ghar mazboot hai. 12ve ghar ke sanket mixed hain; iska matlab apne aap mein rukawat nahi hai.';
+ const {result,requests}=await run({input:{...value,language:'hinglish',query:'Kya mere abroad jaane ke yog hain?'},draft});
+ assert.equal(result.reply,draft.replace('sanket mixed hain','sanket mile-jule hain'));
+ assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
+ assert.equal(normalizeFocusedHouseLanguage('"12th house mixed hai" 12th house mixed hai.',{language:'hinglish'}),'"12th house mixed hai" 12th house ke sanket mile-jule hain.');
+ assert.equal(normalizeFocusedHouseLanguage('12th house mixed hai.',{language:'english'}),'12th house mixed hai.');
+});
+
+test('hard dismissal and exact-date request use career evidence and its calculated range',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hinglish',query:'Shaadi ki baat chhodiye. Job ki exact date batao aur yeh bhi samjhao ki Shani rukawat dikha raha hai toh career ke yog kaise hain.',
+  history:[{role:'user',text:'Meri shaadi kab hogi?'},{role:'assistant',text:'November 2027 se February 2028.'}]};
+ const {result,requests}=await run({input,draft:candidate});
+ assert.equal(result.reply,candidate);
+ for(const request of requests.slice(1)) {
+  const payload=JSON.parse(request.messages.at(-1).content);
+  assert.equal(payload.reading_plan.topic,'career');assert.equal(payload.checked_evidence.topic,'career');
+  assert.equal(payload.reading_plan.timing.status,'supplied_window');assert.equal(payload.timing_requested,true);
+  assert.equal(payload.reading_plan.timing.windows[0].from,'2027-09');
+  assert.doesNotMatch(payload.question,/Shaadi/iu);
+ }
+ assert.doesNotMatch(requests[0].messages[0].content,/Whether and when marriage/);
 });
 
 test('topic corrections select the new guide and retain its checked dates',async t=>{

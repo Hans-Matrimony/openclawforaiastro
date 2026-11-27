@@ -52,8 +52,8 @@ import {
 import {
   CHART_TOOL_NAMES,
   bareToolName,
-  isPersonalChartQuestion,
-  asksForTiming,
+  isPersonalChartQuestion as baseIsPersonalChartQuestion,
+  asksForTiming as baseAsksForTiming,
   isOrdinaryConcern,
   isPracticalFollowup,
   isForeignTravelQuestion,
@@ -235,10 +235,13 @@ export async function directAnswer(
   const topicGuidesEnabled = Boolean(pilotTopicPrompt(env, value, true));
   const coherentPilot = coherentReadingEnabled(env,value);
   const focusedPilot = focusedReadingEnabled(env,value);
+  const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
+  const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot});
+  const readingSubjectFor=query=>correctedReadingSubject(query,{allowDismissal:focusedPilot});
   const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
-    (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveReadingTopic(correctedReadingSubject(query))?.topic)))) && !requestsPeriodSchedule(query);
+    (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveReadingTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
-    const subject = topicGuidesEnabled ? correctedReadingSubject(query) : query;
+    const subject = topicGuidesEnabled ? readingSubjectFor(query) : query;
     const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveReadingTopic(subject)?.topic;
     return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad'].includes(topic))) ? topic : null;
   };
@@ -274,7 +277,7 @@ export async function directAnswer(
   const voiceReply = value.reply_surface === 'voice';
   const originalQuery = value.query;
   const matchingLimitations = quotedMatchingLimitations(value);
-  const activeQuestion = activeReadingQuestion(value);
+  const activeQuestion = activeReadingQuestion(value,{allowDismissal:focusedPilot});
   // The pilot keeps the actual utterance: history supplies its referent without
   // silently turning a request for guidance into the prior prediction question.
   if (!progressPilot && activeQuestion !== value.query) {value = {...value, query: activeQuestion};}
@@ -436,7 +439,7 @@ export async function directAnswer(
   }
   const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(progressPilot && !asksForTiming(originalQuery) ? originalQuery : activeQuestion) || asksGunaScore(value.query) || pilotTurn?.decision?.route === 'checked_reading');
   const coherentFlow = coherentPilot && topicExperiment && readingRequired && !/\b(?:horary|prashna)\b/iu.test(value.query);
-  const coherentSubject = coherentFlow ? correctedReadingSubject(readingSubject || value.query) : null;
+  const coherentSubject = coherentFlow ? readingSubjectFor(readingSubject || value.query) : null;
   // Scope the imported astrology-only prohibition instead of layering a
   // contradictory friendship instruction over it. Guidance remains allowed;
   // predictions still require the same checked tools and validation below.
@@ -493,7 +496,7 @@ export async function directAnswer(
   }
   // Preserve source conversation continuity. Prior replies are context, not
   // calculation evidence; the successful-chart check below remains independent.
-  const topicGuide = pilotTopicPrompt(env, value, readingRequired && acceptsCompleteness(value.query),{subject:correctedReadingSubject(readingSubject||activeQuestion),topic:readingOptions?.topic});
+  const topicGuide = pilotTopicPrompt(env, value, readingRequired && acceptsCompleteness(value.query),{subject:readingSubjectFor(readingSubject||activeQuestion),topic:readingOptions?.topic});
   context.prompt += topicGuide;
   context.prompt += whatsappStyleInstruction(value, {pilotReading: topicExperiment && readingRequired});
   if (!(semanticReading && readingRequired)) {context.prompt += conversationGroundingInstruction(value, context.profile);}

@@ -6,8 +6,12 @@ export function normalizePersonalQuery(query) {
 
 // A rejected topic is not a second requested reading. Strip only a short,
 // explicit correction prefix, never a report such as "shaadi nahi hui".
-export function correctedReadingSubject(query) {
+export function correctedReadingSubject(query,{allowDismissal=false}={}) {
   const topic='(?:sha+di|vivah|marriage|wedding|career|job|naukri|promotion|education|padhai|money|finances?|शादी|विवाह|करियर|पढ़ाई)';
+  if(allowDismissal) {
+    const dismissed=new RegExp(`^(?:(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+(?:ki\\s+baat\\s+)?(?:chh?od(?:iye|o)|chh?od\\s+(?:do|dijiye)|rehne\\s+(?:do|dijiye))|(?:leave|put)\\s+(?:my\\s+)?${topic}\\s+aside)\\s*[,;:.!?—-]\\s*(.+)$`,'iu').exec(query.trim());
+    if(dismissed && new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?${topic}\\b|^(?:tell me|please|batao|instead)\\b`,'iu').test(dismissed[1]))return dismissed[1].trim();
+  }
   const correction=new RegExp(`^(?:(?:(?:meri|mera|mere|my)\\s+)?${topic}\\s+(?:nahi|nahin|nhi|नहीं)|not\\s+(?:my\\s+)?${topic})(?:\\s*[,;:]\\s*|\\s+)(.+)$`,'iu').exec(query.trim());
   if (!correction || !new RegExp(topic,'iu').test(correction[1])) return query;
   if (!new RegExp(`^(?:(?:meri|mera|mere|my)\\s+)?(?:${topic}|sister|brother|behen|bhai|friend)|^(?:tell me|please|batao|instead)\\b`,'iu').test(correction[1].trim()) &&

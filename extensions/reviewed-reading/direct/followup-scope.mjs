@@ -56,8 +56,8 @@ export function borrowsCompanionTopic(query) {
 export const newCompanionQuestion = query => !borrowsCompanionTopic(query) && !isPersonalChartQuestion(query) &&
   /^(?:why|how|when|which|kaise|kyun|kab)\b/iu.test(query.trim());
 
-export function activeReadingQuestion(value) {
-  const correctedSubject=correctedReadingSubject(value.query);
+export function activeReadingQuestion(value,{allowDismissal=false}={}) {
+  const correctedSubject=correctedReadingSubject(value.query,{allowDismissal});
   if (correctedSubject !== value.query) return correctedSubject;
   // Resolve a short quoted follow-up only from the selected quote's own
   // subject. Never substitute a different subject from unquoted history.

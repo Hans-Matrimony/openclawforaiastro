@@ -7,10 +7,34 @@ const planet=(name,lang)=>lang==='english'?name:names[name]?.[lang==='hindi'?1:0
 const month=(date,lang)=>/^20\d{2}-(?:0[1-9]|1[0-2])$/u.test(date??'')?
   (lang==='hindi'?hindiMonths:months)[Number(date.slice(5))-1]+' '+date.slice(0,4):null;
 
+function inventsDifficultyFromNeutral(reply,plan) {
+  if(plan.assessment_method!=='returned-natal-house-strength-summary-v1' ||
+    !plan.reasons?.neutral?.length || plan.reasons.opposing?.length)return false;
+  // Ignore quoted wording; a correction of the inference is allowed. Check
+  // contrasting clauses separately so a correction cannot hide a new claim.
+  const clauses=reply.replace(/"[^"\n]*"|“[^”\n]*”|‘[^’\n]*’/gu,'')
+    .split(/[.!?\n।]+|\b(?:but|however|lekin|magar)\b|लेकिन/iu);
+  return clauses.some(clause=>{
+    if(/\b(?:does not|doesn't|cannot|can't)\s+(?:by itself\s+)?(?:mean|imply|establish)\b|\bmatlab\b[^.!?\n]{0,55}\bnahi\b|\bapne\s+aap(?:\s+mein)?\s+(?:rukawat|badha)(?:\s+ka\s+sanket)?\s+nahi\b|मतलब[^।.!?\n]{0,40}नहीं/iu.test(clause))return false;
+    return /\b(?:rukawat\w*|badha\w*|delay\w*|obstacles?|difficult\w*|challeng\w*|complicat\w*)\b|\bnot\s+(?:be\s+)?(?:(?:entirely|fully|completely)\s+)?(?:straightforward|smooth)\b|\b(?:poori|puri)\s+tarah\s+(?:seedh[ai]|aasaan|sahaj)[^.!?\n]{0,20}\bnahi\b|रुकावट|बाधा|कठिन|मुश्किल|जटिल|देरी|पूरी तरह[^।.!?\n]{0,20}(?:सीध|सरल|आसान)[^।.!?\n]{0,15}नहीं/iu.test(clause);
+  });
+}
+
+// Translate only the returned house-strength description, before review.
+// Preserve quoted wording and every factual condition or negation.
+export function normalizeFocusedHouseLanguage(text,value) {
+  if(value.language!=='hinglish')return text;
+  return text.split(/("[^"\n]*"|“[^”\n]*”|‘[^’\n]*’|`[^`\n]*`)/gu).map((part,index)=>index%2?part:part
+    .replace(/\bsanket\s+mixed\s+(?:hain|hai)\b/giu,'sanket mile-jule hain')
+    .replace(/\b(\d{1,2}(?:st|nd|rd|th|ve|va)\s+(?:house|ghar))\s+mixed\s+hai\b/giu,'$1 ke sanket mile-jule hain')).join('');
+}
+
 // Check the degree of certainty independently of the model reviewer. Never
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
   if(plan.scope==='person_choice')return null;
+  if(inventsDifficultyFromNeutral(reply,plan))
+    return 'The returned mixed house-strength indicator is neutral. Describe it as mixed without inferring difficulty, delays, obstacles or circumstances not being straightforward. Retain the actual favorable factors; do not replace this with a no-obstacles claim or a disclaimer.';
   if(plan.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested &&
     /\b(?:mahadasha|antardasha|dasha|major period|sub-period|planetary period|current period)\b|दशा/iu.test(reply))
     return 'Explain the selected house-strength indicators for this question. Remove the unrequested active-period inventory; do not replace it with another period claim or a disclaimer.';

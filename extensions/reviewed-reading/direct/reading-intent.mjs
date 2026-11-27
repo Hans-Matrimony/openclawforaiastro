@@ -10,7 +10,9 @@ export const CHART_TOOL_NAMES = new Set([
 export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
-export function asksForTiming(query) {
+export function asksForTiming(query,{exactDateRequests=false}={}) {
+  if(exactDateRequests && /\b(?:exact|precise)\s+(?:date|day|tareekh|taareekh)\b/iu.test(query) &&
+    !/\b(?:define|definition|meaning|matlab)\b/iu.test(query))return true;
   // In a timing follow-up, leading "matlab" means "so, when", rather
   // than asking for a definition. Keep actual meaning/definition questions
   // excluded below, and never borrow a different topic from history.
@@ -56,7 +58,7 @@ export function requiresChartReading(query, profile) {
   return profile.status === "READY" && isPersonalChartQuestion(query);
 }
 
-export function isPersonalChartQuestion(query) {
+export function isPersonalChartQuestion(query,{exactDateRequests=false}={}) {
   const text = normalizePersonalQuery(query).toLowerCase().trim();
   if (isPracticalFollowup(query)) return false;
   // Foreign-travel predictions need the same current chart evidence as other
@@ -100,7 +102,7 @@ export function isPersonalChartQuestion(query) {
   return (
     (topic.test(subjectText) || isForeignTravelQuestion(subjectText)) &&
     (request.test(text) || (isForeignTravelQuestion(text) && /\b(?:chances?|yog|jaane|jane|jaa|settle|jaunga|jaungi)\b/iu.test(text))) &&
-    (personal.test(text) || asksForTiming(text) || /\b(?:hogi|hoga|lagegi)\b/u.test(text))
+    (personal.test(text) || asksForTiming(text,{exactDateRequests}) || /\b(?:hogi|hoga|lagegi)\b/u.test(text))
   );
 }
 

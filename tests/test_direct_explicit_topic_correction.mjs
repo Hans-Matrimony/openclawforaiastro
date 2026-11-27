@@ -5,6 +5,7 @@ import {correctedReadingSubject} from '../extensions/reviewed-reading/direct/per
 import {questionScope,mismatchedQuestionReply} from '../extensions/reviewed-reading/direct/question-scope.mjs';
 import {selectedSelfBirth} from '../extensions/reviewed-reading/direct/selected-self-birth.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
+import {asksForTiming} from '../extensions/reviewed-reading/direct/reading-intent.mjs';
 
 const birth={date:'1991-04-11',time:'08:00',location_name:'Pune'};
 const value={user_id:'synthetic-explicit-topic-correction',query:'Meri shaadi nahi, mera career kab set hoga?',
@@ -48,6 +49,22 @@ test('conversational corrections preserve the new subject and reject outcome rep
   'Shaadi nahi, main apni behen ka career pooch raha hoon']) {
   assert.equal(correctedReadingSubject(query),query);
  }
+});
+
+test('focused topic dismissals select only an explicit replacement and leave default behavior intact',()=>{
+ for(const query of ['Shaadi ki baat chhodiye. Job ki exact date batao.',
+  'Shaadi chhod do, mera career kab set hoga?','Leave marriage aside. Tell me about my career.']) {
+  assert.equal(correctedReadingSubject(query),query);
+  const subject=correctedReadingSubject(query,{allowDismissal:true});
+  assert.notEqual(subject,query);assert.equal(questionScope(subject),'career');
+  assert.equal(activeReadingQuestion({...value,query},{allowDismissal:true}),subject);
+ }
+ for(const query of ['Shaadi ki baat chhodiye. Main dukhi hoon.','Meri shaadi nahi hui, career bhi batao.',
+  'Shaadi ki baat chhodiye ka matlab kya hota hai?','She said: Shaadi ki baat chhodiye. Job batao.'])
+  assert.equal(correctedReadingSubject(query,{allowDismissal:true}),query);
+ assert.equal(asksForTiming('Job ki exact date batao.'),false);
+ assert.equal(asksForTiming('Job ki exact date batao.',{exactDateRequests:true}),true);
+ assert.equal(asksForTiming('What is the meaning of exact date?',{exactDateRequests:true}),false);
 });
 
 test('actual dispatch requests career evidence after an explicit rejection of marriage',async()=>{
