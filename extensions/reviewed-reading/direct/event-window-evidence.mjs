@@ -79,6 +79,11 @@ export function removeTimingBoilerplate(answer,timing,{focused=false}={}) {
    const retained=answer.slice(0,fixedDate.index).trim();
    if(qualified(retained)&&! /\b(?:pakka|pakki|guaranteed|certain|zaroor)\b/iu.test(retained))answer=retained+'.';
   }
+  const exactDay=/(?:[,;.!?—–]\s*)(?:chart\s+se\s+)?exact\s+din(?:\s+chart\s+se)?\s+nahi\s+diya\s+gaya\s+hai[.!?]?\s*$/iu.exec(answer);
+  if(exactDay) {
+   const retained=answer.slice(0,exactDay.index).trim();
+   if(qualified(retained)&&! /\b(?:pakka|pakki|guaranteed|certain|zaroor)\b/iu.test(retained))answer=retained+'.';
+  }
  }
  const suffix=/(?:[;.!?]\s*|,\s*)(?:(?:(?:yeh|ye)\s+(?:andazati samay hai|estimated window hai)|ise sambhavana samjhein)\s*,\s*)?pakki\s+(?:event date|tareekh)\s+nahi[.!?]?\s*$/iu;
  const match=suffix.exec(answer);

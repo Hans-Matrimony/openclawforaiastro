@@ -29,10 +29,27 @@ export function normalizeFocusedHouseLanguage(text,value) {
     .replace(/\b(\d{1,2})(?:st|nd|rd|th|ve|va)\s+(?:house|ghar)\s+mixed\s+hai\b/giu,'$1ve ghar ke sanket mile-jule hain')).join('');
 }
 
+export function removeRepeatedChoiceLimit(answer,reason) {
+  const limit=text=>/\b(?:kundli|chart|assessment|evidence)\b/iu.test(text)&&
+    /\b(?:nahi|cannot|can't|not)\b/iu.test(text)&&
+    /\b(?:faisla|decision|return|laut\w*|feelings|timing|choice|wapas)\b/iu.test(text);
+  if(!limit(answer)||/["“”‘’`]/u.test(reason))return reason;
+  return reason.split(/(?<=[.!?])\s+/u).filter(sentence=>!limit(sentence)).join(' ');
+}
+
 // Check the degree of certainty independently of the model reviewer. Never
 // upgrade a measured natal strength into a measured real-world likelihood.
 export function focusedReplyIssue(reply,plan) {
-  if(plan.scope==='person_choice')return null;
+  if(plan.scope==='person_choice') {
+    const unrelated=/\b(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu|Shukra|Chandra|Mangal|Shani|Guru|dasha|antardasha|20\d{2})\b/iu.test(reply);
+    const promise=/\b(?:woh|wo|she|he|they)\s+(?:(?:will(?:\s+not)?|won't|definitely|certainly|zaroor|pakka)\s+)?(?:wapas\s+(?:nahi\s+)?aa\w*|return|come back)|\b(?:haan|yes)\b[^.!?\n]{0,30}\b(?:wapas|return)\b/iu;
+    const claims=reply.split(/[.!?\n]+|\b(?:but|however|lekin|magar)\b/iu);
+    const asserted=claims.some(clause=>promise.test(clause)&&!
+      /\b(?:nahi|nahin)\s+(?:bataya\s+ja\s+sakta|bata\s+sakte|keh\s+sakte|kaha\s+ja\s+sakta)\b|\b(?:cannot|can't|does not|doesn't)\s+(?:tell|know|establish|determine|confirm|show)\b/iu.test(clause));
+    if(unrelated||asserted)
+      return 'No supplied chart evidence establishes this person\'s decision. Remove the return promise, date and unrelated planet factors. Answer the unknown choice directly and respect their reported request not to be contacted.';
+    return null;
+  }
   if(inventsDifficultyFromNeutral(reply,plan))
     return 'The returned mixed house-strength indicator is neutral. Describe it as mixed without inferring difficulty, delays, obstacles or circumstances not being straightforward. Retain the actual favorable factors; do not replace this with a no-obstacles claim or a disclaimer.';
   if(plan.assessment_method==='returned-natal-house-strength-summary-v1'&&!plan.period_context_requested &&
@@ -105,7 +122,12 @@ function outcome(plan,lang) {
 // Code-owned fallback from the SAME typed plan: a rejected writer/reviewer
 // must not replace a real supplied window with a false "no timing" claim.
 export function focusedReadingFallback(plan,value) {
-  if(plan.scope==='person_choice')return null;
+  if(plan.scope==='person_choice') {
+    const lang=language(value);
+    const answer=lang==='english'?"A chart cannot tell us their decision or when they will return.":lang==='hindi'?'कुंडली से उनके लौटने का फैसला या समय नहीं बताया जा सकता।':'Kundli se unke lautne ka faisla ya samay nahi bataya ja sakta.';
+    const declined=/\bbaat\s+karne\s+se\s+mana\b|asked\s+not\s+to\s+(?:talk|contact)|बात\s*करने\s*से\s*मना/iu.test(value.query??'');
+    return !declined?answer:answer+'\n\n'+(lang==='english'?"They have asked not to talk, so respect that boundary and avoid repeated messages.":lang==='hindi'?'उन्होंने अभी बात करने से मना किया है। उनकी बात का सम्मान कीजिए और बार-बार संदेश मत भेजिए।':'Unhone abhi baat karne se mana kiya hai. Unki baat ka samman kijiye aur baar-baar message mat bhejiye.');
+  }
   const lang=language(value),answer=outcome(plan,lang);
   if(!answer)return null;
   const parts=[answer],window=plan.timing.status==='supplied_window'?plan.timing.windows?.[0]:null;

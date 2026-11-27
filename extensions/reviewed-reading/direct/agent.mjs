@@ -6,7 +6,8 @@ import { correctedReadingSubject } from './personal-query.mjs';
 import { pilotBirthClarification, pilotEducationBoundary } from './pilot-response-boundaries.mjs';
 import { finalPilotReading } from './pilot-final-reading.mjs';
 import { evidenceOnly, unifiedPilotPrompt } from './pilot-evidence-contract.mjs';
-import { pilotBubbleInstruction, pilotAnswerFirst, specificReturnBoundary, isSpecificReturnQuestion } from "./pilot-bubbles.mjs";
+import { pilotBubbleInstruction, pilotAnswerFirst, specificReturnBoundary, isSpecificReturnQuestion, specificReturnSubject } from "./pilot-bubbles.mjs";
+import {focusedReadingFallback} from './focused-reading-delivery.mjs';
 import { interpretTurn } from "./conversation-turn.mjs";
 import { whatsappStyleInstruction, whatsappWordingIssue, finishWhatsAppReply, fitWhatsAppReadingParagraphs } from "./whatsapp-presentation.mjs";
 import { isBriefWhatsAppGreeting } from './brief-greeting.mjs';
@@ -237,7 +238,11 @@ export async function directAnswer(
   const focusedPilot = focusedReadingEnabled(env,value);
   const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
   const isPersonalChartQuestion=query=>baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot});
-  const readingSubjectFor=query=>correctedReadingSubject(query,{allowDismissal:focusedPilot});
+  const readingSubjectFor=query=>{
+    const subject=correctedReadingSubject(query,{allowDismissal:focusedPilot});
+    return focusedPilot?specificReturnSubject(subject,value.history):subject;
+  };
+  const focusedPersonChoice=focusedPilot&&isSpecificReturnQuestion(readingSubjectFor(value.query));
   const acceptsCompleteness = query => !isChartClarification(query) && (focusedPilot||!isForeignTravelQuestion(query)) && !asksGunaScore(query) &&
     (!asksForRemedy(query,value.history) || (coherentPilot && Boolean(readingTopicArea(resolveReadingTopic(readingSubjectFor(query))?.topic)))) && !requestsPeriodSchedule(query);
   const supportedTopic = query => {
@@ -254,6 +259,7 @@ export async function directAnswer(
   const readingVerdictIssue = (reply,results) => sharedReadingVerdictIssue(topicExperiment ? reply.replace(/\bpossibility\b/giu,'possible') : reply,results,readingOptions?.topic,{query:readingSubject || value.query,allowTimingUncertainty:topicExperiment});
   let topicExperiment = topicGuidesEnabled && completenessPilot;
   const evidenceFallback = (results,language,query,asOf) => {
+    if(focusedPersonChoice)return focusedReadingFallback({scope:'person_choice',subject:readingSubjectFor(query)},{...value,language});
     if (!topicExperiment) return legacyEvidenceFallback(results,language,query,asOf,readingOptions);
     if (isSpecificReturnQuestion(query)) return specificReturnBoundary('',query,language);
     // A schedule/planet association is not an event-specific calculation.
@@ -438,7 +444,7 @@ export async function directAnswer(
       );
   }
   const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(progressPilot && !asksForTiming(originalQuery) ? originalQuery : activeQuestion) || asksGunaScore(value.query) || pilotTurn?.decision?.route === 'checked_reading');
-  const coherentFlow = coherentPilot && topicExperiment && readingRequired && !/\b(?:horary|prashna)\b/iu.test(value.query);
+  const coherentFlow = coherentPilot && topicExperiment && readingRequired && (focusedPersonChoice||!/\b(?:horary|prashna)\b/iu.test(value.query));
   const coherentSubject = coherentFlow ? readingSubjectFor(readingSubject || value.query) : null;
   // Scope the imported astrology-only prohibition instead of layering a
   // contradictory friendship instruction over it. Guidance remains allowed;
@@ -700,7 +706,9 @@ export async function directAnswer(
             },
           ]
         : messages,
-      tools: pendingTimingRepair
+      tools: focusedPersonChoice&&coherentFlow
+        ? TOOLS.filter(tool=>bareToolName(tool.function.name)==='get_horoscope_predictions')
+        : pendingTimingRepair
         ? [pendingTimingRepair.tool]
         : matchingLimitations || ordinaryConcern || practicalFollowup || emotionalFriendship
           ? TOOLS.filter((tool) => !CHART_TOOL_NAMES.has(bareToolName(tool.function.name)))
@@ -808,6 +816,7 @@ export async function directAnswer(
           }
           let content;
           try {
+            if(focusedPersonChoice&&bareToolName(call.function.name)==='get_horary_prediction')throw Error('A horary verdict cannot establish another person\'s return or decision. Use the selected natal context without inferring that person\'s actions.');
             const result = await execute(call.function.name, args);
             content = typeof result === "string" ? result : JSON.stringify(result);
             if (conversationV2Pilot && isFailedReadingResult(result)) {

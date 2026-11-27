@@ -7,7 +7,7 @@ import {asksForTiming} from './reading-intent.mjs';
 import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} from './event-window-evidence.mjs';
 import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract} from './pilot-reading-plan.mjs';
 import {focusedTopicSignal} from './focused-topic-evidence.mjs';
-import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedHouseLanguage} from './focused-reading-delivery.mjs';
+import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedHouseLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
 
 // Roll out only through the existing exact-account WhatsApp pilot. Specialist
 // calculations and every other surface retain their established flow.
@@ -162,6 +162,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
         onEvent('rejected:structure');continue;
       }
       parts.answer=removeTimingBoilerplate(parts.answer,packet.timing_estimate,{focused});
+      if(focused&&plan.scope==='person_choice')parts.reason=removeRepeatedChoiceLimit(parts.answer,parts.reason);
       previousDraft=parts;
       const candidate=[parts.answer,parts.reason,parts.remedy].filter(part=>part?.trim())
         .map(part=>{

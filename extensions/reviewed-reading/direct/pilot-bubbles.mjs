@@ -27,6 +27,16 @@ export function isSpecificReturnQuestion(query = '') {
     /\b(?:wapas|vaapas|return|come back)\b/iu.test(query);
 }
 
+// Resolve a pronoun only from the latest user topic, never an assistant claim
+// or an older relationship topic across a subsequent subject change.
+export function specificReturnSubject(query,history=[]) {
+  if(isSpecificReturnQuestion(query)||!/\b(?:woh|wo|usne|they|she|he)\b/iu.test(query)||
+    !/\b(?:wapas|vaapas|return|come back)\b/iu.test(query))return query;
+  const previous=[...history].reverse().find(turn=>turn.role==='user')?.text??'';
+  const person=previous.match(/\b(?:girlfriend|boyfriend|gf|bf|ex|partner)\b/iu)?.[0];
+  return person?`${person} return: ${query}`:query;
+}
+
 export function specificReturnBoundary(reply, query, language) {
   if (!isSpecificReturnQuestion(query)) return reply;
   // Natal relationship windows cannot answer another person's choice. A failed

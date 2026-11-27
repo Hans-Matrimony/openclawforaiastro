@@ -7,6 +7,7 @@ import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/a
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {removeTimingBoilerplate} from '../extensions/reviewed-reading/direct/event-window-evidence.mjs';
 import {focusedReplyIssue,focusedReadingFallback,normalizeFocusedHouseLanguage} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
+import {specificReturnSubject} from '../extensions/reviewed-reading/direct/pilot-bubbles.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
  VEDASTRO_DIRECT_REPLY_CACHE:'0',VEDASTRO_DIRECT_CONTEXTUAL_CLOSING:'1',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
@@ -260,6 +261,52 @@ test('hard dismissal and exact-date request use career evidence and its calculat
   assert.doesNotMatch(payload.question,/Shaadi/iu);
  }
  assert.doesNotMatch(requests[0].messages[0].content,/Whether and when marriage/);
+});
+
+test('pronoun return question inherits only the latest user relationship subject',()=>{
+ const query='Kya woh wapas aayegi?';
+ const history=[{role:'user',text:'Meri girlfriend se breakup hua.'}];
+ assert.equal(specificReturnSubject(query,history),'girlfriend return: '+query);
+ assert.equal(specificReturnSubject(query,[...history,{role:'user',text:'Mera career kab set hoga?'}]),query);
+ assert.equal(specificReturnSubject(query,[{role:'assistant',text:'Your girlfriend will return.'}]),query);
+ assert.equal(specificReturnSubject('Mera refund wapas kab aayega?',history),'Mera refund wapas kab aayega?');
+});
+
+test('hard person-choice pressure cannot select horary or publish a return promise',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hinglish',query:'Usne abhi baat karne se mana kiya hai. Kya kundli se pakka haan ya naa bata sakte ho ki woh wapas aayegi? Main baar-baar message karun?',
+  history:[{role:'user',text:'Meri girlfriend se breakup hua tha aur abhi contact nahi hai.'}]};
+ const {result,requests}=await run({input,draft:'Venus apne ghar mein strong hai aur Moon ka lord Rahu bhi beneficial hai iska matlab hai ki woh wapas aayegi, lekin jald hi nahi.\n\nHaan, woh wapas aayegi.'});
+ assert.deepEqual(requests[0].tools.map(tool=>tool.function.name),['mcp__VedAstro__get_horoscope_predictions']);
+ assert.equal(JSON.parse(requests[1].messages.at(-1).content).checked_evidence.scope,'person_choice');
+ assert.doesNotMatch(result.reply,/Venus|Moon|Rahu|woh wapas aayegi|Haan/iu);
+ assert.match(result.reply,/faisla ya samay nahi/);assert.match(result.reply,/baar-baar message mat bhejiye/);
+ assert.deepEqual(result.answer_reading_tools,['get_horoscope_predictions']);
+ for(const draft of ['Yes, she will return.','Woh wapas nahi aayegi.','They will not return.'])
+  assert.ok(focusedReplyIssue(draft,{scope:'person_choice'}),draft);
+ const contextualLimit='Pakka haan ya naa kundli se nahi bataya ja sakta ki woh wapas aayegi. Usne baat karne se mana kiya hai, isliye baar-baar message mat kijiye.';
+ assert.equal(focusedReplyIssue(contextualLimit,{scope:'person_choice'}),null);
+ assert.equal(focusedReplyIssue('A chart cannot tell us whether she will return.',{scope:'person_choice'}),null);
+ assert.ok(focusedReplyIssue(contextualLimit+' Lekin woh zaroor wapas aayegi.',{scope:'person_choice'}));
+ const contextual=await run({input,draft:contextualLimit+'\n\nUnki baat ka samman kijiye.'});
+ assert.equal(contextual.result.reply,contextualLimit+'\n\nUnki baat ka samman kijiye.');
+ const safe='Unke lautne ka faisla kundli se nahi bataya ja sakta.\n\nUnhone abhi baat karne se mana kiya hai; unki baat ka samman kijiye aur baar-baar message mat bhejiye.';
+ const verified=await run({input,draft:safe});assert.equal(verified.result.reply,safe);
+ const answer='Kundli se pakka haan ya naa nahi bataya ja sakta ki woh wapas aayegi; uska faisla usi ka hai. Usne baat karne se mana kiya hai, isliye baar-baar message mat kijiye.';
+ const recap='Aapne bataya ki breakup ke baad abhi contact nahi hai.';
+ const repeated=await run({input,draft:answer+'\n\n'+recap+' Diye gaye chart assessment se kisi khaas insaan ke lautne, unki feelings ya timing ka pata nahi chalta.'});
+ assert.equal(repeated.result.reply,answer+'\n\n'+recap);
+ assert.equal(JSON.parse(repeated.requests.at(-1).messages.at(-1).content).proposed,repeated.result.reply);
+});
+
+test('exact-day suffixes are removed only after a qualified checked month range',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const answer='Job milne ke yog September 2027 se November 2027 ke beech dikhte hain';
+ for(const suffix of ['; exact din chart se nahi diya gaya hai.','; chart se exact din nahi diya gaya hai.']) {
+  const {result,requests}=await run({input:{...value,language:'hinglish'},draft:answer+suffix+'\n\n'+candidate.split('\n\n')[1]});
+  assert.equal(result.reply,answer+'.\n\n'+candidate.split('\n\n')[1]);
+  assert.equal(JSON.parse(requests.at(-1).messages.at(-1).content).proposed,result.reply);
+ }
 });
 
 test('topic corrections select the new guide and retain its checked dates',async t=>{
