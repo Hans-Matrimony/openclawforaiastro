@@ -157,6 +157,15 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   let feedback='';
   let verifiedCandidate=null;
   let previousDraft=null;
+  const checkedExplanation=parts=>{
+    if(!focused||plan.answer_intent!=='explain_previous_assessment')return null;
+    const explanation=focusedReadingFallback(plan,value,{requireCompleteReasons:true});
+    if(!explanation)return null;
+    // Retain the already reviewed question; never invent a replacement closing.
+    const reply=[explanation,...(continuity?[parts.follow_up]:[])].filter(part=>part?.trim()).join('\n\n');
+    return !focusedReplyIssue(reply,plan)&&!validate(reply)&&
+      !(continuity&&continuationIssue(reply,value,policy))?reply:null;
+  };
   for (let attempt=0;attempt<2;attempt++) {
     try {
       const editing=feedback && verifiedCandidate!==null;
@@ -210,6 +219,10 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
             verifiedCandidate=candidate;
             const presentation=eventWindowPresentationIssue(candidate,packet.timing_estimate,value)||review.presentation_issue.trim();
             if(!presentation) {onEvent('verified');return candidate;}
+            // A checked WHY explanation already exists in the typed plan.
+            // Prefer it to another writer/reviewer round or a repeated verdict.
+            const explanation=checkedExplanation(parts);
+            if(explanation) {onEvent('checked_explanation');return explanation;}
             feedback=presentation.slice(0,500);
           } else feedback=typeof review?.reason==='string' && review.reason.trim()?review.reason.slice(0,500):'Review did not return a valid evidence decision.';
         }

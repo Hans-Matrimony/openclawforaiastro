@@ -160,17 +160,39 @@ function outcome(plan,lang) {
   if(!subject)return null;
   const s=subject[lang==='english'?0:lang==='hindi'?2:1];
   const unfavorable=plan.outcome==='unfavorable_now',unclear=plan.outcome==='unclear';
-  if(lang==='english')return unfavorable?`Your chart currently points to obstacles in ${s}.`:
+  if(lang==='english')return unfavorable?`Your chart points to obstacles in ${s}.`:
     unclear?`Your chart gives mixed indications for ${s}.`:`Your chart indicates potential for ${s}.`;
-  if(lang==='hindi')return unfavorable?`कुंडली में अभी ${s} के रास्ते में बाधाएं दिखती हैं।`:
+  if(lang==='hindi')return unfavorable?`कुंडली में ${s} के रास्ते में बाधाएं दिखती हैं।`:
     unclear?`कुंडली में ${s} के संकेत मिले-जुले हैं।`:`कुंडली में ${s} के योग दिखते हैं।`;
-  return unfavorable?`Kundli mein abhi ${s} ke raaste mein badhayein dikhti hain.`:
+  return unfavorable?`Kundli ${s} ke raaste mein rukawat dikhati hai.`:
     unclear?`Kundli mein ${s} ke sanket mile-jule hain.`:`Kundli mein ${s} ke yog dikhte hain.`;
+}
+
+function reasonSentences(factors,lang) {
+  const used=new Set();
+  return factors.map((factor,index)=>{
+    if(used.has(index))return null;
+    // Group two checked conditions of the same planet without inferring a
+    // new outcome or repeating its name in consecutive sentences.
+    const name=typeof factor==='string'?factor.match(/\b(?:Sun|Moon|Mars|Mercury|Jupiter|Venus|Saturn|Rahu|Ketu)\b/u)?.[0]:null;
+    if(name&&/debilitated|retrograde/iu.test(factor)) {
+      const other=factors.findIndex((row,i)=>i!==index&&!used.has(i)&&typeof row==='string'&&
+        new RegExp(`\\b${name}\\b`,'u').test(row)&&
+        (/debilitated/iu.test(factor)?/retrograde/iu.test(row):/debilitated/iu.test(row)));
+      if(other!==-1) {
+        used.add(index);used.add(other);const p=planet(name,lang);
+        return lang==='english'?`${p} is debilitated and retrograde, indicating obstacles.`:
+          lang==='hindi'?`${p} की नीच स्थिति और उनका वक्री होना रुकावट के संकेत देते हैं।`:
+          `${p} ki neech sthiti aur unka vakri hona rukawat ke sanket dete hain.`;
+      }
+    }
+    return factorText(factor,lang);
+  }).filter(Boolean);
 }
 
 // Code-owned fallback from the SAME typed plan: a rejected writer/reviewer
 // must not replace a real supplied window with a false "no timing" claim.
-export function focusedReadingFallback(plan,value) {
+export function focusedReadingFallback(plan,value,{requireCompleteReasons=false}={}) {
   if(plan.comparison_outlooks)return studyWorkComparisonFallback(plan,value);
   if(plan.scope==='person_choice') {
     const lang=language(value);
@@ -180,25 +202,32 @@ export function focusedReadingFallback(plan,value) {
   }
   const lang=language(value),answer=outcome(plan,lang);
   if(!answer)return null;
+  const relevant=values=>values.filter(factor=>!(factor?.kind==='active_period_link'&&
+    !plan.period_context_requested&&!plan.reasons.window_basis));
+  const supporting=relevant(plan.reasons.supporting),adverse=relevant(plan.reasons.opposing),neutral=relevant(plan.reasons.neutral??[]);
+  // Replacing a fact-checked writer requires every supplied reason to survive.
+  // The ordinary outage fallback may still use its existing bounded subset.
+  if(requireCompleteReasons&&(
+    supporting.length>2||adverse.length>3||neutral.length>1||
+    [...supporting,...adverse,...neutral].some(factor=>!factorText(factor,lang))
+  ))return null;
   const explaining=plan.answer_intent==='explain_previous_assessment';
   const explainWindow=explaining&&plan.reasons.window_basis;
   const parts=explaining?[]:[answer],window=plan.timing.status==='supplied_window'?plan.timing.windows?.[0]:null;
   if(window) {
     const from=month(window.from,lang),to=month(window.to,lang);if(!from||!to)return null;
-    parts.push(lang==='english'?`The calculation points to opportunities from ${from} to ${to}.`:
-      lang==='hindi'?`गणना में ${from} से ${to} तक अवसर के संकेत हैं।`:
-      `Ganana mein ${from} se ${to} tak mauke ke sanket hain.`);
+    parts.push(lang==='english'?`${from} to ${to} may offer an opportunity for this.`:
+      lang==='hindi'?`${from} से ${to} के बीच इसके लिए अवसर के संकेत हैं।`:
+      `${from} se ${to} ke beech iske liye mauka banne ke sanket hain.`);
   } else if(plan.timing.status==='unavailable') {
-    parts.push(plan.topic==='property'?(lang==='english'?'This reading does not establish a month or year for buying your home.':
-      lang==='hindi'?'इस रीडिंग से घर खरीदने का महीना या साल नहीं निकलता।':'Is reading se ghar kharidne ka mahina ya saal nahi nikalta.'):
-      lang==='english'?'The available calculation does not identify a timing range.':
-      lang==='hindi'?'उपलब्ध गणना में समय की अवधि नहीं मिली है।':'Maujooda ganana mein samay ki avadhi nahi mili hai.');
+    parts.push(lang==='english'?'For the period you asked about, the chart does not point to a clear time for this.':
+      lang==='hindi'?'आपने जिस समय के बारे में पूछा है, उसमें इसके लिए कोई साफ़ समय नहीं दिख रहा।':
+      'Aapke poochhe samay ke liye koi saaf tareekh ya daur nahi dikh raha.');
   }
   // A why follow-up asks for the basis, not the same verdict again. For an
   // adverse outlook put its actual limiting factors before the support.
-  const support=plan.reasons.supporting.slice(0,2),opposing=plan.reasons.opposing.slice(0,3);
-  const reasons=[...(explaining&&plan.outcome==='unfavorable_now'?[...opposing,...support]:[...support,...opposing]),...(plan.reasons.neutral??[]).slice(0,1)]
-    .map(factor=>factorText(factor,lang)).filter(Boolean);
+  const support=supporting.slice(0,2),opposing=adverse.slice(0,3);
+  const reasons=reasonSentences([...(explaining&&plan.outcome==='unfavorable_now'?[...opposing,...support]:[...support,...opposing]),...neutral.slice(0,1)],lang);
   const property=plan.reasons.property_basis;
   if(property?.rasi_fourth_lord?.adverse_natal_condition) {
     const lord=planet(property.rasi_fourth_lord.lord,lang);

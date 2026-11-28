@@ -91,6 +91,70 @@ test('a rejected why writer falls back to checked reasons rather than repeating 
  assert.equal(focusedReplyIssue(reply,plan),null);
 });
 
+test('missing timing fallback addresses the asked period without calculation jargon or a present-day forecast',()=>{
+ const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],
+  adverse:['Saturn Debilitated','Saturn retrograde','Sun Debilitated']},event_windows:[]};
+ for(const [language,query,scope] of [
+  ['hinglish','Agle saal stable job ke chances kaise hain?',/Aapke poochhe samay/u],
+  ['english','Will my job be stable next year?',/period you asked about/u],
+  ['hindi','अगले साल नौकरी कैसी रहेगी?',/जिस समय के बारे में पूछा/u],
+ ]) {
+  const input={...value,language,query},plan=buildReadingPlan(input,query,packet,[],{timingRequested:true});
+  const reply=focusedReadingFallback(plan,input);
+  assert.match(reply,scope);
+  assert.doesNotMatch(reply,/ganana|calculation|गणना|currently|\babhi\b|अभी|20\d{2}/iu);
+  assert.equal(focusedReplyIssue(reply,plan),null);
+  assert.equal(reply.split('\n\n').length,2);
+  assert.equal((reply.match(/Shani|Saturn|शनि/gu)??[]).length,1);
+  assert.match(reply,/neech.*vakri|debilitated and retrograde|नीच.*वक्री/u);
+ }
+});
+
+test('captured why repetition uses checked reasons after review without another generation round',async()=>{
+ const input={...value,language:'hinglish',query:'Aapne aisa kyun bola? Kaunsi cheez support kar rahi hai aur rukawat kya hai?'};
+ const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],
+  adverse:['Saturn Debilitated','Saturn retrograde','Sun Debilitated']},event_windows:[]};
+ const draft={answer:'Career mein stable job ke chances abhi challenging dikhte hain, halanki 10ve ghar ki mazboot sthiti career ko support karti hai.',
+  reason:'Shani ki neech sthiti aur vakri hona career ke natijon mein atkaav dikhata hai. Neech Surya bhi ek kamzor pehlu hai.',remedy:'',follow_up:'Aap kis field mein stable job dhoondh rahe hain?'};
+ const events=[],requests=[];
+ const reply=await writeCoherentReading({value:input,subject:value.query,packet,focused:true,continueConversation:true,
+  generate:async(system,data)=>{
+   requests.push({system,data:JSON.parse(data)});
+   if(requests.length===1)return JSON.stringify(draft);
+   assert.equal(requests.length,2,'No repeat generation for a checked explanation');
+   return JSON.stringify({evidence_ok:true,reason:'',presentation_issue:'WHY answer repeats the verdict before the explanation.'});
+  },validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+ assert.equal(requests.length,2);assert.match(reply,/^Shani/u);assert.match(reply,/Surya|10ve/u);
+ assert.doesNotMatch(reply,/stable job ke chances|challenging|abhi|20\d{2}/u);
+ assert.ok(reply.endsWith(draft.follow_up));
+ assert.ok(events.includes('checked_explanation'));assert.ok(!events.includes('verified_with_style_issue'));
+ assert.match(requests[0].system,/answer field starts with the checked reason/u);
+});
+
+test('a valid why answer keeps its contextual follow-up and avoids the checked explanation fallback',async()=>{
+ const input={...value,language:'english',query:'Why did you say that?'};
+ const packet={topic:'career',assessment:{trend:'MIXED',favorable:['Saturn house 10 drishti'],adverse:[]},event_windows:[]};
+ const draft={answer:'Saturn aspects the tenth house, supporting career progress.',reason:'That is the checked basis for the earlier assessment.',remedy:'',follow_up:'Which role are you considering?'};
+ const outputs=[JSON.stringify(draft),JSON.stringify({evidence_ok:true,reason:'',presentation_issue:''})];
+ const reply=await writeCoherentReading({value:input,subject:value.query,packet,focused:true,continueConversation:true,
+  generate:async()=>outputs.shift(),validate:()=>null,fallback:'safe'});
+ assert.equal(reply,[draft.answer,draft.reason,draft.follow_up].join('\n\n'));
+});
+
+test('a style fallback cannot drop a checked factor it cannot express',async()=>{
+ const input={...value,language:'english',query:'Why did you say that?'};
+ const packet={topic:'career',assessment:{trend:'MIXED',favorable:[{kind:'house_strength',house:10,strength:'strong'}],
+  adverse:['A checked condition not supported by the fallback renderer']},event_windows:[]};
+ const draft={answer:'The tenth house supports progress.',reason:packet.assessment.adverse[0]+'.',remedy:''};
+ const outputs=[JSON.stringify(draft),JSON.stringify({evidence_ok:true,reason:'',presentation_issue:'Use simpler wording.'})];
+ const events=[];
+ const reply=await writeCoherentReading({value:input,subject:value.query,packet,focused:true,
+  generate:async()=>{if(!outputs.length)throw Error('Synthetic style editor unavailable');return outputs.shift();},
+  validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+ assert.equal(reply,[draft.answer,draft.reason].join('\n\n'));
+ assert.ok(!events.includes('checked_explanation'));assert.ok(events.includes('verified_with_style_issue'));
+});
+
 async function run({input=value,config=env,draft=candidate,review='{"evidence_ok":true,"reason":"","presentation_issue":""}'}={}) {
  const requests=[];
  const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),
