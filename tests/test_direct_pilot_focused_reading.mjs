@@ -93,6 +93,22 @@ async function run({input=value,config=env,draft=candidate,review='{"evidence_ok
  return {result,requests};
 }
 
+test('short misspelled career question after bereavement selects current career evidence instead of a repeated clarification',async t=>{
+ t.mock.timers.enable({apis:['Date'],now});
+ const input={...value,language:'hinglish',query:'Aage ka carrer',history:[
+  {role:'user',text:'My wife passed away last month.'},
+  {role:'assistant',text:'I am sorry for your loss.'},
+  {role:'user',text:'Dusra shaadi kub Tak'},
+ ]};
+ const draft='Career mein pragati ke yog hain, lekin rukawatein bhi dikh rahi hain.\n\nDasva ghar strong hai. Shukra sahara dete hain; vakri Shani se kaam mein atkaav aa sakta hai.';
+ const {result,requests}=await run({input,draft});
+ assert.equal(result.answer_response_flow,'pilot_coherent_reading');
+ assert.doesNotMatch(result.reply,/Shayad|birth details|shaadi|wife|recover|2029|2032/iu);
+ const writer=requests.find(body=>body.messages[0].content.startsWith('Write the complete astrology reply'));
+ assert.ok(writer,'Current career must reach the checked reading writer');
+ assert.equal(JSON.parse(writer.messages.at(-1).content).reading_plan.topic,'career');
+});
+
 test('focused end-to-end flow shares the same checked plan and guide with no additional model stage',async t=>{
  t.mock.timers.enable({apis:['Date'],now});
  const {result,requests}=await run();assert.equal(result.reply,candidate);assert.equal(requests.length,3);

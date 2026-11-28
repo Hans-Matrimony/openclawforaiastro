@@ -1,4 +1,4 @@
-import {normalizePersonalQuery} from './personal-query.mjs';
+import {normalizePersonalQuery,normalizeReadingTypos} from './personal-query.mjs';
 import {isPropertyQuestion} from './property-intent.mjs';
 import {isLoveLifeQuestion} from './relationship-subject.mjs';
 
@@ -13,6 +13,7 @@ export const bareToolName = (name) => name.replace(/^mcp__VedAstro__/, "");
 
 // Use the same timing intent for tool selection and fallback presentation.
 export function asksForTiming(query,{exactDateRequests=false}={}) {
+  if(exactDateRequests)query=normalizeReadingTypos(query);
   // Pilot wording such as "shaadi ka samay batao" asks when, even without
   // kab/when. Keep concepts, quotes and ordinary scheduling outside this rule.
   if(exactDateRequests && !/["“”`]/u.test(query) &&
@@ -67,12 +68,14 @@ export function requiresChartReading(query, profile) {
 }
 
 export function isPersonalChartQuestion(query,{exactDateRequests=false,respectDeclinedChart=false}={}) {
+  if(exactDateRequests||respectDeclinedChart)query=normalizeReadingTypos(query);
   // These clauses decline a calculation; their chart keywords must not bypass
   // semantic routing. Keep the rest, so a mixed personal prediction still wins.
   if(respectDeclinedChart)query=query
     .replace(/\bwithout\s+(?:reading|calculating|using)\s+(?:my\s+)?(?:personal\s+)?(?:birth\s+)?chart\b/giu,'')
     .replace(/\b(?:kundli|chart)\s+nahi\s+(?:dekhni|dekhna|chahiye)\b/giu,'');
   const text = normalizePersonalQuery(query).toLowerCase().trim();
+  if(respectDeclinedChart && /^(?:aage\s+ka|mera\s+(?:aage\s+ka\s+)?|my\s+(?:future\s+)?)\s*career[.!?\s]*$/iu.test(text))return true;
   if(respectDeclinedChart&&/\byou\b[^.!?\n]{0,60}\bbe\s+my\s+(?:real\s+)?(?:boyfriend|girlfriend|partner)\b/iu.test(text)&&
     !/\b(?:kundli|horoscope|chart|dasha|transit|astrology)\b/iu.test(text))return false;
   if (isPracticalFollowup(query)) return false;
@@ -121,7 +124,8 @@ export function isPersonalChartQuestion(query,{exactDateRequests=false,respectDe
   const lovePrediction=respectDeclinedChart&&isLoveLifeQuestion(subjectText)&&
     (!/\b(?:advice|tips|practical|listen|just sharing)\b/iu.test(text)||/\b(?:chart|kundli|horoscope|astrology|predict\w*)\b/iu.test(text));
   return (
-    (topic.test(subjectText) || isForeignTravelQuestion(subjectText) || propertyPrediction || lovePrediction) &&
+    (topic.test(subjectText) || isForeignTravelQuestion(subjectText) || propertyPrediction || lovePrediction ||
+      (respectDeclinedChart && /^(?:(?:mera|meri)\s+(?:future|bhavishya)\s+(?:kya(?:\s+likha(?:\s+hai)?)?|kaisa(?:\s+(?:hoga|rahega))?)|what\s+(?:does|will)\s+my\s+future\s+(?:hold|look\s+like)|tell\s+me\s+about\s+my\s+future)[?!.\s]*$/iu.test(subjectText))) &&
     (request.test(text) || (isForeignTravelQuestion(text) && /\b(?:chances?|yog|jaane|jane|jaa|settle|jaunga|jaungi)\b/iu.test(text))) &&
     (personal.test(text) || asksForTiming(text,{exactDateRequests}) || /\b(?:hogi|hoga|lagegi)\b/u.test(text))
   );

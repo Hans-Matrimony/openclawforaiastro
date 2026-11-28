@@ -1,9 +1,11 @@
 import { sourceHouseRuler } from "./house-evidence.mjs";
 import {isPropertyQuestion} from './property-intent.mjs';
 import {isLoveLifeQuestion} from './relationship-subject.mjs';
+import {normalizeReadingTypos} from './personal-query.mjs';
 
 // One existing topic definition is shared by the pilot repair and presentation.
 export function readingTopics(query,{multilingual=false}={}) {
+  if(multilingual)query=normalizeReadingTypos(query);
   const topics = [
     ["marriage", /sha+di|vivah|marri|wedding/i, [7]],
     ["relationship", /girlfriend|boyfriend|\bgf\b|\bbf\b|crush|relationship|rishta/i, [5, 7]],

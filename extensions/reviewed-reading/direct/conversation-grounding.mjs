@@ -22,8 +22,8 @@ function palmReminder(value) {
 
 // These are acknowledgements of existing context, not readings. A model cannot
 // improve their factual content and must not replace them with another forecast.
-export function groundedConversationReply(value, profile) {
-  if (value.reply_surface !== 'whatsapp' || value.reply_to || !conversationalTurn(value)) return null;
+export function groundedConversationReply(value, profile, options={}) {
+  if (value.reply_surface !== 'whatsapp' || value.reply_to || !conversationalTurn(value,options)) return null;
   if (palmReminder(value) && profile.status === 'READY') {
     return {kind:'palm_profile_acknowledgement',reply:conversationGroundingFallback(value,profile)};
   }
@@ -35,8 +35,8 @@ export function groundedConversationReply(value, profile) {
   return null;
 }
 
-export function conversationalTurn(value) {
-  return !isPersonalChartQuestion(value.query) && !asksForTiming(value.query);
+export function conversationalTurn(value,{focused=false}={}) {
+  return !isPersonalChartQuestion(value.query,{exactDateRequests:focused,respectDeclinedChart:focused}) && !asksForTiming(value.query,{exactDateRequests:focused});
 }
 
 function relationshipStatusAnswer(value) {
@@ -54,8 +54,8 @@ function relationshipStatusAnswer(value) {
   return negative ? 'negative' : 'positive';
 }
 
-export function conversationGroundingInstruction(value, profile) {
-  if (!conversationalTurn(value)) return '';
+export function conversationGroundingInstruction(value, profile, options={}) {
+  if (!conversationalTurn(value,options)) return '';
   let instruction = '\n# Current conversation boundary\nAnswer the latest user request, not an older reading. Earlier assistant predictions, dates and chart statements are unverified conversation data, never evidence. Do not add or repeat personal forecasts, event windows, planetary placements or current dasha claims on this ordinary conversation turn. A short clarification such as "Jaise?" asks you to explain the immediately preceding question, not to change a marriage prediction. A reminder that details were already supplied is not a new marriage question. Image captions preserve what the user asked; they are not calculated chart evidence.\n';
   const status = relationshipStatusAnswer(value);
   if (status) instruction += `The user is answering your immediately preceding relationship-status question (${status}), not requesting a prediction. Acknowledge their answer naturally and continue that conversation with at most one relevant question. Do not repeat dates, request birth details, or discuss prediction verification.\n`;
@@ -67,8 +67,12 @@ export function conversationGroundingInstruction(value, profile) {
   return instruction;
 }
 
-export function conversationGroundingIssue(reply, value, profile, hasCheckedReadings = false) {
-  if (!conversationalTurn(value)) return null;
+export function conversationGroundingIssue(reply, value, profile, hasCheckedReadings = false, options={}) {
+  if (!conversationalTurn(value,options)) return null;
+  if(options.focused&&profile.status==='READY'&&
+     /\b(?:don.t\s+have|do\s+not\s+have|no)\s+(?:your\s+)?birth\s+details\b|\b(?:aapki|tumhari)\s+(?:koi\s+)?birth\s+details\s+(?:hi\s+)?(?:nahi|nahin)\b|\bbirth\s+details\s+(?:mere\s+paas\s+)?(?:nahi|nahin)\b|(?:आपक[ेी]|जन्म)[^.!?\n]{0,35}(?:जन्म\s*विवरण|जानकारी)[^.!?\n]{0,12}नहीं/iu.test(reply)) {
+    return 'The selected birth profile is complete. Do not falsely claim that birth details are missing or refuse to answer because of that. Address the current question using the established self profile, without confusing it with another person.';
+  }
   // Existing practical-action validation has a more specific repair/fallback.
   if (isPracticalFollowup(value.query)) return null;
   const strictConversation = !!relationshipStatusAnswer(value) || reminder.test(value.query) || /^(?:jaise|for example|examples?|matlab|haan|han|yes|okay|ok)[?!.\s]*$/iu.test(value.query.trim());

@@ -37,3 +37,7 @@ export function correctedReadingSubject(query,{allowDismissal=false}={}) {
       !new RegExp(`^(?:(?:main|mai|mein)\\s+(?:(?:apne|apni|mere|meri)\\s+)?|I\\s+(?:am asking|was asking|asked)\\s+about\\s+(?:my\\s+)?)${topic}\\b`,'iu').test(correction[1].trim())) return query;
   return correction[1].trim();
 }
+// Reading vocabulary only. Never rewrite a birth value, name or place.
+export function normalizeReadingTypos(query) {
+  return query.replace(/\bcarrer\b/giu, 'career').replace(/\bkub\b/giu, 'kab');
+}

@@ -1,4 +1,4 @@
-import {normalizePersonalQuery} from './personal-query.mjs';
+import {normalizePersonalQuery,normalizeReadingTypos} from './personal-query.mjs';
 import {isPropertyQuestion} from './property-intent.mjs';
 import {isLoveLifeQuestion} from './relationship-subject.mjs';
 import {pairedPropertyTimingRequest} from './paired-property-timing.mjs';
@@ -12,7 +12,8 @@ export function selectedSelfBirth(query, birth, {propertyReading=false,relations
   // In a self-chart clarification, "7ve ghar ... uski strength" refers to
   // that house, not a second person's birth profile. Keep all other-person
   // and explicit birth-correction exclusions below intact.
-  let text = normalizePersonalQuery(query).toLowerCase()
+  const focusedSubjects=propertyReading&&relationshipReading;
+  let text = normalizePersonalQuery(focusedSubjects?normalizeReadingTypos(query):query).toLowerCase()
     .replace(/\b(?:my|meri|mera|mere)\s+(?:saved|existing|stored)\s+birth\s+details\b/gu, 'my chart')
     // A request not to guess new details is not a birth correction. Preserve
     // every explicit date/time and other-person exclusion below.
@@ -33,7 +34,8 @@ export function selectedSelfBirth(query, birth, {propertyReading=false,relations
   const ownTravel = /\b(?:meri|mera|mere|my)\s+(?:abroad|overseas|videsh|foreign\s+(?:travel|settlement|residence))\b|\b(?:can|will|when\s+will)\s+i\s+(?:go|move|travel|settle)\s+(?:abroad|overseas)\b/u.test(text);
   const ownProperty=propertyReading&&isPropertyQuestion(text)&&/\b(?:my|mera|meri|mere|main|mai|mein|i|apna|apni)\b|मेरा|मेरी|मेरे|मैं|अपना|अपनी/iu.test(text);
   const ownLove=relationshipReading&&(isLoveLifeQuestion(text)||/\b(?:relationship|rishta|rishte)\b|रिश्ता|रिश्ते/iu.test(text))&&/\b(?:my|mera|meri|mere|main|mai|mein|i|mujhe)\b|मेरा|मेरी|मेरे|मैं|मुझे/iu.test(text);
-  return own || bareCareer || ownTravel || ownProperty || ownLove || (propertyReading&&pairedPropertyTimingRequest(text)) ? { ...birth } : null;
+  const briefSelf=focusedSubjects&&/^(?:aage\s+ka\s+career|mera\s+future\s+kya\s+likha\s+hai)[?!.\s]*$/iu.test(text);
+  return own || bareCareer || ownTravel || ownProperty || ownLove || briefSelf || (propertyReading&&pairedPropertyTimingRequest(text)) ? { ...birth } : null;
 }
 
 export function selectedSelfArguments(name, args, birth) {
