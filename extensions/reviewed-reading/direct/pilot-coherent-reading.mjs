@@ -5,7 +5,7 @@ import {readingTopicArea} from './pilot-relationship-reading.mjs';
 import {isSpecificReturnQuestion} from './pilot-bubbles.mjs';
 import {asksForTiming} from './reading-intent.mjs';
 import {projectedTiming,eventWindowPresentationIssue,removeTimingBoilerplate} from './event-window-evidence.mjs';
-import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract} from './pilot-reading-plan.mjs';
+import {buildReadingPlan,focusedAnswerContract,focusedReviewContract,focusedTimingContract,focusedOverviewAnswerContract,focusedOverviewReviewContract} from './pilot-reading-plan.mjs';
 import {focusedTopicSignal} from './focused-topic-evidence.mjs';
 import {focusedReadingFallback,focusedReplyIssue,normalizeFocusedReadingLanguage,removeRepeatedChoiceLimit} from './focused-reading-delivery.mjs';
 import {studyWorkComparison} from './study-work-comparison.mjs';
@@ -170,7 +170,10 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
     dialogue:focused?focusedReadingDialogue(value,packet.topic):(value.history??[]).slice(-12),user_context:facts,checked_evidence:displayPacket,remedy_references:remedies,
     ...(plan?{reading_plan:plan}:{}),...(continuity?{continuation_policy:policy}:{})};
   const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';
-  const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+continuation+followupFields+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
+  const overview=focused&&packet.scope==='natal_overview';
+  const writerContract=overview?focusedOverviewAnswerContract:focused?focusedAnswerContract:answerContract;
+  const reviewerContract=overview?focusedOverviewReviewContract:focused?focusedReviewContract:reviewContract;
+  const writer=writerContract+estimateInstruction+continuation+followupFields+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
   const repairClosing=async(checked,eventPrefix)=>{
     if(!continuity||policy.mode!=='continue')return checked;
     try {
@@ -266,7 +269,7 @@ ${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:fa
         if (issue) feedback=issue;
         else {
           const closingReviewScope=missingClosing?'\nThe proposed text is the complete reading only. Its closing question will be generated and reviewed separately. Do not reject or restyle this text merely because its conversational closing is missing.':'';
-          let review;try {review=JSON.parse(await generate((focused?focusedReviewContract:reviewContract)+estimateInstruction+continuation+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value)+closingReviewScope,JSON.stringify({...payload,proposed:candidate,
+          let review;try {review=JSON.parse(await generate(reviewerContract+estimateInstruction+continuation+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value)+closingReviewScope,JSON.stringify({...payload,proposed:candidate,
             presentation_measurements:{word_count:candidate.split(/\s+/u).length,contains_devanagari:/[\u0900-\u097f]/u.test(candidate),contains_latin:/[A-Za-z]/u.test(candidate)},
           })));}catch {review=null;}
           if(review?.evidence_ok===true && review.reason==='' && typeof review.presentation_issue==='string') {
