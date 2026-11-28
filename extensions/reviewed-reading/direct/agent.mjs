@@ -408,7 +408,7 @@ export async function directAnswer(
   if(semanticRouting && pilotTurn?.decision?.route==='checked_reading' && pilotTurn.decision.intent) {
     semanticIntent=pilotTurn.decision.intent;
     activeQuestion=semanticSubject(value,semanticIntent);
-    const supported=['marriage','relationship','career','money','education','abroad','property'].includes(semanticIntent.topic);
+    const supported=['overview','marriage','relationship','career','money','education','abroad','property'].includes(semanticIntent.topic);
     completenessPilot=supported;
     readingSubject=activeQuestion;
     readingOptions=supported?{topic:semanticIntent.topic}:undefined;
@@ -711,7 +711,7 @@ export async function directAnswer(
     // Recheck an antecedent's future window for an explanation too. Missing
     // current-period links alone cannot disprove an earlier future forecast.
     const verifyFollowupWindow=semanticIntent?.history_index>=0;
-    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&(asksForTiming(activeQuestion,{exactDateRequests:focusedPilot})||pairedPropertyTiming||verifyFollowupWindow)) {
+    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&packet.topic!=='overview'&&(asksForTiming(activeQuestion,{exactDateRequests:focusedPilot})||pairedPropertyTiming||verifyFollowupWindow)) {
       try {
         const {calculateEventTiming}=await import('./assets/dev-v2/event-timing.mjs');
         const index=chartResults.findIndex(raw=>{try{return Boolean(JSON.parse(raw).birth_chart);}catch{return false;}});
@@ -752,6 +752,7 @@ export async function directAnswer(
       },
     });
     signal.throwIfAborted();
+    if(isUnverifiedReadingReply(reply))validation.push('reading_unverified_fallback');
     return {schema:'vedastro-direct-reply-v1',reply,answer_model_calls:upstreamCalls,answer_cache_hits:cacheHits,
       answer_reading_tools:[...readingTools],answer_usage:answerUsage,answer_validation:validation,
       answer_response_flow:'pilot_coherent_reading',
@@ -1365,6 +1366,7 @@ export async function directAnswer(
       reply = alignPeriodVerdict(reply, chartResults);
     }
     const unverifiedReading = isUnverifiedReadingReply(reply);
+    if(unverifiedReading)validation.push('reading_unverified_fallback');
     const formatted = formatReadingReply(
       sanitizeBindus(deathTimingReply(value.query, reply, value.language)),
       readingTools.size > 0 && !unverifiedReading && !isDeathTimingQuestion(value.query),

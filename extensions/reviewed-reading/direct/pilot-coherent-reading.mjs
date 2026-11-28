@@ -47,7 +47,8 @@ function presentationFactor(text) {
 // assessment cannot acquire an event date by being passed to another model.
 export function coherentEvidencePacket(results, topic, {question='',focused=false}={}) {
   const area=readingTopicArea(topic)??(focused&&['education','abroad','property'].includes(topic)?topic:null);
-  if (!area) return null;
+  const overview=focused&&topic==='overview';
+  if (!area&&!overview) return null;
   const rows=[];
   for (const raw of results) {
     let row;try {row=JSON.parse(raw);}catch {return null;}
@@ -56,6 +57,22 @@ export function coherentEvidencePacket(results, topic, {question='',focused=fals
   }
   const charts=rows.filter(row=>row.birth_chart);
   if (!charts.length || new Set(charts.map(row=>JSON.stringify(row.birth_chart))).size!==1) return null;
+  if(overview) {
+    // Broad readings summarize independent returned assessments. There is no
+    // combined life verdict, personality inference, health prognosis or date.
+    const outlooks=[];
+    for(const subject of ['career','marriage','money']) {
+      const signals=rows.flatMap(row=>row.verdict_signals??[]).filter(signal=>signal.area===subject);
+      if(!signals.length||new Set(signals.map(signal=>JSON.stringify(signal))).size!==1)return null;
+      const signal=signals[0];
+      if(!['POSITIVE','NEGATIVE','MIXED'].includes(signal.trend)||!Array.isArray(signal.positive)||!Array.isArray(signal.negative))return null;
+      const factors=items=>[...new Set(items)].map(presentationFactor).filter(factor=>factor?.kind!=='active_period_link');
+      outlooks.push({topic:subject,assessment:{trend:signal.trend,favorable:factors(signal.positive),adverse:factors(signal.negative)}});
+    }
+    return {topic,source:'local-sweph-v2',scope:'natal_overview',overview_outlooks:outlooks,assessment:null,event_windows:[],
+      limits:{assessment:'Summarize the supplied areas independently. No combined probability, personality traits or lived events are established.',
+        timing:'No overall life-event date or unsolicited event timing is established.',health:'No medical, death or recovery forecast is supplied.'}};
+  }
   let signals=rows.flatMap(row=>row.verdict_signals??[]).filter(signal=>signal.area===area);
   if(!signals.length&&focused) {
     const derived=focusedTopicSignal(charts[0].birth_chart,topic);

@@ -194,6 +194,24 @@ function reasonSentences(factors,lang) {
 // Code-owned fallback from the SAME typed plan: a rejected writer/reviewer
 // must not replace a real supplied window with a false "no timing" claim.
 export function focusedReadingFallback(plan,value,{requireCompleteReasons=false}={}) {
+  if(plan.overview_outlooks) {
+    const {overview_outlooks,...base}=plan;
+    const parts=[];
+    for(const row of overview_outlooks) {
+      const assessment=row.assessment;
+      const outcome=assessment?.trend==='NEGATIVE'?'unfavorable_now':
+        ['POSITIVE','MIXED'].includes(assessment?.trend)&&assessment.favorable?.length?'affirm_possibility':'unclear';
+      const reply=focusedReadingFallback({...base,topic:row.topic,scope:'natal_outlook',outcome,
+        answer_intent:'assessment',guides:[],timing:{status:'not_requested'},
+        reasons:{supporting:assessment?.favorable??[],opposing:assessment?.adverse??[]}},value,{requireCompleteReasons});
+      if(!reply)return null;
+      // Keep at least two complete area explanations, never truncate a claim
+      // or drop its opposing reasons merely to fit the WhatsApp word budget.
+      if([...parts,reply].join(' ').split(/\s+/u).length>150)break;
+      parts.push(reply);
+    }
+    return parts.length>=2?parts.join('\n\n'):null;
+  }
   if(plan.comparison_outlooks)return studyWorkComparisonFallback(plan,value);
   if(plan.scope==='person_choice') {
     const lang=language(value);

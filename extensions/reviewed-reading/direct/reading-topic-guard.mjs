@@ -24,6 +24,8 @@ export function unrelatedReadingTopic(reply,plan) {
    const topics=readingTopics(subjectClause,{multilingual:true});
    const unrelated=topics.filter(({topic})=>topic!==plan.topic);
    for(const {topic} of unrelated) {
+    if(plan.overview_outlooks?.some(outlook=>outlook.topic===topic||
+      (outlook.topic==='marriage'&&topic==='relationship')))continue;
     if(plan.comparison_outlooks?.some(outlook=>outlook.topic===topic))continue;
     if(plan.topic==='career'&&topic==='money'&&careerIncomePreference(clause,paragraphs[index],index===paragraphs.length-1))continue;
     // Pay growth belongs to a career assessment as well as finances. Naming
