@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { SOURCE_TOOLS } from "./source-contract.mjs";
 import { sourceReading } from "./source-engine.mjs";
 import { selectedSelfBirth, selectedSelfArguments } from "./selected-self-birth.mjs";
-import { confirmedMatchingArguments, matchingEvidence, sameBirth, suppliedBirth } from "./birth-evidence.mjs";
+import { confirmedMatchingArguments, matchingEvidence, sameBirth, suppliedBirth, confirmedFormBirth } from "./birth-evidence.mjs";
 import {propertyOtherPerson,propertyOtherBirth} from './property-subject.mjs';
 import {otherReadingPerson,otherReadingBirth} from './reading-person.mjs';
 
@@ -66,6 +66,8 @@ export function createTools({
   relationshipReading = false,
   profileUpdateStatus,
   selectedSelfQuery,
+  semanticBirth,
+  semanticSubjectType,
   env = process.env,
   signal,
   fetchImpl = fetch,
@@ -75,8 +77,8 @@ export function createTools({
 }) {
   // Request-scoped state replaces the source app's shared single-user store.
   const store = { birth: birth ? { ...birth } : null, selectedPerson: null };
-  const selfBirth = ['saved', 'needs_confirmation', 'unavailable'].includes(profileUpdateStatus)
-    ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth, {propertyReading,relationshipReading});
+  const selfBirth = semanticSubjectType && semanticSubjectType!=='self' ? null : semanticBirth || (['saved', 'needs_confirmation', 'unavailable'].includes(profileUpdateStatus)
+    ? birth : selectedSelfBirth(selectedSelfQuery ?? query, birth, {propertyReading,relationshipReading}));
   const subject=selectedSelfQuery??query;
   const otherPropertyPerson=propertyReading&&(propertyOtherPerson(subject)||otherReadingPerson(subject));
   const otherPropertyBirth=otherPropertyPerson?(propertyOtherBirth(subject)||otherReadingBirth(subject)):null;
@@ -166,6 +168,14 @@ export function createTools({
     // The app's selected self profile outranks stale model-supplied memory
     // arguments. Keep the boundary outside the unchanged calculation engine.
     args = selectedSelfArguments(name, args, selfBirth);
+    if(semanticSubjectType&&semanticSubjectType!=='self'&&['get_horoscope_predictions','get_current_transits'].includes(name)) {
+      const confirmed=confirmedFormBirth(query);
+      if(!confirmed) {
+        const error=new Error('The other person needs their own confirmed birth details');
+        error.code='birth_details_required';throw error;
+      }
+      args=selectedSelfArguments(name,args,confirmed);
+    }
     if(otherPropertyPerson&&['get_horoscope_predictions','get_current_transits'].includes(name)) {
       if(!otherPropertyBirth) {
         const error=new Error('This person needs their own confirmed birth date, exact time and birthplace');

@@ -3,7 +3,7 @@ import {selectedTopicGuides,TOPIC_PROMPTS} from './pilot-topic-prompts.mjs';
 
 // Presentation decisions from already checked evidence. This does not rank
 // charts, calculate a probability, or manufacture a life-event prediction.
-export function buildReadingPlan(value,subject,packet,remedies=[]) {
+export function buildReadingPlan(value,subject,packet,remedies=[],{timingRequested:semanticTiming}={}) {
   const personChoice=packet.scope==='person_choice';
   const assessment=packet.assessment;
   const favorable=assessment?.favorable??[];
@@ -11,7 +11,7 @@ export function buildReadingPlan(value,subject,packet,remedies=[]) {
   const outcome=personChoice?'person_choice_unknown'
     :assessment?.trend==='NEGATIVE'?'unfavorable_now'
     :['POSITIVE','MIXED'].includes(assessment?.trend)&&favorable.length?'affirm_possibility':'unclear';
-  const timingRequested=asksForTiming(value.query,{exactDateRequests:true});
+  const timingRequested=semanticTiming??asksForTiming(value.query,{exactDateRequests:true});
   const explain=/\b(?:why|explain|reason|kyun|kyu|wajah)\b|क्यों|वजह|कारण/iu.test(value.query)&&!timingRequested;
   const guideKeys=selectedTopicGuides(subject,packet.topic);
   const basis=packet.timing_estimate?.selected?.basis;

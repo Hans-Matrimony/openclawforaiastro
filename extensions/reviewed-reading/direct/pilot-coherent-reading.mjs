@@ -135,8 +135,8 @@ const estimateContract=`The supplied timing_estimate is an experimental calculat
 Interpret selected.basis explicitly, for both writing and review: a period's presence does not establish support. major.relevant=false means that major period has no checked topic link; never describe it as supportive just because its minor period and Jupiter transit qualify. minor.relevant=false with aspect_nature=pressure means pressure, not supportive minor-period evidence; the opportunity instead depends on the relevant major period and Jupiter transit. For either period, retain adverse_natal_condition and pressure aspects if discussing its effect. Use only the supplied period evidence: a future timing question needs the selected future periods, not today's period inventory. Current-period evidence, when supplied for a calculation without windows, is contextual; its discussion is optional, not an acceptance requirement. Never demand omitted current-period data or invent it from dialogue.
 Explain the actual qualifying period links and future Jupiter transit support afterward, retaining material natal obstacles, minor-period pressure and any nonempty transit.saturn_pressure_houses. If the same planet's pressure applies natally and in the future window, a concise statement that its pressure continues during that period is enough; do not demand duplicated technical explanations or an inventory of every raw field. The reviewer must reject a supportive claim about a period with relevant=false or an explanation that turns pressure into support. It is fine to omit an unrelated major period entirely. Keep future transit house numbers internal; describe their topic support in everyday words and distinguish that from natal placements. The opportunity window is not the full start/end of its antardasha. If the calculation returned no qualifying interval, say it did not identify a clearer period within the stated horizon; this does not mean the event is impossible. If the latest request did not ask for timing, use this evidence only to explain the outlook without repeating dates.`;
 
-export async function writeCoherentReading({value,subject,packet,facts=[],remedies=[],focused=false,continueConversation=false,generate,validate,fallback,onEvent=()=>{}}) {
-  const plan=focused?buildReadingPlan(value,subject,packet,remedies):null;
+export async function writeCoherentReading({value,subject,packet,facts=[],remedies=[],focused=false,continueConversation=false,timingRequested,generate,validate,fallback,onEvent=()=>{}}) {
+  const plan=focused?buildReadingPlan(value,subject,packet,remedies,{timingRequested}):null;
   const continuity=focused&&continueConversation;
   const policy=continuity?continuationPolicy(value):null;
   const continuation=continuity?'\n'+continuationInstruction+'\nFor this reading, follow_up is a final conversational question, never another prediction or a claim about feelings, chart facts or outcomes. Do not ask for birth details or other facts already supplied. Review the entire displayed reply, including that question.':'';
@@ -149,7 +149,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
     delete displayPacket.active_period;
   }
   const payload={question:subject,latest_request:value.query,language:value.language,
-    timing_requested:asksForTiming(value.query,{exactDateRequests:focused}),max_words:150,
+    timing_requested:timingRequested??asksForTiming(value.query,{exactDateRequests:focused}),max_words:150,
     dialogue:focused?focusedReadingDialogue(value,packet.topic):(value.history??[]).slice(-12),user_context:facts,checked_evidence:displayPacket,remedy_references:remedies,
     ...(plan?{reading_plan:plan}:{}),...(continuity?{continuation_policy:policy}:{})};
   const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';

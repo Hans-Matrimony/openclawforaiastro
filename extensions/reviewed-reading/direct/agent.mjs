@@ -77,6 +77,7 @@ import { directReplyCache } from "./reply-cache.mjs";
 import { limitResponseLength } from "./response-length.mjs";
 import { deathTimingReply, isDeathTimingQuestion } from "./sensitive-reply.mjs";
 import {lifeEventBoundary,lifeEventContextInstruction} from './life-event-boundaries.mjs';
+import {semanticSubject,semanticSelfBirth} from './semantic-routing.mjs';
 import { SOURCE_CONFIG } from "./source-contract.mjs";
 import { isStressConcern } from "./stress-followup.mjs";
 import { timingCorrection as legacyTimingCorrection } from "./timing-correction.mjs";
@@ -245,16 +246,18 @@ export async function directAnswer(
   const topicGuidesEnabled = Boolean(pilotTopicPrompt(env, value, true));
   const coherentPilot = coherentReadingEnabled(env,value);
   const focusedPilot = focusedReadingEnabled(env,value);
+  const semanticRouting = focusedPilot && env.ASTROFRIEND_PILOT_SEMANTIC_ROUTING_ENABLED==='1';
+  let semanticIntent=null;
   const continueConversation = focusedPilot && env.ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED === '1';
   if(focusedPilot)value={...value,language:currentResponseLanguage(value)};
   const lifeBoundary=focusedPilot?lifeEventBoundary(value):null;
-  if(lifeBoundary)return {schema:'vedastro-direct-reply-v1',reply:lifeBoundary.reply,
+  if(lifeBoundary && !(semanticRouting&&lifeBoundary.kind==='bereavement_acknowledgement'))return {schema:'vedastro-direct-reply-v1',reply:lifeBoundary.reply,
     answer_model_calls:0,answer_cache_hits:0,answer_reading_tools:[],answer_usage:[],
     answer_validation:['life_event_boundary'],answer_conversation_rule:lifeBoundary.kind,
     answer_conversation_route:'conversation'};
   const capabilityBoundary=focusedPilot?(readingPersonBoundary(value)||propertyCapabilityBoundary(value)):null;
-  const asksForTiming=query=>baseAsksForTiming(query,{exactDateRequests:focusedPilot});
-  const isPersonalChartQuestion=query=>(focusedPilot&&pairedPropertyTimingRequest(query))||baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
+  const asksForTiming=query=>semanticIntent ? semanticIntent.timing : baseAsksForTiming(query,{exactDateRequests:focusedPilot});
+  const isPersonalChartQuestion=query=>semanticIntent ? true : (focusedPilot&&pairedPropertyTimingRequest(query))||baseIsPersonalChartQuestion(query,{exactDateRequests:focusedPilot,respectDeclinedChart:focusedPilot});
   const readingSubjectFor=query=>{
     const subject=correctedReadingSubject(query,{allowDismissal:focusedPilot});
     return focusedPilot?specificReturnSubject(subject,value.history,{multilingual:true}):subject;
@@ -273,7 +276,7 @@ export async function directAnswer(
     const topic=focusedPilot&&isForeignTravelQuestion(subject)?'abroad':resolveTopic(subject)?.topic;
     return acceptsCompleteness(subject) && (readingTopicArea(topic)||(focusedPilot&&['education','abroad','property'].includes(topic))) ? topic : null;
   };
-  const activeQuestion = activeReadingQuestion(value,{allowDismissal:focusedPilot,focused:focusedPilot});
+  let activeQuestion = activeReadingQuestion(value,{allowDismissal:focusedPilot,focused:focusedPilot});
   const initialSubject=focusedPilot?activeQuestion:value.query;
   const initialTopic = conversationV2Pilot ? supportedTopic(initialSubject) : null;
   let completenessPilot = Boolean(initialTopic);
@@ -312,7 +315,7 @@ export async function directAnswer(
   // silently turning a request for guidance into the prior prediction question.
   if (!progressPilot && activeQuestion !== value.query) {value = {...value, query: activeQuestion};}
   const unreadableReply=focusedPilot&&unreadableTextReply(value);
-  const acknowledgement = unreadableReply?{reply:unreadableReply,kind:'unreadable_input'}:
+  const acknowledgement = unreadableReply?{reply:unreadableReply,kind:'unreadable_input'}:semanticRouting?null:
     groundedConversationReply(value, savedBirthContext(value.birth),{focused:focusedPilot});
   if (acknowledgement) {
     return {
@@ -328,8 +331,8 @@ export async function directAnswer(
   let pilotMemory = null;
   if (progressPilot && sourceFlow && value.reply_surface === "whatsapp" &&
       env.ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED === "1" &&
-      (capabilityBoundary||!isPersonalChartQuestion(value.query)) && !asksGunaScore(value.query) &&
-      !asksForRemedy(value.query, value.history)) {
+      (semanticRouting || ((capabilityBoundary||!isPersonalChartQuestion(value.query)) && !asksGunaScore(value.query) &&
+      !asksForRemedy(value.query, value.history)))) {
     pilotCalls = 0;
     let preferenceOutcome=null;
     try {
@@ -360,8 +363,9 @@ export async function directAnswer(
       }
       pilotTurn = await interpretTurn(value, {env, fetchImpl, signal, now,
         naturalListening:focusedPilot,
+        semanticRouting,
         continueConversation,
-        capabilityBoundary,
+        capabilityBoundary:semanticRouting?null:capabilityBoundary,
         savedContext,
         memoryUpdateStatus,
         onRequest: () => { pilotCalls++; },
@@ -382,7 +386,7 @@ export async function directAnswer(
     }
     if(focusedPilot&&pilotTurn?.decision?.route==='checked_reading'){
       const collectionReply=partialBirthCollectionReply(value);
-      if(collectionReply)pilotTurn.decision={route:'clarification',reply:collectionReply};
+      if(collectionReply && (!semanticRouting || pilotTurn.decision.intent?.subject==='self'))pilotTurn.decision={route:'clarification',reply:collectionReply};
     }
     const decision = pilotTurn?.decision;
     if (decision && decision.route !== "checked_reading" &&
@@ -390,11 +394,20 @@ export async function directAnswer(
         !pastPrediction(decision.reply, now()) && !explicitEnglishReplyMismatch(value, decision.reply)) {
       return {schema:"vedastro-direct-reply-v1",reply:decision.reply,
         answer_model_calls:pilotCalls,answer_cache_hits:0,answer_reading_tools:[],
-        answer_usage:pilotTurn.usage,answer_validation:[],answer_conversation_route:decision.route};
+        answer_usage:pilotTurn.usage,answer_validation:[],answer_conversation_route:decision.route,
+        ...(semanticRouting&&decision.intent?{answer_routing:{source:'llm',...decision.intent}}:{})};
     }
   }
+  if(semanticRouting && pilotTurn?.decision?.route==='checked_reading' && pilotTurn.decision.intent) {
+    semanticIntent=pilotTurn.decision.intent;
+    activeQuestion=semanticSubject(value,semanticIntent);
+    const supported=['marriage','relationship','career','money','education','abroad','property'].includes(semanticIntent.topic);
+    completenessPilot=supported;
+    readingSubject=activeQuestion;
+    readingOptions=supported?{topic:semanticIntent.topic}:undefined;
+  }
   if (conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading' &&
-      (!focusedPilot || borrowsCompanionTopic(value.query,{allowDiscoursePrefix:true})) &&
+      !semanticIntent && (!focusedPilot || borrowsCompanionTopic(value.query,{allowDiscoursePrefix:true})) &&
       !resolveTopic(readingSubjectFor(value.query)) && !value.reply_to && acceptsCompleteness(value.query)) {
     // A semantic reading follow-up may have no topic words. Resolve it only
     // from the immediately preceding user subject, never past a topic change.
@@ -418,6 +431,8 @@ export async function directAnswer(
   const semanticReading = conversationV2Pilot && pilotTurn?.decision?.route === 'checked_reading';
   const memory = pilotMemory ?? makeMemory(value.user_id, { env, fetchImpl, signal });
   const execute = makeTools({ memory, birth: value.birth, query: activeQuestion, history: value.history,
+    semanticBirth:semanticSelfBirth(value,semanticIntent),
+    semanticSubjectType:semanticIntent?.subject,
     selectedSelfQuery: activeQuestion !== originalQuery ? activeQuestion.split('\nFollow-up:')[0] : undefined,
     gender: value.user_gender, propertyReading:focusedPilot, relationshipReading:focusedPilot, profileUpdateStatus: value.profile_update_status, env, fetchImpl, signal, now });
   // The checked self-chart depends on the selected birth profile, not memory
@@ -480,9 +495,9 @@ export async function directAnswer(
   const companionGeneration = sourceFlow ? generationSettings(env) : generation;
   // A shared everyday concern is not an astrology request in either flow.
   // Reuse the existing boundary without changing actual reading/tool prompts.
-  const emotionalFriendship = isEmotionalFriendship(value.query, value.history);
-  const practicalFollowup = !emotionalFriendship && sourceFlow && isPracticalFollowup(value.query);
-  const ordinaryConcern = !emotionalFriendship && !practicalFollowup && isOrdinaryConcern(value.query);
+  const emotionalFriendship = !semanticIntent && isEmotionalFriendship(value.query, value.history);
+  const practicalFollowup = !semanticIntent && !emotionalFriendship && sourceFlow && isPracticalFollowup(value.query);
+  const ordinaryConcern = !semanticIntent && !emotionalFriendship && !practicalFollowup && isOrdinaryConcern(value.query);
   const listeningTurn = sourceFlow && (emotionalFriendship
     ? friendshipListeningOnly(value.query) : listeningConcern(value.query));
   if (listeningTurn) {context.prompt += listeningInstruction;}
@@ -507,7 +522,7 @@ export async function directAnswer(
   }
   const readingRequired = !matchingLimitations && !emotionalFriendship && (isPersonalChartQuestion(progressPilot && !asksForTiming(originalQuery,{exactDateRequests:focusedPilot}) ? originalQuery : activeQuestion) || asksGunaScore(value.query) || pilotTurn?.decision?.route === 'checked_reading');
   const coherentFlow = coherentPilot && topicExperiment && readingRequired && (focusedPersonChoice||!/\b(?:horary|prashna)\b/iu.test(value.query));
-  const coherentSubject = coherentFlow ? readingSubjectFor(readingSubject || value.query) : null;
+  const coherentSubject = coherentFlow ? semanticIntent?activeQuestion:readingSubjectFor(readingSubject || value.query) : null;
   // Scope the imported astrology-only prohibition instead of layering a
   // contradictory friendship instruction over it. Guidance remains allowed;
   // predictions still require the same checked tools and validation below.
@@ -675,13 +690,20 @@ export async function directAnswer(
     if (!coherentFlow || !readingTools.has('get_horoscope_predictions')) return null;
     let packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
     if (!packet) return null; // Specialist/conflicting evidence retains its own checks.
-    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&(asksForTiming(activeQuestion,{exactDateRequests:focusedPilot})||pairedPropertyTiming)) {
+    if(semanticIntent?.scope==='person_choice') {
+      packet={...packet,scope:'person_choice',assessment:null,event_windows:[]};
+      delete packet.timing_estimate;delete packet.active_period;
+    }
+    // Recheck an antecedent's future window for an explanation too. Missing
+    // current-period links alone cannot disprove an earlier future forecast.
+    const verifyFollowupWindow=semanticIntent?.history_index>=0;
+    if(env.ASTROFRIEND_PILOT_EVENT_TIMING_ENABLED==='1'&&packet.scope!=='person_choice'&&(asksForTiming(activeQuestion,{exactDateRequests:focusedPilot})||pairedPropertyTiming||verifyFollowupWindow)) {
       try {
         const {calculateEventTiming}=await import('./assets/dev-v2/event-timing.mjs');
         const index=chartResults.findIndex(raw=>{try{return Boolean(JSON.parse(raw).birth_chart);}catch{return false;}});
         if(index>=0) {
           const row=JSON.parse(chartResults[index]);
-          const timing=calculateEventTiming(row,{topic:readingOptions.topic,propertyEvent:pairedPropertyTiming?'purchase':propertyEventKind(coherentSubject),asOf:now()});
+          const timing=calculateEventTiming(row,{topic:readingOptions.topic,propertyEvent:semanticIntent?.topic==='property'?semanticIntent.property_event:pairedPropertyTiming?'purchase':propertyEventKind(coherentSubject),asOf:now()});
           chartResults[index]=JSON.stringify({...row,event_timing:timing,event_windows:timing.windows});
           packet=coherentEvidencePacket(chartResults,readingOptions.topic,{question:coherentSubject,focused:focusedPilot});
           validation.push('pilot_event_timing_'+timing.status);
@@ -699,11 +721,12 @@ export async function directAnswer(
     }
     const fallback=formatDisplayReply(evidenceFallback(chartResults,value.language,coherentSubject,now()));
     const reply=await writeCoherentReading({value,subject:coherentSubject,packet,facts:context.memoryFacts,focused:focusedPilot,continueConversation,
+      timingRequested:semanticIntent?.timing,
       remedies:remedyKnowledge?.status==='available'?remedyKnowledge.sources:[],fallback,
       generate:(instruction,data)=>generateClosing(instruction,redactIdentity(data,value.user_id),1400,true,true),
       onEvent:event=>validation.push('pilot_coherent_'+event),
       validate:candidate=>{
-        const timingIssue=eventWindowReplyIssue(candidate,packet.timing_estimate,{requested:asksForTiming(value.query,{exactDateRequests:focusedPilot})});
+        const timingIssue=eventWindowReplyIssue(candidate,packet.timing_estimate,{requested:asksForTiming(value.query)});
         if(timingIssue)return timingIssue;
         if(pastPrediction(candidate,now())) return 'Do not present a past date as a future event.';
         if(focusedPilot&&futureAsPast(candidate,now()))return 'A future year cannot be described as a completed event. Preserve the checked timing and use future or conditional wording.';
@@ -718,11 +741,12 @@ export async function directAnswer(
     return {schema:'vedastro-direct-reply-v1',reply,answer_model_calls:upstreamCalls,answer_cache_hits:cacheHits,
       answer_reading_tools:[...readingTools],answer_usage:answerUsage,answer_validation:validation,
       answer_response_flow:'pilot_coherent_reading',
+      ...(semanticIntent?{answer_routing:{source:'llm',...semanticIntent}}:{}),
       ...(remedyKnowledge?{answer_remedy_status:remedyKnowledge.status,answer_remedy_sources:remedyKnowledge.sources.length}:{})};
   };
   const recoverConfirmedChart=async status=>{
     if(!focusedPilot||!coherentFlow||readingTools.size||env.VEDASTRO_DIRECT_USE_LOCAL_ENGINE==='0')return null;
-    const confirmed=selectedSelfBirth(activeQuestion,value.birth,{propertyReading:true,relationshipReading:true});
+    const confirmed=semanticSelfBirth(value,semanticIntent)||selectedSelfBirth(activeQuestion,value.birth,{propertyReading:true,relationshipReading:true});
     if(!confirmed)return null;
     signal.throwIfAborted();
     try {
@@ -1497,6 +1521,7 @@ export async function directAnswer(
       answer_reading_tools: [...readingTools],
       answer_usage: answerUsage,
       answer_validation: validation,
+      ...(semanticIntent?{answer_routing:{source:'llm',...semanticIntent}}:{}),
       ...(remedyKnowledge
         ? {
             answer_remedy_status: remedyKnowledge.status,

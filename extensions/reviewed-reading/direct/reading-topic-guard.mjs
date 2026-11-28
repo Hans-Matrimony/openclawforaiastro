@@ -8,7 +8,10 @@ export function unrelatedReadingTopic(reply,plan) {
  for(let index=0;index<paragraphs.length;index++) {
   for(const clause of paragraphs[index].split(/[.!?।]+/u)) {
    if(/\b(?:not (?:the|a|your|my) (?:career|job|marriage|relationship|property)|(?:career|job|marriage|property)[^.!?\n]{0,70}(?:lagu nahi|does not apply|doesn't apply|not applicable))\b/iu.test(clause))continue;
-   const topics=readingTopics(clause,{multilingual:true});
+   // A chart's numbered/ordinal house is not a building. Keep the rest of
+   // the clause so an actual purchase/sale claim still triggers the guard.
+   const subjectClause=clause.replace(/\b(?:house\s+(?:1[0-2]|[1-9])|(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|(?:1[0-2]|[1-9])(?:st|nd|rd|th|ve|va)?)\s+(?:house|ghar))\b/giu,'chart sector');
+   const topics=readingTopics(subjectClause,{multilingual:true});
    const unrelated=topics.filter(({topic})=>topic!==plan.topic);
    for(const {topic} of unrelated) {
     if(plan.comparison_outlooks?.some(outlook=>outlook.topic===topic))continue;
