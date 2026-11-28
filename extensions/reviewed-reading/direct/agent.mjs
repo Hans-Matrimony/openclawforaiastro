@@ -394,7 +394,7 @@ export async function directAnswer(
         !pastPrediction(decision.reply, now()) && !explicitEnglishReplyMismatch(value, decision.reply)) {
       return {schema:"vedastro-direct-reply-v1",reply:decision.reply,
         answer_model_calls:pilotCalls,answer_cache_hits:0,answer_reading_tools:[],
-        answer_usage:pilotTurn.usage,answer_validation:[],answer_conversation_route:decision.route,
+        answer_usage:pilotTurn.usage,answer_validation:pilotTurn.safeFallback?['grounded_continuation_fallback']:[],answer_conversation_route:decision.route,
         ...(semanticRouting&&decision.intent?{answer_routing:{source:'llm',...decision.intent}}:{})};
     }
   }

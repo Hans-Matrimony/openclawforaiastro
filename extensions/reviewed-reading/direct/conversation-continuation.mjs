@@ -34,6 +34,15 @@ export const continuationReviewInstruction=`For evidence and intent review, a mi
 // The prior assistant actually introduced sadness and the user challenges it.
 // This acknowledgment adds no user intent, emotion, prediction or biography.
 export function groundedContinuationReply(value,policy=continuationPolicy(value)) {
+  // These acknowledgments add no diagnosis, emotion, biographical claim or
+  // advice. A rejected optional conversational draft need not become an outage.
+  const sensitive=/\b(?:suicid\w*|self.harm|kill|die|death|unsafe|emergency|overdose|marna|marne)\b|आत्महत्या|खुदकुशी|मरना|आपातकाल/iu.test(value.query);
+  if(!sensitive&&policy.mode==='quiet'&&policy.reason==='listening_only')return value.language==='english'?"I'm listening.":
+    value.language==='hindi'?(value.user_gender==='female'?'मैं आपकी बात सुन रहा हूँ।':'मैं आपकी बात सुन रही हूँ।'):
+    value.user_gender==='female'?'Main aapki baat sun raha hoon.':'Main aapki baat sun rahi hoon.';
+  if(!sensitive&&policy.mode==='quiet'&&policy.reason==='just_sharing')return value.language==='english'?"Understood—you were sharing what happened.":
+    value.language==='hindi'?(value.user_gender==='female'?'ठीक है, समझ गया।':'ठीक है, समझ गई।'):
+    value.user_gender==='female'?'Theek hai, samajh gaya.':'Theek hai, samajh gayi.';
   if(policy.reason!=='emotion_assumption_correction')return null;
   return value.language==='english'?"I introduced sadness without a basis in what you said. I shouldn't have assumed how you felt.":
     value.language==='hindi'?'मैंने उदासी का सवाल बिना आधार जोड़ दिया था। आपकी भावनाओं के बारे में मान लेना सही नहीं था।':

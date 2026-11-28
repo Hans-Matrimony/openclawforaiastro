@@ -9,7 +9,7 @@ import {createModelRequest} from './model-request.mjs';
 import {companionBoundaryInstruction,companionBoundaryIssue,companionAddressText,blockedContactFallback} from './companion-boundaries.mjs';
 import {pilotMarathiStyle,marathiReviewInstruction} from './pilot-language-style.mjs';
 import {firstContactPolicy,firstContactIssue} from './first-contact.mjs';
-import {semanticResponseFormat,semanticRoutingInstruction,parseSemanticDecision} from './semantic-routing.mjs';
+import {semanticResponseFormat,semanticRoutingInstruction,parseSemanticDecision,semanticContinuationPolicy} from './semantic-routing.mjs';
 import {selectedProfileRecall} from './profile-recall.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
@@ -113,6 +113,10 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   }
   const profileRecall=semanticRouting&&selectedProfileRecall(value,decision?.intent);
   if(profileRecall)return {decision:{...decision,reply:profileRecall},usage};
+  if(semanticRouting&&continueConversation&&decision?.intent){
+    envelope.continuation_policy=semanticContinuationPolicy(decision.intent,envelope.continuation_policy);
+    body.messages[1]={role:'user',content:JSON.stringify(envelope)};
+  }
   if(capabilityBoundary&&(!decision||decision.route==='checked_reading'))
     return {decision:{route:boundaryClarification?'clarification':'conversation',reply:capabilityBoundary.reply},usage};
   // A paraphrased clarification can be repetitive even when exact text differs.
@@ -184,7 +188,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       const contactReply=naturalListening&&blockedContactFallback(value);
       if(contactReply)return {decision:{route:'advice',reply:contactReply},usage};
       const acknowledgment=continueConversation&&groundedContinuationReply(value,envelope.continuation_policy);
-      if(acknowledgment)return {decision:{route:'conversation',reply:acknowledgment},usage};
+      if(acknowledgment)return {decision:{route:'conversation',reply:acknowledgment,...(decision?.intent?{intent:decision.intent}:{})},usage,safeFallback:true};
       const error=new Error('Conversation review did not approve delivery');
       error.code='conversation_review_failed';
       error.answer_usage=usage;
@@ -193,6 +197,10 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   }
   // A review-disabled capture must not publish the repeated draft either.
   if (decision && repeatsClarification(decision.reply,value.history ?? [])) decision=null;
+  if(!decision&&naturalListening&&continueConversation){
+    const acknowledgment=groundedContinuationReply(value,envelope.continuation_policy);
+    if(acknowledgment)return {decision:{route:'conversation',reply:acknowledgment},usage,safeFallback:true};
+  }
   return {decision,usage};
 }
 

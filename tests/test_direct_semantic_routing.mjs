@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseSemanticDecision,semanticSubject,semanticSelfBirth,semanticResponseFormat} from '../extensions/reviewed-reading/direct/semantic-routing.mjs';
+import {parseSemanticDecision,semanticSubject,semanticSelfBirth,semanticResponseFormat,semanticContinuationPolicy} from '../extensions/reviewed-reading/direct/semantic-routing.mjs';
 import {interpretTurn} from '../extensions/reviewed-reading/direct/conversation-turn.mjs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {createTools} from '../extensions/reviewed-reading/direct/tools.mjs';
@@ -8,6 +8,7 @@ import {buildReadingPlan} from '../extensions/reviewed-reading/direct/pilot-read
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {unrelatedReadingTopic} from '../extensions/reviewed-reading/direct/reading-topic-guard.mjs';
 import {selectedProfileRecall} from '../extensions/reviewed-reading/direct/profile-recall.mjs';
+import {continuationPolicy,groundedContinuationReply} from '../extensions/reviewed-reading/direct/conversation-continuation.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
   VEDASTRO_DIRECT_REPLY_CACHE:'0',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:'1',
@@ -186,4 +187,23 @@ test('profile recall returns just requested fields and leaves absent fields miss
   assert.equal(parseSemanticDecision({route:'checked_reading',reply:'',intent:nameOnly},value),null);
   assert.equal(parseSemanticDecision({route:'conversation',reply:'Name',intent:{...nameOnly,subject:'other'}},value),null);
   assert.equal(parseSemanticDecision({route:'conversation',reply:'Name',intent:{...nameOnly,profile_fields:['name','name']}},value),null);
+});
+
+test('a repeated review rejection of explicit listening still returns a grounded acknowledgment',async()=>{
+  const input={...value,language:'hinglish',query:'Aaj office mein meri baat poori suni hi nahi gayi. Abhi advice mat dijiye, bas meri baat suniye.'};
+  let requests=0;
+  const result=await interpretTurn(input,{env,semanticRouting:true,naturalListening:true,continueConversation:true,
+    redact:s=>s,now:()=>new Date(),signal:AbortSignal.timeout(5000),fetchImpl:async(_url,options)=>{
+      requests++;const prompt=JSON.parse(options.body).messages[0].content;
+      return response({content:prompt.startsWith('Review a conversational draft')?
+        '{"status":"reject","issues":["Synthetic reviewer rejection"]}':JSON.stringify({route:'conversation',reply:'Main sun rahi hoon.',
+          intent:{...intent,topic:'general',scope:'listening'}})});
+    }});
+  assert.equal(result.safeFallback,true);assert.equal(result.decision.reply,'Main aapki baat sun rahi hoon.');
+  assert.equal(requests,4);assert.doesNotMatch(result.decision.reply,/try again|verify|\?/iu);
+  assert.equal(groundedContinuationReply({...input,query:'I want to die. Just listen.'}),null);
+  const sharing={...input,query:'Main udaas nahi hoon, bas aapko bata raha tha.'};
+  const policy=semanticContinuationPolicy({scope:'sharing'},continuationPolicy(sharing));
+  assert.equal(policy.reason,'just_sharing');
+  assert.doesNotMatch(groundedContinuationReply(sharing,policy),/udaas|sad|sorry|maafi|\?/iu);
 });
