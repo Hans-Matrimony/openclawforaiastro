@@ -335,8 +335,8 @@ export async function directAnswer(
       !asksForRemedy(value.query, value.history)))) {
     pilotCalls = 0;
     let preferenceOutcome=null;
+    let savedContext = [];
     try {
-      let savedContext = [];
       let memoryUpdateStatus = null;
       if (env.ASTROFRIEND_CONVERSATION_MEMORY_ENABLED === "1" && !ignoresMemory(value.query)) {
         try {
@@ -385,7 +385,14 @@ export async function directAnswer(
       pilotTurn={...pilotTurn,decision:{route:'conversation',reply:preferenceMemoryReceipt(value,preferenceOutcome)}};
     }
     if(focusedPilot&&pilotTurn?.decision?.route==='checked_reading'){
-      const collectionReply=partialBirthCollectionReply(value);
+      // The LLM owns intent and subject; confirmed missing fields own the form.
+      // Keep greetings, other people and unresolved corrections out of intake.
+      const selfIntake=semanticRouting&&pilotTurn.decision.intent?.subject==='self'&&
+        pilotTurn.decision.intent?.scope==='natal'&&value.profile_update_status!=='needs_confirmation';
+      const collectionReply=(selfIntake?pilotBirthClarification('Please share birth details',
+        savedBirthContext(value.birth),value.language,savedContext.filter(text=>/^\s*\[birth\]/iu.test(text)),
+        {name:value.user_name,gender:value.user_gender}):null)
+        ??partialBirthCollectionReply(value);
       if(collectionReply && (!semanticRouting || pilotTurn.decision.intent?.subject==='self'))pilotTurn.decision={route:'clarification',reply:collectionReply};
     }
     const decision = pilotTurn?.decision;

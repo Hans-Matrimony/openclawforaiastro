@@ -1,9 +1,12 @@
+import {profileCollectionFormat} from './profile-collection-format.mjs';
+
 // These boundaries describe missing input or missing calculated capability.
 // They never infer an outcome from the absence of a result.
-export function pilotBirthClarification(reply, profile, language, memoryFacts = []) {
+export function pilotBirthClarification(reply, profile, language, memoryFacts = [],identity) {
   if (profile.status === 'READY' || memoryFacts.length) return null;
   if (!/\b(?:birth|janam|janm)\b|जन्म/iu.test(reply) ||
       !/\b(?:need|share|provide|details|zaroorat|zarurat|bata|date|time|place)\b|तिथि|समय|स्थान/iu.test(reply)) return null;
+  if(identity)return profileCollectionFormat(profile,language,identity);
   const fields = profile.fields ?? {};
   const missing = ['date','time','location_name'].filter(key => !fields[key]);
   const labels = language === 'english'

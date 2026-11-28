@@ -10,5 +10,5 @@ export function partialBirthCollectionReply(value) {
   if(value.profile_update_status!=='saved'&&!/^(?:meri\s+(?:date\s+of\s+birth|janam\s+tithi)|mera\s+(?:janam|janm)|my\s+(?:date\s+of\s+birth|birth\s*time|birthplace)|dob\s*[:=]|मेरी\s+जन्म\s*तिथि|मेरा\s+जन्म)/iu.test(text))return null;
   // These are authoritative selected-profile fields. Asking for the missing
   // inputs is not a prediction and must not require chart evidence or a retry.
-  return pilotBirthClarification('Please share birth details',profile,value.language,[]);
+  return pilotBirthClarification('Please share birth details',profile,value.language,[],{name:value.user_name,gender:value.user_gender});
 }
