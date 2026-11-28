@@ -10,15 +10,16 @@ const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_D
  ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1',
  ASTROFRIEND_PILOT_SEMANTIC_ROUTING_ENABLED:'1',ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED:'1'};
 
-for(const [name,profile,identity,expected] of [
+for(const [name,profile,identity,expected,status] of [
  ['new user',{}, {},['Name:','Gender:','Date of birth: DD Month YYYY','Birth time: HH:MM AM/PM','Birthplace: City, State, Country']],
  ['known name and date',{date:'1998-10-18'},{name:'Neel'},['Gender:','Birth time: HH:MM AM/PM','Birthplace: City, State, Country']],
  ['only place missing',{date:'1998-10-18',time:'06:35'},{name:'Neel',gender:'male'},['Birthplace: City, State, Country']],
+ ['fresh birth form missing identity',{date:'1998-10-18',time:'06:35',location_name:'Jaipur'},{},['Name:','Gender:'],'saved'],
  ['unknown placeholders',{date:'unknown'},{name:'Please update',gender:'unknown'},['Name:','Gender:','Date of birth: DD Month YYYY','Birth time: HH:MM AM/PM','Birthplace: City, State, Country']]
 ])test(`self astrology intake formats ${name} without starting calculation`,async()=>{
  let calls=0;
  const result=await directAnswer({user_id:user,query:'When will I get married?',reply_surface:'whatsapp',language:'english',history:[],birth:profile,
-  user_name:identity.name,user_gender:identity.gender??'unknown'},
+  user_name:identity.name,user_gender:identity.gender??'unknown',...(status?{profile_update_status:status}:{})},
  {env,makeMemory:()=>({read:async()=>['The user likes music.'],write:async()=>assert.fail('No profile writes during collection')}),
   makeTools:()=>assert.fail('Missing details must not start tools'),fetchImpl:async()=>{
    calls++;assert.equal(calls,1);return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({route:'checked_reading',reply:'',

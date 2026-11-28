@@ -391,7 +391,7 @@ export async function directAnswer(
         pilotTurn.decision.intent?.scope==='natal'&&value.profile_update_status!=='needs_confirmation';
       const collectionReply=(selfIntake?pilotBirthClarification('Please share birth details',
         savedBirthContext(value.birth),value.language,savedContext.filter(text=>/^\s*\[birth\]/iu.test(text)),
-        {name:value.user_name,gender:value.user_gender}):null)
+        {name:value.user_name,gender:value.user_gender,collectIdentity:value.profile_update_status==='saved'}):null)
         ??partialBirthCollectionReply(value);
       if(collectionReply && (!semanticRouting || pilotTurn.decision.intent?.subject==='self'))pilotTurn.decision={route:'clarification',reply:collectionReply};
     }
@@ -1114,7 +1114,9 @@ export async function directAnswer(
     }
     // A closing friendly question must not let an ungrounded reading bypass tools.
     const birthClarification = topicExperiment && readingRequired && readingTools.size === 0
-      ? pilotBirthClarification(reply,context.profile,value.language,context.memoryFacts) : null;
+      ? pilotBirthClarification(reply,context.profile,value.language,context.memoryFacts,
+        focusedPilot&&(!semanticIntent||semanticIntent.subject==='self')
+          ? {name:value.user_name,gender:value.user_gender,collectIdentity:value.profile_update_status==='saved'}:undefined) : null;
     if (birthClarification) return {
       schema:'vedastro-direct-reply-v1',reply:finishWhatsAppReply(birthClarification,value,{facts:context.memoryFacts}),
       answer_model_calls:upstreamCalls,answer_cache_hits:cacheHits,answer_reading_tools:[],
