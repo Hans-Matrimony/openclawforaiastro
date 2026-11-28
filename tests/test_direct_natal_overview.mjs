@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
-import {coherentEvidencePacket} from '../extensions/reviewed-reading/direct/pilot-coherent-reading.mjs';
+import {coherentEvidencePacket,writeCoherentReading} from '../extensions/reviewed-reading/direct/pilot-coherent-reading.mjs';
 import {buildReadingPlan} from '../extensions/reviewed-reading/direct/pilot-reading-plan.mjs';
 import {focusedReadingFallback,focusedReplyIssue} from '../extensions/reviewed-reading/direct/focused-reading-delivery.mjs';
 
@@ -46,6 +46,26 @@ test('overview fallback makes bounded progress using complete area explanations 
  assert.doesNotMatch(text,/verify nahi|try again|20\d{2}|dasha|health|death|personality|bindus/iu);
  assert.match(text,/career/iu);assert.match(text,/shaadi|risht/iu);
  assert.ok(focusedReplyIssue(text,{...plan,overview_outlooks:undefined,topic:'property'}));
+});
+
+test('overview presentation edits retain the same independent evidence and require a second factual review',async()=>{
+ const {text}=parts(),bubbles=text.split('\n\n');
+ const clean={answer:bubbles[0],reason:bubbles.slice(1).join(' '),remedy:''};
+ const expected=[clean.answer,clean.reason].join('\n\n');
+ const first={...clean,answer:'Career: '+clean.answer};
+ const packets=[];let calls=0;
+ const reply=await writeCoherentReading({value:input,subject:input.query,packet:packet(),focused:true,
+  generate:async(_instruction,payload)=>{
+   calls++;const context=JSON.parse(payload);packets.push(context.checked_evidence);
+   if(calls===1)return JSON.stringify(first);
+   if(calls===2)return JSON.stringify({evidence_ok:true,reason:'',presentation_issue:'Remove report headings while preserving all supplied meaning.'});
+   if(calls===3){assert.equal(context.edit_mode,'presentation_only');assert.deepEqual(context.previous_reply,first);return JSON.stringify(clean);}
+   assert.equal(calls,4);assert.equal(context.proposed,expected);
+   return JSON.stringify({evidence_ok:true,reason:'',presentation_issue:''});
+  },validate:()=>null,fallback:'No checked answer'});
+ assert.equal(reply,expected);assert.equal(calls,4);
+ assert.ok(packets.every(value=>JSON.stringify(value)===JSON.stringify(packet())));
+ assert.doesNotMatch(reply,/Career:|No checked answer|20\d{2}/u);
 });
 
 test('broad questions and a short retry reach the structured overview; failed generation retains checked substance',async()=>{

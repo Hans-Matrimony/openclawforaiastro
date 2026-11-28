@@ -483,8 +483,12 @@ ${continuationInstruction}\n${personaInstruction(value, { includeDeliveryPolicy:
             "Keep only the contextual final question allowed by continuation_policy; do not add advice.",
           )
         : styleEditContract;
+      const scopedEditContract = overview
+        ? focusedOverviewAnswerContract +
+          "\nThe previous_reply has already passed factual review. Minimally edit its presentation according to edit_feedback, retaining each discussed area's checked meaning, material support and obstacles. Do not add a summary, new area, date, disclaimer or prediction."
+        : editContract;
       const instruction = editing
-        ? editContract +
+        ? scopedEditContract +
           estimateInstruction +
           continuation +
           followupFields +
