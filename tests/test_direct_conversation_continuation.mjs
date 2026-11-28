@@ -162,6 +162,27 @@ test('checked reading also rejects a follow-up when the current user requests no
  assert.equal(drafts,2);assert.doesNotMatch(result.reply,/\?/u);assert.ok(result.answer_validation.includes('pilot_coherent_verified'));
 });
 
+test('a missing reading follow-up uses the remaining call budget for a reviewed question instead of regenerating facts',async()=>{
+ const input={...value,query:'Mera career kaisa rahega?'};
+ const answer='Career mein pragati ke sanket hain, lekin rukawatein bhi hain.';
+ const reason='Dasva ghar mazboot hai, jabki vakri Shani rukawat dikhate hain.';
+ const follow_up='Aap abhi kis tarah ka kaam dhoondh rahi hain?';
+ const requests=[];
+ const d=deps(async(_,options)=>{
+  const body=JSON.parse(options.body);requests.push(body);const instruction=body.messages[0].content;
+  if(instruction.startsWith('Collect checked evidence'))return Response.json({choices:[{finish_reason:'tool_calls',message:{tool_calls:[{id:'chart',type:'function',function:{name:'mcp__VedAstro__get_horoscope_predictions',arguments:'{}'}}]}}]});
+  if(instruction.startsWith('Write the complete astrology reply'))return response({answer,reason,remedy:''});
+  if(instruction.startsWith('Write only one contextual'))return response({follow_up});
+  return response({evidence_ok:true,reason:'',presentation_issue:''});
+ });
+ d.makeTools=()=>async()=>get_horoscope_predictions({birth_date:'3/1/2001',birth_time:'05:00',location_name:'Delhi'}).content[0].text;
+ const result=await directAnswer(input,d);
+ assert.equal(result.reply,[answer,reason,follow_up].join('\n\n'));
+ assert.equal(result.answer_model_calls,5);
+ assert.equal(requests.filter(r=>r.messages[0].content.startsWith('Write the complete astrology reply')).length,1);
+ assert.ok(result.answer_validation.includes('pilot_coherent_reviewed_followup_verified'));
+});
+
 test('new continuation flag cannot activate on a different account or another surface',async()=>{
  for(const patch of [{user_id:'919000000002'},{reply_surface:'pwa'},{reply_surface:'voice'}]) {
   let calls=0;

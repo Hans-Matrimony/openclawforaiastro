@@ -154,6 +154,30 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
     ...(plan?{reading_plan:plan}:{}),...(continuity?{continuation_policy:policy}:{})};
   const estimateInstruction=packet.timing_estimate?'\n'+(focused?focusedTimingContract:estimateContract):'';
   const writer=(focused?focusedAnswerContract:answerContract)+estimateInstruction+continuation+followupFields+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value);
+  const repairClosing=async(checked,eventPrefix)=>{
+    if(!continuity||policy.mode!=='continue')return checked;
+    try {
+      const raw=await generate(`Write only one contextual closing question for the supplied completed astrology explanation.
+Return JSON only: {"follow_up":"one short question"}. Do not rewrite the explanation, add advice, repeat a recent question, invent circumstances or introduce another topic. Ask about one useful current detail or priority not already supplied.
+${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
+        JSON.stringify({...payload,completed_explanation:checked}));
+      const closing=JSON.parse(raw);
+      if(closing&&typeof closing.follow_up==='string'&&Object.keys(closing).length===1&&closing.follow_up.length<=300) {
+        const reply=checked+'\n\n'+normalizeFocusedReadingLanguage(closing.follow_up.replace(/\s+/gu,' ').trim(),value);
+        if(reply.split(/\s+/u).length<=150&&!focusedReplyIssue(reply,plan)&&!validate(reply)&&!continuationIssue(reply,value,policy)) {
+          const review=JSON.parse(await generate(`Review only the added conversational closing question. The completed_explanation is fixed checked text, not another draft to reinterpret.
+Return JSON only: {"evidence_ok":true,"reason":"","presentation_issue":""}. Reject an unsupported fact, changed actor, invented feeling, wrong topic, repeated question, wrong language/persona, or violation of the user's request. Use presentation_issue for an awkward closing. Do not demand a new prediction, a different verdict, an event date or a stability forecast from the completed explanation. Review whether this question naturally follows the supplied dialogue and explanation.
+${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
+            JSON.stringify({latest_request:value.query,topic:packet.topic,language:value.language,dialogue:payload.dialogue,
+              user_context:facts,continuation_policy:policy,completed_explanation:checked,follow_up:closing.follow_up,proposed:reply})));
+          if(review?.evidence_ok===true&&review.reason===''&&review.presentation_issue==='') {
+            onEvent(eventPrefix+'_followup_verified');return reply;
+          }
+        }
+      }
+    }catch {onEvent(eventPrefix+'_followup_unavailable');}
+    return checked;
+  };
   let feedback='';
   let verifiedCandidate=null;
   let previousDraft=null;
@@ -203,6 +227,9 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
           // which would change the evidence and grammar before review.
           return text;
         }).join('\n\n');
+      // An omitted closing is not a reason to discard a complete reading.
+      // Check its evidence once, then use the remaining calls for the closing.
+      const missingClosing=continuity&&policy.mode==='continue'&&!parts.follow_up?.trim()&&!/[?？]/u.test(candidate);
       const explicitLanguage=/\b(?:reply|answer|respond|write|explain)\b[^.!?\n]{0,45}\b(?:english|hindi|hinglish|latin|roman|devanagari)\b/iu.test(value.query);
       const wrongScript=!explicitLanguage && ((value.language==='hinglish' && /[\u0900-\u097f]/u.test(candidate)) ||
         (value.language==='hindi' && (!/[\u0900-\u097f]/u.test(candidate) ||
@@ -211,15 +238,20 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
         feedback=wrongScript?'Use the requested language and script.':'Return a concise complete reply within 150 words.';
       } else {
         const issue=(focused?focusedReplyIssue(candidate,plan):null)||validate(candidate)||
-          (continuity?continuationIssue(candidate,value,policy):null);
+          (continuity&&!missingClosing?continuationIssue(candidate,value,policy):null);
         if (issue) feedback=issue;
         else {
-          let review;try {review=JSON.parse(await generate((focused?focusedReviewContract:reviewContract)+estimateInstruction+continuation+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),JSON.stringify({...payload,proposed:candidate,
+          const closingReviewScope=missingClosing?'\nThe proposed text is the complete reading only. Its closing question will be generated and reviewed separately. Do not reject or restyle this text merely because its conversational closing is missing.':'';
+          let review;try {review=JSON.parse(await generate((focused?focusedReviewContract:reviewContract)+estimateInstruction+continuation+'\n'+personaInstruction(value, {includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value)+closingReviewScope,JSON.stringify({...payload,proposed:candidate,
             presentation_measurements:{word_count:candidate.split(/\s+/u).length,contains_devanagari:/[\u0900-\u097f]/u.test(candidate),contains_latin:/[A-Za-z]/u.test(candidate)},
           })));}catch {review=null;}
           if(review?.evidence_ok===true && review.reason==='' && typeof review.presentation_issue==='string') {
             verifiedCandidate=candidate;
             const presentation=eventWindowPresentationIssue(candidate,packet.timing_estimate,value)||review.presentation_issue.trim();
+            if(missingClosing&&(!presentation||/^(?:missing|add|include|the answer stops|finish with).*(?:follow.?up|closing|question|conversation)/iu.test(presentation))) {
+              onEvent('verified_reading_missing_followup');
+              return repairClosing(candidate,'reviewed');
+            }
             if(!presentation) {onEvent('verified');return candidate;}
             // A checked WHY explanation already exists in the typed plan.
             // Prefer it to another writer/reviewer round or a repeated verdict.
@@ -241,31 +273,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   if(focused) {
     const checked=focusedReadingFallback(plan,value);
     if(checked&&!focusedReplyIssue(checked,plan)&&!validate(checked)) {
-      if(continuity&&policy.mode==='continue') {
-        try {
-          // Keep the chart explanation fixed. Repair only the missing closing,
-          // then review the displayed reply; failure still returns the reading.
-          const raw=await generate(`Write only one contextual closing question for the supplied completed astrology explanation.
-Return JSON only: {"follow_up":"one short question"}. Do not rewrite the explanation, add advice, repeat a recent question, invent circumstances or introduce another topic. Ask about one useful current detail or priority not already supplied.
-${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
-            JSON.stringify({...payload,completed_explanation:checked}));
-          const closing=JSON.parse(raw);
-          if(closing&&typeof closing.follow_up==='string'&&Object.keys(closing).length===1&&closing.follow_up.length<=300) {
-            const reply=checked+'\n\n'+normalizeFocusedReadingLanguage(closing.follow_up.replace(/\s+/gu,' ').trim(),value);
-            if(reply.split(/\s+/u).length<=150&&!focusedReplyIssue(reply,plan)&&!validate(reply)&&!continuationIssue(reply,value,policy)) {
-              const review=JSON.parse(await generate(`Review only the added conversational closing question. The completed_explanation is fixed checked text, not another draft to reinterpret.
-Return JSON only: {"evidence_ok":true,"reason":"","presentation_issue":""}. Reject an unsupported fact, changed actor, invented feeling, wrong topic, repeated question, wrong language/persona, or violation of the user's request. Use presentation_issue for an awkward closing. Do not demand a new prediction, a different verdict, an event date or a stability forecast from the completed explanation. Review whether this question naturally follows the supplied dialogue and explanation.
-${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
-                JSON.stringify({latest_request:value.query,topic:packet.topic,language:value.language,dialogue:payload.dialogue,
-                  user_context:facts,continuation_policy:policy,completed_explanation:checked,follow_up:closing.follow_up,proposed:reply})));
-              if(review?.evidence_ok===true&&review.reason===''&&review.presentation_issue==='') {
-                onEvent('fallback_followup_verified');return reply;
-              }
-            }
-          }
-        }catch {onEvent('fallback_followup_unavailable');}
-      }
-      return checked;
+      return repairClosing(checked,'fallback');
     }
   }
   return fallback;

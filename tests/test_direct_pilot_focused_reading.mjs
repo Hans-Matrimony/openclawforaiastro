@@ -209,6 +209,53 @@ test('a timing fallback also repairs its missing closing without changing checke
  assert.ok(events.includes('fallback_followup_verified'));
 });
 
+test('a complete reading with an omitted closing is reviewed once and keeps every word during closing repair',async()=>{
+ for(const query of ['Agle saal meri stable job lagne ke yog kaise hain? Saaf batao.','Aisa kyun keh rahe ho? Sahara aur rukawat dono samjhao.']) {
+  const input={...value,language:'hinglish',query};
+  const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:['Saturn retrograde']},event_windows:[]};
+  const draft={answer:'Naukri ke raaste mein rukawat ke sanket hain.',reason:'Dasve ghar ki sthiti mazboot hai. Shani ka vakri hona rukawat dikhata hai.',remedy:''};
+  const checked=[draft.answer,draft.reason].join('\n\n');
+  const closing='Aap abhi kis tarah ka kaam dhoondh rahe hain?';
+  const outputs=[draft,{evidence_ok:true,reason:'',presentation_issue:''},{follow_up:closing},{evidence_ok:true,reason:'',presentation_issue:''}];
+  const requests=[],events=[];
+  const reply=await writeCoherentReading({value:input,subject:value.query,packet,focused:true,continueConversation:true,
+   generate:async(system,data)=>{requests.push({system,data:JSON.parse(data)});assert.ok(outputs.length,'No whole-reading retry');return JSON.stringify(outputs.shift());},
+   validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+  assert.equal(reply,checked+'\n\n'+closing);
+  assert.equal(requests.length,4);
+  assert.equal(requests[1].data.proposed,checked);
+  assert.match(requests[1].system,/closing question will be generated and reviewed separately/u);
+  assert.equal(requests[2].data.completed_explanation,checked);
+  assert.equal(requests[3].data.completed_explanation,checked);
+  assert.ok(events.includes('reviewed_followup_verified'));
+  assert.ok(!events.includes('fallback'));
+ }
+});
+
+test('missing-closing repair cannot bypass evidence, topic, repetition or quiet-mode checks',async()=>{
+ const packet={topic:'career',assessment:{trend:'MIXED',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:[]},event_windows:[]};
+ const draft={answer:'Kaam mein badhne ka sahara dikhta hai.',reason:'Dasve ghar ki sthiti mazboot hai.',remedy:''};
+ const checked=[draft.answer,draft.reason].join('\n\n');
+ for(const scenario of ['wrong_topic','repeated','review_rejected','unavailable','quiet','bad_evidence']) {
+  const closing=scenario==='wrong_topic'?'When will your financial savings improve?':'Aap kis tarah ka kaam dhoondh rahe hain?';
+  const input={...value,language:'hinglish',query:scenario==='quiet'?'Career batao, koi sawaal nahi chahiye.':'Meri job ke yog kaise hain?',
+   history:scenario==='repeated'?[{role:'assistant',text:closing}]:[]};
+  const requests=[];
+  const reply=await writeCoherentReading({value:input,subject:value.query,packet,focused:true,continueConversation:true,
+   generate:async(system,data)=>{
+    requests.push({system,data:JSON.parse(data)});
+    if(system.startsWith('Write the complete astrology reply'))return JSON.stringify(draft);
+    if(system.startsWith('Review this astrology reply'))return JSON.stringify({evidence_ok:scenario!=='bad_evidence',reason:scenario==='bad_evidence'?'Unsupported claim.':'',presentation_issue:''});
+    if(system.startsWith('Write only one contextual')){if(scenario==='unavailable')throw Error('Synthetic unavailable');return JSON.stringify({follow_up:closing});}
+    return JSON.stringify({evidence_ok:false,reason:'Wrong conversational assumption.',presentation_issue:''});
+   },validate:()=>null,fallback:'safe'});
+  assert.doesNotMatch(reply,/\?/u);
+  if(scenario==='quiet'){assert.equal(reply,checked);assert.equal(requests.length,2);}
+  else if(scenario!=='bad_evidence'){assert.equal(reply,checked);assert.ok(requests.length<=4);}
+  else assert.notEqual(reply,checked,'A failed evidence review cannot authorize the model draft');
+ }
+});
+
 async function run({input=value,config=env,draft=candidate,review='{"evidence_ok":true,"reason":"","presentation_issue":""}'}={}) {
  const requests=[];
  const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),
