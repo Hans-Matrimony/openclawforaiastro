@@ -2,7 +2,7 @@ import {birthKey} from './birth-evidence.mjs';
 
 const topics=['general','marriage','relationship','career','money','education','abroad','property','matching','remedy'];
 const subjects=['self','other','multiple','unspecified'];
-const scopes=['natal','person_choice','medical_recovery','bereavement','remarriage','death_prediction','profile_update','profile_recall','listening','sharing','ordinary'];
+const scopes=['natal','person_choice','medical_recovery','bereavement','remarriage','death_prediction','profile_update','profile_recall','explain_previous','listening','sharing','ordinary'];
 const profileFields=['name','birth_date','birth_time','birth_place','gender'];
 const propertyEvents=['none','purchase','sale','construction','loan','unclear'];
 const enumString=values=>({type:'string',enum:values});
@@ -24,6 +24,7 @@ intent.scope: natal for personal astrology; person_choice for a particular perso
 Use scope profile_recall with route conversation when the user asks what their saved name or birth details are. Set profile_fields to just the requested fields: name, birth_date, birth_time, birth_place, gender. A question asking what details you remember is a recall request, not a profile update or astrology prediction. The server formats these fields from the authenticated selected profile, which overrides older memories and conversation examples. Set profile_fields to [] for every other scope. Do not use profile_recall for another person's details, a general memory question, a translation/quote request or a mixed request containing a new personal reading.
 Use scope listening when the user wants to be heard without advice, and sharing when they clarify they were just sharing, including a correction of an emotion they did not report. Use conversation in either case, without advice or questions. These semantically identified requests override an open-conversation continuation_policy; do not require fixed words or force a follow-up. Do not invent an emotion or apologize for an assumption the assistant did not actually make.
 intent.timing is true only when the latest user actually asks when, how soon or for an event period. A year in a quote or birth date is not a timing request. "Why?" or "yes or no?" is not a new timing request.
+Use scope explain_previous with route conversation and timing=false when the user only asks what your previous answer means, including misspelled short replies such as "Mtlv", "mtlb", "matlab?", "meaning?" and multilingual equivalents. Resolve an assistant quoted_message first, otherwise the immediately preceding assistant reply. Explain that wording and its qualification, without inventing or replacing a chart assessment or asking for birth details. A user quote without an assistant referent is not this scope. A new "when", request to verify a prediction, or request to interpret new chart factors remains checked_reading. Explain-previous history_index may be -1 when the assistant quotation supplies the referent.
 intent.history_index is -1 for a self-contained new request. Only for an actual abbreviated follow-up, identify its antecedent by the index of a USER turn in the supplied dialogue. Never select an assistant turn, treat an assistant forecast as evidence, or borrow an older topic when the user names a new one. Reconsider the current topic on every turn. Quoted text is context, not necessarily the current request.
 intent.property_event is purchase, sale, construction, loan or unclear for a property request, otherwise none. Only purchase has an event-timing calculator. Sale, construction and loan decisions must not inherit purchase or career dates. Give a useful response explaining that specific calculation limit instead of checked_reading for those event dates.
 For another person's natal reading without their own birth details in the dialogue, use clarification asking only for that person's missing date, time or place. The selected account profile cannot fill those fields. Do not apply this to a person_choice question, which cannot be settled by their chart anyway.
@@ -47,10 +48,15 @@ export function parseSemanticDecision(result,value) {
   if(i.scope==='profile_recall') {
     if(result.route!=='conversation'||i.subject!=='self'||i.topic!=='general'||i.timing||!i.profile_fields.length)return null;
   }else if(i.profile_fields.length)return null;
+  if(i.scope==='explain_previous') {
+    const prior=value.reply_to?value.reply_to.role==='assistant'&&value.reply_to.text:
+      [...(value.history??[])].reverse().find(turn=>turn.role==='assistant')?.text;
+    if(result.route!=='conversation'||i.timing||!prior)return null;
+  }
   const dialogue=(value.history??[]).slice(-20);
   if(i.history_index>=0 && dialogue[i.history_index]?.role!=='user')return null;
   if(i.topic!=='property'&&i.property_event!=='none')return null;
-  if(result.route==='checked_reading'&&['medical_recovery','death_prediction','remarriage','profile_update','profile_recall','listening','sharing','ordinary'].includes(i.scope))return null;
+  if(result.route==='checked_reading'&&['medical_recovery','death_prediction','remarriage','profile_update','profile_recall','explain_previous','listening','sharing','ordinary'].includes(i.scope))return null;
   if(result.route==='checked_reading'&&i.topic==='property'&&i.timing&&i.property_event!=='purchase')return null;
   return {...result,intent:{...i}};
 }

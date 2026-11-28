@@ -390,7 +390,7 @@ export async function directAnswer(
     }
     const decision = pilotTurn?.decision;
     if (decision && decision.route !== "checked_reading" &&
-        !conversationGroundingIssue(decision.reply, value, savedBirthContext(value.birth), false,{focused:focusedPilot}) &&
+        !conversationGroundingIssue(decision.reply, value, savedBirthContext(value.birth), false,{focused:focusedPilot,explanationIntent:decision.intent}) &&
         !pastPrediction(decision.reply, now()) && !explicitEnglishReplyMismatch(value, decision.reply)) {
       return {schema:"vedastro-direct-reply-v1",reply:decision.reply,
         answer_model_calls:pilotCalls,answer_cache_hits:0,answer_reading_tools:[],

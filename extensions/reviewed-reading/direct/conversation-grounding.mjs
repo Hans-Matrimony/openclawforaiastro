@@ -1,5 +1,6 @@
 import {isPersonalChartQuestion, asksForTiming, isPracticalFollowup} from './reading-intent.mjs';
 import {userEventDate} from './user-event-date.mjs';
+import {explanationIssue,asksBirthDetailQuestion} from './reply-explanation.mjs';
 
 const reminder = /\b(?:already|pehle|pahle)\b.{0,60}\b(?:details?|provided|diya|diye|de\s*rakh|de\s*rekh|bata)|\bdetails?\b.{0,45}\b(?:already|pehle|pahle)|पहले.{0,35}(?:जानकारी|विवरण|बताया|दी|दिया)/iu;
 const palm = /\bpalm(?:istry)?\b|\b(?:haath|hath|hand)\b.{0,30}\b(?:read|padh|pad|dekh)|हथेली|हस्तरेखा|हाथ.{0,20}(?:पढ़|देख)/iu;
@@ -69,6 +70,15 @@ export function conversationGroundingInstruction(value, profile, options={}) {
 
 export function conversationGroundingIssue(reply, value, profile, hasCheckedReadings = false, options={}) {
   if (!conversationalTurn(value,options)) return null;
+  const intent=options.explanationIntent;
+  if(options.focused&&profile.status==='READY'&&intent?.subject==='self'&&intent.scope==='ordinary'&&intent.topic!=='general'&&
+     value.profile_update_status!=='needs_confirmation'&&asksBirthDetailQuestion(reply))
+    return 'The self birth profile is complete. Do not restart collection or invent a birth value on this conversational follow-up.';
+  if(options.focused&&options.explanationIntent?.scope==='explain_previous') {
+    if(asksBirthDetailQuestion(reply))
+      return 'Explain the previous answer instead of requesting birth details or confirming a birth value.';
+    return explanationIssue(reply,value,options.explanationIntent);
+  }
   if(options.focused&&profile.status==='READY'&&
      /\b(?:don.t\s+have|do\s+not\s+have|no)\s+(?:your\s+)?birth\s+details\b|\b(?:aapki|tumhari)\s+(?:koi\s+)?birth\s+details\s+(?:hi\s+)?(?:nahi|nahin)\b|\bbirth\s+details\s+(?:mere\s+paas\s+)?(?:nahi|nahin)\b|(?:आपक[ेी]|जन्म)[^.!?\n]{0,35}(?:जन्म\s*विवरण|जानकारी)[^.!?\n]{0,12}नहीं/iu.test(reply)) {
     return 'The selected birth profile is complete. Do not falsely claim that birth details are missing or refuse to answer because of that. Address the current question using the established self profile, without confusing it with another person.';
@@ -98,7 +108,8 @@ export function conversationGroundingIssue(reply, value, profile, hasCheckedRead
     [...reply.matchAll(/\b(?:19|20)\d{2}\b/gu)].every(match => value.query.includes(match[0]));
   if ((!generalDefinition && ((!scheduledByUser && (dated.test(reply) || periodWindow.test(reply) ||
         (currentPeriod.test(reply) && favourablePeriod.test(reply))) && forecast.test(reply)) ||
-        personalForecast.test(reply) || (planets.test(reply) && chart.test(reply)))) ||
+        personalForecast.test(reply) || (planets.test(reply) && chart.test(reply)) ||
+        (options.focused&&!hasCheckedReadings&&personal.test(reply)&&chart.test(reply)&&forecast.test(reply)))) ||
       (!hasCheckedReadings && generalDefinition && personal.test(reply) && chart.test(reply) &&
         (planets.test(reply) || dated.test(reply)))) {
     return 'This conversational reply contains a personal astrology claim or dated window without a current request and checked evidence. Explain only the latest conversation; do not copy prior forecasts.';

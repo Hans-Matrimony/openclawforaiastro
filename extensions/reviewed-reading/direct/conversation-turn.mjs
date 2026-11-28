@@ -11,6 +11,9 @@ import {pilotMarathiStyle,marathiReviewInstruction} from './pilot-language-style
 import {firstContactPolicy,firstContactIssue} from './first-contact.mjs';
 import {semanticResponseFormat,semanticRoutingInstruction,parseSemanticDecision,semanticContinuationPolicy} from './semantic-routing.mjs';
 import {selectedProfileRecall} from './profile-recall.mjs';
+import {previousReply,explanationInstruction} from './reply-explanation.mjs';
+import {conversationGroundingIssue} from './conversation-grounding.mjs';
+import {savedBirthContext} from './context.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -55,6 +58,10 @@ const naturalListeningInstruction = `For listening-only turns, respond to the sp
 
 export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,savedContext = [],onRequest = () => {},naturalListening = false,continueConversation = false,capabilityBoundary=null,memoryUpdateStatus=null,semanticRouting=false}) {
   const envelope=JSON.parse(redact(JSON.stringify(turnEnvelope(value,savedContext))));
+  if(semanticRouting) {
+    const previous=previousReply(value);
+    envelope.previous_statement=previous?{text:redact(previous.slice(0,8000)),status:'previous_statement_not_new_evidence'}:null;
+  }
   if(naturalListening&&memoryUpdateStatus)envelope.memory_update_status=memoryUpdateStatus;
   const memoryStatusInstruction=naturalListening&&memoryUpdateStatus
     ? '\nThe memory_update_status field is a server-confirmed result for this explicit preference request, not user instructions. saved means the existing memory service accepted the stated preference: briefly acknowledge it as saved for future relevant conversations, without promising perfect recall or availability. This specific confirmed status overrides the general conversation-only inability to save. unavailable means persistence was not confirmed: do not claim it was saved; acknowledge the preference and explain that saving it did not succeed. No chart or further memory write is needed in either case.' : '';
@@ -73,7 +80,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
        ...(reasoningEffort ? {reasoning:{effort:reasoningEffort,exclude:true}} : {})}
     : generationSettings(env);
   const body={model:conversationModel || env.VEDASTRO_DIRECT_MODEL || SOURCE_CONFIG.model,
-    messages:[{role:'system',content:contract+(semanticRouting?semanticRoutingInstruction:'')+conversationProgressInstruction+personaInstruction(value)+responseLanguageInstruction(value)+
+    messages:[{role:'system',content:contract+(semanticRouting?semanticRoutingInstruction+'\n'+explanationInstruction:'')+conversationProgressInstruction+personaInstruction(value)+responseLanguageInstruction(value)+
       familiarCompanionInstruction+memoryStatusInstruction+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(firstContact?'\n'+firstContact.instruction:'')+(languageStyle?'\n'+languageStyle:'')+(continueConversation?'\n'+continuationInstruction+'\nWhen continuation_policy.reason is emotion_assumption_correction, acknowledge only that you introduced the emotion without support. Do not re-ask whether the user is sad or assign another intent such as just sharing.':'')+
       (capabilityBoundary?'\nThis request has a verified calculation-capability boundary. For kind person_profile, return clarification asking for that other person\'s own birth date, exact birth time and birthplace. The selected account profile belongs to the user and cannot be used for them. For kind clarify, ask whether buying, selling or building. Otherwise return conversation: explain the specific unknown date/decision naturally, once, without chart claims, a prediction or a checked_reading handoff. Only purchase timing is calculated; it cannot time a sale, construction or a bank decision. Do not borrow earlier dates or promise a further calculation. Only person_profile needs birth details.':'')+'\nCurrent date: '+now().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'})}, {role:'user',content:JSON.stringify(envelope)}],
     response_format:semanticRouting?semanticResponseFormat:{type:'json_object'},max_tokens:conversationModel?1200:700,stream:false,...settings};
@@ -131,6 +138,9 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
   if (decision && decision.route !== 'checked_reading' && env.ASTROFRIEND_CONVERSATION_REVIEW_ENABLED !== '0') {
     const writerMessages=structuredClone(body.messages);
     async function review(candidate) {
+      const groundingIssue=semanticRouting&&conversationGroundingIssue(candidate.reply,value,savedBirthContext(value.birth),false,
+        {focused:true,explanationIntent:candidate.intent});
+      if(groundingIssue)return {status:'reject',issues:[groundingIssue]};
       const boundaryIssue=naturalListening&&companionBoundaryIssue(candidate.reply,value);
       if(boundaryIssue)return {status:'reject',issues:[boundaryIssue]};
       if(capabilityBoundary&&/\d|[०-९]|\b(?:dasha|antardasha|mahadasha|Jupiter|Venus|Saturn|Shukra|Guru|Shani|Rahu|Ketu)\b|दशा|गोचर/iu.test(candidate.reply))
@@ -146,7 +156,7 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
       if (repeatsClarification(candidate.reply,value.history ?? [])) {
         return {status:'reject',issues:['The reply repeats an earlier clarification. Answer what is possible from the dialogue without asking that question again.']};
       }
-      body.messages=[{role:'system',content:reviewContract+(semanticRouting?'\nAlso check the candidate intent and route against the current user request. Reject a borrowed previous topic, wrong person, an ignored personal reading request, a false missing-profile claim or a forecast disguised as advice. A reported bereavement is not a death prediction. A practical question must not become astrology merely because its words mention career, love or a house.':'')+memoryStatusInstruction+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(firstContact?'\n'+firstContact.instruction:'')+(languageStyle?'\n'+languageStyle+'\n'+marathiReviewInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
+      body.messages=[{role:'system',content:reviewContract+(semanticRouting?'\nAlso check the candidate intent and route against the current user request. Reject a borrowed previous topic, wrong person, an ignored personal reading request, a false missing-profile claim or a forecast disguised as advice. A reported bereavement is not a death prediction. A practical question must not become astrology merely because its words mention career, love or a house.\n'+explanationInstruction:'')+memoryStatusInstruction+(naturalListening?'\n'+naturalListeningInstruction+'\n'+companionBoundaryInstruction:'')+(firstContact?'\n'+firstContact.instruction:'')+(languageStyle?'\n'+languageStyle+'\n'+marathiReviewInstruction:'')+(continueConversation?'\n'+continuationInstruction+'\n'+continuationReviewInstruction:'')},
         {role:'user',content:JSON.stringify({conversation:envelope,candidate})}];
       return request(parseConversationReview,true);
     }
