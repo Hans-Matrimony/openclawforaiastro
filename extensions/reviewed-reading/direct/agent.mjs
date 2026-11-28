@@ -541,9 +541,16 @@ export async function directAnswer(
       : `Kya aap Guna Milan ke liye ${matchingSelfProfile ? 'doosre vyakti ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
   const unconfirmedMatchingReply = () => {
     const partnerOnly = context.profile.status === 'READY' && ['male', 'female'].includes(value.user_gender);
-    return value.language === 'english'
+    const question=value.language === 'english'
       ? `Please confirm ${partnerOnly ? 'your partner\'s birth date, exact birth time and birthplace' : 'both people\'s birth dates, exact birth times and birthplaces'} for the matching calculation?`
       : `Kya aap ${partnerOnly ? 'partner ki janam tithi, exact samay aur janam sthan' : 'dono logon ki janam tithi, exact samay aur janam sthan'} confirm kar sakte hain?`;
+    // This tool-boundary return used to bypass the conversational repeat guard.
+    // A failed calculation cannot justify asking for the same full form again.
+    if(semanticRouting&&repeatsClarification(question,value.history??[]))return value.language==='english'
+      ? 'You already shared details. I could not verify a matching score from them, so I should not keep asking you for the same information.'
+      : value.language==='hindi'?'आपने जानकारी भेजी है। उससे अभी मिलान का स्कोर सत्यापित नहीं हो पाया; वही जानकारी बार-बार मांगना सही नहीं था।'
+      : 'Aapne details bheji hain. Unse abhi milan ka score verify nahi ho paaya; wahi jankari baar-baar maangna sahi nahi tha.';
+    return question;
   };
   const timingRequired =
     sourceFlow &&

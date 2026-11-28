@@ -80,6 +80,26 @@ async function run(input,decision,config=env) {
   return {result,requests,toolOptions};
 }
 
+test('matching tool rejection cannot bypass the repeat guard for an already-requested partner form',async()=>{
+ const repeated='Kya aap partner ki janam tithi, exact samay aur janam sthan confirm kar sakte hain?';
+ const input={...value,language:'hinglish',query:'Diya toh maine abhi',history:[
+  {role:'user',text:'05-may 205, mumbai, time syd 7:00 am. Kya is ladki ki shadi mujhse hogi?'},
+  {role:'assistant',text:'Janam ka sahi chaar digit wala saal kya hai?'},
+  {role:'user',text:'2005'},{role:'assistant',text:repeated}]};
+ const decision={route:'checked_reading',reply:'',intent:{...intent,topic:'matching',subject:'multiple',history_index:0}};
+ const result=await directAnswer(input,{env,makeMemory:memory,
+  makeTools:()=>async()=>{const error=Error('Missing confirmed partner fields');error.code='matching_birth_required';throw error;},
+  fetchImpl:async(_url,options)=>{
+   const body=JSON.parse(options.body);
+   if(body.messages[0].content.startsWith('You interpret the latest utterance'))return response({content:JSON.stringify(decision)});
+   return response({tool_calls:[{id:'match',type:'function',function:{name:'mcp__VedAstro__get_match_report',arguments:'{}'}}]});
+  }});
+ assert.ok(result.answer_validation.includes('matching_birth_required'));
+ assert.notEqual(result.reply,repeated);assert.doesNotMatch(result.reply,/confirm kar sakte|janam tithi|exact samay|\?/u);
+ assert.match(result.reply,/Aapne details bheji hain/);
+ assert.deepEqual(result.answer_reading_tools,[]);
+});
+
 test('LLM routes an unfamiliar self-career phrase through current topic evidence',async()=>{
   const {result,requests,toolOptions}=await run(value,reading);
   assert.equal(result.answer_routing?.source,'llm');assert.equal(result.answer_routing.topic,'career');
