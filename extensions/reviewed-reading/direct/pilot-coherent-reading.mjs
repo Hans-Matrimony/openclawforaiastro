@@ -268,7 +268,15 @@ ${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:fa
   }
   // A failed style edit cannot replace an already fact-checked answer with a
   // generic fallback. No unreviewed candidate receives this protection.
-  if(verifiedCandidate!==null) {onEvent('verified_with_style_issue');return verifiedCandidate;}
+  if(verifiedCandidate!==null) {
+    onEvent('verified_with_style_issue');
+    // A failed presentation edit can leave a checked reading without its
+    // closing. Apply the same bounded closing review as the normal path.
+    if(continuity&&policy.mode==='continue'&&!/[?？]/u.test(verifiedCandidate)) {
+      return repairClosing(verifiedCandidate,'verified_style');
+    }
+    return verifiedCandidate;
+  }
   onEvent('fallback');
   if(focused) {
     const checked=focusedReadingFallback(plan,value);

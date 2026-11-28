@@ -232,6 +232,38 @@ test('a complete reading with an omitted closing is reviewed once and keeps ever
  }
 });
 
+test('a failed style edit repairs a checked missing closing within the existing call bound',async()=>{
+ for(const scenario of ['missing','existing','quiet','closing_rejected']) {
+  const input={...value,language:'hinglish',query:scenario==='quiet'?'Career batao, koi sawaal nahi chahiye.':'Agle saal stable job ke yog?'};
+  const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:['Saturn retrograde']},event_windows:[]};
+  const closing='Aapke liye stable job ka matlab permanent role hai ya regular income?';
+  const draft={answer:'Naukri ka raasta filhaal aasaan nahi dikh raha. Agle saal ke liye koi saaf samay nahi mila.',
+   reason:'Dasve ghar ki sthiti mazboot hai. Shani ka vakri hona rukawat dikhata hai.',remedy:'',follow_up:scenario==='existing'?closing:''};
+  const checked=[draft.answer,draft.reason,draft.follow_up].filter(Boolean).join('\n\n');
+  const outputs=[draft,{evidence_ok:true,reason:'',presentation_issue:'The timing limitation sounds slightly awkward.'},
+   draft,{evidence_ok:false,reason:'The edited answer changes the timing assessment.',presentation_issue:''},
+   {follow_up:closing},{evidence_ok:scenario!=='closing_rejected',reason:scenario==='closing_rejected'?'Unsupported assumption.':'',presentation_issue:''}];
+  const requests=[],events=[];
+  const reply=await writeCoherentReading({value:input,subject:input.query,packet,focused:true,continueConversation:true,timingRequested:true,
+   generate:async(system,data)=>{requests.push({system,data:JSON.parse(data)});assert.ok(outputs.length,'Only one closing generation and review');return JSON.stringify(outputs.shift());},
+   validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+  assert.ok(events.includes('verified_with_style_issue'));
+  assert.ok(!events.includes('fallback'));
+  if(scenario==='missing') {
+   assert.equal(reply,checked+'\n\n'+closing);
+   assert.equal(requests.length,6);
+   assert.equal(requests[4].data.completed_explanation,checked);
+   assert.equal(requests[5].data.completed_explanation,checked);
+   assert.match(requests[5].system,/Review only the added conversational closing question/u);
+   assert.ok(events.includes('verified_style_followup_verified'));
+  } else {
+   assert.equal(reply,checked);
+   assert.equal(requests.length,scenario==='closing_rejected'?6:4);
+   assert.ok(!events.includes('verified_style_followup_verified'));
+  }
+ }
+});
+
 test('missing-closing repair cannot bypass evidence, topic, repetition or quiet-mode checks',async()=>{
  const packet={topic:'career',assessment:{trend:'MIXED',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:[]},event_windows:[]};
  const draft={answer:'Kaam mein badhne ka sahara dikhta hai.',reason:'Dasve ghar ki sthiti mazboot hai.',remedy:''};
