@@ -2,11 +2,13 @@ import {birthKey} from './birth-evidence.mjs';
 
 const topics=['general','marriage','relationship','career','money','education','abroad','property','matching','remedy'];
 const subjects=['self','other','multiple','unspecified'];
-const scopes=['natal','person_choice','medical_recovery','bereavement','remarriage','death_prediction','profile_update','ordinary'];
+const scopes=['natal','person_choice','medical_recovery','bereavement','remarriage','death_prediction','profile_update','profile_recall','ordinary'];
+const profileFields=['name','birth_date','birth_time','birth_place','gender'];
 const propertyEvents=['none','purchase','sale','construction','loan','unclear'];
 const enumString=values=>({type:'string',enum:values});
 const intentProperties={topic:enumString(topics),subject:enumString(subjects),scope:enumString(scopes),
-  timing:{type:'boolean'},history_index:{type:'integer'},property_event:enumString(propertyEvents)};
+  timing:{type:'boolean'},history_index:{type:'integer'},property_event:enumString(propertyEvents),
+  profile_fields:{type:'array',items:enumString(profileFields)}};
 
 export const semanticResponseFormat={type:'json_schema',json_schema:{name:'conversation_intent',strict:true,
   schema:{type:'object',additionalProperties:false,required:['route','reply','intent'],properties:{
@@ -19,6 +21,7 @@ export const semanticRoutingInstruction=`
 Return route, reply and intent according to the supplied JSON schema. Infer meaning across spelling mistakes, regional languages, transliteration and short replies; do not require fixed keywords. Intent is a routing description, never chart evidence or permission to write memory.
 intent.topic: general, marriage, relationship, career, money, education, abroad, property, matching or remedy. Use general for broad life outlooks and non-reading conversation. intent.subject identifies whose chart is requested: self, other, multiple or unspecified. "My wife's career" is other, not self. "My future wife" is about the user's own marriage outlook. A request about another person's choices is person_choice, not their natal forecast.
 intent.scope: natal for personal astrology; person_choice for a particular person's return, feelings or decisions; medical_recovery for recovery/cure timing; bereavement for a reported real loss; remarriage for another marriage after a prior marriage; death_prediction for lifespan/death timing; profile_update for birth details/corrections; ordinary for conversation, concepts, listening, advice or writing tasks.
+Use scope profile_recall with route conversation when the user asks what their saved name or birth details are. Set profile_fields to just the requested fields: name, birth_date, birth_time, birth_place, gender. A question asking what details you remember is a recall request, not a profile update or astrology prediction. The server formats these fields from the authenticated selected profile, which overrides older memories and conversation examples. Set profile_fields to [] for every other scope. Do not use profile_recall for another person's details, a general memory question, a translation/quote request or a mixed request containing a new personal reading.
 intent.timing is true only when the latest user actually asks when, how soon or for an event period. A year in a quote or birth date is not a timing request. "Why?" or "yes or no?" is not a new timing request.
 intent.history_index is -1 for a self-contained new request. Only for an actual abbreviated follow-up, identify its antecedent by the index of a USER turn in the supplied dialogue. Never select an assistant turn, treat an assistant forecast as evidence, or borrow an older topic when the user names a new one. Reconsider the current topic on every turn. Quoted text is context, not necessarily the current request.
 intent.property_event is purchase, sale, construction, loan or unclear for a property request, otherwise none. Only purchase has an event-timing calculator. Sale, construction and loan decisions must not inherit purchase or career dates. Give a useful response explaining that specific calculation limit instead of checked_reading for those event dates.
@@ -33,13 +36,18 @@ Do not ask for the user's birth details if selected_profile is complete. The sel
 // Validate semantics as well as JSON. Malformed handoffs never reach a tool.
 export function parseSemanticDecision(result,value) {
   const i=result?.intent;
-  if(!i||Object.keys(i).length!==6||!topics.includes(i.topic)||!subjects.includes(i.subject)||
+  if(!i||Object.keys(i).length!==7||!topics.includes(i.topic)||!subjects.includes(i.subject)||
     !scopes.includes(i.scope)||typeof i.timing!=='boolean'||!propertyEvents.includes(i.property_event)||
-    !Number.isInteger(i.history_index)||i.history_index < -1)return null;
+    !Number.isInteger(i.history_index)||i.history_index < -1||!Array.isArray(i.profile_fields)||
+    i.profile_fields.length>5||new Set(i.profile_fields).size!==i.profile_fields.length||
+    i.profile_fields.some(field=>!profileFields.includes(field)))return null;
+  if(i.scope==='profile_recall') {
+    if(result.route!=='conversation'||i.subject!=='self'||i.topic!=='general'||i.timing||!i.profile_fields.length)return null;
+  }else if(i.profile_fields.length)return null;
   const dialogue=(value.history??[]).slice(-20);
   if(i.history_index>=0 && dialogue[i.history_index]?.role!=='user')return null;
   if(i.topic!=='property'&&i.property_event!=='none')return null;
-  if(result.route==='checked_reading'&&['medical_recovery','death_prediction','remarriage','profile_update','ordinary'].includes(i.scope))return null;
+  if(result.route==='checked_reading'&&['medical_recovery','death_prediction','remarriage','profile_update','profile_recall','ordinary'].includes(i.scope))return null;
   if(result.route==='checked_reading'&&i.topic==='property'&&i.timing&&i.property_event!=='purchase')return null;
   return {...result,intent:{...i}};
 }

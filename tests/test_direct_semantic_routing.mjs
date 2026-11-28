@@ -7,6 +7,7 @@ import {createTools} from '../extensions/reviewed-reading/direct/tools.mjs';
 import {buildReadingPlan} from '../extensions/reviewed-reading/direct/pilot-reading-plan.mjs';
 import {get_horoscope_predictions} from '../extensions/reviewed-reading/direct/assets/dev-v2/engine.mjs';
 import {unrelatedReadingTopic} from '../extensions/reviewed-reading/direct/reading-topic-guard.mjs';
+import {selectedProfileRecall} from '../extensions/reviewed-reading/direct/profile-recall.mjs';
 
 const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_DIRECT_ENVIRONMENT:'development',
   VEDASTRO_DIRECT_REPLY_CACHE:'0',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:'1',
@@ -15,7 +16,7 @@ const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_D
   ASTROFRIEND_PILOT_SEMANTIC_ROUTING_ENABLED:'1',ASTROFRIEND_CONVERSATION_MODEL:'fixture/router'};
 const value={user_id:'919000000001',reply_surface:'whatsapp',language:'english',user_gender:'male',
   birth:{date:'1998-10-18',time:'06:35',location_name:'Jaipur'},history:[],query:'How does my professional path look?'};
-const intent={topic:'career',subject:'self',scope:'natal',timing:false,history_index:-1,property_event:'none'};
+const intent={topic:'career',subject:'self',scope:'natal',timing:false,history_index:-1,property_event:'none',profile_fields:[]};
 const reading={route:'checked_reading',reply:'',intent};
 const response=message=>new Response(JSON.stringify({id:'fixture',usage:{cost:0},choices:[{finish_reason:message.tool_calls?'tool_calls':'stop',message}]}));
 const memory=()=>({read:async()=>[],write:async()=>assert.fail('No routing write')});
@@ -158,4 +159,31 @@ test('recorded live career explanations with chart-house labels do not become pr
   for(const text of ['The tenth house supports buying a new home.',
     'You will build a house next year.','House 10 supports your career. You will buy a flat in 2028.'])
     assert.match(unrelatedReadingTopic(text,{topic:'career'}),/unrelated property/);
+});
+
+test('LLM-selected profile recall uses current app fields despite conflicting birth-format history',async()=>{
+  const input={...value,user_name:'Neel',language:'hinglish',query:'Mera naam, DOB, birth time aur birth place kya yaad hai?',
+    birth:{date:'18 October 1998',time:'07:20 AM',location_name:'Delhi'},
+    history:[{role:'user',text:'My name is Example; DOB 1 January 2000; 06:35 AM; Jaipur.'},
+      {role:'assistant',text:'I remember your old Jaipur details.'}]};
+  const decision={route:'conversation',reply:'This old model draft must not supply the actual profile values.',
+    intent:{...intent,topic:'general',scope:'profile_recall',profile_fields:['name','birth_date','birth_time','birth_place']}};
+  const {result,requests,toolOptions}=await run(input,decision);
+  assert.equal(requests.length,1,'Known profile facts do not need an astrology/conversation review loop');
+  assert.equal(toolOptions.length,0);
+  assert.match(result.reply,/Naam: Neel/u);assert.match(result.reply,/18 October 1998/u);
+  assert.match(result.reply,/07:20 AM/u);assert.match(result.reply,/Delhi/u);
+  assert.doesNotMatch(result.reply,/Example|2000|06:35|Jaipur|old model|verify/iu);
+  assert.equal(result.answer_routing.scope,'profile_recall');
+});
+
+test('profile recall returns just requested fields and leaves absent fields missing',()=>{
+  const nameOnly={...intent,topic:'general',scope:'profile_recall',profile_fields:['name']};
+  const reply=selectedProfileRecall({...value,user_name:'Neel'},nameOnly);
+  assert.match(reply,/Name: Neel/u);assert.doesNotMatch(reply,/1998|06:35|Jaipur/u);
+  const missing=selectedProfileRecall({...value,birth:null}, {...nameOnly,profile_fields:['birth_time']});
+  assert.match(missing,/not available/u);assert.doesNotMatch(missing,/06:35/u);
+  assert.equal(parseSemanticDecision({route:'checked_reading',reply:'',intent:nameOnly},value),null);
+  assert.equal(parseSemanticDecision({route:'conversation',reply:'Name',intent:{...nameOnly,subject:'other'}},value),null);
+  assert.equal(parseSemanticDecision({route:'conversation',reply:'Name',intent:{...nameOnly,profile_fields:['name','name']}},value),null);
 });

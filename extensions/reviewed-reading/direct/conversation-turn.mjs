@@ -10,6 +10,7 @@ import {companionBoundaryInstruction,companionBoundaryIssue,companionAddressText
 import {pilotMarathiStyle,marathiReviewInstruction} from './pilot-language-style.mjs';
 import {firstContactPolicy,firstContactIssue} from './first-contact.mjs';
 import {semanticResponseFormat,semanticRoutingInstruction,parseSemanticDecision} from './semantic-routing.mjs';
+import {selectedProfileRecall} from './profile-recall.mjs';
 
 // This envelope preserves dialogue roles. Neither quotations nor assistant claims
 // become instructions or verified evidence. No customer identifier is included.
@@ -110,6 +111,8 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     body.messages.push({role:'system',content:'The previous output did not satisfy the routing contract. Re-read the current message and ordered user turns. Return a complete valid routing JSON, with no prediction or unsupported tool handoff.'});
     decision=await draft();
   }
+  const profileRecall=semanticRouting&&selectedProfileRecall(value,decision?.intent);
+  if(profileRecall)return {decision:{...decision,reply:profileRecall},usage};
   if(capabilityBoundary&&(!decision||decision.route==='checked_reading'))
     return {decision:{route:boundaryClarification?'clarification':'conversation',reply:capabilityBoundary.reply},usage};
   // A paraphrased clarification can be repetitive even when exact text differs.
