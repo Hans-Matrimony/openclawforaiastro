@@ -91,3 +91,35 @@ test('an unsupported first draft is repaired before it can reach delivery even w
  assert.equal(result.reply,explained);assert.equal(drafts,2);assert.equal(reviews,1);
  assert.equal(result.answer_model_calls,3);assert.deepEqual(result.answer_reading_tools,[]);
 });
+
+test('a checked explanation repairs only a missing closing without changing its meaning or repeating the quoted question',async()=>{
+ const original='Maine November 2027 se February 2028 ko ek sambhavit daur kaha tha, pakki tareekh nahi.';
+ for(const scenario of ['valid','birth_request','repeated','review_rejected','unavailable','quiet']) {
+  const input={...base,query:scenario==='quiet'?'Mtlv, koi sawal mat poochiye.':'Mtlv'};
+  const closing=scenario==='birth_request'?'Kya aap apna birth time 12:00 PM confirm kar sakte hain?':
+   scenario==='repeated'?'Kya ghar mein baat shuru hui hai?':'Aapko is daur ke baare mein kaunsi baat samajhni hai?';
+  let writers=0,reviews=0,closings=0;
+  const result=await directAnswer(input,{env,now:()=>new Date('2026-11-28T11:00:00Z'),
+   makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),
+   makeTools:()=>async()=>assert.fail('No chart handoff'),
+   fetchImpl:async(_url,options)=>{
+    const body=JSON.parse(options.body),system=body.messages[0].content;let output;
+    if(system.startsWith('You interpret the latest utterance')) {
+     writers++;output={route:'conversation',reply:original,intent};
+    }else if(system.startsWith('Write only one short, NEW closing question')) {
+     closings++;
+     assert.deepEqual(body.response_format,{type:'json_object'});
+     assert.equal(JSON.parse(body.messages[1].content).approved_explanation,original);
+     if(scenario==='unavailable')throw Error('Synthetic provider failure');
+     output={follow_up:closing};
+    }else{
+     reviews++;output=reviews>1&&scenario==='review_rejected'?{status:'reject',issues:['Repeated question.']}:{status:'accept',issues:[]};
+    }
+    return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(output)}}]});
+   }});
+  assert.equal(writers,1,'Do not regenerate the approved explanation');
+  assert.equal(result.reply,scenario==='valid'?original+'\n\n'+closing:original);
+  assert.equal(closings,scenario==='quiet'?0:1);
+  assert.ok(result.answer_model_calls<=4);
+ }
+});

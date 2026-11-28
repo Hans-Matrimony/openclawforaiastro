@@ -166,6 +166,28 @@ export async function interpretTurn(value,{env,fetchImpl,signal,redact,now,saved
     const approved=verdict?.status==='accept'?decision:null;
     const styleIssue=approved&&(firstContactIssue(decision.reply,firstContact)||(languageStyle&&verdict.presentation_issue)||
       (continueConversation&&continuationIssue(decision.reply,value,envelope.continuation_policy)));
+    if(approved&&semanticRouting&&decision.intent?.scope==='explain_previous'&&continueConversation&&
+       envelope.continuation_policy.mode==='continue'&&!/[?？]/u.test(approved.reply)) {
+      // Repair the optional closing only. A whole-answer edit can repeat the
+      // earlier question or change the already checked meaning of the reply.
+      try {
+        body.messages=[{role:'system',content:'Write only one short, NEW closing question after the approved explanation. Return JSON only: {"follow_up":"one question"}. Do not rewrite the explanation, repeat the question in the quoted/previous reply, ask for birth details, add a forecast, or invent circumstances. Ask about the remaining uncertainty in the explanation or a relevant current detail not already requested.\n'+continuationInstruction+'\n'+personaInstruction(value)+'\n'+responseLanguageInstruction(value)},
+          {role:'user',content:JSON.stringify({conversation:envelope,approved_explanation:approved.reply})}];
+        const closing=await request(content=>{
+          let data;try{data=JSON.parse(content);}catch{return null;}
+          return data&&Object.keys(data).length===1&&typeof data.follow_up==='string'&&data.follow_up.trim()&&data.follow_up.length<=300
+            ?data.follow_up.replace(/\s+/gu,' ').trim():null;
+        },true);
+        if(closing) {
+          const proposed={...approved,reply:approved.reply+'\n\n'+normalizeCompanionLanguage(closing,value)};
+          if(!continuationIssue(proposed.reply,value,envelope.continuation_policy)) {
+            const finalReview=await review(proposed);
+            if(finalReview?.status==='accept')return {decision:proposed,usage};
+          }
+        }
+      }catch{signal.throwIfAborted();}
+      return {decision:approved,usage};
+    }
     if (verdict?.status === 'reject'||styleIssue) {
       body.messages=[...writerMessages,{role:'assistant',content:JSON.stringify(decision)},
         {role:'system',content:'Revise only the defects identified by this review while preserving the current intent, language, persona, warmth and supported facts. For a listening request, listen without adding advice; for an affectionate or celebratory turn, respond naturally; for practical advice, give useful conditional guidance. Do not invent facts or repeat a clarification to fill a gap. Return the same routing JSON. Review: '+JSON.stringify(styleIssue?{status:'style',issues:[styleIssue]}:verdict)}];
