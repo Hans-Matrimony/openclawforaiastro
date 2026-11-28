@@ -409,3 +409,31 @@ void test("authenticated route adapter does not append interpretation text or ch
   assert.equal(response.status, 200);
   assert.equal(response.body.reply, expected);
 });
+
+void test('HTTP delivery preserves reviewed pilot wording and retains legacy formatting outside that gate',async()=>{
+  const user_id='919000000001';
+  const env={VEDASTRO_DIRECT_DEV_ENABLED:'1',VEDASTRO_DIRECT_ENVIRONMENT:'development',
+    VEDASTRO_DIRECT_FLOW:'source',ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',
+    ASTROFRIEND_CONVERSATION_PROGRESS_ENABLED:'1',ASTROFRIEND_CONVERSATION_PROGRESS_USERS:user_id,
+    ASTROFRIEND_CONVERSATION_PROGRESS_V2_ENABLED:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',
+    ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1'};
+  const expected="Saturn’s weakened and retrograde condition indicates challenges.\n\nI hear you — you were sharing, not asking for advice.";
+  for(const [patch,marker,preserve] of [
+    [{},{answer_response_flow:'pilot_coherent_reading'},true],
+    [{},{answer_response_flow:'pilot_paired_timing'},true],
+    [{},{answer_conversation_route:'conversation'},true],
+    [{user_id:'919000000002'},{answer_response_flow:'pilot_coherent_reading'},false],
+    [{reply_surface:'voice'},{answer_response_flow:'pilot_coherent_reading'},false],
+    [{},{},false],
+  ]) {
+    const handler=createDirectHandler(async()=>({schema:'vedastro-direct-reply-v1',reply:expected,
+      answer_model_calls:2,...marker}),{env});
+    const request=Object.assign(Readable.from([JSON.stringify({...value,user_id,reply_surface:'whatsapp',...patch})]),
+      {method:'POST',headers:{}});
+    const response={setHeader(){},writeHead(status){this.status=status;},end(body){this.body=JSON.parse(body);}};
+    await handler(request,response);
+    assert.equal(response.status,200);
+    if(preserve)assert.equal(response.body.reply,expected);
+    else assert.doesNotMatch(response.body.reply,/retrograde/u);
+  }
+});

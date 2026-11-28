@@ -2,6 +2,7 @@ import { createReadingHandler } from "./direct-http.mjs";
 import { directAnswer } from "./direct/agent.mjs";
 import { directReleaseEnabled } from "./direct/release.mjs";
 import { formatDisplayReply } from "./direct/format-reply.mjs";
+import { focusedReadingEnabled } from "./direct/pilot-coherent-reading.mjs";
 
 export const directEnabled = directReleaseEnabled;
 
@@ -97,8 +98,12 @@ export function createDirectHandler(
   const handler = createReadingHandler(async (value, requestOptions) => {
     try {
       const result = await calculate(value, { env, signal: requestOptions?.signal });
-      // Enforce presentation at the HTTP boundary as well as the agent result.
-      // This covers alternate/cached producers without touching chart evidence.
+      // Focused replies are reviewed in their final display form. The legacy
+      // formatter removes evidence words (e.g. retrograde) and punctuation, so
+      // running it after review can change both meaning and grammar.
+      if (focusedReadingEnabled(env, value) &&
+          (['pilot_coherent_reading','pilot_paired_timing'].includes(result?.answer_response_flow) ||
+            ['conversation','advice','clarification'].includes(result?.answer_conversation_route))) return result;
       return typeof result?.reply === "string"
         ? { ...result, reply: formatDisplayReply(result.reply) }
         : result;

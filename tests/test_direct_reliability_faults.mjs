@@ -101,11 +101,13 @@ test('a long interpretation and style repair shares the eight-call WhatsApp tran
    if(instruction.startsWith('Collect checked evidence'))return tool();
    if(instruction.startsWith('Review this astrology reply'))return response({evidence_ok:true,reason:'',presentation_issue:'Use slightly clearer everyday wording.'});
    const data=JSON.parse(body.messages.at(-1).content);
-   const [answer,...reason]=focusedReadingFallback(data.reading_plan,value).split('\n\n');
-   return response({answer,reason:reason.join(' '),remedy:''});
+   // Why replies now lead with reasons without a repeated verdict bubble.
+   // Split that checked explanation into the writer's two required fields.
+   const sentences=focusedReadingFallback(data.reading_plan,value).split(/(?<=[.!?।])\s+/u);
+   return response({answer:sentences.shift(),reason:sentences.join(' '),remedy:''});
   }});
  assert.equal(calls,8);assert.equal(result.answer_model_calls,8);assert.equal(tools,1);
- assert.match(result.reply,/career/iu);assert.doesNotMatch(result.reply,/busy|try again/iu);
+ assert.match(result.reply,/ghar|Shani|Surya/iu);assert.doesNotMatch(result.reply,/busy|try again/iu);
  assert.ok(result.answer_validation.includes('pilot_coherent_verified_with_style_issue'));
 });
 

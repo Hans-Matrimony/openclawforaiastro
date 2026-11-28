@@ -79,6 +79,18 @@ test('short follow-ups retain the subject without reintroducing dates or a repea
  assert.equal(yesNo.remedy,'omit');
 });
 
+test('a rejected why writer falls back to checked reasons rather than repeating the verdict',()=>{
+ const packet=coherentEvidencePacket([chart()],'career',{focused:true});
+ const input={...value,query:'Aisa kyun?',language:'hinglish'};
+ const plan=buildReadingPlan(input,'Mera career kaisa rahega?',packet);
+ plan.outcome='unfavorable_now';
+ const reply=focusedReadingFallback(plan,input);
+ assert.equal(plan.answer_intent,'explain_previous_assessment');
+ assert.doesNotMatch(reply,/Kundli mein abhi|career mein pragati ke raaste|20\d{2}/u);
+ assert.match(reply,/Shani|Surya/u);
+ assert.equal(focusedReplyIssue(reply,plan),null);
+});
+
 async function run({input=value,config=env,draft=candidate,review='{"evidence_ok":true,"reason":"","presentation_issue":""}'}={}) {
  const requests=[];
  const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),

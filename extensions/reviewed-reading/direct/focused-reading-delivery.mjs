@@ -180,8 +180,9 @@ export function focusedReadingFallback(plan,value) {
   }
   const lang=language(value),answer=outcome(plan,lang);
   if(!answer)return null;
-  const explainWindow=plan.answer_intent==='explain_previous_assessment'&&plan.reasons.window_basis;
-  const parts=explainWindow?[]:[answer],window=plan.timing.status==='supplied_window'?plan.timing.windows?.[0]:null;
+  const explaining=plan.answer_intent==='explain_previous_assessment';
+  const explainWindow=explaining&&plan.reasons.window_basis;
+  const parts=explaining?[]:[answer],window=plan.timing.status==='supplied_window'?plan.timing.windows?.[0]:null;
   if(window) {
     const from=month(window.from,lang),to=month(window.to,lang);if(!from||!to)return null;
     parts.push(lang==='english'?`The calculation points to opportunities from ${from} to ${to}.`:
@@ -193,7 +194,10 @@ export function focusedReadingFallback(plan,value) {
       lang==='english'?'The available calculation does not identify a timing range.':
       lang==='hindi'?'उपलब्ध गणना में समय की अवधि नहीं मिली है।':'Maujooda ganana mein samay ki avadhi nahi mili hai.');
   }
-  const reasons=[...plan.reasons.supporting.slice(0,2),...plan.reasons.opposing.slice(0,3),...(plan.reasons.neutral??[]).slice(0,1)]
+  // A why follow-up asks for the basis, not the same verdict again. For an
+  // adverse outlook put its actual limiting factors before the support.
+  const support=plan.reasons.supporting.slice(0,2),opposing=plan.reasons.opposing.slice(0,3);
+  const reasons=[...(explaining&&plan.outcome==='unfavorable_now'?[...opposing,...support]:[...support,...opposing]),...(plan.reasons.neutral??[]).slice(0,1)]
     .map(factor=>factorText(factor,lang)).filter(Boolean);
   const property=plan.reasons.property_basis;
   if(property?.rasi_fourth_lord?.adverse_natal_condition) {
