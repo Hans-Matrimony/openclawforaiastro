@@ -1,5 +1,15 @@
 import {readingTopics} from './topic-period-context.mjs';
 
+function careerIncomePreference(clause,paragraph,isLast) {
+ // A question about what stable employment means is still a career follow-up.
+ // Do not exempt an income forecast or an unrelated savings/debt discussion.
+ return isLast&&/[?？]\s*$/u.test(paragraph)&&
+  /\b(?:job|role|career|naukri|employment)\b|नौकरी|रोज़गार|रोजगार/iu.test(clause)&&
+  /\b(?:regular|steady|stable|monthly|earned)\s+income\b|नियमित\s+आय/iu.test(clause)&&
+  /\b(?:matlab|mean|means|meaning|priority|priorities|prefer|important|zaroori|zaruri)\b|मतलब|प्राथमिकता|ज़रूरी|जरूरी/iu.test(clause)&&
+  !/\b(?:when|kab|will|hoga|hogi|honge|milegi|milega|increase|decrease|double|grow|improve|badhe\w*|ghate\w*|savings?|debt|loans?|invest\w*|trading|wealth|financ\w*|paisa|paise|bachat|karz)\b|20\d{2}|कब|बढ़े|बचत|कर्ज|निवेश/iu.test(clause);
+}
+
 // Dates may legitimately overlap. Check what the response answers, rather than
 // requiring varied dates or trusting a model's approval of a stale draft.
 export function unrelatedReadingTopic(reply,plan) {
@@ -15,6 +25,7 @@ export function unrelatedReadingTopic(reply,plan) {
    const unrelated=topics.filter(({topic})=>topic!==plan.topic);
    for(const {topic} of unrelated) {
     if(plan.comparison_outlooks?.some(outlook=>outlook.topic===topic))continue;
+    if(plan.topic==='career'&&topic==='money'&&careerIncomePreference(clause,paragraphs[index],index===paragraphs.length-1))continue;
     // Pay growth belongs to a career assessment as well as finances. Naming
     // salary must not itself force a valid promotion answer into a fallback.
     if(plan.topic==='career'&&topic==='money'&&/\bsalary\b|वेतन/iu.test(clause)&&

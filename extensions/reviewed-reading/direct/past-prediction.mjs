@@ -12,11 +12,18 @@ export function futureDateInstruction(asOf) {
 // Restrict this to event prose; quoted/historical wording is not a forecast.
 export function futureAsPast(reply,asOf=new Date()) {
   const year=Number(indiaToday(asOf).slice(0,4));
-  return reply.replace(/"[^"\n]*"|“[^”\n]*”|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(sentence=>
-    [...sentence.matchAll(/\b(20\d{2})\b/gu)].some(match=>Number(match[1])>year)&&
-    /\b(?:job|career|sha+di|marriage|ghar|property|naukri)\b/iu.test(sentence)&&
-    /\b(?:rahi|raha|rahe|hua|hui|was|were|happened)\b/iu.test(sentence)&&
-    !/\b(?:rahi|raha|rahe)\s+(?:hai|hain|ho|hoga|hogi|honge)\b|\b(?:you|aapne)\s+(?:said|kaha)\b|\b(?:wrong|incorrect|galat|quoted)\b/iu.test(sentence));
+  return reply.replace(/"[^"\n]*"|“[^”\n]*”|`[^`\n]*`/gu,'').split(/[.!?\n।]+/u).some(sentence=>{
+    if(![...sentence.matchAll(/\b(20\d{2})\b/gu)].some(match=>Number(match[1])>year)||
+      !/\b(?:job|career|sha+di|marriage|ghar|property|naukri)\b/iu.test(sentence)||
+      /\b(?:you|aapne)\s+(?:said|kaha)\b|\b(?:wrong|incorrect|galat|quoted)\b/iu.test(sentence))return false;
+    // Conversational Hinglish can omit "hai": "samay nahi dikh raha" is
+    // a present assessment, not a completed future event. Retain past auxiliaries
+    // and check the remaining prose so a real past claim is not masked.
+    const eventProse=sentence
+      .replace(/\b(?:dikh|lag)\s+(?:rahi|raha|rahe)\b(?!\s+(?:tha|thi|the|thaa|thii)\b)/giu,'present assessment')
+      .replace(/\b(?:rahi|raha|rahe)\s+(?:hai|hain|ho|hoga|hogi|honge)\b/giu,'progressive assessment');
+    return /\b(?:rahi|raha|rahe|hua|hui|was|were|happened)\b/iu.test(eventProse);
+  });
 }
 
 // Compare the end of each dated forecast clause, not birth dates or the start
