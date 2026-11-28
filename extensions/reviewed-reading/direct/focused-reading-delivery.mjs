@@ -152,8 +152,9 @@ function factorText(factor,lang) {
 
 function outcome(plan,lang) {
   const key=plan.guides?.[0]?.key;
-  const topic=key==='career_growth'?'promotion':plan.topic;
-  const subject={career:['career progress','career mein pragati','करियर में प्रगति'],promotion:['promotion','promotion','पदोन्नति'],
+  const job=key==='career_job'&&/\b(?:job|naukri|naukari|employment)\b|नौकरी/iu.test(plan.subject);
+  const topic=key==='career_growth'?'promotion':job?'job':plan.topic;
+  const subject={career:['career progress','career mein pragati','करियर में प्रगति'],job:['getting a job','naukri milne','नौकरी मिलने'],promotion:['promotion','promotion','पदोन्नति'],
     marriage:['marriage','shaadi','शादी'],relationship:['a relationship','rishta banne','रिश्ता बनने'],
     money:['financial improvement','aarthik sudhar','आर्थिक सुधार'],education:['studies','padhai','पढ़ाई'],
     abroad:['overseas travel','videsh jaane','विदेश जाने'],property:['home ownership','ghar kharidne','घर खरीदने']}[topic];

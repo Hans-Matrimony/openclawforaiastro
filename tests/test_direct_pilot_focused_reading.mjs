@@ -102,6 +102,7 @@ test('missing timing fallback addresses the asked period without calculation jar
   const input={...value,language,query},plan=buildReadingPlan(input,query,packet,[],{timingRequested:true});
   const reply=focusedReadingFallback(plan,input);
   assert.match(reply,scope);
+  assert.match(reply,/naukri milne|getting a job|नौकरी मिलने/u);
   assert.doesNotMatch(reply,/ganana|calculation|गणना|currently|\babhi\b|अभी|20\d{2}/iu);
   assert.equal(focusedReplyIssue(reply,plan),null);
   assert.equal(reply.split('\n\n').length,2);
@@ -186,8 +187,26 @@ test('why fallback repairs only the closing question and reviews the final displ
   assert.match(requests[2].system,/Write only one contextual closing question/u);
   assert.equal(requests[2].data.completed_explanation,focusedReadingFallback(buildReadingPlan(input,value.query,packet),input));
   if(invalidClosing) {assert.equal(requests.length,3);assert.doesNotMatch(reply,/\?/u);}
-  else {assert.equal(requests.length,4);assert.ok(reply.endsWith(closing));assert.equal(requests[3].data.proposed,reply);assert.ok(events.includes('fallback_followup_verified'));}
+  else {assert.equal(requests.length,4);assert.ok(reply.endsWith(closing));assert.equal(requests[3].data.proposed,reply);assert.ok(events.includes('fallback_followup_verified'));
+   assert.match(requests[3].system,/Review only the added conversational closing question/u);
+   assert.match(requests[3].system,/Do not demand a new prediction/u);
+   assert.ok(!Object.hasOwn(requests[3].data,'checked_evidence'));
+   assert.equal(requests[3].data.completed_explanation,requests[2].data.completed_explanation);
+  }
  }
+});
+
+test('a timing fallback also repairs its missing closing without changing checked chart factors',async()=>{
+ const input={...value,query:'Agle saal stable job ke yog?',language:'hinglish'};
+ const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:['Saturn retrograde']},event_windows:[]};
+ const outputs=['{}','{}',JSON.stringify({follow_up:'Aap abhi kis tarah ka kaam dhoondh rahe hain?'}),JSON.stringify({evidence_ok:true,reason:'',presentation_issue:''})];
+ const events=[];
+ const reply=await writeCoherentReading({value:input,subject:input.query,packet,focused:true,continueConversation:true,timingRequested:true,
+  generate:async()=>{assert.ok(outputs.length,'Only one closing generation and one review');return outputs.shift();},
+  validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+ assert.match(reply,/Aapke poochhe samay/u);assert.match(reply,/Shani.*vakri|Vakri Shani/u);
+ assert.ok(reply.endsWith('Aap abhi kis tarah ka kaam dhoondh rahe hain?'));
+ assert.ok(events.includes('fallback_followup_verified'));
 });
 
 async function run({input=value,config=env,draft=candidate,review='{"evidence_ok":true,"reason":"","presentation_issue":""}'}={}) {
@@ -377,7 +396,7 @@ test('model approval cannot publish overstated good chances, and the safe answer
  const {result,requests}=await run({input:{...value,query:'Kya meri job lagne ke chances achhe hain? Seedha batao.',language:'hinglish'},
   draft:'Haan, job lagne ki sambhavana achhi hai.\n\nCareer ka ghar mazboot hai, lekin vakri Shani rukawat dikhata hai.'});
  assert.doesNotMatch(result.reply,/sambhavana achhi|good chances|high chance/iu);
- assert.match(result.reply,/career mein pragati ke yog/u);
+ assert.match(result.reply,/naukri milne ke yog/u);
  assert.equal(requests.filter(body=>body.messages[0].content.startsWith('Review this astrology reply')).length,0);
  for(const text of ['High chances of a job.','Job lagne ki sambhavana achhi hai.','नौकरी मिलने की संभावना अच्छी है।'])
   assert.ok(focusedReplyIssue(text,{scope:'natal_outlook'}),text);

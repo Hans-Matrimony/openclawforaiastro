@@ -241,7 +241,7 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   if(focused) {
     const checked=focusedReadingFallback(plan,value);
     if(checked&&!focusedReplyIssue(checked,plan)&&!validate(checked)) {
-      if(continuity&&policy.mode==='continue'&&plan.answer_intent==='explain_previous_assessment') {
+      if(continuity&&policy.mode==='continue') {
         try {
           // Keep the chart explanation fixed. Repair only the missing closing,
           // then review the displayed reply; failure still returns the reading.
@@ -253,8 +253,11 @@ ${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:fa
           if(closing&&typeof closing.follow_up==='string'&&Object.keys(closing).length===1&&closing.follow_up.length<=300) {
             const reply=checked+'\n\n'+normalizeFocusedReadingLanguage(closing.follow_up.replace(/\s+/gu,' ').trim(),value);
             if(reply.split(/\s+/u).length<=150&&!focusedReplyIssue(reply,plan)&&!validate(reply)&&!continuationIssue(reply,value,policy)) {
-              const review=JSON.parse(await generate(focusedReviewContract+estimateInstruction+continuation+'\n'+personaInstruction(value,{includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),
-                JSON.stringify({...payload,proposed:reply})));
+              const review=JSON.parse(await generate(`Review only the added conversational closing question. The completed_explanation is fixed checked text, not another draft to reinterpret.
+Return JSON only: {"evidence_ok":true,"reason":"","presentation_issue":""}. Reject an unsupported fact, changed actor, invented feeling, wrong topic, repeated question, wrong language/persona, or violation of the user's request. Use presentation_issue for an awkward closing. Do not demand a new prediction, a different verdict, an event date or a stability forecast from the completed explanation. Review whether this question naturally follows the supplied dialogue and explanation.
+${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
+                JSON.stringify({latest_request:value.query,topic:packet.topic,language:value.language,dialogue:payload.dialogue,
+                  user_context:facts,continuation_policy:policy,completed_explanation:checked,follow_up:closing.follow_up,proposed:reply})));
               if(review?.evidence_ok===true&&review.reason===''&&review.presentation_issue==='') {
                 onEvent('fallback_followup_verified');return reply;
               }
