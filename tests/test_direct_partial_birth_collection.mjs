@@ -12,8 +12,8 @@ const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_D
  ASTROFRIEND_PILOT_TOPIC_PROMPTS:'1',ASTROFRIEND_PILOT_COHERENT_REPLIES:'1',ASTROFRIEND_PILOT_FOCUSED_READING_ENABLED:'1',ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED:'1'};
 
 for(const [name,input,missing,present] of [
- ['date only',value,/samay[\s\S]*sthan/u,/janam tithi/u],
- ['date and time',{...value,query:'Mera janam subah 6 bajkar 35 minute par hua tha.',birth:{date:'18 October 1998',time:'06:35'}},/janam sthan/u,/janam tithi|exact samay/u]
+ ['date only',value,/Samay[\s\S]*Sthaan/u,/Janam Tithi/u],
+ ['date and time',{...value,query:'Mera janam subah 6 bajkar 35 minute par hua tha.',birth:{date:'18 October 1998',time:'06:35'}},/Janam Sthaan/u,/Janam Tithi|Samay/u]
 ])test(`semantic reading handoff with ${name} asks only missing inputs without a chart failure`,async()=>{
  let calls=0;
  const result=await directAnswer(input,{env,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No memory write')}),
@@ -34,7 +34,7 @@ test('complete or missing profiles and other-person requests cannot use partial 
 
 test('validated saved updates in other formats can clarify missing fields without matching a prefix',()=>{
  const changed={...value,profile_update_status:'saved',query:'18 October 1998, Jaipur. What about marriage?',birth:{date:'18 October 1998',location_name:'Jaipur'}};
- assert.match(partialBirthCollectionReply(changed),/samay/u);
+ assert.match(partialBirthCollectionReply(changed),/Samay/u);
  assert.equal(partialBirthCollectionReply({...changed,profile_update_status:undefined}),null);
  assert.equal(partialBirthCollectionReply({...changed,query:'My sister was born in Jaipur. What about marriage?'}),null);
 });

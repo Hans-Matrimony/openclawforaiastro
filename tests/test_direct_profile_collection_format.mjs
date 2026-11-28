@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {directAnswer} from '../extensions/reviewed-reading/direct/agent.mjs';
 import {profileCollectionFormat} from '../extensions/reviewed-reading/direct/profile-collection-format.mjs';
 import {savedBirthContext} from '../extensions/reviewed-reading/direct/context.mjs';
@@ -11,11 +12,11 @@ const env={OPENROUTER_API_KEY:'fixture',VEDASTRO_DIRECT_FLOW:'source',VEDASTRO_D
  ASTROFRIEND_PILOT_SEMANTIC_ROUTING_ENABLED:'1',ASTROFRIEND_PILOT_NATURAL_CONTINUATION_ENABLED:'1'};
 
 for(const [name,profile,identity,expected,status] of [
- ['new user',{}, {},['Name:','Gender:','Date of birth: DD Month YYYY','Birth time: HH:MM AM/PM','Birthplace: City, State, Country']],
- ['known name and date',{date:'1998-10-18'},{name:'Neel'},['Gender:','Birth time: HH:MM AM/PM','Birthplace: City, State, Country']],
- ['only place missing',{date:'1998-10-18',time:'06:35'},{name:'Neel',gender:'male'},['Birthplace: City, State, Country']],
+ ['new user',{}, {},['Name:','Date of Birth:','Time:','Place of Birth:','Gender:','Religion (Optional):']],
+ ['known name and date',{date:'1998-10-18'},{name:'Neel'},['Time:','Place of Birth:','Gender:']],
+ ['only place missing',{date:'1998-10-18',time:'06:35'},{name:'Neel',gender:'male'},['Place of Birth:']],
  ['fresh birth form missing identity',{date:'1998-10-18',time:'06:35',location_name:'Jaipur'},{},['Name:','Gender:'],'saved'],
- ['unknown placeholders',{date:'unknown'},{name:'Please update',gender:'unknown'},['Name:','Gender:','Date of birth: DD Month YYYY','Birth time: HH:MM AM/PM','Birthplace: City, State, Country']]
+ ['unknown placeholders',{date:'unknown'},{name:'Please update',gender:'unknown'},['Name:','Date of Birth:','Time:','Place of Birth:','Gender:','Religion (Optional):']]
 ])test(`self astrology intake formats ${name} without starting calculation`,async()=>{
  let calls=0;
  const result=await directAnswer({user_id:user,query:'When will I get married?',reply_surface:'whatsapp',language:'english',history:[],birth:profile,
@@ -31,7 +32,7 @@ for(const [name,profile,identity,expected,status] of [
 });
 
 test('known fields never appear as blanks in every profile combination',()=>{
- const definitions=[['name','Neel','Name:'],['gender','male','Gender:'],['date','1998-10-18','Date of birth:'],['time','06:35','Birth time:'],['location_name','Jaipur','Birthplace:']];
+ const definitions=[['name','Neel','Name:'],['gender','male','Gender:'],['date','1998-10-18','Date of Birth:'],['time','06:35','Time:'],['location_name','Jaipur','Place of Birth:']];
  for(let mask=0;mask<32;mask++){
   const known=Object.fromEntries(definitions.filter((_,i)=>mask&(1<<i)).map(([key,value])=>[key,value]));
   const form=profileCollectionFormat(savedBirthContext(known),'english',known)??'';
@@ -39,10 +40,20 @@ test('known fields never appear as blanks in every profile combination',()=>{
  }
 });
 
-test('localized missing formats preserve separate lines and time/date guidance',()=>{
+test('localized initial forms preserve original-style rows without placeholder notation',()=>{
  for(const language of ['hindi','hinglish','marathi','bengali','english']){
   const form=profileCollectionFormat(savedBirthContext({}),language);
-  assert.equal(form.split('\n\n')[1].split('\n').length,5);
-  assert.match(form,/DD Month YYYY/);assert.match(form,/HH:MM AM\/PM/);
+  assert.equal(form.split('\n\n')[1].split('\n').length,6);
+  assert.doesNotMatch(form,/DD Month YYYY|HH:MM|City, State, Country/);
  }
+});
+
+test('English and Hinglish initial forms match the existing USER.md templates exactly',()=>{
+ const source=readFileSync(new URL('../app/whatsapp-support/workspace-astrologer/USER.md',import.meta.url),'utf8');
+ for(const [marker,language] of [['ENGLISH','english'],['HINGLISH','hinglish']]){
+  const section=source.slice(source.indexOf(`- **${marker} TEMPLATE`));
+  const expected=/```\r?\n([\s\S]*?)```/u.exec(section)[1].split(/\r?\n/u).map(line=>line.trim()).join('\n').trim();
+  assert.equal(profileCollectionFormat(savedBirthContext({}),language),expected);
+ }
+ assert.equal(profileCollectionFormat(savedBirthContext({date:'1998-10-18',time:'06:35',location_name:'Jaipur'}),'english',{name:'Neel',gender:'male'}),null);
 });
