@@ -155,6 +155,41 @@ test('a style fallback cannot drop a checked factor it cannot express',async()=>
  assert.ok(!events.includes('checked_explanation'));assert.ok(events.includes('verified_with_style_issue'));
 });
 
+test('missing timing with a reviewed certainty caveat uses natural checked wording and retains its question',async()=>{
+ const input={...value,query:'Agle saal stable job ke yog?',language:'hinglish'};
+ const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],
+  adverse:['Saturn Debilitated','Saturn retrograde','Sun Debilitated',{kind:'active_period_link',linked:false}]},event_windows:[]};
+ const draft={answer:'Agle saal pakka haan nahi keh sakti. Kul career sanket kamzor hain.',
+  reason:'Dasva ghar mazboot hai. Shani neech aur vakri hain. Surya bhi neech hain.',remedy:'',follow_up:'Aap kis tarah ka kaam dhoondh rahe hain?'};
+ const outputs=[JSON.stringify(draft),JSON.stringify({evidence_ok:true,reason:'',presentation_issue:'Remove the certainty-focused caveat.'})];
+ const events=[];
+ const reply=await writeCoherentReading({value:input,subject:input.query,packet,focused:true,continueConversation:true,timingRequested:true,
+  generate:async()=>{assert.ok(outputs.length,'No further edit round');return outputs.shift();},
+  validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+ assert.doesNotMatch(reply,/pakka haan|ganana|calculation/u);
+ assert.match(reply,/Aapke poochhe samay/u);assert.ok(reply.endsWith(draft.follow_up));
+ assert.ok(events.includes('checked_presentation'));
+});
+
+test('why fallback repairs only the closing question and reviews the final displayed explanation',async()=>{
+ for(const invalidClosing of [false,true]) {
+  const input={...value,query:'Why did you say that?',language:'english'};
+  const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:['Saturn retrograde']},event_windows:[]};
+  const draft={answer:'Saturn is retrograde.',reason:'The tenth house offers support.',remedy:'',follow_up:'When will your financial savings improve?'};
+  const closing=invalidClosing?'When will your financial savings improve?':'What change would you most like in your work?';
+  const outputs=[JSON.stringify(draft),JSON.stringify(draft),JSON.stringify({follow_up:closing}),JSON.stringify({evidence_ok:true,reason:'',presentation_issue:''})];
+  const requests=[],events=[];
+  const reply=await writeCoherentReading({value:input,subject:value.query,packet,focused:true,continueConversation:true,
+   generate:async(system,data)=>{requests.push({system,data:JSON.parse(data)});return outputs.shift();},
+   validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+  assert.match(reply,/^Saturn is retrograde/u);assert.doesNotMatch(reply,/savings/u);
+  assert.match(requests[2].system,/Write only one contextual closing question/u);
+  assert.equal(requests[2].data.completed_explanation,focusedReadingFallback(buildReadingPlan(input,value.query,packet),input));
+  if(invalidClosing) {assert.equal(requests.length,3);assert.doesNotMatch(reply,/\?/u);}
+  else {assert.equal(requests.length,4);assert.ok(reply.endsWith(closing));assert.equal(requests[3].data.proposed,reply);assert.ok(events.includes('fallback_followup_verified'));}
+ }
+});
+
 async function run({input=value,config=env,draft=candidate,review='{"evidence_ok":true,"reason":"","presentation_issue":""}'}={}) {
  const requests=[];
  const result=await directAnswer(input,{env:config,now:()=>now,makeMemory:()=>({read:async()=>[],write:async()=>assert.fail('No writes')}),

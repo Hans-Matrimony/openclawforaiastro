@@ -157,8 +157,10 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   let feedback='';
   let verifiedCandidate=null;
   let previousDraft=null;
-  const checkedExplanation=parts=>{
-    if(!focused||plan.answer_intent!=='explain_previous_assessment')return null;
+  const checkedPresentation=parts=>{
+    const timingBoilerplate=plan?.timing.status==='unavailable'&&
+      /\b(?:pakka|pakki|guarantee\w*|certain\w*|ganana|calculation|timing range)\b|पक्का|पक्की|गारंटी|गणना/u.test(parts.answer);
+    if(!focused||(plan.answer_intent!=='explain_previous_assessment'&&!timingBoilerplate))return null;
     const explanation=focusedReadingFallback(plan,value,{requireCompleteReasons:true});
     if(!explanation)return null;
     // Retain the already reviewed question; never invent a replacement closing.
@@ -221,8 +223,8 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
             if(!presentation) {onEvent('verified');return candidate;}
             // A checked WHY explanation already exists in the typed plan.
             // Prefer it to another writer/reviewer round or a repeated verdict.
-            const explanation=checkedExplanation(parts);
-            if(explanation) {onEvent('checked_explanation');return explanation;}
+            const explanation=checkedPresentation(parts);
+            if(explanation) {onEvent(plan.answer_intent==='explain_previous_assessment'?'checked_explanation':'checked_presentation');return explanation;}
             feedback=presentation.slice(0,500);
           } else feedback=typeof review?.reason==='string' && review.reason.trim()?review.reason.slice(0,500):'Review did not return a valid evidence decision.';
         }
@@ -238,7 +240,30 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   onEvent('fallback');
   if(focused) {
     const checked=focusedReadingFallback(plan,value);
-    if(checked&&!focusedReplyIssue(checked,plan)&&!validate(checked))return checked;
+    if(checked&&!focusedReplyIssue(checked,plan)&&!validate(checked)) {
+      if(continuity&&policy.mode==='continue'&&plan.answer_intent==='explain_previous_assessment') {
+        try {
+          // Keep the chart explanation fixed. Repair only the missing closing,
+          // then review the displayed reply; failure still returns the reading.
+          const raw=await generate(`Write only one contextual closing question for the supplied completed astrology explanation.
+Return JSON only: {"follow_up":"one short question"}. Do not rewrite the explanation, add advice, repeat a recent question, invent circumstances or introduce another topic. Ask about one useful current detail or priority not already supplied.
+${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
+            JSON.stringify({...payload,completed_explanation:checked}));
+          const closing=JSON.parse(raw);
+          if(closing&&typeof closing.follow_up==='string'&&Object.keys(closing).length===1&&closing.follow_up.length<=300) {
+            const reply=checked+'\n\n'+normalizeFocusedReadingLanguage(closing.follow_up.replace(/\s+/gu,' ').trim(),value);
+            if(reply.split(/\s+/u).length<=150&&!focusedReplyIssue(reply,plan)&&!validate(reply)&&!continuationIssue(reply,value,policy)) {
+              const review=JSON.parse(await generate(focusedReviewContract+estimateInstruction+continuation+'\n'+personaInstruction(value,{includeDeliveryPolicy:false})+'\n'+responseLanguageInstruction(value),
+                JSON.stringify({...payload,proposed:reply})));
+              if(review?.evidence_ok===true&&review.reason===''&&review.presentation_issue==='') {
+                onEvent('fallback_followup_verified');return reply;
+              }
+            }
+          }
+        }catch {onEvent('fallback_followup_unavailable');}
+      }
+      return checked;
+    }
   }
   return fallback;
 }
