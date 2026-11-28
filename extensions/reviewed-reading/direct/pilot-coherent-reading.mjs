@@ -157,11 +157,18 @@ export async function writeCoherentReading({value,subject,packet,facts=[],remedi
   const repairClosing=async(checked,eventPrefix)=>{
     if(!continuity||policy.mode!=='continue')return checked;
     try {
-      const raw=await generate(`Write only one contextual closing question for the supplied completed astrology explanation.
+      const instruction=`Write only one contextual closing question for the supplied completed astrology explanation.
 Return JSON only: {"follow_up":"one short question"}. Do not rewrite the explanation, add advice, repeat a recent question, invent circumstances or introduce another topic. Ask about one useful current detail or priority not already supplied.
-${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`,
-        JSON.stringify({...payload,completed_explanation:checked}));
-      const closing=JSON.parse(raw);
+The current continuation_policy is continue, so follow_up must be nonempty. Earlier requests for quiet listening in the dialogue describe those earlier turns; use the current latest_request and current continuation_policy for this response.
+${continuationInstruction}\n${personaInstruction(value,{includeDeliveryPolicy:false})}\n${responseLanguageInstruction(value)}`;
+      const context=JSON.stringify({...payload,completed_explanation:checked});
+      let closing=JSON.parse(await generate(instruction,context));
+      // An empty question is a recoverable writer omission, not an approved
+      // closing. Retry it once; the shared generation budget still applies.
+      if(closing&&Object.keys(closing).length===1&&typeof closing.follow_up==='string'&&!closing.follow_up.trim()) {
+        onEvent(eventPrefix+'_followup_empty');
+        closing=JSON.parse(await generate(instruction+'\nThe previous follow_up was empty. Return one nonempty contextual question for the current request.',context));
+      }
       if(closing&&typeof closing.follow_up==='string'&&Object.keys(closing).length===1&&closing.follow_up.length<=300) {
         const reply=checked+'\n\n'+normalizeFocusedReadingLanguage(closing.follow_up.replace(/\s+/gu,' ').trim(),value);
         if(reply.split(/\s+/u).length<=150&&!focusedReplyIssue(reply,plan)&&!validate(reply)&&!continuationIssue(reply,value,policy)) {

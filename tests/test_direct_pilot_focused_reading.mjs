@@ -264,6 +264,28 @@ test('a failed style edit repairs a checked missing closing within the existing 
  }
 });
 
+test('an empty closing after an earlier quiet turn gets one bounded retry and its own review',async()=>{
+ const input={...value,language:'hinglish',query:'Agle saal stable job ke yog?',
+  history:[{role:'user',text:'Bas suno, abhi advice ya sawaal nahi chahiye.'},{role:'assistant',text:'Main sun rahi hoon.'}]};
+ const packet={topic:'career',assessment:{trend:'NEGATIVE',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:['Saturn retrograde']},event_windows:[]};
+ for(const retryWorks of [true,false]) {
+  const closing='Aapke liye stable job ka matlab permanent role hai ya regular income?';
+  const outputs=['{}','{}',JSON.stringify({follow_up:''}),JSON.stringify({follow_up:retryWorks?closing:''}),
+   JSON.stringify({evidence_ok:true,reason:'',presentation_issue:''})];
+  const requests=[],events=[];
+  const reply=await writeCoherentReading({value:input,subject:input.query,packet,focused:true,continueConversation:true,timingRequested:true,
+   generate:async(system,data)=>{requests.push({system,data:JSON.parse(data)});assert.ok(outputs.length);return outputs.shift();},
+   validate:()=>null,fallback:'safe',onEvent:event=>events.push(event)});
+  assert.equal(requests.length,retryWorks?5:4);
+  assert.equal(requests[2].data.continuation_policy.mode,'continue');
+  assert.match(requests[2].system,/Earlier requests for quiet listening/u);
+  assert.match(requests[3].system,/previous follow_up was empty/u);
+  assert.equal(events.filter(event=>event==='fallback_followup_empty').length,1);
+  if(retryWorks){assert.ok(reply.endsWith(closing));assert.ok(events.includes('fallback_followup_verified'));}
+  else{assert.doesNotMatch(reply,/\?/u);assert.ok(!events.includes('fallback_followup_verified'));}
+ }
+});
+
 test('missing-closing repair cannot bypass evidence, topic, repetition or quiet-mode checks',async()=>{
  const packet={topic:'career',assessment:{trend:'MIXED',favorable:[{kind:'house_strength',house:10,strength:'strong'}],adverse:[]},event_windows:[]};
  const draft={answer:'Kaam mein badhne ka sahara dikhta hai.',reason:'Dasve ghar ki sthiti mazboot hai.',remedy:''};
